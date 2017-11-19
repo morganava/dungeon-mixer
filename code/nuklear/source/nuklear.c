@@ -25,9 +25,6 @@
 #include "../include/nuklear.h"
 #include "nuklear_glfw_gl3.h"
 
-// #define WINDOW_WIDTH 1200
-// #define WINDOW_HEIGHT 800
-
 #define MAX_VERTEX_BUFFER 512 * 1024
 #define MAX_ELEMENT_BUFFER 128 * 1024
 
@@ -47,7 +44,6 @@ nk_main(const char* window_title, int width, int height, nk_gui_callback callbac
 
     /* Platform */
     static GLFWwindow *win;
-    //int width = 0, height = 0;
     struct nk_context *ctx;
     struct nk_color background;
 
@@ -106,7 +102,7 @@ nk_main(const char* window_title, int width, int height, nk_gui_callback callbac
         nk_glfw3_new_frame();
 
         /* GUI */
-        if(callback) callback(ctx);
+        if(callback) callback(ctx, width, height);
 
         /* Draw */
         {
