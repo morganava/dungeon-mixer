@@ -2,6 +2,7 @@
 #include <cstdio>
 #include <vector>
 #include <string>
+#include <functional>
 
 #include <nuklear.h>
 
@@ -46,6 +47,8 @@ std::vector<atmosphere> atmospheres =
 	{"Boss Music", 1.0f},
 	{"Esga Temple", 0.62f},
 };
+
+std::vector<std::function<void(void)>> work_queue;
 
 /* 
 	Draw Calls
@@ -128,6 +131,10 @@ void draw_play_screen(nk_context* ctx, int width, int height)
 							nk_layout_space_push(ctx, nk_rect(close_offset_x, close_offset_y, MX_ATMOSPHERE_BUTTON_SIZE, MX_ATMOSPHERE_BUTTON_SIZE));
 							if(nk_button_label(ctx, "X")) 
 							{
+								work_queue.push_back([=]() -> void
+								{
+									atmospheres.erase(atmospheres.begin() + k);
+								});
 								// remove this atmosphere from active list
 							}
 						}
@@ -161,7 +168,7 @@ void draw_edit_screen(nk_context* ctx, int width, int height)
 	nk_end(ctx);
 }
 
-void gui_callback(nk_context* ctx, int width, int height)
+void draw(nk_context* ctx, int width, int height)
 {
 	// draw shared top bar
 	draw_top_bar(ctx, width);
@@ -175,7 +182,18 @@ void gui_callback(nk_context* ctx, int width, int height)
 			draw_edit_screen(ctx, width, height - MX_TOPBAR_HEIGHT);
 			break;
 	}
+}
 
+void gui_callback(nk_context* ctx, int width, int height)
+{
+	draw(ctx, width, height);
+
+	// perform work in queue
+	for(auto func : work_queue)
+	{
+		func();
+	}
+	work_queue.clear();
 }
 
 int main()
