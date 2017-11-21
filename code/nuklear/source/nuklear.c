@@ -8,7 +8,6 @@
 #include <assert.h>
 #include <math.h>
 #include <limits.h>
-#include <time.h>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -36,11 +35,22 @@
 static void error_callback(int e, const char *d)
 {fprintf(stderr, "Error %d: %s\n", e, d);}
 
+#include <sys/time.h>
+
+// get time in microseconds
+static int64_t get_time()
+{
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+
+    return (int64_t)tv.tv_sec * (int64_t)1000000 + (int64_t)tv.tv_usec;
+}
+
 void
 nk_main(const char* window_title, int width, int height, nk_gui_callback callback)
 {
-	const int WINDOW_WIDTH = width;
-	const int WINDOW_HEIGHT = height;
+    const int WINDOW_WIDTH = width;
+    const int WINDOW_HEIGHT = height;
 
     /* Platform */
     static GLFWwindow *win;
@@ -76,18 +86,18 @@ nk_main(const char* window_title, int width, int height, nk_gui_callback callbac
     /* Load Fonts: if none of these are loaded a default font will be used  */
     /* Load Cursor: if you uncomment cursor loading please hide the cursor */
     {
-    	struct nk_font_atlas *atlas;
-    	nk_glfw3_font_stash_begin(&atlas);
-	    /*struct nk_font *droid = nk_font_atlas_add_from_file(atlas, "../../../extra_font/DroidSans.ttf", 20, 0);*/
-	    /*struct nk_font *roboto = nk_font_atlas_add_from_file(atlas, "../../../extra_font/Roboto-Regular.ttf", 14, 0);*/
-	    /*struct nk_font *future = nk_font_atlas_add_from_file(atlas, "../../../extra_font/kenvector_future_thin.ttf", 13, 0);*/
-	    /*struct nk_font *clean = nk_font_atlas_add_from_file(atlas, "../../../extra_font/ProggyClean.ttf", 12, 0);*/
-	    /*struct nk_font *tiny = nk_font_atlas_add_from_file(atlas, "../../../extra_font/ProggyTiny.ttf", 10, 0);*/
-	    /*struct nk_font *cousine = nk_font_atlas_add_from_file(atlas, "../../../extra_font/Cousine-Regular.ttf", 13, 0);*/
-	    nk_glfw3_font_stash_end();
-	    /*nk_style_load_all_cursors(ctx, atlas->cursors);*/
-	    /*nk_style_set_font(ctx, &droid->handle);*/
-	}
+        struct nk_font_atlas *atlas;
+        nk_glfw3_font_stash_begin(&atlas);
+        /*struct nk_font *droid = nk_font_atlas_add_from_file(atlas, "../../../extra_font/DroidSans.ttf", 20, 0);*/
+        /*struct nk_font *roboto = nk_font_atlas_add_from_file(atlas, "../../../extra_font/Roboto-Regular.ttf", 14, 0);*/
+        /*struct nk_font *future = nk_font_atlas_add_from_file(atlas, "../../../extra_font/kenvector_future_thin.ttf", 13, 0);*/
+        /*struct nk_font *clean = nk_font_atlas_add_from_file(atlas, "../../../extra_font/ProggyClean.ttf", 12, 0);*/
+        /*struct nk_font *tiny = nk_font_atlas_add_from_file(atlas, "../../../extra_font/ProggyTiny.ttf", 10, 0);*/
+        /*struct nk_font *cousine = nk_font_atlas_add_from_file(atlas, "../../../extra_font/Cousine-Regular.ttf", 13, 0);*/
+        nk_glfw3_font_stash_end();
+        /*nk_style_load_all_cursors(ctx, atlas->cursors);*/
+        /*nk_style_set_font(ctx, &droid->handle);*/
+    }
 
     /* style.c */
     /*set_style(ctx, THEME_WHITE);*/
@@ -95,31 +105,38 @@ nk_main(const char* window_title, int width, int height, nk_gui_callback callbac
     /*set_style(ctx, THEME_BLUE);*/
     /*set_style(ctx, THEME_DARK);*/
 
+    int64_t prev_time = get_time();
+
     background = nk_rgb(28,48,62);
     while (!glfwWindowShouldClose(win))
     {
+        int64_t current_time = get_time();
+        float dt = (current_time - prev_time) / 1000000.0f;
+        ctx->delta_time_seconds = dt;
+        prev_time = current_time;
+
         /* Input */
         glfwPollEvents();
         nk_glfw3_new_frame();
 
         /* GUI */
-        if(callback) callback(ctx, width, height);
+        if(callback) callback(dt, ctx, width, height);
 
         /* Draw */
         {
-        	float bg[4];
-	        nk_color_fv(bg, background);
-	        glfwGetWindowSize(win, &width, &height);
-	        glViewport(0, 0, width, height);
-	        glClear(GL_COLOR_BUFFER_BIT);
-	        glClearColor(bg[0], bg[1], bg[2], bg[3]);
-	        /* IMPORTANT: `nk_glfw_render` modifies some global OpenGL state
-	         * with blending, scissor, face culling, depth test and viewport and
-	         * defaults everything back into a default state.
-	         * Make sure to either a.) save and restore or b.) reset your own state after
-	         * rendering the UI. */
-	        nk_glfw3_render(NK_ANTI_ALIASING_ON, MAX_VERTEX_BUFFER, MAX_ELEMENT_BUFFER);
-        	glfwSwapBuffers(win);
+            float bg[4];
+            nk_color_fv(bg, background);
+            glfwGetWindowSize(win, &width, &height);
+            glViewport(0, 0, width, height);
+            glClear(GL_COLOR_BUFFER_BIT);
+            glClearColor(bg[0], bg[1], bg[2], bg[3]);
+            /* IMPORTANT: `nk_glfw_render` modifies some global OpenGL state
+             * with blending, scissor, face culling, depth test and viewport and
+             * defaults everything back into a default state.
+             * Make sure to either a.) save and restore or b.) reset your own state after
+             * rendering the UI. */
+            nk_glfw3_render(NK_ANTI_ALIASING_ON, MAX_VERTEX_BUFFER, MAX_ELEMENT_BUFFER);
+            glfwSwapBuffers(win);
         }
     }
     nk_glfw3_shutdown();
