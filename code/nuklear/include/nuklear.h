@@ -18618,8 +18618,6 @@ nk_begin_titled(struct nk_context *ctx, const char *name, const char *title,
 
         /* activate window if hovered and no other window is overlapping this window */
         nk_start(ctx, win);
-        inpanel = nk_input_has_mouse_click_down_in_rect(&ctx->input, NK_BUTTON_LEFT, win_bounds, nk_true);
-        inpanel = inpanel && ctx->input.mouse.buttons[NK_BUTTON_LEFT].clicked;
         ishovered = nk_input_is_mouse_hovering_rect(&ctx->input, win_bounds);
         if ((win != ctx->active) && ishovered && !ctx->input.mouse.buttons[NK_BUTTON_LEFT].down) {
             iter = win->next;
@@ -18640,8 +18638,8 @@ nk_begin_titled(struct nk_context *ctx, const char *name, const char *title,
             }
         }
 
-        /* activate window if clicked */
-        if (iter && inpanel && (win != ctx->end)) {
+        /* activate window if hovered */
+        if (iter && ishovered && (win != ctx->end)) {
             iter = win->next;
             while (iter) {
                 /* try to find a panel with higher priority in the same position */
