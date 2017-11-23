@@ -18609,7 +18609,7 @@ nk_begin_titled(struct nk_context *ctx, const char *name, const char *title,
     /* window overlapping */
     if (!(win->flags & NK_WINDOW_HIDDEN) && !(win->flags & NK_WINDOW_NO_INPUT))
     {
-        int inpanel, ishovered;
+        int ishovered;
         struct nk_window *iter = win;
         float h = ctx->style.font->height + 2.0f * style->window.header.padding.y +
             (2.0f * style->window.header.label_padding.y);
