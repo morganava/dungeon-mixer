@@ -1693,6 +1693,11 @@ NK_API struct nk_rect nk_layout_widget_bounds(struct nk_context*);
  *      @ctx must point to an previously initialized `nk_context`
  *      @pixel_width to convert to window ratio */
 NK_API float nk_layout_ratio_from_pixel(struct nk_context*, float pixel_width);
+/*  nk_layout_pixel_from_ratio - utility function to calculate window pixel size from ratio
+ *  Parameters:
+ *      @ctx must point to a previously initialized 'nk_context'
+ *      @ratio to convert to pixel width */
+NK_API float nk_layout_pixel_from_ratio(struct nk_context*, float ratio);
 /*  nk_layout_row_dynamic - Sets current row layout to share horizontal space
  *  between @cols number of widgets evenly. Once called all subsequent widget
  *  calls greater than @cols will allocate a new row with same layout.
@@ -19282,12 +19287,19 @@ nk_row_layout(struct nk_context *ctx, enum nk_layout_format fmt,
 NK_API float
 nk_layout_ratio_from_pixel(struct nk_context *ctx, float pixel_width)
 {
-    struct nk_window *win;
     NK_ASSERT(ctx);
     NK_ASSERT(pixel_width);
     if (!ctx || !ctx->current || !ctx->current->layout) return 0;
-    win = ctx->current;
-    return NK_CLAMP(0.0f, pixel_width/win->bounds.x, 1.0f);
+    return NK_CLAMP(0.0f, pixel_width/ctx->current->layout->bounds.x, 1.0f);
+}
+
+NK_API float 
+nk_layout_pixel_from_ratio(struct nk_context *ctx, float ratio)
+{
+    NK_ASSERT(ctx);
+    NK_ASSERT(ratio);
+    if (!ctx || !ctx->current || !ctx->current->layout) return 0;
+    return ratio * ctx->current->layout->bounds.x;
 }
 
 NK_API void
