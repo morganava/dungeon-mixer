@@ -6,12 +6,22 @@
 
 #include <nuklear.h>
 
-/* constants */
+template<typename T, size_t N>
+constexpr size_t countof(const T (&)[N]) { return N; }
+
+/* 
+Constants 
+*/
+
 constexpr int MX_TOPBAR_HEIGHT = 100;
 constexpr int MX_GROUP_MARGIN = 0;
 constexpr int MX_TEXT_PADDING = 0;
 constexpr int MX_BUTTON_PADDING = 0;
+constexpr int MX_WIDGET_MARGIN = 2;
+constexpr int MX_CLOSE_BUTTON_SIZE = 24;
 
+// top bar
+constexpr int MX_MODE_BUTTON_WIDTH = 100;
 
 // search bars
 constexpr int MX_TEXT_SEARCH_HEIGHT = 24;
@@ -25,6 +35,9 @@ constexpr int MX_ATMOSPHERE_BUTTON_CONSTELLATION_WIDTH = 3 * MX_ATMOSPHERE_BUTTO
 constexpr int MX_ATMOSPHERE_BUTTON_CONSTELLATION_HEIGHT = 2 * MX_ATMOSPHERE_BUTTON_SIZE + 3 * MX_ATMOSPHERE_BUTTON_SPACER;
 constexpr int MX_ATMOSPHERE_HEIGHT = MX_ATMOSPHERE_TITLE_HEIGHT + MX_ATMOSPHERE_BUTTON_CONSTELLATION_HEIGHT;
 
+constexpr int MX_VOLUME_HEIGHT = 32;
+constexpr int MX_VOLUME_BUTTON_SIZE = 32;
+
 /* 
 State 
 */
@@ -33,7 +46,11 @@ enum
 {
     MX_MODE_PLAY,
     MX_MODE_EDIT,
-} MX_MODE = MX_MODE_PLAY;
+} MX_MODE = MX_MODE_EDIT;
+
+/*
+Mock Data
+*/
 
 struct atmosphere
 {
@@ -58,7 +75,7 @@ std::vector<atmosphere> active_atmospheres =
 
 std::vector<atmosphere> searched_atmospheres =
 {
-    {"Spooky Graveyard", 0.8f},
+    {"Spooky Ship", 0.8f},
     {"Workshop", 0.9f},
     {"Opera", 1.0f},
     {"Market", 0.7f},
@@ -71,26 +88,102 @@ std::vector<atmosphere> searched_atmospheres =
     {"Loud Fucking", 0.5f},
 };
 
+std::vector<atmosphere> available_atmospheres =
+{
+    {"Spooky Ship", 0.8f},
+    {"Workshop", 0.9f},
+    {"Opera", 1.0f},
+    {"Market", 0.7f},
+    {"Jungle", 0.8f},
+    {"Forest", 0.75f},
+    {"Desert", 0.5f},
+    {"Rain", 0.7f},
+    {"Battle", 0.8f},
+    {"Sports Game", 1.0f},
+    {"Loud Fucking", 0.5f},
+    {"Busy Tavern", 1.0f},
+    {"Esga City Streets", 0.8f},
+    {"Sailing", 0.7f},
+    {"Below Decks", 0.7f},
+    {"On the docks", 0.7f},
+    {"Quiet Library", 0.2f},
+    {"Camping", 0.95f},
+    {"Thunderstorm", 1.0f},
+    {"Tundra", 0.2f},
+    {"Boss Music", 1.0f},
+    {"Esga Temple", 0.62f},    
+};
+
+struct track_data
+{
+    std::string title;
+    std::vector<std::string> tags;
+    enum
+    {
+        ONE_SHOT,
+        LOOP,
+    } type;
+    const char* path;
+};
+
+atmosphere edit_atmosphere = available_atmospheres[0];
+
+struct instantiated_track
+{
+    struct track_data track;
+    float volume;
+    char min_buffer[5];
+    char max_buffer[5];
+};
+
+std::vector<track_data> available_tracks =
+{
+    {"Sawing", {"tools", "construction"}, track_data::ONE_SHOT, "~/Downloads/sawing.wav"},
+    {"Seagulls", {"ocean", "birds"}, track_data::LOOP, "~/Downloads/seagulls.wav"},
+};
+
+std::vector<instantiated_track> instantiated_tracks =
+{
+    {{available_tracks[0]}, 1.0f},
+    {{available_tracks[1]}, 0.5f},
+};
+
+// queue of work to do off the UI thread
 std::vector<std::function<void(void)>> work_queue;
 
 char atmosphere_search_buffer[MX_TEXT_FIELD_LENGTH];
-
+char track_search_buffer[MX_TEXT_FIELD_LENGTH];
 /* 
-    Draw Calls
+Draw Calls
 */  
 
 void draw_top_bar(nk_context* ctx, int width)
 {
-    if (nk_begin(ctx, "top_bar", nk_rect(0, 0, width, MX_TOPBAR_HEIGHT), 0))
+    if (nk_begin(ctx, "top_bar", nk_rect(0, 0, width, MX_TOPBAR_HEIGHT), NK_WINDOW_NO_SCROLLBAR))
     {
-
+        nk_layout_row_begin(ctx, NK_STATIC, MX_TOPBAR_HEIGHT, 3);
+        nk_layout_row_push(ctx, width - 2 * MX_MODE_BUTTON_WIDTH - 4 * MX_WIDGET_MARGIN);
+        //nk_button_label(ctx, "What");
+        nk_spacing(ctx, 1);
+        nk_layout_row_push(ctx, MX_MODE_BUTTON_WIDTH);
+        if(nk_button_label(ctx, "Playback"))
+        {
+            work_queue.push_back([]() -> void {MX_MODE = MX_MODE_PLAY;});
+        }
+        nk_layout_row_push(ctx, MX_MODE_BUTTON_WIDTH);
+        if(nk_button_label(ctx, "Edit"))
+        {
+            work_queue.push_back([]() -> void {MX_MODE = MX_MODE_EDIT;});
+        }
     }
     nk_end(ctx);    
 }
 
-void draw_play_screen(nk_context* ctx, int width, int height)
+void draw_play_screen(nk_context* ctx, int width, int height, bool hidden)
 {
-    if (nk_begin(ctx, "play_screen", nk_rect(0, MX_TOPBAR_HEIGHT, width, height), NK_WINDOW_NO_SCROLLBAR))
+    float win_x = hidden ? width : 0;
+
+    if (nk_begin(ctx, "play_screen", nk_rect(win_x, MX_TOPBAR_HEIGHT, width, height), NK_WINDOW_NO_SCROLLBAR))
     {
         nk_layout_row_begin(ctx, NK_DYNAMIC, height, 2);
         nk_layout_row_push(ctx, 2.0f/3.0f);
@@ -118,7 +211,7 @@ void draw_play_screen(nk_context* ctx, int width, int height)
                             const int volume_height = MX_ATMOSPHERE_BUTTON_CONSTELLATION_HEIGHT;
                             nk_layout_space_push(ctx, nk_rect(volume_offset_x, volume_offset_y, volume_width, volume_height));
                             float step = 1.0f / volume_width;
-                            if(nk_slider_float(ctx, 0.0, &currentAtmosphere.volume, 1.0f, step))
+                            if(nk_slider_float(ctx, 0.0f, &currentAtmosphere.volume, 1.0f, step))
                             {
                                 printf("slider val: %f\n", currentAtmosphere.volume);
                             }
@@ -189,33 +282,140 @@ void draw_play_screen(nk_context* ctx, int width, int height)
                         for(const auto& currentAtmosphere : searched_atmospheres)
                         {
                             nk_layout_row_dynamic(ctx, 50, 1);
-                            if(nk_widget_is_mouse_clicked(ctx, NK_BUTTON_LEFT))
+                            if(nk_widget_is_mouse_clicked(ctx, NK_BUTTON_DOUBLE))
                             {
                                 printf("clicked on : %s\n", currentAtmosphere.title.c_str());
+                                active_atmospheres.push_back(currentAtmosphere);
                             }
 
                             nk_label(ctx, currentAtmosphere.title.c_str(), NK_TEXT_CENTERED);
-
-
                         }
                     }
                     nk_group_end(ctx);
                 }
-
-
             }
             nk_group_end(ctx);          
         }
         nk_layout_row_end(ctx);
     }
-    nk_end(ctx);    
+    nk_end(ctx);
 }
 
-void draw_edit_screen(nk_context* ctx, int width, int height)
+void draw_edit_screen(nk_context* ctx, int width, int height, bool hidden)
 {
-    if (nk_begin(ctx, "edit_screen", nk_rect(0, MX_TOPBAR_HEIGHT, width, height), NK_WINDOW_NO_SCROLLBAR))
-    {
+    float win_x = hidden ? width : 0;
 
+    if (nk_begin(ctx, "edit_screen", nk_rect(win_x, MX_TOPBAR_HEIGHT, width, height), NK_WINDOW_NO_SCROLLBAR))
+    {
+        nk_layout_row_begin(ctx, NK_DYNAMIC, height, 3);
+        nk_layout_row_push(ctx, 1.0f/3.0f);
+        {
+            nk_group_begin(ctx, "edit_screen>left_group", 0);
+            {
+                for(const auto& currentAtmosphere : available_atmospheres)
+                {
+                    nk_layout_row_dynamic(ctx, 50, 1);
+                    nk_label(ctx, currentAtmosphere.title.c_str(), NK_TEXT_CENTERED);
+                }
+            }
+            nk_group_end(ctx);
+        }
+        nk_layout_row_push(ctx, 1.0f/3.0f);
+        {
+            nk_group_begin(ctx, "edit_screen>middle_group", 0);
+            {
+                float close_ratio = nk_layout_ratio_from_pixel(ctx, MX_CLOSE_BUTTON_SIZE);
+                float volume_button_ratio = nk_layout_ratio_from_pixel(ctx, MX_VOLUME_BUTTON_SIZE);
+                float volume_slider_ratio = 1.0f - volume_button_ratio;
+                float volume_slider_width = nk_layout_pixel_from_ratio(ctx, volume_slider_ratio);
+                for(auto& currentTrack : instantiated_tracks)
+                {
+                    nk_layout_row_begin(ctx, NK_DYNAMIC, MX_TEXT_SEARCH_HEIGHT, 2);
+                    nk_layout_row_push(ctx, 1.0f - close_ratio);
+                    nk_label(ctx, currentTrack.track.title.c_str(), NK_TEXT_ALIGN_LEFT);
+                    nk_layout_row_push(ctx, close_ratio);
+                    if(nk_button_label(ctx, "X"))
+                    {
+                        printf("Close %s\n", currentTrack.track.title.c_str());
+                    }
+                    nk_layout_row_begin(ctx, NK_DYNAMIC, MX_VOLUME_HEIGHT, 2);
+                    nk_layout_row_push(ctx, volume_slider_ratio);
+                    float step = 1.0f / volume_slider_width;
+                    if(nk_slider_float(ctx, 0.0f, &currentTrack.volume, 1.0f, step))
+                    {
+                        printf("slider val: %f\n", currentTrack.volume);
+                    }
+                    nk_layout_row_push(ctx, volume_button_ratio);
+                    if(nk_button_label(ctx, "V"))
+                    {
+                        printf("mute!\n");
+                    }
+
+                    if(currentTrack.track.type == track_data::ONE_SHOT)
+                    {
+                        nk_layout_row_dynamic(ctx, MX_TEXT_SEARCH_HEIGHT, 1);
+                        nk_label(ctx, "Play every", NK_TEXT_LEFT);
+
+                        nk_layout_row_begin(ctx, NK_STATIC, MX_TEXT_SEARCH_HEIGHT, 3);
+                        nk_layout_row_push(ctx, 20);
+                        nk_spacing(ctx, 1);
+                        nk_layout_row_push(ctx, 80);
+                        if(NK_EDIT_COMMITED & nk_edit_string_zero_terminated(ctx, NK_EDIT_FIELD, currentTrack.min_buffer, countof(currentTrack.min_buffer), nk_filter_float))
+                        {
+                            printf("min: %s\n", currentTrack.min_buffer);
+                        }
+                        nk_layout_row_push(ctx, 20);
+                        nk_label(ctx, "to", NK_TEXT_LEFT);
+                        
+                        nk_layout_row_begin(ctx, NK_STATIC, MX_TEXT_SEARCH_HEIGHT, 3);
+                        nk_layout_row_push(ctx, 20);
+                        nk_spacing(ctx, 1);
+                        nk_layout_row_push(ctx, 80);
+                        if(NK_EDIT_COMMITED & nk_edit_string_zero_terminated(ctx, NK_EDIT_FIELD, currentTrack.max_buffer, countof(currentTrack.max_buffer), nk_filter_float))
+                        {
+                            printf("max: %s\n", currentTrack.max_buffer);
+                        }
+                        nk_layout_row_push(ctx, 80);
+                        nk_label(ctx, "seconds", NK_TEXT_LEFT);                        
+        
+                    }
+                }
+            }
+            nk_group_end(ctx);
+        }
+        nk_layout_row_push(ctx, 1.0f/3.0f);
+        {
+            nk_group_begin(ctx, "edit_screen>right_group", NK_WINDOW_NO_SCROLLBAR);
+            {
+                nk_layout_row_begin(ctx, NK_DYNAMIC, MX_TEXT_SEARCH_HEIGHT, 1);
+                nk_layout_row_push(ctx, 1.0f);
+                if(NK_EDIT_COMMITED & nk_edit_string_zero_terminated(ctx, NK_EDIT_ALWAYS_INSERT_MODE | NK_EDIT_SIG_ENTER | NK_EDIT_SELECTABLE | NK_EDIT_CLIPBOARD, track_search_buffer, MX_TEXT_FIELD_LENGTH, nk_filter_default))
+                {
+                    // do search and populate 
+                }
+
+                nk_layout_row_begin(ctx, NK_DYNAMIC, height - MX_TEXT_SEARCH_HEIGHT, 1);
+                nk_layout_row_push(ctx, 1.0f);
+                {
+                    nk_group_begin(ctx, "edit_screen>right_group>search_results", 0);
+                    {
+                        for(const auto& currentTrack : available_tracks)
+                        {
+                            nk_layout_row_dynamic(ctx, 50, 1);
+                            if(nk_widget_is_mouse_clicked(ctx, NK_BUTTON_DOUBLE))
+                            {
+                                printf("clicked on : %s\n", currentTrack.title.c_str());
+                            }
+
+                            nk_label(ctx, currentTrack.title.c_str(), NK_TEXT_CENTERED);
+                        }
+                    }
+                    nk_group_end(ctx);
+                }
+            }
+            nk_group_end(ctx);
+        }
+        nk_layout_row_end(ctx);
     }
     nk_end(ctx);
 }
@@ -225,15 +425,8 @@ void draw(nk_context* ctx, int width, int height)
     // draw shared top bar
     draw_top_bar(ctx, width);
 
-    switch(MX_MODE)
-    {
-        case MX_MODE_PLAY:
-            draw_play_screen(ctx, width, height - MX_TOPBAR_HEIGHT);
-            break;
-        case MX_MODE_EDIT:
-            draw_edit_screen(ctx, width, height - MX_TOPBAR_HEIGHT);
-            break;
-    }
+    draw_play_screen(ctx, width, height - MX_TOPBAR_HEIGHT, MX_MODE != MX_MODE_PLAY);
+    draw_edit_screen(ctx, width, height - MX_TOPBAR_HEIGHT, MX_MODE != MX_MODE_EDIT);
 }
 
 void gui_callback(float dt, nk_context* ctx, int width, int height)
@@ -241,6 +434,7 @@ void gui_callback(float dt, nk_context* ctx, int width, int height)
     ctx->style.window.scrollbar_size = nk_vec2(10, 0);
     ctx->style.window.padding = nk_vec2(0,0);
     ctx->style.window.group_padding = nk_vec2(0, 0);
+    ctx->style.window.spacing = nk_vec2(4, 0);
     ctx->style.button.padding = nk_vec2(0, 0);
     ctx->style.scrollh.padding = nk_vec2(0, 0);
     ctx->style.scrollh.border = 0.0f;
