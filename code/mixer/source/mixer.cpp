@@ -3,11 +3,23 @@
 #include <vector>
 #include <string>
 #include <functional>
+#include <memory>
+#include <cstdint>
+#include <utility>
+#include <unordered_map>
+#include <unordered_set>
+#include <iostream>
 
+// nuklear
 #include <nuklear.h>
 
-template<typename T, size_t N>
-constexpr size_t countof(const T (&)[N]) { return N; }
+// SFML
+#include <SFML/Audio.hpp> 
+
+// tabletopfy
+#include "audio.hpp"
+#include "utilities.hpp"
+
 
 /* 
 Constants 
@@ -114,6 +126,7 @@ std::vector<atmosphere> available_atmospheres =
     {"Esga Temple", 0.62f},    
 };
 
+
 struct track_data
 {
     std::string title;
@@ -148,11 +161,14 @@ std::vector<instantiated_track> instantiated_tracks =
     {{available_tracks[1]}, 0.5f},
 };
 
+static track_directory g_track_directory;
+
 // queue of work to do off the UI thread
 std::vector<std::function<void(void)>> work_queue;
 
 char atmosphere_search_buffer[MX_TEXT_FIELD_LENGTH];
 char track_search_buffer[MX_TEXT_FIELD_LENGTH];
+
 /* 
 Draw Calls
 */  
@@ -447,9 +463,38 @@ void gui_callback(float dt, nk_context* ctx, int width, int height)
         func();
     }
     work_queue.clear();
+
+    // update our track directory
+    g_track_directory.update(dt);
 }
 
-int main()
+void test_query(std::vector<std::string>&& tags)
 {
+    std::cout << "query: ";
+    for(auto tag : tags)
+    {
+        std::cout << tag << " ";
+    }
+    std::cout << std::endl;
+    auto result = g_track_directory.get_tracks_by_tag(tags);
+    for(auto val : result)
+    {
+        std::cout << " found:" << val << std::endl;
+    }
+}
+
+int main() try
+{
+    test_query({"one-shot"});
+    test_query({"gibberish"});
+    test_query({"not-found", "one"});
+    test_query({"loop", "one"});
+    test_query({"shared"});
+    test_query({"one-shot", "seagull"});
+    test_query({"one-shot", "saw"});
     nk_main("Tabletop Mixer", 800, 600, &gui_callback);
+}
+catch(const std::exception& ex)
+{
+    std::fprintf(stderr, "Error: %s\n", ex.what());
 }
