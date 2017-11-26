@@ -47,7 +47,7 @@ static int64_t get_time()
 }
 
 void
-nk_main(const char* window_title, int width, int height, nk_gui_callback callback)
+nk_main(const char* window_title, int width, int height, nk_init_callback init_callback, nk_gui_callback gui_callback)
 {
     const int WINDOW_WIDTH = width;
     const int WINDOW_HEIGHT = height;
@@ -105,9 +105,12 @@ nk_main(const char* window_title, int width, int height, nk_gui_callback callbac
     /*set_style(ctx, THEME_BLUE);*/
     /*set_style(ctx, THEME_DARK);*/
 
+    /* Init */
+    if(init_callback) init_callback(ctx);
+
     int64_t prev_time = get_time();
 
-    background = nk_rgb(28,48,62);
+    background = nk_rgb(255,0,255);
     while (!glfwWindowShouldClose(win))
     {
         int64_t current_time = get_time();
@@ -120,7 +123,7 @@ nk_main(const char* window_title, int width, int height, nk_gui_callback callbac
         nk_glfw3_new_frame();
 
         /* GUI */
-        if(callback) callback(dt, ctx, width, height);
+        if(gui_callback) gui_callback(dt, ctx, width, height);
 
         /* Draw */
         {

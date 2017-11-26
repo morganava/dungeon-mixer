@@ -509,10 +509,11 @@ enum nk_symbol_type {
  *
  * =============================================================================*/
 
+typedef void(*nk_init_callback)(struct nk_context*);
 typedef void(*nk_gui_callback)(float dt, struct nk_context*, int width, int height);
 
 NK_API void
-nk_main(const char* window_title, int width, int height, nk_gui_callback callback);
+nk_main(const char* window_title, int width, int height, nk_init_callback, nk_gui_callback callback);
 
 /* =============================================================================
  *

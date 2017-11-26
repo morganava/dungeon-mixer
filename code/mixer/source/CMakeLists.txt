@@ -10,8 +10,10 @@ add_compile_options(-O3)
 add_compile_options(-g)
 
 add_executable(tabletop_mixer
+    globals.cpp
     mixer.cpp
-    audio.cpp)
+    audio.cpp
+    draw.cpp)
 
 target_link_libraries(tabletop_mixer nuklear)
 target_link_libraries(tabletop_mixer glfw)
