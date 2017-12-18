@@ -2,11 +2,14 @@
 
 // tabletopify
 #include "audio.hpp"
+#include "draw.hpp"
 #include "utilities.hpp"
 #include "globals.hpp"
+#include "work_queue.hpp"
 
 namespace tabletopify
 {
+    UI g_ui;
 
     /* 
     Constants 
@@ -132,6 +135,8 @@ namespace tabletopify
     {
         struct track_data track;
         float volume;
+        float minRepeat;
+        float maxRepeat;
         char min_buffer[5];
         char max_buffer[5];
     };
@@ -144,16 +149,19 @@ namespace tabletopify
 
     std::vector<instantiated_track> instantiated_tracks =
     {
-        {{available_tracks[0]}, 1.0f},
-        {{available_tracks[1]}, 0.5f},
+        {{available_tracks[0]}, 1.0f, 15.0f, 45.0f},
+        {{available_tracks[1]}, 0.5f, 2.0f, 60.0f},
     };
 
     /*
     Real Data
     */
 
-    std::vector<size_t> searched_track_ids;
+    std::vector<size_t> searched_audio_ids;
+    std::vector<track_display> searched_track_display;
+    bool search_audio_ids_dirty = true;
 
+    /// misc todo get rid of
     char atmosphere_search_buffer[MX_TEXT_FIELD_LENGTH];
     char track_search_buffer[MX_TEXT_FIELD_LENGTH];
 
@@ -167,17 +175,16 @@ namespace tabletopify
         {
             nk_layout_row_begin(ctx, NK_STATIC, MX_TOPBAR_HEIGHT, 3);
             nk_layout_row_push(ctx, width - 2 * MX_MODE_BUTTON_WIDTH - 4 * MX_WIDGET_MARGIN);
-            //nk_button_label(ctx, "What");
             nk_spacing(ctx, 1);
             nk_layout_row_push(ctx, MX_MODE_BUTTON_WIDTH);
             if(nk_button_label(ctx, "Playback"))
             {
-                work_queue.push_back([]() -> void {MX_MODE = MX_MODE_PLAY;});
+                g_work_queue->enqueue(Queue_UI, []() -> void {MX_MODE = MX_MODE_PLAY;});
             }
             nk_layout_row_push(ctx, MX_MODE_BUTTON_WIDTH);
             if(nk_button_label(ctx, "Edit"))
             {
-                work_queue.push_back([]() -> void {MX_MODE = MX_MODE_EDIT;});
+                g_work_queue->enqueue(Queue_UI, []() -> void {MX_MODE = MX_MODE_EDIT;});
             }
         }
         nk_end(ctx);    
@@ -254,7 +261,7 @@ namespace tabletopify
                                 if(nk_button_label(ctx, "X")) 
                                 {
                                     // remove this atmosphere from active list
-                                    work_queue.push_back([=]() -> void
+                                    g_work_queue->enqueue(Queue_UI, [=]() -> void 
                                     {
                                         active_atmospheres.erase(active_atmospheres.begin() + k);
                                     });
@@ -316,10 +323,10 @@ namespace tabletopify
             {
                 nk_group_begin(ctx, "edit_screen>left_group", 0);
                 {
-                    for(const auto& currentAtmosphere : available_atmospheres)
+                    for(const auto& currentAtmosphere : g_ui.edit.atmosphereList.atmospheres)
                     {
                         nk_layout_row_dynamic(ctx, 50, 1);
-                        nk_label(ctx, currentAtmosphere.title.c_str(), NK_TEXT_CENTERED);
+                        nk_label(ctx, currentAtmosphere.first.c_str(), NK_TEXT_CENTERED);
                     }
                 }
                 nk_group_end(ctx);
@@ -345,10 +352,30 @@ namespace tabletopify
                         nk_layout_row_begin(ctx, NK_DYNAMIC, MX_VOLUME_HEIGHT, 2);
                         nk_layout_row_push(ctx, volume_slider_ratio);
                         float step = 1.0f / volume_slider_width;
-                        if(nk_slider_float(ctx, 0.0f, &currentTrack.volume, 1.0f, step))
+#if 1
+                        if(nk_minmax_slider_float(
+                            ctx, 
+                            0.0f, 
+                            &currentTrack.minRepeat,
+                            60.0f,
+                            &currentTrack.maxRepeat,
+                            step))
                         {
-                            printf("slider val: %f\n", currentTrack.volume);
+                            printf("slider min val: %f\n", currentTrack.minRepeat);
+                            printf("slider max val: %f\n", currentTrack.maxRepeat);
                         }
+#endif
+#if 0                        
+                        if(nk_slider_float(
+                            ctx,
+                            0.0f,
+                            &currentTrack.minRepeat,
+                            60.0f,
+                            step))
+                        {
+                            printf("slider val: %f\n", currentTrack.minRepeat);   
+                        }
+#endif
                         nk_layout_row_push(ctx, volume_button_ratio);
                         if(nk_button_label(ctx, "V"))
                         {
@@ -393,9 +420,33 @@ namespace tabletopify
                 {
                     nk_layout_row_begin(ctx, NK_DYNAMIC, MX_TEXT_SEARCH_HEIGHT, 1);
                     nk_layout_row_push(ctx, 1.0f);
-                    if(NK_EDIT_COMMITED & nk_edit_string_zero_terminated(ctx, NK_EDIT_ALWAYS_INSERT_MODE | NK_EDIT_SIG_ENTER | NK_EDIT_SELECTABLE | NK_EDIT_CLIPBOARD, track_search_buffer, MX_TEXT_FIELD_LENGTH, nk_filter_default))
+                    if(NK_EDIT_COMMITED & nk_edit_string_zero_terminated(ctx, NK_EDIT_ALWAYS_INSERT_MODE | NK_EDIT_SIG_ENTER | NK_EDIT_SELECTABLE | NK_EDIT_CLIPBOARD, g_ui.edit.trackSearch.searchBuffer, countof(g_ui.edit.trackSearch.searchBuffer), nk_filter_default))
                     {
-                        // do search and populate 
+                        // do search and populate on background worker
+                        std::string title_query = g_ui.edit.trackSearch.searchBuffer;
+                        std::vector<std::string> tag_query = split(g_ui.edit.trackSearch.searchBuffer, " ");
+                        g_work_queue->enqueue(Queue_Background, [=]() -> void 
+                        {
+                            auto title_results = g_audio_directory->get_audio_ids_by_title(title_query);
+                            auto tag_results = g_audio_directory->get_audio_ids_by_tag(tag_query);
+                            
+                            std::unordered_set<audio_id_t> title_audio(title_results.begin(), title_results.end());
+                            auto& aggregate_results = title_results;
+                            for(auto id : tag_results)
+                            {
+                                // only include tag results if they weren't already found in title
+                                if(title_audio.find(id) == title_audio.end())
+                                {
+                                    aggregate_results.push_back(id);
+                                }
+                            }
+
+                            // populate display list on UI worker
+                            g_work_queue->enqueue(Queue_UI, [=]() -> void
+                            {
+                                update_ui_edit_trackSearch(aggregate_results);
+                            });
+                        });
                     }
 
                     nk_layout_row_begin(ctx, NK_DYNAMIC, height - MX_TEXT_SEARCH_HEIGHT, 1);
@@ -403,15 +454,15 @@ namespace tabletopify
                     {
                         nk_group_begin(ctx, "edit_screen>right_group>search_results", 0);
                         {
-                            for(const auto& currentTrack : available_tracks)
+                            for(const auto& currentTrack : g_ui.edit.trackSearch.results)
                             {
                                 nk_layout_row_dynamic(ctx, 50, 1);
                                 if(nk_widget_is_mouse_clicked(ctx, NK_BUTTON_DOUBLE))
                                 {
-                                    printf("clicked on : %s\n", currentTrack.title.c_str());
+                                    printf("clicked on : %s\n", currentTrack.first.c_str());
                                 }
 
-                                nk_label(ctx, currentTrack.title.c_str(), NK_TEXT_CENTERED);
+                                nk_label(ctx, currentTrack.first.c_str(), NK_TEXT_CENTERED);
                             }
                         }
                         nk_group_end(ctx);
@@ -431,5 +482,46 @@ namespace tabletopify
 
         draw_play_screen(ctx, width, height - MX_TOPBAR_HEIGHT, MX_MODE != MX_MODE_PLAY);
         draw_edit_screen(ctx, width, height - MX_TOPBAR_HEIGHT, MX_MODE != MX_MODE_EDIT);
+    }
+
+    /*
+    Update Methods
+    */
+
+    void update_ui_edit_atmosphereList(const std::vector<atmosphere_id_t>& atmosphere_ids)
+    {
+        g_ui.edit.atmosphereList.atmospheres.clear();
+        for(auto id : atmosphere_ids)
+        {
+            auto& currentAtmosphere = g_atmosphere_directory->get_entry(id);
+            g_ui.edit.atmosphereList.atmospheres.push_back(
+            {
+                currentAtmosphere.title,
+                id
+            });
+        }
+    }
+
+    void update_ui_edit_atmosphereEdit(atmosphere_id_t selectedAtmosphere)
+    {
+        g_ui.edit.atmosphereEdit.tracks.clear();
+
+        if(selectedAtmosphere != INVALID_ATMOSPHERE_ID)
+        {
+            //auto& atmosphere = g_atmosphere_directory->get_entry(selectedAtmosphere);
+        }
+    }
+
+    void update_ui_edit_trackSearch(const std::vector<audio_id_t>& audio_ids)
+    {
+        g_ui.edit.trackSearch.results.clear();
+        for(auto id : audio_ids)
+        {
+            g_ui.edit.trackSearch.results.push_back(
+            {
+                g_audio_directory->get_title_by_audio_id(id),
+                id
+            });
+        }         
     }
 }

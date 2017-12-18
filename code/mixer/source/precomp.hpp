@@ -1,7 +1,9 @@
  // C++
+#include <cassert>
 #include <cstdarg>
 #include <cstdint>
 #include <cstdio>
+#include <cstring>
 #include <functional>
 #include <iostream>
 #include <memory>
@@ -11,6 +13,11 @@
 #include <unordered_set>
 #include <utility>
 #include <vector>
+#include <mutex>
+#include <thread>
+#include <queue>
+#include <chrono>
+#include <atomic>
 
 // nuklear
 #include <nuklear.h>

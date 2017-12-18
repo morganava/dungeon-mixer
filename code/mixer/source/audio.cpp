@@ -6,7 +6,8 @@
 
 namespace tabletopify
 {
-    track_directory g_track_directory;
+    audio_directory* g_audio_directory = nullptr;
+    atmosphere_directory* g_atmosphere_directory = nullptr;
 
     static void verify_file(std::string& path)
     {
@@ -66,138 +67,100 @@ namespace tabletopify
         destSound.loadFromSamples(dest_samples.release(), sample_count, 1, sample_rate);
     }
 
-    class one_shot_data : public audio_data
-    {
-    public:
-        one_shot_data(std::vector<std::string>&& paths)
-        : _paths(paths)
-        { 
-            for(auto& currentPath : _paths)
-            {
-                verify_file(currentPath);
-            }
+    // One-Shot Data
 
-            for(size_t k = 0; k < _paths.size(); k++)
-            {
-                _buffers.push_back(sf::SoundBuffer());
-            }
-        }
-
-        ~one_shot_data() override {}
-    private:
-        void load() override
+    one_shot_data::one_shot_data(std::vector<std::string>&& paths)
+    : _paths(paths)
+    { 
+        for(auto& currentPath : _paths)
         {
-            for(size_t k = 0; k < _paths.size(); k++)
-            {
-                const auto& currentPath = _paths[k];
-                // load sample
-                auto& currentSample = _buffers[k];
-                currentSample.loadFromFile(currentPath);
-                to_mono(currentSample, currentSample);
-            }
-            _loaded = true;
+            verify_file(currentPath);
         }
-        
-        void unload() override 
+
+        for(size_t k = 0; k < _paths.size(); k++)
         {
-            for(auto& currentBuffer : _buffers)
-            {
-                currentBuffer = sf::SoundBuffer();
-            }
-            _loaded = false;
-        }
-
-        std::vector<std::string> _paths;
-        std::vector<sf::SoundBuffer> _buffers;
-
-        friend class one_shot_track;
-    };
-
-    class loop_data : public audio_data
-    {
-    public:    
-        loop_data(std::string&& loop_path)
-        : _loop_path(loop_path)
-        { 
-            verify_file(_loop_path);
-        }
-
-        loop_data(std::string&& intro_path, std::string&& loop_path)
-        : _intro_path(intro_path)
-        , _loop_path(loop_path)
-        {
-            verify_file(_intro_path.value());
-        }
-
-        ~loop_data() override {}
-    private:
-        void load() override 
-        {
-            _loaded = true;
-        }
-
-        void unload() override 
-        {
-            _loaded = false;
-        }
-
-        std::optional<std::string> _intro_path;
-        std::string _loop_path;
-
-        std::optional<sf::SoundBuffer> _intro_buffer;
-        sf::SoundBuffer _loop_buffer;
-
-        std::optional<sf::SoundBuffer> _mono_intro_buffer;
-        std::optional<sf::SoundBuffer> _mono_loop_buffer;
-
-        friend class loop_track;
-    };
-
-    class one_shot_track : public track
-    {
-    public:    
-        one_shot_track(std::string&& title, std::vector<std::string>&& tags, size_t index)
-        {
-
-        }
-        ~one_shot_track() override {}
-        void update() override {}
-    private:
-
-
-    };
-
-    class loop_track : public track
-    {
-        ~loop_track() override {}
-        void update() override {}
-    };
-
-    track_directory::track_directory()
-    {
-        // one-shot
-        std::vector<std::string> sawing_paths = {"/home/pospeselr/Downloads/sawing.wav"};
-        add_entry(
-            "37fbd587-ab8a-4e85-898c-be2c76d79440",
-            "Sawing",
-            {"construction", "saw", "shared"},
-            std::make_shared<one_shot_data>(std::move(sawing_paths)));
-
-        std::string seagull_path = "/home/pospeselr/Downloads/seagulls.wav";
-        add_entry(
-            "21b24cc6-d659-4c39-ae69-75d7938fd7b3",
-            "Seagulls",
-            {"seaside", "seagulls", "shared"},
-            std::make_shared<loop_data>(std::move(seagull_path)));
-
-        // temp remove this and load on demand
-        for(auto& current_entry : _entries)
-        {
-            current_entry.data->load();
+            _buffers.push_back(sf::SoundBuffer());
         }
     }
 
-    void track_directory::add_entry(
+    one_shot_data::~one_shot_data()
+    {
+
+    }
+
+    void one_shot_data::load()
+    {
+        for(size_t k = 0; k < _paths.size(); k++)
+        {
+            const auto& currentPath = _paths[k];
+            // load sample
+            auto& currentSample = _buffers[k];
+            currentSample.loadFromFile(currentPath);
+            to_mono(currentSample, currentSample);
+        }
+        _loaded = true;        
+    }
+
+    void one_shot_data::unload()
+    {
+        for(auto& currentBuffer : _buffers)
+        {
+            currentBuffer = sf::SoundBuffer();
+        }
+        _loaded = false;
+    }
+
+    // Loop Data
+
+    loop_data::loop_data(std::string&& loop_path)
+    : _loop_path(loop_path)
+    { 
+        verify_file(_loop_path);
+    }
+
+    loop_data::loop_data(std::string&& intro_path, std::string&& loop_path)
+    : _intro_path(intro_path)
+    , _loop_path(loop_path)
+    {
+        verify_file(_intro_path.value());
+    }
+
+    loop_data::~loop_data()
+    {
+
+    }
+
+    void loop_data::load()
+    {
+        _loaded = true;
+    }
+
+    void loop_data::unload()
+    {
+        _loaded = false;
+    }
+
+    /// Audio Directory
+
+    void audio_directory::update(float dt)
+    {
+        for(auto& current_entry : _entries)
+        {
+            if(current_entry.data.use_count() == 1)
+            {
+                current_entry.age += dt;
+                if(current_entry.age >= unload_age &&
+                   current_entry.data->_loaded)
+                {
+                    printf("Unloading: %s \n", current_entry.title.c_str());
+                    current_entry.data->unload();
+                    current_entry.age = 0.0f;
+                }
+            }
+        }
+    }
+
+    void audio_directory::add_entry(
         std::string&& uuid,
         std::string&& title, 
         std::vector<std::string>&& tags, 
@@ -260,58 +223,40 @@ namespace tabletopify
         });
     }
 
-    void track_directory::update(float dt)
+    std::string audio_directory::get_title_by_audio_id(audio_id_t id) const
     {
-        for(auto& current_entry : _entries)
-        {
-            if(current_entry.data.use_count() == 1)
-            {
-                current_entry.age += dt;
-                if(current_entry.age >= unload_age &&
-                   current_entry.data->_loaded)
-                {
-                    printf("Unloading: %s \n", current_entry.title.c_str());
-                    current_entry.data->unload();
-                    current_entry.age = 0.0f;
-                }
-            }
-        }
+        return _entries[id].title;
     }
 
-    std::string track_directory::get_title_by_index(size_t idx) const
+    std::vector<std::string> audio_directory::get_tags_by_audio_id(audio_id_t id) const
     {
-        return "";
+        return _entries[id].tags;
     }
 
-    std::vector<std::string> track_directory::get_tags_by_index(size_t idx) const
+    std::shared_ptr<audio_data> audio_directory::get_audio_data_by_audio_id(audio_id_t id) const
     {
-        return std::vector<std::string>();
+        return _entries[id].data;
     }
 
-    std::unique_ptr<track> track_directory::get_track_by_index(size_t idx) const
+    std::vector<audio_id_t> audio_directory::get_audio_ids() const
     {
-        return std::unique_ptr<track>();
-    }
-
-    std::vector<size_t> track_directory::get_track_ids() const
-    {
-        std::vector<size_t> result;
+        std::vector<audio_id_t> result;
         const auto count = _entries.size();
-        for(size_t k = 0; k < count; ++k)
+        for(audio_id_t k = 0; k < count; ++k)
         {
             result.push_back(k);
         }
         return result;
     }
 
-    std::vector<size_t> track_directory::get_track_ids_by_title(const std::string& title_query) const
+    std::vector<audio_id_t> audio_directory::get_audio_ids_by_title(const std::string& title_query) const
     {
         std::string lowerQuery = title_query;
         std::transform(lowerQuery.begin(), lowerQuery.end(), lowerQuery.begin(), ::tolower);
 
-        std::vector<size_t> result;
+        std::vector<audio_id_t> result;
 
-        // iterate over all track_entry and search for given title
+        // audio_id_t over all track_entry and search for given title
         for(size_t k = 0; k < _entries.size(); k++)
         {
             auto& currentTitle = _entries[k].lower_title;
@@ -324,7 +269,7 @@ namespace tabletopify
         return result;
     }
 
-    std::vector<size_t> track_directory::get_track_ids_by_tag(const std::vector<std::string>& queries) const
+    std::vector<audio_id_t> audio_directory::get_audio_ids_by_tag(const std::vector<std::string>& queries) const
     {
         // normalize query strings
         std::vector<std::string> toLowerQueries;
@@ -336,10 +281,10 @@ namespace tabletopify
         }
 
         // start with entire set of tracks to prune from
-        std::unordered_set<size_t> resultSet;
-        for(size_t idx = 0; idx < _entries.size(); idx++)
+        std::unordered_set<audio_id_t> resultSet;
+        for(size_t id = 0; id < _entries.size(); id++)
         {
-            resultSet.insert(idx);
+            resultSet.insert(id);
         }
 
         // iterate over query tags
@@ -387,7 +332,78 @@ namespace tabletopify
         }
 
         // return track ids in list
-        std::vector<size_t> result(resultSet.begin(), resultSet.end());
+        std::vector<audio_id_t> result(resultSet.begin(), resultSet.end());
         return result;
+    }
+
+    /// Atmosphere Directory
+
+    std::vector<atmosphere_id_t> atmosphere_directory::get_atmosphere_ids() const
+    {
+        std::vector<atmosphere_id_t> ids;
+        for(auto it : _entries)
+        {
+            ids.push_back(it.first);
+        }
+        return ids;
+    }
+
+    std::vector<atmosphere_id_t> atmosphere_directory::get_atmosphere_ids_by_title(const std::string& title_query) const
+    {
+        return std::vector<atmosphere_id_t>();
+    }
+
+    std::vector<atmosphere_id_t> atmosphere_directory::get_atmosphere_ids_by_tag(const std::vector<std::string>& queries) const
+    {
+        return std::vector<atmosphere_id_t>();
+    }
+
+    atmosphere_entry& atmosphere_directory::get_entry(atmosphere_id_t id)
+    {
+        auto it = _entries.find(id);
+        assert(it != _entries.end());
+
+        return it->second;
+    }
+
+    atmosphere_id_t atmosphere_directory::add_entry(atmosphere_entry&& entry)
+    {
+        // update source and get id
+        auto id = ++_next_id;
+
+        // update the tag map
+        for(auto tag : entry.tags)
+        {
+            _tag_map.insert({tag, id});
+        }
+
+        // insert into map and increment the id source
+        _entries.insert({id, entry});
+
+        // return id of entry just inserted
+        return id;
+    }
+
+    void atmosphere_directory::remove_entry(atmosphere_id_t id)
+    {
+        // get reference to entry we're removing
+        auto entry_it = _entries.find(id);
+        auto& entry = entry_it->second;
+
+        // remove it's tags from the tag map
+        for(auto tag : entry.tags)
+        {
+            auto ii = _tag_map.equal_range(tag);
+            for(auto it = ii.first; it != ii.second;)
+            {
+                if(it->second == id)
+                {
+                    _tag_map.erase(it);
+                    break;
+                }
+            }
+        }
+        // remove the entry 
+        _entries.erase(entry_it);
     }
 }

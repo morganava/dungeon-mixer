@@ -13,7 +13,8 @@ add_executable(tabletop_mixer
     globals.cpp
     mixer.cpp
     audio.cpp
-    draw.cpp)
+    draw.cpp
+    work_queue.cpp)
 
 target_link_libraries(tabletop_mixer nuklear)
 target_link_libraries(tabletop_mixer glfw)
@@ -21,6 +22,7 @@ target_link_libraries(tabletop_mixer ${OPENGL_gl_LIBRARY})
 target_link_libraries(tabletop_mixer ${OPENGL_glu_LIBRARY})
 target_link_libraries(tabletop_mixer GLEW)
 target_link_libraries(tabletop_mixer ${SFML_LIBRARIES})
+target_link_libraries(tabletop_mixer pthread)
 
 include_directories(../../nuklear/include)    
 include_directories(${SFML_INCLUDE_DIR})
