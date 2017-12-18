@@ -47,7 +47,13 @@ static int64_t get_time()
 }
 
 void
-nk_main(const char* window_title, int width, int height, nk_init_callback init_callback, nk_gui_callback gui_callback)
+nk_main(
+    const char* window_title, 
+    int width, 
+    int height, 
+    nk_init_callback init_callback, 
+    nk_gui_callback gui_callback, 
+    nk_close_callback close_callback)
 {
     const int WINDOW_WIDTH = width;
     const int WINDOW_HEIGHT = height;
@@ -142,6 +148,8 @@ nk_main(const char* window_title, int width, int height, nk_init_callback init_c
             glfwSwapBuffers(win);
         }
     }
+    if(close_callback) close_callback(ctx);
+
     nk_glfw3_shutdown();
     glfwTerminate();
     return;
