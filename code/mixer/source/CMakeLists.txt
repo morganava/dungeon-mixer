@@ -12,7 +12,11 @@ add_compile_options(-g)
 add_executable(tabletop_mixer
     globals.cpp
     mixer.cpp
-    audio.cpp
+    audio_data.cpp
+    audio_directory.cpp
+    track_directory.cpp
+    atmosphere_directory.cpp
+    playback_manager.cpp
     draw.cpp
     work_queue.cpp)
 

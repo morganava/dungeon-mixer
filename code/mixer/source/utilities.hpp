@@ -99,6 +99,20 @@ namespace tabletopify
         std::this_thread::sleep_for(std::chrono::milliseconds(ms));
     }
 
+    inline
+    void verify_file(std::string& path)
+    {
+        auto cpath = path.c_str();
+
+        auto* file = fopen(cpath, "rb");
+        if(file == nullptr)
+        {
+            throw std::runtime_error(string_format("Could not open file \"%s\"", cpath));
+        }
+        fclose(file);
+        printf("Verified: %s\n", cpath);
+    }
+
     // ensures object is only accessed from a single thread
     template<typename T>
     class single_threaded
@@ -131,6 +145,8 @@ namespace tabletopify
         std::thread::id _id;
         T* _val = nullptr;
     };
+
+
 
 #if 0
     template<typename T>
