@@ -1,13 +1,14 @@
 #include "precomp.hpp"
 
 // tabletopify
-#include "audio.hpp"
 #include "utilities.hpp"
+#include "audio.hpp"
 
 namespace tabletopify
 {
-    audio_directory* g_audio_directory = nullptr;
-    atmosphere_directory* g_atmosphere_directory = nullptr;
+    single_threaded<audio_directory> g_audio_directory;
+    single_threaded<track_directory> g_track_directory;
+    single_threaded<atmosphere_directory> g_atmosphere_directory;
 
     static void verify_file(std::string& path)
     {
@@ -38,6 +39,7 @@ namespace tabletopify
             else
             {
                 destSound = sourceSound;
+                return;
             }
         }
 
@@ -160,6 +162,12 @@ namespace tabletopify
         }
     }
 
+    audio_entry& audio_directory::get_entry(audio_id_t id)
+    {
+        assert(id != INVALID_AUDIO_ID && id < _entries.size());
+        return _entries[id];
+    }
+
     void audio_directory::add_entry(
         std::string&& uuid,
         std::string&& title, 
@@ -169,13 +177,12 @@ namespace tabletopify
         size_t idx = _entries.size();
 
         // normalized lowercase title for search
-        std::string lowerTitle(title.begin(), title.end());
-        std::transform(lowerTitle.begin(), lowerTitle.end(), lowerTitle.begin(), ::tolower);    
+        std::string lowerTitle = to_lower(title);
 
         // update our tag map with provided tags
         for(auto& currentTag : tags)
         {
-            std::transform(currentTag.begin(), currentTag.end(), currentTag.begin(), ::tolower);
+            currentTag = to_lower(currentTag);
             _tag_map[currentTag].insert(idx);
         }
 
@@ -336,12 +343,42 @@ namespace tabletopify
         return result;
     }
 
+    /// Track Directory
+
+    track_entry& track_directory::get_entry(track_id_t id)
+    {
+        auto it = _entries.find(id);
+        assert(it != _entries.end());
+
+        return it->second;
+    }
+
+    track_id_t track_directory::add_entry(track_entry&& entry)
+    {
+        auto id = ++_next_id;
+
+        auto it = _entries.find(id);
+        assert(it == _entries.end());
+
+        _entries.emplace(id, entry);
+
+        return id;
+    }
+
+    void track_directory::remove_entry(track_id_t id)
+    {
+        auto it = _entries.find(id);
+        assert(it != _entries.end());
+
+        _entries.erase(it);
+    }
+
     /// Atmosphere Directory
 
     std::vector<atmosphere_id_t> atmosphere_directory::get_atmosphere_ids() const
     {
         std::vector<atmosphere_id_t> ids;
-        for(auto it : _entries)
+        for(const auto& it : _entries)
         {
             ids.push_back(it.first);
         }
@@ -350,12 +387,63 @@ namespace tabletopify
 
     std::vector<atmosphere_id_t> atmosphere_directory::get_atmosphere_ids_by_title(const std::string& title_query) const
     {
-        return std::vector<atmosphere_id_t>();
-    }
+        std::vector<atmosphere_id_t> result;
+        
+        // first search for exact match
+        for(const auto& it : _entries)
+        {
+            if(it.second.title == title_query)
+            {
+                auto id = it.first;
+                result.push_back(id);
+            }
+        }
+        // used to ensure we don't have duplicates
+        std::unordered_set<atmosphere_id_t> resultSet(result.begin(), result.end());
 
-    std::vector<atmosphere_id_t> atmosphere_directory::get_atmosphere_ids_by_tag(const std::vector<std::string>& queries) const
-    {
-        return std::vector<atmosphere_id_t>();
+        // next look for subset match
+        for(const auto& it : _entries)
+        {
+            // first ensure we haven't added this result yet
+            if(resultSet.find(it.first) == resultSet.end())
+            {
+                if(contains(to_lower(it.second.title), title_query))
+                {
+                    auto id = it.first;
+                    result.push_back(id);
+                    resultSet.insert(id);
+                }
+            }
+        }
+
+        // finally look for 'tag' match
+        auto tags_query = split(to_lower(title_query), " ");
+        for(const auto& it : _entries)
+        {
+            // first ensure we haven't added this result yet
+            if(resultSet.find(it.first) == resultSet.end())
+            {
+                bool match = true;
+                for(const auto& tag : tags_query)
+                {
+                    if(contains(to_lower(it.second.title), tag) == false)
+                    {
+                        match = false;
+                        break;
+                    }
+                }
+
+                if(match)
+                {
+                    auto id = it.first;
+                    result.push_back(id);
+                    // don't need to insert the current id into the resultSet, since
+                    // we're guaranteed not to encounter it again
+                }
+            }
+        }            
+
+        return result;
     }
 
     atmosphere_entry& atmosphere_directory::get_entry(atmosphere_id_t id)
@@ -371,14 +459,8 @@ namespace tabletopify
         // update source and get id
         auto id = ++_next_id;
 
-        // update the tag map
-        for(auto tag : entry.tags)
-        {
-            _tag_map.insert({tag, id});
-        }
-
         // insert into map and increment the id source
-        _entries.insert({id, entry});
+        _entries.emplace(id, entry);
 
         // return id of entry just inserted
         return id;
@@ -387,23 +469,10 @@ namespace tabletopify
     void atmosphere_directory::remove_entry(atmosphere_id_t id)
     {
         // get reference to entry we're removing
-        auto entry_it = _entries.find(id);
-        auto& entry = entry_it->second;
+        auto it = _entries.find(id);
+        assert(it != _entries.end());
 
-        // remove it's tags from the tag map
-        for(auto tag : entry.tags)
-        {
-            auto ii = _tag_map.equal_range(tag);
-            for(auto it = ii.first; it != ii.second;)
-            {
-                if(it->second == id)
-                {
-                    _tag_map.erase(it);
-                    break;
-                }
-            }
-        }
         // remove the entry 
-        _entries.erase(entry_it);
+        _entries.erase(it);
     }
 }

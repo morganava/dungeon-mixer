@@ -3,6 +3,19 @@
 namespace tabletopify
 {
 
+    // print operator for some nuklear types
+    inline
+    std::ostream& operator<<(std::ostream& out, struct nk_rect& rect)
+    {
+        return out << "{ x: " << rect.x << ", y: " << rect.y << ", w: " << rect.w << ", h: " << rect.h << " }";
+    }
+
+    inline
+    std::ostream& operator<<(std::ostream& out, struct nk_vec2& vec)
+    {
+        return out << "{ x: " << vec.x << ", y: " << vec.y << " }";
+    }
+
     // countof(X)
     template<typename T, size_t N>
     constexpr size_t countof(const T (&)[N]) { return N; }
@@ -53,10 +66,71 @@ namespace tabletopify
     }
 
     inline
+    bool contains(const std::string& str, const std::string& pattern)
+    {
+        bool result = std::strstr(str.data(), pattern.data()) != nullptr;
+        return result;
+    }
+
+    // convert string to lower-case (not a general utf-8 solution)
+    inline
+    std::string to_lower(const std::string& str)
+    {
+        std::string result = str;
+        std::transform(result.begin(), result.end(), result.begin(), ::tolower);
+        return result;
+    }    
+
+    // remove whitespace from head and tail of string
+    inline
+    std::string trim(const std::string& str)
+    {
+        size_t first = str.find_first_not_of(" \t");
+        if(first == std::string::npos) return "";
+
+        size_t last = str.find_last_not_of(" \t");
+
+        return std::string(str, first, last - first + 1);
+    }
+
+    inline
     void yield(size_t ms)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(ms));
     }
+
+    // ensures object is only accessed from a single thread
+    template<typename T>
+    class single_threaded
+    {
+    public:
+        single_threaded() {}
+
+        single_threaded(std::thread::id id)
+        : _id(id)
+        , _val(new T())
+        {}
+
+        single_threaded(std::thread::id id, T* val)
+        : _id(id)
+        , _val(val)
+        {}
+
+        void free()
+        {
+            delete _val;
+            _val = nullptr;
+        }
+
+        T* operator->()
+        {
+            assert(std::this_thread::get_id() == _id);
+            return _val;
+        }
+    private:
+        std::thread::id _id;
+        T* _val = nullptr;
+    };
 
 #if 0
     template<typename T>

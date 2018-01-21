@@ -2,14 +2,20 @@
 
 namespace tabletopify
 {
+    // maps to audio data
 	typedef size_t audio_id_t;
+    // instantiated possibly playing audio tracks
+    typedef size_t track_id_t;
+    // collection of tracks
 	typedef size_t atmosphere_id_t;
 
 	constexpr audio_id_t INVALID_AUDIO_ID = ~audio_id_t(0);
+    constexpr track_id_t INVALID_TRACK_ID = ~track_id_t(0);
 	constexpr atmosphere_id_t INVALID_ATMOSPHERE_ID = ~atmosphere_id_t(0);
 
 	typedef enum
 	{
+        INVALID = -1,
 		ONE_SHOT,
 		LOOP,
 	} audio_type_t;
@@ -18,6 +24,7 @@ namespace tabletopify
 	{
 	public:
 	    virtual ~audio_data() {}
+        virtual audio_type_t get_type() {return INVALID;}
 
 	protected:
 	    // loading data from disk
@@ -34,6 +41,7 @@ namespace tabletopify
     public:
         one_shot_data(std::vector<std::string>&& paths);
         ~one_shot_data() override;
+        audio_type_t get_type() override {return ONE_SHOT;}
     private:
         void load() override;
         void unload() override;
@@ -50,6 +58,7 @@ namespace tabletopify
         loop_data(std::string&& loop_path);
         loop_data(std::string&& intro_path, std::string&& loop_path);
         ~loop_data() override;
+        audio_type_t get_type() override {return LOOP;}
     private:
         void load() override;
         void unload() override;
@@ -93,6 +102,8 @@ namespace tabletopify
 		std::vector<audio_id_t> get_audio_ids() const;
 		std::vector<audio_id_t> get_audio_ids_by_title(const std::string& title_query) const;
 		std::vector<audio_id_t> get_audio_ids_by_tag(const std::vector<std::string>& queries) const;
+
+        audio_entry& get_entry(audio_id_t id);
 		void add_entry(std::string&& uuid,std::string&& title, std::vector<std::string>&& tags, std::shared_ptr<audio_data>&& data);
 	private:
 		std::vector<audio_entry> _entries;
@@ -104,27 +115,52 @@ namespace tabletopify
 		// amount of time an unreferenced track waits before unloading data and freeing memory
 		constexpr static float unload_age = 10.0f;
 	};
-	extern audio_directory* g_audio_directory;
+	extern single_threaded<audio_directory> g_audio_directory;
 
-    struct track_description
+    struct track_entry
     {
-    	audio_id_t audio_id;
-    	audio_type_t audio_type;
-    	float volume;
-    	sf::Vector3f position;
-    	union
-    	{
-    		struct
-    		{
-    			float min_repeat;
-    			float max_repeat;
-    		} one_shot;
-    		struct
-    		{
+        std::string title;
+        // this should probably be an audio_id so that multiple track_entries using the 
+        // same audio data can be loaded at once without actually holding onto the audio 
+        // buffer if none of the are actually being played
+        std::shared_ptr<audio_data> audioData;
+        union
+        {
+            struct
+            {
+                float volume;
+                bool muted;
+                float repeatMin;
+                float repeatMax;
+                union
+                {
+                    struct
+                    {
+                        float x;
+                        float y;
+                        float z;
+                    };
+                    float position[3];
+                };
+            } oneShot;
+            struct
+            {
 
-    		} loop;
-    	};
+            } loop;
+        };
     };
+
+    class track_directory
+    {
+    public:
+        track_entry& get_entry(track_id_t id);
+        track_id_t add_entry(track_entry&& entry);
+        void remove_entry(track_id_t id);
+    private:
+        track_id_t _next_id = 0;
+        std::unordered_map<track_id_t, track_entry> _entries;
+    };
+    extern single_threaded<track_directory> g_track_directory;
 
     struct atmosphere_entry
     {
@@ -134,10 +170,8 @@ namespace tabletopify
     	float volume;
     	// query title
     	std::string title;
-    	// query tags
-    	std::vector<std::string> tags;
-    	// track descriptions
-    	std::vector<track_description> tracks;
+    	// tracks
+    	std::vector<track_id_t> tracks;
     };
 
     class atmosphere_directory
@@ -147,7 +181,6 @@ namespace tabletopify
 
     	std::vector<atmosphere_id_t> get_atmosphere_ids() const;
     	std::vector<atmosphere_id_t> get_atmosphere_ids_by_title(const std::string& title_query) const;
-    	std::vector<atmosphere_id_t> get_atmosphere_ids_by_tag(const std::vector<std::string>& queries) const;
 
     	atmosphere_entry& get_entry(atmosphere_id_t id);
     	atmosphere_id_t add_entry(atmosphere_entry&& entry);
@@ -157,10 +190,8 @@ namespace tabletopify
     	atmosphere_id_t _next_id = 0;
     	// maps id to entry
     	std::unordered_map<atmosphere_id_t, atmosphere_entry> _entries;
-    	// map a tag to set of atmosphere ids
-    	std::unordered_multimap<std::string, audio_id_t> _tag_map;
     	// map a title to a set of atmosphere ids
     	std::unordered_multimap<std::string, audio_id_t> _title_map;
     };
-    extern atmosphere_directory* g_atmosphere_directory;
+    extern single_threaded<atmosphere_directory> g_atmosphere_directory;
 }

@@ -1,8 +1,8 @@
 #include "precomp.hpp"
 
+#include "utilities.hpp"
 #include "globals.hpp"
 #include "audio.hpp"
-#include "utilities.hpp"
 #include "draw.hpp"
 #include "work_queue.hpp"
 
@@ -12,16 +12,7 @@ namespace tabletopify
     {
         init_globals();
 
-        // set style
-        ctx->style.window.scrollbar_size = nk_vec2(10, 0);
-        ctx->style.window.padding = nk_vec2(0,0);
-        ctx->style.window.group_padding = nk_vec2(0, 0);
-        ctx->style.window.spacing = nk_vec2(4, 0);
-        ctx->style.button.padding = nk_vec2(0, 0);
-        ctx->style.scrollh.padding = nk_vec2(0, 0);
-        ctx->style.scrollh.border = 0.0f;
-
-        // 
+        draw_init(ctx);
     }
 
     void gui_callback(float dt, nk_context* ctx, int width, int height)
@@ -38,10 +29,10 @@ namespace tabletopify
         }
 
         // draw widgets
-        draw(ctx, width, height);
+        draw_update(ctx, width, height);
 
         // update our track directory
-        g_audio_directory->update(dt);
+        // g_audio_directory->update(dt);
     }
 
     // on window exit
