@@ -145,5 +145,4 @@ namespace tabletopify
         std::thread::id _id;
         T* _val = nullptr;
     };
-
-
+}
