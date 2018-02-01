@@ -58,15 +58,12 @@ namespace tabletopify
                     track_id_t trackId;
                     std::string title;
                     audio_type_t audioType;
+                    float volume;
+                    int muted;
                     union
                     {
                         struct
                         {
-                            struct
-                            {
-                                float value;
-                                int muted;
-                            } volume;
                             struct
                             {
                                 float min;

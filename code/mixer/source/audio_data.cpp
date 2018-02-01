@@ -3,6 +3,7 @@
 // tabletopify
 #include "utilities.hpp"
 #include "audio.hpp"
+#include "work_queue.hpp"
 
 namespace tabletopify
 {
@@ -73,6 +74,12 @@ namespace tabletopify
 
     }
 
+    sf::SoundBuffer& one_shot_data::get_sound_buffer(bool mono)
+    {
+        assert(mono == true);
+        return _buffers[worker(Worker_Background).nextIndex(_buffers.size())];
+    }
+
     void one_shot_data::load()
     {
         for(size_t k = 0; k < _paths.size(); k++)
@@ -103,16 +110,14 @@ namespace tabletopify
         verify_file(_loop_path);
     }
 
-    loop_data::loop_data(std::string&& intro_path, std::string&& loop_path)
-    : _intro_path(intro_path)
-    , _loop_path(loop_path)
-    {
-        verify_file(_intro_path.value());
-    }
-
     loop_data::~loop_data()
     {
 
+    }
+
+    sf::SoundBuffer& loop_data::get_sound_buffer(bool mono)
+    {
+        return mono ? _mono_loop_buffer : _loop_buffer;
     }
 
     void loop_data::load()

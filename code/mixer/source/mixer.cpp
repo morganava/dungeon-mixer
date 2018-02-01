@@ -19,7 +19,7 @@ namespace tabletopify
     {
         // do queued UI work
         work_item wi;
-        while(g_work_queue->try_dequeue(Queue_UI, wi))
+        while(worker(Worker_UI).try_dequeue(wi))
         {
             wi.func();
             if(wi.finished)

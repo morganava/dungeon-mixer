@@ -9,10 +9,7 @@
 
 namespace tabletopify
 {
-	static std::thread* background_worker = nullptr;
-	static std::thread* fileio_worker = nullptr;
-
-	// test code
+    // test code
     void title_query(const std::string& title)
     {
         std::cout << "title query: " << title << std::endl;
@@ -52,19 +49,19 @@ namespace tabletopify
 
     void test_tag_query()
     {
-	    tag_query({"one-shot"});
+        tag_query({"one-shot"});
         tag_query({"construction"});
-	    tag_query({"gibberish"});
-	    tag_query({"not-found", "one"});
-	    tag_query({"loop", "one"});
-	    tag_query({"shared"});
-	    tag_query({"one-shot", "seagull"});
-	    tag_query({"one-shot", "saw"});
+        tag_query({"gibberish"});
+        tag_query({"not-found", "one"});
+        tag_query({"loop", "one"});
+        tag_query({"shared"});
+        tag_query({"one-shot", "seagull"});
+        tag_query({"one-shot", "saw"});
 
-	    title_query("butthead");
-	    title_query("sea");
-	    title_query("seagulls");
-	    title_query("saw");
+        title_query("butthead");
+        title_query("sea");
+        title_query("seagulls");
+        title_query("saw");
 
         test_split("hello world", " ");
         test_split("  what the fuck  ", " ");
@@ -73,37 +70,15 @@ namespace tabletopify
 
     // globals
 
-    static void worker_thread(size_t idx)
+    void init_globals()
     {
-    	while(g_work_queue->accepting_work())
-    	{
-    		// empty queue of work
-    		work_item wi;
-    		while(g_work_queue->try_dequeue(idx, wi))
-    		{
-    			wi.func();
-	    		if(wi.finished)
-	    		{
-	    			*wi.finished = true;
-	    		}
-    		}
-    		// sleep for 16 ms before trying again
-    		yield(16);
-    	}
-    }
+        // work queue
+        g_worker_manager = new worker_manager();
+        g_worker_manager->initialize();
 
-	void init_globals()
-	{
-		// work queue
-		g_work_queue = new work_queue();
-
-		// worker threads
-		fileio_worker = new std::thread(worker_thread, Queue_FileIO);		
-		background_worker = new std::thread(worker_thread, Queue_Background);
-
-        g_work_queue->enqueue(Queue_Background, []() -> void
+        worker(Worker_Background).enqueue([]() -> void
         {
-            auto threadId = background_worker->get_id();
+            auto threadId = std::this_thread::get_id();
 
             /// Audio directory
 
@@ -162,34 +137,18 @@ namespace tabletopify
             update_ui_playback_atmosphereSearch(atmosphere_ids);
             update_ui_edit_atmosphereList(atmosphere_ids);
         });
-	}
+    }
 
-	void free_globals()
-	{
-        std::cout << "Finishing Work Queues" << std::endl;
-        // close queue off to new work
-        g_work_queue->finish();
+    void free_globals()
+    {
+        // close queues off to new work
+        g_worker_manager->finish();
 
-        std::cout << "Waiting for workers" << std::endl;
-        // wait for workers to finish
-        background_worker->join();
-        fileio_worker->join();
-
-        std::cout << "Cleanup" << std::endl;
-        // delete workers
-        delete background_worker; background_worker = nullptr;
-        delete fileio_worker; fileio_worker = nullptr;
+        delete g_worker_manager; g_worker_manager = nullptr;
         
-        // delete queues
-        delete g_work_queue; g_work_queue = nullptr;
-
-        // delete directories
-        // delete g_atmosphere_directory; g_atmosphere_directory = nullptr;
-        // delete g_track_directory; g_track_directory = nullptr;
-        // delete g_audio_directory; g_audio_directory =  nullptr;
         g_atmosphere_directory.free();
         g_track_directory.free();
         g_audio_directory.free();
 
-	}
+    }
 }

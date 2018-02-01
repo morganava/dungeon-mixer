@@ -15,7 +15,6 @@ namespace tabletopify
 
 	typedef enum
 	{
-        INVALID = -1,
 		ONE_SHOT,
 		LOOP,
 	} audio_type_t;
@@ -24,8 +23,9 @@ namespace tabletopify
 	{
 	public:
 	    virtual ~audio_data() {}
-        virtual audio_type_t get_type() {return INVALID;}
-
+        
+        virtual audio_type_t get_type() = 0;
+        virtual sf::SoundBuffer& get_sound_buffer(bool mono) = 0;
 	protected:
 	    // loading data from disk
 	    virtual void load() = 0;
@@ -41,38 +41,33 @@ namespace tabletopify
     public:
         one_shot_data(std::vector<std::string>&& paths);
         ~one_shot_data() override;
+
         audio_type_t get_type() override {return ONE_SHOT;}
+        sf::SoundBuffer& get_sound_buffer(bool mono) override;
     private:
         void load() override;
         void unload() override;
 
         std::vector<std::string> _paths;
         std::vector<sf::SoundBuffer> _buffers;
-
-        friend class one_shot_track;
     };
 
     class loop_data : public audio_data
     {
     public:    
         loop_data(std::string&& loop_path);
-        loop_data(std::string&& intro_path, std::string&& loop_path);
         ~loop_data() override;
+
         audio_type_t get_type() override {return LOOP;}
+        sf::SoundBuffer& get_sound_buffer(bool mono) override;
     private:
         void load() override;
         void unload() override;
 
-        std::optional<std::string> _intro_path;
         std::string _loop_path;
 
-        std::optional<sf::SoundBuffer> _intro_buffer;
         sf::SoundBuffer _loop_buffer;
-
-        std::optional<sf::SoundBuffer> _mono_intro_buffer;
-        std::optional<sf::SoundBuffer> _mono_loop_buffer;
-
-        friend class loop_track;
+        sf::SoundBuffer _mono_loop_buffer;
     };
 
 	struct audio_entry
@@ -117,19 +112,19 @@ namespace tabletopify
 	};
 	extern single_threaded<audio_directory> g_audio_directory;
 
+    // description for how audio is to played in an atmosphere
     struct track_entry
     {
         std::string title;
-        // this should probably be an audio_id so that multiple track_entries using the 
-        // same audio data can be loaded at once without actually holding onto the audio 
-        // buffer if none of the are actually being played
-        std::shared_ptr<audio_data> audioData;
+        audio_id_t audioId;
+        audio_type_t audioType;
+        float volume;
+        bool muted;        
         union
         {
             struct
             {
-                float volume;
-                bool muted;
+
                 float repeatMin;
                 float repeatMax;
                 union
@@ -194,4 +189,34 @@ namespace tabletopify
     	std::unordered_multimap<std::string, audio_id_t> _title_map;
     };
     extern single_threaded<atmosphere_directory> g_atmosphere_directory;
+
+    struct playback_entry
+    {
+        std::shared_ptr<audio_data> audioData;
+        float volume;
+        float repeatMin;
+        float repeatMax;
+        bool positional;
+        sf::Vector3f position;
+        
+        float repeatDelay;
+        float timeSincePlaybackEnd;        
+        sf::Sound sound;
+
+    };
+
+    class playback_manager
+    {
+    public:
+        void update(float dt);
+        // begins playback of atmosphere
+        void play(atmosphere_id_t atmosphereId);
+        // stops playback of atmosphere
+        void stop(atmosphere_id_t atmosphereId);
+        // syncs track info from track_directory to internal data
+        void sync(track_id_t);
+    private:
+        std::unordered_map<track_id_t, playback_entry> _entries;
+    };
+    extern single_threaded<playback_manager> g_playback_manager;
 }

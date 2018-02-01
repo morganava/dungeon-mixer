@@ -2,15 +2,6 @@
 
 namespace tabletopify
 {
-    enum queue_id
-    {
-        Queue_UI = 0,     // main thread
-        Queue_FileIO,     // file read/write thread
-        Queue_Background, // generic work thread
-
-        Queue_Count,
-    };
-
     struct work_item
     {
         // work to do
@@ -19,21 +10,47 @@ namespace tabletopify
         bool* finished;
     };
 
-    class work_queue
+    enum worker_id
     {
-    public:
-        void enqueue(size_t idx, std::function<void(void)>&& work);
-        void enqueue(size_t idx, std::function<void(void)>&& work, bool *finished);
-        bool try_dequeue(size_t idx, work_item& out_work);
+        Worker_UI = 0,
+        Worker_FileIO,
+        Worker_Background,
 
-        bool accepting_work() {return _accepting_work;}
-        void finish() {_accepting_work = false;}
-    private:
-        std::mutex _mutex[Queue_Count];
-        std::queue<work_item> _queue[Queue_Count];
-
-        std::atomic_bool _accepting_work = true;
+        Worker_Count,
     };
 
-    extern work_queue* g_work_queue;
+    class worker_manager
+    {
+    public:
+        void initialize();
+        bool accepting_work() const { return _accepting_work; }
+        void finish();
+
+    private:
+        std::atomic_bool _accepting_work = true;
+        
+        std::mutex _mutex[Worker_Count];
+        std::queue<work_item> _queue[Worker_Count];
+        std::thread _threads[Worker_Count];
+        std::thread::id _thread_ids[Worker_Count];
+
+        std::minstd_rand _rand[Worker_Count];
+
+        friend class worker;
+        friend void worker_thread(size_t);
+    };
+    extern worker_manager* g_worker_manager;
+
+    class worker
+    {
+    private:
+        const size_t _index;
+    public:
+        worker(size_t index) : _index(index) {}
+        void enqueue(std::function<void(void)>&& work);
+        void enqueue(std::function<void(void)>&& work, bool* finished);
+        bool try_dequeue(work_item& out_work);
+        float nextFloat(float min, float max);
+        size_t nextIndex(size_t count);
+    };
 }

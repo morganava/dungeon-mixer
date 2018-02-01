@@ -107,7 +107,7 @@ namespace tabletopify
             searchResults.push_back({id, currentAtmosphere.title});
         }
 
-        g_work_queue->enqueue(Queue_UI, [searchResults = std::move(searchResults)] () -> void
+        worker(Worker_UI).enqueue([searchResults = std::move(searchResults)] () -> void
         {
             g_ui->playback.atmosphereSearch.results = searchResults;
         });
@@ -122,7 +122,7 @@ namespace tabletopify
             atmospheres.push_back({currentAtmosphere.title, id});
         }
 
-        g_work_queue->enqueue(Queue_UI, [atmospheres = std::move(atmospheres)]() -> void
+        worker(Worker_UI).enqueue([atmospheres = std::move(atmospheres)]() -> void
         {
             g_ui->edit.atmosphereList.atmospheres = atmospheres;
         });
@@ -138,20 +138,18 @@ namespace tabletopify
             for(auto trackId : selectedAtmosphere.tracks)
             {
                 auto& trackEntry = g_track_directory->get_entry(trackId);
-                const auto audioType = trackEntry.audioData->get_type();
 
-                switch(audioType)
+                decltype(tracks)::value_type trackEdit;
+                trackEdit.volume = trackEntry.volume;
+                trackEdit.muted = trackEntry.muted ? 1 : 0;
+
+                switch(trackEntry.audioType)
                 {
-                    case INVALID:
-                        break;
                     case ONE_SHOT:
                         {
-                            decltype(tracks)::value_type trackEdit;
                             trackEdit.trackId = trackId;
                             trackEdit.title = trackEntry.title;
-                            trackEdit.audioType = audioType;
-                            trackEdit.oneShot.volume.value = trackEntry.oneShot.volume;
-                            trackEdit.oneShot.volume.muted = trackEntry.oneShot.muted ? 1 : 0;
+                            trackEdit.audioType = trackEntry.audioType;
                             trackEdit.oneShot.repeat.min = trackEntry.oneShot.repeatMin;
                             trackEdit.oneShot.repeat.max = trackEntry.oneShot.repeatMax;
                             print_minmax(trackEdit.oneShot.repeat.minBuffer, countof(trackEdit.oneShot.repeat.minBuffer), trackEdit.oneShot.repeat.min);
@@ -171,7 +169,7 @@ namespace tabletopify
             }
         }
 
-        g_work_queue->enqueue(Queue_UI, [tracks = std::move(tracks)]() -> void
+        worker(Worker_UI).enqueue([tracks = std::move(tracks)]() -> void
         {
             g_ui->edit.atmosphereEdit.tracks = tracks;
         });
@@ -189,7 +187,7 @@ namespace tabletopify
             });
         }
 
-        g_work_queue->enqueue(Queue_UI, [results = std::move(searchResults)]() -> void
+        worker(Worker_UI).enqueue([results = std::move(searchResults)]() -> void
         {
             g_ui->edit.trackSearch.results = results;
         });
@@ -209,12 +207,12 @@ namespace tabletopify
             nk_layout_row_push(ctx, MX_MODE_BUTTON_WIDTH);
             if(nk_button_label(ctx, "Playback"))
             {
-                g_work_queue->enqueue(Queue_UI, []() -> void {MX_MODE = MX_MODE_PLAY;});
+                worker(Worker_UI).enqueue([]() -> void {MX_MODE = MX_MODE_PLAY;});
             }
             nk_layout_row_push(ctx, MX_MODE_BUTTON_WIDTH);
             if(nk_button_label(ctx, "Edit"))
             {
-                g_work_queue->enqueue(Queue_UI, []() -> void {MX_MODE = MX_MODE_EDIT;});
+                worker(Worker_UI).enqueue([]() -> void {MX_MODE = MX_MODE_EDIT;});
             }
         }
         nk_end(ctx);    
@@ -249,7 +247,7 @@ namespace tabletopify
                             if(nk_button_label(ctx, "X")) 
                             {
                                 // remove this atmosphere from active list
-                                g_work_queue->enqueue(Queue_UI, [=]() -> void 
+                                worker(Worker_UI).enqueue([=]() -> void 
                                 {
                                     g_ui->playback.atmosphereList.atmospheres.erase(g_ui->playback.atmosphereList.atmospheres.begin() + k);
                                 });
@@ -296,7 +294,7 @@ namespace tabletopify
                         if(previousQuery != titleQuery)
                         {
                             previousQuery = titleQuery;
-                            g_work_queue->enqueue(Queue_Background, [titleQuery=std::move(trim(titleQuery))]() -> void
+                            worker(Worker_Background).enqueue([titleQuery=std::move(trim(titleQuery))]() -> void
                             {
                                 std::vector<atmosphere_id_t> searchResults;
                                 if(titleQuery.empty())
@@ -324,7 +322,7 @@ namespace tabletopify
                                 if(nk_widget_is_mouse_clicked(ctx, NK_BUTTON_DOUBLE))
                                 {
                                     printf("clicked on : %s\n", currentAtmosphere.title.c_str());
-                                    g_work_queue->enqueue(Queue_UI, [=]() -> void
+                                    worker(Worker_UI).enqueue([=]() -> void
                                     {
                                         g_ui->playback.atmosphereList.atmospheres.push_back(
                                         {
@@ -371,7 +369,7 @@ namespace tabletopify
                             {
                                 g_ui->edit.atmosphereList.selectedIndex = idx;
                                 auto atmosphereId = g_ui->edit.atmosphereList.atmospheres[idx].atmosphereId;
-                                g_work_queue->enqueue(Queue_Background, [=]() -> void 
+                                worker(Worker_Background).enqueue([=]() -> void 
                                 {
                                     // populate the atmosphereEdit list based on the atmosphereId
                                     update_ui_edit_atmosphereEdit(atmosphereId);                                
@@ -434,31 +432,27 @@ namespace tabletopify
 
                             nk_spacing(ctx, 1);
                             nk_label(ctx, "Volume:", NK_TEXT_LEFT);
-                            const float volumeStep = 1.0f / nk_widget_width(ctx);                                    
-                            if(nk_slider_float(ctx, 0.0f, &currentTrack.oneShot.volume.value, 1.0f, volumeStep))
+                            const float volumeStep = 1.0f / nk_widget_width(ctx);
+                            if(nk_slider_float(ctx, 0.0f, &currentTrack.volume, 1.0f, volumeStep))
                             {
-                                g_work_queue->enqueue(Queue_Background, [=]() -> void
+                                worker(Worker_Background).enqueue([=]() -> void
                                 {
                                     auto& trackEntry = g_track_directory->get_entry(currentTrack.trackId);
-                                    trackEntry.oneShot.volume = currentTrack.oneShot.volume.value;
+                                    trackEntry.volume = currentTrack.volume;
                                 });
                             }
-                            if(nk_checkbox_label(ctx, "Mute", &currentTrack.oneShot.volume.muted))
+                            if(nk_checkbox_label(ctx, "Mute", &currentTrack.muted))
                             {
-                                g_work_queue->enqueue(Queue_Background, [=]() -> void
+                                worker(Worker_Background).enqueue([=]() -> void
                                 {
                                     auto& trackEntry = g_track_directory->get_entry(currentTrack.trackId);
-                                    trackEntry.oneShot.muted = currentTrack.oneShot.volume.muted ? true : false;
+                                    trackEntry.muted = currentTrack.muted ? true : false;
                                 });
                             }
                         }
     
                         switch(currentTrack.audioType)
                         {
-                            case INVALID:
-                            {
-                                break;
-                            }
                             case ONE_SHOT:
                             {
 
@@ -486,7 +480,7 @@ namespace tabletopify
                                         {
                                             currentTrack.oneShot.repeat.min = NK_CLAMP(0.0f, newVal, currentTrack.oneShot.repeat.max);
 
-                                            g_work_queue->enqueue(Queue_Background, [=]() -> void
+                                            worker(Worker_Background).enqueue([=]() -> void
                                             {
                                                 auto& trackEntry = g_track_directory->get_entry(currentTrack.trackId);
                                                 trackEntry.oneShot.repeatMin = currentTrack.oneShot.repeat.min;
@@ -504,7 +498,7 @@ namespace tabletopify
                                         {
                                             currentTrack.oneShot.repeat.max = NK_CLAMP(currentTrack.oneShot.repeat.min, newVal, 120.0f);
 
-                                            g_work_queue->enqueue(Queue_Background, [=]() -> void
+                                            worker(Worker_Background).enqueue([=]() -> void
                                             {
                                                 auto& trackEntry = g_track_directory->get_entry(currentTrack.trackId);
                                                 trackEntry.oneShot.repeatMax = currentTrack.oneShot.repeat.max;
@@ -527,7 +521,7 @@ namespace tabletopify
                                             snprintf(currentTrack.oneShot.repeat.minBuffer, countof(currentTrack.oneShot.repeat.minBuffer), "%#3.1f", currentTrack.oneShot.repeat.min);
                                             snprintf(currentTrack.oneShot.repeat.maxBuffer, countof(currentTrack.oneShot.repeat.maxBuffer), "%#3.1f", currentTrack.oneShot.repeat.max);
 
-                                            g_work_queue->enqueue(Queue_Background, [=]() -> void
+                                            worker(Worker_Background).enqueue([=]() -> void
                                             {
                                                 auto& trackEntry = g_track_directory->get_entry(currentTrack.trackId);
                                                 trackEntry.oneShot.repeatMin = currentTrack.oneShot.repeat.min;
@@ -588,7 +582,7 @@ namespace tabletopify
 
                                         if(oldVal != newVal)
                                         {
-                                            g_work_queue->enqueue(Queue_Background, [=]() -> void
+                                            worker(Worker_Background).enqueue([=]() -> void
                                             {
                                                 auto& trackEntry = g_track_directory->get_entry(trackId);
                                                 trackEntry.oneShot.position[index] = newVal;
@@ -623,7 +617,7 @@ namespace tabletopify
                         std::string title_query = g_ui->edit.trackSearch.searchBuffer;
                         std::vector<std::string> tag_query = split(g_ui->edit.trackSearch.searchBuffer, " ");
                         
-                        g_work_queue->enqueue(Queue_Background, [=]() -> void 
+                        worker(Worker_Background).enqueue([=]() -> void 
                         {
                             auto title_results = g_audio_directory->get_audio_ids_by_title(title_query);
                             auto tag_results = g_audio_directory->get_audio_ids_by_tag(tag_query);
@@ -655,35 +649,34 @@ namespace tabletopify
                                     // create new track instance
                                     printf("clicked on : %s\n", currentTrack.title.c_str());
 
-                                    g_work_queue->enqueue(Queue_Background, [=]() -> void
+                                    worker(Worker_Background).enqueue([=]() -> void
                                     {
                                         atmosphere_id_t currentAtmosphereId = g_ui->edit.atmosphereList.selectedAtmosphereId();
 
-                                        track_entry entry;
+                                        track_entry trackEntry;
                                         {
                                             auto& audioEntry = g_audio_directory->get_entry(currentTrack.audioId);
 
-                                            entry.title = audioEntry.title;
-                                            entry.audioData = audioEntry.data;
-                                            switch(entry.audioData->get_type())
+                                            trackEntry.title = audioEntry.title;
+                                            trackEntry.audioId = currentTrack.audioId;
+                                            trackEntry.audioType = audioEntry.data->get_type();
+                                            switch(trackEntry.audioType)
                                             {
-                                                case INVALID:
-                                                    break;
                                                 case ONE_SHOT:
-                                                    entry.oneShot.volume = 1.0f;
-                                                    entry.oneShot.muted = false;
-                                                    entry.oneShot.repeatMin = 5.0f;
-                                                    entry.oneShot.repeatMax = 30.0f;
-                                                    entry.oneShot.x = 0.0f;
-                                                    entry.oneShot.y = 0.0f;
-                                                    entry.oneShot.z = 0.0f;
+                                                    trackEntry.volume = 1.0f;
+                                                    trackEntry.muted = false;
+                                                    trackEntry.oneShot.repeatMin = 5.0f;
+                                                    trackEntry.oneShot.repeatMax = 30.0f;
+                                                    trackEntry.oneShot.x = 0.0f;
+                                                    trackEntry.oneShot.y = 0.0f;
+                                                    trackEntry.oneShot.z = 0.0f;
                                                     break;
                                                 case LOOP:
                                                     break;
                                             }
                                         }
 
-                                        track_id_t trackId = g_track_directory->add_entry(std::move(entry));
+                                        track_id_t trackId = g_track_directory->add_entry(std::move(trackEntry));
                                         auto& currentAtmosphere = g_atmosphere_directory->get_entry(currentAtmosphereId);                                            
                                         currentAtmosphere.tracks.push_back(trackId);
 
