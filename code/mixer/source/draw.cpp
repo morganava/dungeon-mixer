@@ -270,7 +270,11 @@ namespace tabletopify
                             }
                             if(nk_button_label(ctx, "P"))
                             {
-
+                                worker(Worker_Background).enqueue([=]() -> void
+                                {
+                                    std::cout << "Playing " << currentAtmosphere.title << std::endl;
+                                    g_playback_manager->play(currentAtmosphere.atmosphereId);
+                                });
                             }
 
                         }

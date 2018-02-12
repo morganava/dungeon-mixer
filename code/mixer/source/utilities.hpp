@@ -16,6 +16,12 @@ namespace tabletopify
         return out << "{ x: " << vec.x << ", y: " << vec.y << " }";
     }
 
+    inline
+    std::ostream& operator<<(std::ostream& out, const sf::Vector3f& vec)
+    {
+        return out << "{ x: " << vec.x << ", y: " << vec.y << ", z: " << vec.z << " }";
+    }
+
     // countof(X)
     template<typename T, size_t N>
     constexpr size_t countof(const T (&)[N]) { return N; }

@@ -119,7 +119,9 @@ namespace tabletopify
         audio_id_t audioId;
         audio_type_t audioType;
         float volume;
-        bool muted;        
+        float atmosphereVolume = 1.0f;
+        bool muted;
+        bool atmosphereMuted = false;
         union
         {
             struct
@@ -192,17 +194,19 @@ namespace tabletopify
 
     struct playback_entry
     {
-        std::shared_ptr<audio_data> audioData;
+        // properties of playing track
         float volume;
+        bool seamlessLoop;
         float repeatMin;
         float repeatMax;
         bool positional;
         sf::Vector3f position;
-        
+        bool dirty; // when set volume, position, etc need to be synced to the sf::Sound
+
         float repeatDelay;
         float timeSincePlaybackEnd;        
+        std::shared_ptr<audio_data> audioData;        
         sf::Sound sound;
-
     };
 
     class playback_manager

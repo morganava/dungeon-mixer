@@ -90,7 +90,7 @@ namespace tabletopify
 
     float worker::nextFloat(float min, float max)
     {
-        assert(min < max);
+        assert(min <= max);
         assert(g_worker_manager->_thread_ids[_index] == std::this_thread::get_id());
 
         std::uniform_real_distribution<float> uniform(min, max);

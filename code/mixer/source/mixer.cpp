@@ -31,8 +31,13 @@ namespace tabletopify
         // draw widgets
         draw_update(ctx, width, height);
 
-        // update our track directory
-        // g_audio_directory->update(dt);
+        bool finished;
+        worker(Worker_Background).enqueue([=]()
+        {
+            g_playback_manager->update(dt);
+        }, &finished);
+
+        while(!finished) yield(1);
     }
 
     // on window exit

@@ -77,7 +77,13 @@ namespace tabletopify
     sf::SoundBuffer& one_shot_data::get_sound_buffer(bool mono)
     {
         assert(mono == true);
-        return _buffers[worker(Worker_Background).nextIndex(_buffers.size())];
+        if(_loaded == false)
+        {
+            this->load();
+        }
+
+        auto index = worker(Worker_Background).nextIndex(_buffers.size());
+        return _buffers[index];
     }
 
     void one_shot_data::load()
