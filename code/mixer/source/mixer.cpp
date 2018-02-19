@@ -31,13 +31,14 @@ namespace tabletopify
         // draw widgets
         draw_update(ctx, width, height);
 
-        bool finished;
-        worker(Worker_Background).enqueue([=]()
+        volatile bool finished = false;
+        worker(Worker_Background).enqueue([dt]()
         {
             g_playback_manager->update(dt);
         }, &finished);
 
-        while(!finished) yield(1);
+        // busy wait 
+        while(!finished) std::this_thread::yield();
     }
 
     // on window exit

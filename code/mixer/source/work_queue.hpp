@@ -7,7 +7,7 @@ namespace tabletopify
         // work to do
         std::function<void(void)> func;
         // consumer sets to true when finished
-        bool* finished;
+        volatile bool* finished;
     };
 
     enum worker_id
@@ -48,7 +48,7 @@ namespace tabletopify
     public:
         worker(size_t index) : _index(index) {}
         void enqueue(std::function<void(void)>&& work);
-        void enqueue(std::function<void(void)>&& work, bool* finished);
+        void enqueue(std::function<void(void)>&& work, volatile bool* finished);
         bool try_dequeue(work_item& out_work);
         float nextFloat(float min, float max);
         size_t nextIndex(size_t count);

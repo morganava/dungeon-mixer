@@ -13,23 +13,23 @@ namespace tabletopify
     {
         g_worker_manager->_thread_ids[idx] = std::this_thread::get_id();
 
-    	auto w = worker(idx);
-    	work_item wi;
+        auto w = worker(idx);
+        work_item wi;
 
-    	while(g_worker_manager->accepting_work())
-    	{
-    		// empty queue of work
-    		while(w.try_dequeue(wi))
-    		{
-    			wi.func();
-    			if(wi.finished != nullptr)
-    			{
-    				*wi.finished = true;
-    			}
-    		}
-    		// sleep for 16 ms before looking for work
-    		yield(16);
-    	}
+        while(g_worker_manager->accepting_work())
+        {
+            // empty queue of work
+            while(w.try_dequeue(wi))
+            {
+                wi.func();
+                if(wi.finished != nullptr)
+                {
+                    *wi.finished = true;
+                }
+            }
+            // sleep for 1 ms before looking for work
+            sleep_for(1);
+        }
     }
 
     void worker_manager::initialize()
@@ -37,11 +37,11 @@ namespace tabletopify
         // set the main thread id
         _thread_ids[Worker_UI] = std::this_thread::get_id();
 
-    	// init threads, start on 1 because 0 is main thread
-    	for(size_t k = 1; k < Worker_Count; k++)
-    	{
-    		_threads[k] = std::thread(&worker_thread, k);
-    	}
+        // init threads, start on 1 because 0 is main thread
+        for(size_t k = 1; k < Worker_Count; k++)
+        {
+            _threads[k] = std::thread(&worker_thread, k);
+        }
     }
 
     void worker_manager::finish()
@@ -64,7 +64,7 @@ namespace tabletopify
         this->enqueue(std::forward<std::function<void(void)>>(work), nullptr);       
     }
 
-    void worker::enqueue(std::function<void(void)>&& work, bool* finished)
+    void worker::enqueue(std::function<void(void)>&& work, volatile bool* finished)
     {
         if(g_worker_manager->_accepting_work)
         {

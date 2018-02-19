@@ -100,7 +100,7 @@ namespace tabletopify
     }
 
     inline
-    void yield(size_t ms)
+    void sleep_for(size_t ms)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(ms));
     }

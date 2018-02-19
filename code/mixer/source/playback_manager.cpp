@@ -51,42 +51,42 @@ namespace tabletopify
 
     void playback_manager::play(atmosphere_id_t atmosphereId)
     {
-        this->playAtmosphere(atmosphereId);
+        this->play_atmosphere(atmosphereId);
     }
 
     void playback_manager::stop(atmosphere_id_t atmosphereId)
     {
-        this->stopAtmosphere(atmosphereId);
+        this->stop_atmosphere(atmosphereId);
     }
 
     void playback_manager::sync(track_id_t trackId)
     {
-        this->syncTrack(trackId);
+        this->sync_track(trackId);
     }
 
     // atmosphere methods
     
-    void playback_manager::playAtmosphere(atmosphere_id_t atmosphereId)
+    void playback_manager::play_atmosphere(atmosphere_id_t atmosphereId)
     {
         auto& atmosphereEntry = g_atmosphere_directory->get_entry(atmosphereId);
         for(auto trackId : atmosphereEntry.tracks)
         {
-            this->playTrack(trackId);
+            this->play_track(trackId);
         }
     }   
     
-    void playback_manager::stopAtmosphere(atmosphere_id_t atmosphereId)
+    void playback_manager::stop_atmosphere(atmosphere_id_t atmosphereId)
     {
         auto& atmosphereEntry = g_atmosphere_directory->get_entry(atmosphereId);
         for(auto trackId : atmosphereEntry.tracks)
         {
-            this->stopTrack(trackId);
+            this->stop_track(trackId);
         }
     } 
 
     // track methods
 
-    void playback_manager::playTrack(track_id_t trackId)
+    void playback_manager::play_track(track_id_t trackId)
     {
         assert(_entries.find(trackId) == _entries.end());
 
@@ -100,7 +100,7 @@ namespace tabletopify
         this->sync(trackId);        
     }
 
-    void playback_manager::stopTrack(track_id_t trackId)
+    void playback_manager::stop_track(track_id_t trackId)
     {
         auto it = _entries.find(trackId);
         assert(it != _entries.end());
@@ -108,7 +108,7 @@ namespace tabletopify
         _entries.erase(it);
     }
 
-    void playback_manager::syncTrack(track_id_t trackId)
+    void playback_manager::sync_track(track_id_t trackId)
     {
         auto& trackEntry = g_track_directory->get_entry(trackId);
         auto it = _entries.find(trackId);
@@ -138,8 +138,12 @@ namespace tabletopify
         playbackEntry.dirty = true;
     }
 
-    void playback_manager::stopAllTracks()
+    void playback_manager::stop_all_tracks()
     {
-        
+        for(auto& it : _entries)
+        {
+            it.second.sound.stop();
+        }
+        _entries.clear();
     }
 }   

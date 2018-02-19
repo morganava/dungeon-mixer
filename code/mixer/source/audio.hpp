@@ -222,15 +222,15 @@ namespace tabletopify
         // syncs track info from track_directory to internal data
         void sync(track_id_t);
 
-        /// atmosphere methods
-        void playAtmosphere(atmosphere_id_t atmosphereId);
-        void stopAtmosphere(atmosphere_id_t atmosphereId);
+        /// Atmosphere methods
+        void play_atmosphere(atmosphere_id_t atmosphereId);
+        void stop_atmosphere(atmosphere_id_t atmosphereId);
 
-        /// track methods
-        void playTrack(track_id_t trackId);
-        void stopTrack(track_id_t trackId);
-        void syncTrack(track_id_t trackId);
-        void stopAllTracks();
+        /// Track methods
+        void play_track(track_id_t trackId);
+        void stop_track(track_id_t trackId);
+        void sync_track(track_id_t trackId);
+        void stop_all_tracks();
     private:
         std::unordered_map<track_id_t, playback_entry> _entries;
     };

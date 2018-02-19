@@ -43,11 +43,18 @@ namespace tabletopify
                 };
 
                 std::vector<atmosphere_edit> atmospheres;
-                size_t selectedIndex = -1;
+                size_t selectedIndex = ~size_t(0);
 
                 atmosphere_id_t selectedAtmosphereId() const
                 {
-                    return atmospheres[selectedIndex].atmosphereId;
+                    if(selectedIndex != ~size_t(0))
+                    {
+                        return atmospheres[selectedIndex].atmosphereId;
+                    }
+                    else
+                    {
+                        return INVALID_ATMOSPHERE_ID;
+                    }
                 }
             } atmosphereList;
 

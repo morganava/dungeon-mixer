@@ -208,11 +208,29 @@ namespace tabletopify
             if(nk_button_label(ctx, "Playback"))
             {
                 worker(Worker_UI).enqueue([]() -> void {MX_MODE = MX_MODE_PLAY;});
+                worker(Worker_Background).enqueue([]() -> void
+                {
+                    g_playback_manager->stop_all_tracks();
+                });
             }
             nk_layout_row_push(ctx, MX_MODE_BUTTON_WIDTH);
             if(nk_button_label(ctx, "Edit"))
             {
                 worker(Worker_UI).enqueue([]() -> void {MX_MODE = MX_MODE_EDIT;});
+                worker(Worker_Background).enqueue([]() -> void
+                {
+                    g_playback_manager->stop_all_tracks();
+                });
+                auto idx = g_ui->edit.atmosphereList.selectedIndex;
+                if(idx != ~size_t(0))
+                {
+                    auto& currentAtmosphere = g_ui->edit.atmosphereList.atmospheres[idx];
+                    auto atmosphereId = currentAtmosphere.atmosphereId;
+                    worker(Worker_Background).enqueue([=]() -> void
+                    {
+                        g_playback_manager->play_atmosphere(atmosphereId);
+                    });
+                }
             }
         }
         nk_end(ctx);    
@@ -376,7 +394,9 @@ namespace tabletopify
                                 worker(Worker_Background).enqueue([=]() -> void 
                                 {
                                     // populate the atmosphereEdit list based on the atmosphereId
-                                    update_ui_edit_atmosphereEdit(atmosphereId);                                
+                                    update_ui_edit_atmosphereEdit(atmosphereId);
+                                    g_playback_manager->stop_all_tracks();
+                                    g_playback_manager->play_atmosphere(atmosphereId);
                                 });
                             }
                         }
@@ -389,19 +409,13 @@ namespace tabletopify
             {
                 nk_group_begin(ctx, "edit_screen>middle_group", 0);
                 {
+                    auto currentAtmosphereId = g_ui->edit.atmosphereList.selectedAtmosphereId();
                     const size_t trackCount = g_ui->edit.atmosphereEdit.tracks.size();
                     for(size_t trackIndex = 0 ; trackIndex < trackCount; ++trackIndex)
                     {
                         auto& currentTrack = g_ui->edit.atmosphereEdit.tracks[trackIndex];
-                        // float close_ratio = nk_layout_ratio_from_pixel(ctx, MX_CLOSE_BUTTON_SIZE);
+                        auto currentTrackId = currentTrack.trackId;
 
-                        // nk_layout_row_begin(ctx, NK_DYNAMIC, MX_TEXT_SEARCH_HEIGHT, 2);
-
-                        // const float groupWidth = nk_layout_pixel_from_ratio(ctx, 1.0f);
-                        // const float volumeWidth = groupWidth - (MX_ROW_LABEL_OFFSET + MX_ROW_LABEL_WIDTH + MX_ROW_MUTE_WIDTH);
-                        // const float minmaxTextWidth = (groupWidth - (MX_ROW_LABEL_OFFSET + MX_ROW_LABEL_WIDTH + 2*MX_ROW_MINMAX_WIDTH)) / 2.0f;
-
-                        // nk_layout_row_push(ctx, 1.0f - close_ratio);
                         nk_layout_row_template_begin(ctx, MX_ROW_HEIGHT);
                         nk_layout_row_template_push_dynamic(ctx);
                         nk_layout_row_template_push_static(ctx, MX_CLOSE_BUTTON_SIZE);
@@ -412,21 +426,27 @@ namespace tabletopify
                         if(nk_button_label(ctx, "X"))
                         {
                             printf("Close %s\n", currentTrack.title.c_str());
+                            
+                            worker(Worker_Background).enqueue([=]() -> void
+                            {
+                                // stop it from playing
+                                g_playback_manager->stop_track(currentTrackId);
+
+                                // remove track from atmosphere
+                                auto& atmosphereEntry = g_atmosphere_directory->get_entry(currentAtmosphereId);
+                                auto it = find(atmosphereEntry.tracks.begin(), atmosphereEntry.tracks.end(), currentTrackId);
+                                assert(it != atmosphereEntry.tracks.end());
+                                atmosphereEntry.tracks.erase(it);
+
+                                // remove track
+                                g_track_directory->remove_entry(currentTrackId);
+
+                                update_ui_edit_atmosphereEdit(currentAtmosphereId);
+                            });
                         }
     
                         // volume
                         {
-#if 0                            
-                            const float ratio[] =
-                            {
-                                nk_layout_ratio_from_pixel(ctx, MX_ROW_LABEL_OFFSET),
-                                nk_layout_ratio_from_pixel(ctx, MX_ROW_LABEL_WIDTH),
-                                // 1.0f - nk_layout_ratio_from_pixel(ctx, MX_ROW_LABEL_OFFSET + MX_ROW_LABEL_WIDTH + MX_ROW_MUTE_WIDTH),
-                                1.0f - nk_layout_ratio_from_pixel(ctx, MX_ROW_LABEL_OFFSET) - nk_layout_ratio_from_pixel(ctx, MX_ROW_LABEL_WIDTH) - nk_layout_ratio_from_pixel(ctx, MX_ROW_MUTE_WIDTH),
-                                nk_layout_ratio_from_pixel(ctx, MX_ROW_MUTE_WIDTH),
-                            };
-                            nk_layout_row(ctx, NK_DYNAMIC, MX_ROW_HEIGHT, countof(ratio), ratio);
-#endif
                             nk_layout_row_template_begin(ctx, MX_ROW_HEIGHT);
                             nk_layout_row_template_push_static(ctx, MX_ROW_LABEL_OFFSET);
                             nk_layout_row_template_push_static(ctx, MX_ROW_LABEL_WIDTH);
