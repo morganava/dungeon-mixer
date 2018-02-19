@@ -213,12 +213,24 @@ namespace tabletopify
     {
     public:
         void update(float dt);
+
+        /// old methods
         // begins playback of atmosphere
         void play(atmosphere_id_t atmosphereId);
         // stops playback of atmosphere
         void stop(atmosphere_id_t atmosphereId);
         // syncs track info from track_directory to internal data
         void sync(track_id_t);
+
+        /// atmosphere methods
+        void playAtmosphere(atmosphere_id_t atmosphereId);
+        void stopAtmosphere(atmosphere_id_t atmosphereId);
+
+        /// track methods
+        void playTrack(track_id_t trackId);
+        void stopTrack(track_id_t trackId);
+        void syncTrack(track_id_t trackId);
+        void stopAllTracks();
     private:
         std::unordered_map<track_id_t, playback_entry> _entries;
     };

@@ -15,18 +15,6 @@ namespace tabletopify
         {
             auto& playbackEntry = it.second;
 
-#define LOG_MEMBER(parent, param) std::cout << #param " : " << parent.param << std::endl;
-
-            // LOG_MEMBER(playbackEntry, volume);
-            // LOG_MEMBER(playbackEntry, seamlessLoop);
-            // LOG_MEMBER(playbackEntry, repeatMin);
-            // LOG_MEMBER(playbackEntry, repeatMax);
-            // LOG_MEMBER(playbackEntry, positional);
-            // LOG_MEMBER(playbackEntry, position);
-            // LOG_MEMBER(playbackEntry, dirty);
-            // LOG_MEMBER(playbackEntry, repeatDelay);
-            // LOG_MEMBER(playbackEntry, timeSincePlaybackEnd);
-
             if(playbackEntry.dirty == true)
             {
                 playbackEntry.sound.setAttenuation(0.0f);
@@ -45,16 +33,12 @@ namespace tabletopify
                 if(playbackEntry.timeSincePlaybackEnd == 0.0f)
                 {
                     playbackEntry.repeatDelay = worker(Worker_Background).nextFloat(playbackEntry.repeatMin, playbackEntry.repeatMax);
-                    LOG_MEMBER(playbackEntry, repeatDelay);
                 }
-                
-                
 
                 playbackEntry.timeSincePlaybackEnd += dt;
                 
                 if(playbackEntry.timeSincePlaybackEnd >= playbackEntry.repeatDelay)
                 {
-                    std::cout << "Playing!" << std::endl;
                     auto& soundBuffer = playbackEntry.audioData->get_sound_buffer(playbackEntry.positional);
 
                     playbackEntry.sound.setBuffer(soundBuffer);
@@ -67,38 +51,65 @@ namespace tabletopify
 
     void playback_manager::play(atmosphere_id_t atmosphereId)
     {
-        auto& atmosphereEntry = g_atmosphere_directory->get_entry(atmosphereId);
-        for(auto trackId : atmosphereEntry.tracks)
-        {
-            // verify this track isn't already being played
-            assert(_entries.find(trackId) == _entries.end());
-
-            auto& trackEntry = g_track_directory->get_entry(trackId);
-            auto& audioEntry = g_audio_directory->get_entry(trackEntry.audioId);
-
-            playback_entry playbackEntry;
-            playbackEntry.audioData = audioEntry.data;
-            _entries.emplace(trackId, std::move(playbackEntry));
-
-            this->sync(trackId);
-        }
+        this->playAtmosphere(atmosphereId);
     }
 
     void playback_manager::stop(atmosphere_id_t atmosphereId)
     {
-        auto& atmosphereEntry = g_atmosphere_directory->get_entry(atmosphereId);
-        for(auto trackId : atmosphereEntry.tracks)
-        {
-            auto it = _entries.find(trackId);
-            it->second.sound.stop();
-            _entries.erase(it);
-        }
+        this->stopAtmosphere(atmosphereId);
     }
 
     void playback_manager::sync(track_id_t trackId)
     {
-        std::cout << "SYNCING!" << std::endl;
+        this->syncTrack(trackId);
+    }
 
+    // atmosphere methods
+    
+    void playback_manager::playAtmosphere(atmosphere_id_t atmosphereId)
+    {
+        auto& atmosphereEntry = g_atmosphere_directory->get_entry(atmosphereId);
+        for(auto trackId : atmosphereEntry.tracks)
+        {
+            this->playTrack(trackId);
+        }
+    }   
+    
+    void playback_manager::stopAtmosphere(atmosphere_id_t atmosphereId)
+    {
+        auto& atmosphereEntry = g_atmosphere_directory->get_entry(atmosphereId);
+        for(auto trackId : atmosphereEntry.tracks)
+        {
+            this->stopTrack(trackId);
+        }
+    } 
+
+    // track methods
+
+    void playback_manager::playTrack(track_id_t trackId)
+    {
+        assert(_entries.find(trackId) == _entries.end());
+
+        auto& trackEntry = g_track_directory->get_entry(trackId);
+        auto& audioEntry = g_audio_directory->get_entry(trackEntry.audioId);
+
+        playback_entry playbackEntry;
+        playbackEntry.audioData = audioEntry.data;
+        _entries.emplace(trackId, std::move(playbackEntry));
+
+        this->sync(trackId);        
+    }
+
+    void playback_manager::stopTrack(track_id_t trackId)
+    {
+        auto it = _entries.find(trackId);
+        assert(it != _entries.end());
+        it->second.sound.stop();
+        _entries.erase(it);
+    }
+
+    void playback_manager::syncTrack(track_id_t trackId)
+    {
         auto& trackEntry = g_track_directory->get_entry(trackId);
         auto it = _entries.find(trackId);
         assert(it != _entries.end());
@@ -125,5 +136,10 @@ namespace tabletopify
 
         playbackEntry.timeSincePlaybackEnd = 0.0f;
         playbackEntry.dirty = true;
+    }
+
+    void playback_manager::stopAllTracks()
+    {
+        
     }
 }   
