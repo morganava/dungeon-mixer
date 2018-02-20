@@ -123,16 +123,27 @@ namespace tabletopify
 
     sf::SoundBuffer& loop_data::get_sound_buffer(bool mono)
     {
+        if(_loaded == false)
+        {
+            this->load();
+        }
+        
         return mono ? _mono_loop_buffer : _loop_buffer;
     }
 
     void loop_data::load()
     {
+        _loop_buffer.loadFromFile(_loop_path);
+        to_mono(_loop_buffer, _mono_loop_buffer);
+
         _loaded = true;
     }
 
     void loop_data::unload()
     {
+        _loop_buffer = sf::SoundBuffer();
+        _mono_loop_buffer = sf::SoundBuffer();
+
         _loaded = false;
-    }	
+    }
 }

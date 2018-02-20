@@ -142,30 +142,39 @@ namespace tabletopify
                 decltype(tracks)::value_type trackEdit;
                 trackEdit.volume = trackEntry.volume;
                 trackEdit.muted = trackEntry.muted ? 1 : 0;
+                trackEdit.trackId = trackId;
+                trackEdit.title = trackEntry.title;
+                trackEdit.audioType = trackEntry.audioType;
 
                 switch(trackEntry.audioType)
                 {
                     case ONE_SHOT:
-                        {
-                            trackEdit.trackId = trackId;
-                            trackEdit.title = trackEntry.title;
-                            trackEdit.audioType = trackEntry.audioType;
-                            trackEdit.oneShot.repeat.min = trackEntry.oneShot.repeatMin;
-                            trackEdit.oneShot.repeat.max = trackEntry.oneShot.repeatMax;
-                            print_minmax(trackEdit.oneShot.repeat.minBuffer, countof(trackEdit.oneShot.repeat.minBuffer), trackEdit.oneShot.repeat.min);
-                            print_minmax(trackEdit.oneShot.repeat.maxBuffer, countof(trackEdit.oneShot.repeat.maxBuffer), trackEdit.oneShot.repeat.max);
-                            trackEdit.oneShot.position.x = trackEntry.oneShot.x;
-                            trackEdit.oneShot.position.y = trackEntry.oneShot.y;
-                            trackEdit.oneShot.position.z = trackEntry.oneShot.z;
-                            print_position(trackEdit.oneShot.position.xBuffer, countof(trackEdit.oneShot.position.xBuffer), trackEdit.oneShot.position.x);
-                            print_position(trackEdit.oneShot.position.yBuffer, countof(trackEdit.oneShot.position.yBuffer), trackEdit.oneShot.position.y);
-                            print_position(trackEdit.oneShot.position.zBuffer, countof(trackEdit.oneShot.position.zBuffer), trackEdit.oneShot.position.z);
-                            tracks.push_back(std::move(trackEdit));
-                        }
+                    {
+                        trackEdit.repeat.min = trackEntry.oneShot.repeatMin;
+                        trackEdit.repeat.max = trackEntry.oneShot.repeatMax;
+                        print_minmax(trackEdit.repeat.minBuffer, countof(trackEdit.repeat.minBuffer), trackEdit.repeat.min);
+                        print_minmax(trackEdit.repeat.maxBuffer, countof(trackEdit.repeat.maxBuffer), trackEdit.repeat.max);
+                        trackEdit.position.x = trackEntry.oneShot.x;
+                        trackEdit.position.y = trackEntry.oneShot.y;
+                        trackEdit.position.z = trackEntry.oneShot.z;
+                        print_position(trackEdit.position.xBuffer, countof(trackEdit.position.xBuffer), trackEdit.position.x);
+                        print_position(trackEdit.position.yBuffer, countof(trackEdit.position.yBuffer), trackEdit.position.y);
+                        print_position(trackEdit.position.zBuffer, countof(trackEdit.position.zBuffer), trackEdit.position.z);
                         break;
+                    }
                     case LOOP:
+                    {
+                        trackEdit.position.x = trackEntry.loop.x;
+                        trackEdit.position.y = trackEntry.loop.y;
+                        trackEdit.position.z = trackEntry.loop.z;
+                        print_position(trackEdit.position.xBuffer, countof(trackEdit.position.xBuffer), trackEdit.position.x);
+                        print_position(trackEdit.position.yBuffer, countof(trackEdit.position.yBuffer), trackEdit.position.y);
+                        print_position(trackEdit.position.zBuffer, countof(trackEdit.position.zBuffer), trackEdit.position.z);
+
                         break;
+                    }
                 }
+                tracks.push_back(std::move(trackEdit));
             }
         }
 
@@ -445,7 +454,27 @@ namespace tabletopify
                             });
                         }
     
+                        struct
+                        {
+                            bool volume = false;
+                            bool repeat = false;
+                            bool position = false;
+                        } widgets;
+
+                        switch(currentTrack.audioType)
+                        {
+                            case ONE_SHOT:
+                                widgets.volume = true;
+                                widgets.repeat = true;
+                                widgets.position = true;
+                                break;
+                            case LOOP:
+                                widgets.volume = true;
+                                break;
+                        }
+
                         // volume
+                        if(widgets.volume)
                         {
                             nk_layout_row_template_begin(ctx, MX_ROW_HEIGHT);
                             nk_layout_row_template_push_static(ctx, MX_ROW_LABEL_OFFSET);
@@ -477,159 +506,149 @@ namespace tabletopify
                             }
                         }
     
-                        switch(currentTrack.audioType)
+                        // Repeat
+                        if(widgets.repeat)
                         {
-                            case ONE_SHOT:
+                            // Text input
+                            nk_layout_row_template_begin(ctx, MX_ROW_HEIGHT);
+                            nk_layout_row_template_push_static(ctx, MX_ROW_LABEL_OFFSET);
+                            nk_layout_row_template_push_static(ctx, MX_ROW_LABEL_WIDTH);
+                            nk_layout_row_template_push_static(ctx, MX_ROW_MINMAX_WIDTH);
+                            nk_layout_row_template_push_dynamic(ctx);
+                            nk_layout_row_template_push_static(ctx, MX_ROW_MINMAX_WIDTH);
+                            nk_layout_row_template_push_dynamic(ctx);
+                            nk_layout_row_template_end(ctx);
+
+                            nk_spacing(ctx, 1);
+                            nk_label(ctx, "Repeat:", NK_TEXT_LEFT);
+                            nk_label(ctx, "Min", NK_TEXT_CENTERED);
+                            if(NK_EDIT_COMMITED & nk_edit_string_zero_terminated(ctx, 
+                                NK_EDIT_ALWAYS_INSERT_MODE | NK_EDIT_SIG_ENTER | NK_EDIT_SELECTABLE | NK_EDIT_CLIPBOARD, 
+                                currentTrack.repeat.minBuffer, countof(currentTrack.repeat.minBuffer), nk_filter_float))
                             {
-                                // Repeat
+                                float newVal;
+                                if(sscanf(currentTrack.repeat.minBuffer, "%f", &newVal))
                                 {
-                                    // Text input
-                                    nk_layout_row_template_begin(ctx, MX_ROW_HEIGHT);
-                                    nk_layout_row_template_push_static(ctx, MX_ROW_LABEL_OFFSET);
-                                    nk_layout_row_template_push_static(ctx, MX_ROW_LABEL_WIDTH);
-                                    nk_layout_row_template_push_static(ctx, MX_ROW_MINMAX_WIDTH);
-                                    nk_layout_row_template_push_dynamic(ctx);
-                                    nk_layout_row_template_push_static(ctx, MX_ROW_MINMAX_WIDTH);
-                                    nk_layout_row_template_push_dynamic(ctx);
-                                    nk_layout_row_template_end(ctx);
+                                    currentTrack.repeat.min = NK_CLAMP(0.0f, newVal, currentTrack.repeat.max);
 
-                                    nk_spacing(ctx, 1);
-                                    nk_label(ctx, "Repeat:", NK_TEXT_LEFT);
-                                    nk_label(ctx, "Min", NK_TEXT_CENTERED);
-                                    if(NK_EDIT_COMMITED & nk_edit_string_zero_terminated(ctx, 
-                                        NK_EDIT_ALWAYS_INSERT_MODE | NK_EDIT_SIG_ENTER | NK_EDIT_SELECTABLE | NK_EDIT_CLIPBOARD, 
-                                        currentTrack.oneShot.repeat.minBuffer, countof(currentTrack.oneShot.repeat.minBuffer), nk_filter_float))
+                                    worker(Worker_Background).enqueue([=]() -> void
                                     {
-                                        float newVal;
-                                        if(sscanf(currentTrack.oneShot.repeat.minBuffer, "%f", &newVal))
-                                        {
-                                            currentTrack.oneShot.repeat.min = NK_CLAMP(0.0f, newVal, currentTrack.oneShot.repeat.max);
-
-                                            worker(Worker_Background).enqueue([=]() -> void
-                                            {
-                                                auto& trackEntry = g_track_directory->get_entry(currentTrack.trackId);
-                                                trackEntry.oneShot.repeatMin = currentTrack.oneShot.repeat.min;
-                                                g_playback_manager->sync_track(currentTrackId);
-                                            });                                            
-                                        }
-                                        print_minmax(currentTrack.oneShot.repeat.minBuffer, countof(currentTrack.oneShot.repeat.minBuffer), currentTrack.oneShot.repeat.min);
-                                    }
-                                    nk_label(ctx, "Max", NK_TEXT_CENTERED);
-                                    if(NK_EDIT_COMMITED & nk_edit_string_zero_terminated(ctx, 
-                                        NK_EDIT_ALWAYS_INSERT_MODE | NK_EDIT_SIG_ENTER | NK_EDIT_SELECTABLE | NK_EDIT_CLIPBOARD, 
-                                        currentTrack.oneShot.repeat.maxBuffer, countof(currentTrack.oneShot.repeat.maxBuffer), nk_filter_float))
-                                    {
-                                        float newVal;
-                                        if(sscanf(currentTrack.oneShot.repeat.maxBuffer, "%f", &newVal))
-                                        {
-                                            currentTrack.oneShot.repeat.max = NK_CLAMP(currentTrack.oneShot.repeat.min, newVal, 120.0f);
-
-                                            worker(Worker_Background).enqueue([=]() -> void
-                                            {
-                                                auto& trackEntry = g_track_directory->get_entry(currentTrack.trackId);
-                                                trackEntry.oneShot.repeatMax = currentTrack.oneShot.repeat.max;
-                                                g_playback_manager->sync_track(currentTrackId);
-                                            });                                            
-                                        }
-                                        print_minmax(currentTrack.oneShot.repeat.maxBuffer, countof(currentTrack.oneShot.repeat.maxBuffer), currentTrack.oneShot.repeat.max);
-                                    }
-
-                                    // MinMax Slider input
-                                    {
-                                        nk_layout_row_template_begin(ctx, MX_ROW_HEIGHT);
-                                        nk_layout_row_template_push_static(ctx, MX_ROW_LABEL_OFFSET);
-                                        nk_layout_row_template_push_static(ctx, MX_ROW_LABEL_WIDTH);
-                                        nk_layout_row_template_push_dynamic(ctx);
-                                        nk_layout_row_template_end(ctx);
-
-                                        nk_spacing(ctx, 2);
-                                        if(nk_minmax_slider_float(ctx, 0.0f, &currentTrack.oneShot.repeat.min, 120.0f, &currentTrack.oneShot.repeat.max, 0.1f))
-                                        {
-                                            snprintf(currentTrack.oneShot.repeat.minBuffer, countof(currentTrack.oneShot.repeat.minBuffer), "%#3.1f", currentTrack.oneShot.repeat.min);
-                                            snprintf(currentTrack.oneShot.repeat.maxBuffer, countof(currentTrack.oneShot.repeat.maxBuffer), "%#3.1f", currentTrack.oneShot.repeat.max);
-
-                                            worker(Worker_Background).enqueue([=]() -> void
-                                            {
-                                                auto& trackEntry = g_track_directory->get_entry(currentTrack.trackId);
-                                                trackEntry.oneShot.repeatMin = currentTrack.oneShot.repeat.min;
-                                                trackEntry.oneShot.repeatMax = currentTrack.oneShot.repeat.max;
-                                                g_playback_manager->sync_track(currentTrackId);
-                                            });
-                                        }
-                                    }
+                                        auto& trackEntry = g_track_directory->get_entry(currentTrack.trackId);
+                                        trackEntry.oneShot.repeatMin = currentTrack.repeat.min;
+                                        g_playback_manager->sync_track(currentTrackId);
+                                    });                                            
                                 }
-                                // Position
-                                {
-                                    nk_layout_row_template_begin(ctx, MX_ROW_HEIGHT);
-                                    nk_layout_row_template_push_static(ctx, MX_ROW_LABEL_OFFSET);
-                                    nk_layout_row_template_push_static(ctx, MX_ROW_LABEL_WIDTH);
-                                    nk_layout_row_template_push_static(ctx, MX_ROW_XYZ_WIDTH);
-                                    nk_layout_row_template_push_static(ctx, MX_ROW_XYZ_TEXT_WIDTH);
-                                    nk_layout_row_template_push_dynamic(ctx);
-                                    nk_layout_row_template_end(ctx);
-
-                                    auto drawPositionComponent = [](nk_context* ctx, track_id_t trackId, char* componentBuffer, size_t componentBufferLen, float& component, size_t index)
-                                    {
-                                        assert(index < 3);
-
-                                        const float oldVal = component;
-                                        float newVal = component;
-                                        bool updateBuffer = false;
-
-                                        if(index == 0)
-                                        {
-                                            nk_spacing(ctx, 1);
-                                            nk_label(ctx, "Position:", NK_TEXT_LEFT);
-                                        }
-                                        else
-                                        {
-                                            nk_spacing(ctx, 2);
-                                        }
-                                        const char* componentLabel[3] = {"X", "Y", "Z"};
-                                        nk_label(ctx, componentLabel[index], NK_TEXT_LEFT);
-                                        if(NK_EDIT_COMMITED & nk_edit_string_zero_terminated(ctx,
-                                            NK_EDIT_ALWAYS_INSERT_MODE | NK_EDIT_SIG_ENTER | NK_EDIT_SELECTABLE | NK_EDIT_CLIPBOARD, 
-                                            componentBuffer, componentBufferLen, nk_filter_float))
-                                        {
-                                            if(sscanf(componentBuffer, "%f", &newVal))
-                                            {
-                                                newVal = NK_CLAMP(-1.0f, newVal, 1.0f);
-                                            }
-                                            updateBuffer = true;
-                                        }
-                                        if(nk_slider_float(ctx, -1.0f, &newVal, 1.0f, 0.01f))
-                                        {
-                                            updateBuffer = true;
-                                        }
-
-                                        component = newVal;
-                                        if(updateBuffer)
-                                        {
-                                            print_position(componentBuffer, componentBufferLen, component);
-                                        }
-
-                                        if(oldVal != newVal)
-                                        {
-                                            worker(Worker_Background).enqueue([=]() -> void
-                                            {
-                                                auto& trackEntry = g_track_directory->get_entry(trackId);
-                                                trackEntry.oneShot.position[index] = newVal;
-                                                g_playback_manager->sync_track(trackId);
-                                            });
-                                        }
-                                    };
-                                    drawPositionComponent(ctx, currentTrack.trackId, currentTrack.oneShot.position.xBuffer, countof(currentTrack.oneShot.position.xBuffer), currentTrack.oneShot.position.x, 0);
-                                    drawPositionComponent(ctx, currentTrack.trackId, currentTrack.oneShot.position.yBuffer, countof(currentTrack.oneShot.position.yBuffer), currentTrack.oneShot.position.y, 1);
-                                    drawPositionComponent(ctx, currentTrack.trackId, currentTrack.oneShot.position.zBuffer, countof(currentTrack.oneShot.position.zBuffer), currentTrack.oneShot.position.z, 2);
-                                }
-                                break;
+                                print_minmax(currentTrack.repeat.minBuffer, countof(currentTrack.repeat.minBuffer), currentTrack.repeat.min);
                             }
-                            case LOOP:
+                            nk_label(ctx, "Max", NK_TEXT_CENTERED);
+                            if(NK_EDIT_COMMITED & nk_edit_string_zero_terminated(ctx, 
+                                NK_EDIT_ALWAYS_INSERT_MODE | NK_EDIT_SIG_ENTER | NK_EDIT_SELECTABLE | NK_EDIT_CLIPBOARD, 
+                                currentTrack.repeat.maxBuffer, countof(currentTrack.repeat.maxBuffer), nk_filter_float))
                             {
-                                break;
+                                float newVal;
+                                if(sscanf(currentTrack.repeat.maxBuffer, "%f", &newVal))
+                                {
+                                    currentTrack.repeat.max = NK_CLAMP(currentTrack.repeat.min, newVal, 120.0f);
+
+                                    worker(Worker_Background).enqueue([=]() -> void
+                                    {
+                                        auto& trackEntry = g_track_directory->get_entry(currentTrack.trackId);
+                                        trackEntry.oneShot.repeatMax = currentTrack.repeat.max;
+                                        g_playback_manager->sync_track(currentTrackId);
+                                    });                                            
+                                }
+                                print_minmax(currentTrack.repeat.maxBuffer, countof(currentTrack.repeat.maxBuffer), currentTrack.repeat.max);
+                            }
+
+                            // MinMax Slider input
+                            {
+                                nk_layout_row_template_begin(ctx, MX_ROW_HEIGHT);
+                                nk_layout_row_template_push_static(ctx, MX_ROW_LABEL_OFFSET);
+                                nk_layout_row_template_push_static(ctx, MX_ROW_LABEL_WIDTH);
+                                nk_layout_row_template_push_dynamic(ctx);
+                                nk_layout_row_template_end(ctx);
+
+                                nk_spacing(ctx, 2);
+                                if(nk_minmax_slider_float(ctx, 0.0f, &currentTrack.repeat.min, 120.0f, &currentTrack.repeat.max, 0.1f))
+                                {
+                                    snprintf(currentTrack.repeat.minBuffer, countof(currentTrack.repeat.minBuffer), "%#3.1f", currentTrack.repeat.min);
+                                    snprintf(currentTrack.repeat.maxBuffer, countof(currentTrack.repeat.maxBuffer), "%#3.1f", currentTrack.repeat.max);
+
+                                    worker(Worker_Background).enqueue([=]() -> void
+                                    {
+                                        auto& trackEntry = g_track_directory->get_entry(currentTrack.trackId);
+                                        trackEntry.oneShot.repeatMin = currentTrack.repeat.min;
+                                        trackEntry.oneShot.repeatMax = currentTrack.repeat.max;
+                                        g_playback_manager->sync_track(currentTrackId);
+                                    });
+                                }
                             }
                         }
-            
+                        // Position
+                        if(widgets.position)
+                        {
+                            nk_layout_row_template_begin(ctx, MX_ROW_HEIGHT);
+                            nk_layout_row_template_push_static(ctx, MX_ROW_LABEL_OFFSET);
+                            nk_layout_row_template_push_static(ctx, MX_ROW_LABEL_WIDTH);
+                            nk_layout_row_template_push_static(ctx, MX_ROW_XYZ_WIDTH);
+                            nk_layout_row_template_push_static(ctx, MX_ROW_XYZ_TEXT_WIDTH);
+                            nk_layout_row_template_push_dynamic(ctx);
+                            nk_layout_row_template_end(ctx);
+
+                            auto drawPositionComponent = [](nk_context* ctx, track_id_t trackId, char* componentBuffer, size_t componentBufferLen, float& component, size_t index)
+                            {
+                                assert(index < 3);
+
+                                const float oldVal = component;
+                                float newVal = component;
+                                bool updateBuffer = false;
+
+                                if(index == 0)
+                                {
+                                    nk_spacing(ctx, 1);
+                                    nk_label(ctx, "Position:", NK_TEXT_LEFT);
+                                }
+                                else
+                                {
+                                    nk_spacing(ctx, 2);
+                                }
+                                const char* componentLabel[3] = {"X", "Y", "Z"};
+                                nk_label(ctx, componentLabel[index], NK_TEXT_LEFT);
+                                if(NK_EDIT_COMMITED & nk_edit_string_zero_terminated(ctx,
+                                    NK_EDIT_ALWAYS_INSERT_MODE | NK_EDIT_SIG_ENTER | NK_EDIT_SELECTABLE | NK_EDIT_CLIPBOARD, 
+                                    componentBuffer, componentBufferLen, nk_filter_float))
+                                {
+                                    if(sscanf(componentBuffer, "%f", &newVal))
+                                    {
+                                        newVal = NK_CLAMP(-1.0f, newVal, 1.0f);
+                                    }
+                                    updateBuffer = true;
+                                }
+                                if(nk_slider_float(ctx, -1.0f, &newVal, 1.0f, 0.01f))
+                                {
+                                    updateBuffer = true;
+                                }
+
+                                component = newVal;
+                                if(updateBuffer)
+                                {
+                                    print_position(componentBuffer, componentBufferLen, component);
+                                }
+
+                                if(oldVal != newVal)
+                                {
+                                    worker(Worker_Background).enqueue([=]() -> void
+                                    {
+                                        auto& trackEntry = g_track_directory->get_entry(trackId);
+                                        trackEntry.oneShot.position[index] = newVal;
+                                        g_playback_manager->sync_track(trackId);
+                                    });
+                                }
+                            };
+                            drawPositionComponent(ctx, currentTrack.trackId, currentTrack.position.xBuffer, countof(currentTrack.position.xBuffer), currentTrack.position.x, 0);
+                            drawPositionComponent(ctx, currentTrack.trackId, currentTrack.position.yBuffer, countof(currentTrack.position.yBuffer), currentTrack.position.y, 1);
+                            drawPositionComponent(ctx, currentTrack.trackId, currentTrack.position.zBuffer, countof(currentTrack.position.zBuffer), currentTrack.position.z, 2);
+                        }
                     }
                 }
                 nk_group_end(ctx);

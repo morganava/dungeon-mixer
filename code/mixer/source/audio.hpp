@@ -142,7 +142,16 @@ namespace tabletopify
             } oneShot;
             struct
             {
-
+                union
+                {
+                    struct
+                    {
+                        float x;
+                        float y;
+                        float z;
+                    };
+                    float position[3];
+                };
             } loop;
         };
     };

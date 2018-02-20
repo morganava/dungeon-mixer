@@ -67,33 +67,23 @@ namespace tabletopify
                     audio_type_t audioType;
                     float volume;
                     int muted;
-                    union
+                    struct
                     {
-                        struct
-                        {
-                            struct
-                            {
-                                float min;
-                                float max;
-                                char minBuffer[16];
-                                char maxBuffer[16];
+                        float min;
+                        float max;
+                        char minBuffer[16];
+                        char maxBuffer[16];
 
-                            } repeat;
-                            struct
-                            {
-                                float x;
-                                float y;
-                                float z;
-                                char xBuffer[6];
-                                char yBuffer[6];
-                                char zBuffer[6];
-                            } position;
-                        } oneShot;
-                        struct
-                        {
-
-                        } loop;
-                    };
+                    } repeat;
+                    struct
+                    {
+                        float x;
+                        float y;
+                        float z;
+                        char xBuffer[6];
+                        char yBuffer[6];
+                        char zBuffer[6];
+                    } position;                    
                 };
 
                 std::vector<track_edit> tracks;

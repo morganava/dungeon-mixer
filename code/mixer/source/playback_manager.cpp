@@ -73,6 +73,8 @@ namespace tabletopify
 
     void playback_manager::play_track(track_id_t trackId)
     {
+        printf("Playing: %lu\n", trackId);
+
         assert(_entries.find(trackId) == _entries.end());
 
         auto& trackEntry = g_track_directory->get_entry(trackId);
