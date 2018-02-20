@@ -108,10 +108,10 @@ namespace tabletopify
         {
             case ONE_SHOT:
                 playbackEntry.seamlessLoop = false;
-                playbackEntry.repeatMin = trackEntry.oneShot.repeatMin;
-                playbackEntry.repeatMax = trackEntry.oneShot.repeatMax;
+                playbackEntry.repeatMin = trackEntry.repeat.min;
+                playbackEntry.repeatMax = trackEntry.repeat.max;
                 playbackEntry.positional = true;
-                playbackEntry.position = {trackEntry.oneShot.x, trackEntry.oneShot.y, trackEntry.oneShot.z};
+                playbackEntry.position = {trackEntry.position.x, trackEntry.position.y, trackEntry.position.z};
                 break;
             case LOOP:
                 playbackEntry.seamlessLoop = true;

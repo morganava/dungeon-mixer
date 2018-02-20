@@ -150,13 +150,13 @@ namespace tabletopify
                 {
                     case ONE_SHOT:
                     {
-                        trackEdit.repeat.min = trackEntry.oneShot.repeatMin;
-                        trackEdit.repeat.max = trackEntry.oneShot.repeatMax;
+                        trackEdit.repeat.min = trackEntry.repeat.min;
+                        trackEdit.repeat.max = trackEntry.repeat.max;
                         print_minmax(trackEdit.repeat.minBuffer, countof(trackEdit.repeat.minBuffer), trackEdit.repeat.min);
                         print_minmax(trackEdit.repeat.maxBuffer, countof(trackEdit.repeat.maxBuffer), trackEdit.repeat.max);
-                        trackEdit.position.x = trackEntry.oneShot.x;
-                        trackEdit.position.y = trackEntry.oneShot.y;
-                        trackEdit.position.z = trackEntry.oneShot.z;
+                        trackEdit.position.x = trackEntry.position.x;
+                        trackEdit.position.y = trackEntry.position.y;
+                        trackEdit.position.z = trackEntry.position.z;
                         print_position(trackEdit.position.xBuffer, countof(trackEdit.position.xBuffer), trackEdit.position.x);
                         print_position(trackEdit.position.yBuffer, countof(trackEdit.position.yBuffer), trackEdit.position.y);
                         print_position(trackEdit.position.zBuffer, countof(trackEdit.position.zBuffer), trackEdit.position.z);
@@ -164,9 +164,9 @@ namespace tabletopify
                     }
                     case LOOP:
                     {
-                        trackEdit.position.x = trackEntry.loop.x;
-                        trackEdit.position.y = trackEntry.loop.y;
-                        trackEdit.position.z = trackEntry.loop.z;
+                        trackEdit.position.x = trackEntry.position.x;
+                        trackEdit.position.y = trackEntry.position.y;
+                        trackEdit.position.z = trackEntry.position.z;
                         print_position(trackEdit.position.xBuffer, countof(trackEdit.position.xBuffer), trackEdit.position.x);
                         print_position(trackEdit.position.yBuffer, countof(trackEdit.position.yBuffer), trackEdit.position.y);
                         print_position(trackEdit.position.zBuffer, countof(trackEdit.position.zBuffer), trackEdit.position.z);
@@ -534,7 +534,7 @@ namespace tabletopify
                                     worker(Worker_Background).enqueue([=]() -> void
                                     {
                                         auto& trackEntry = g_track_directory->get_entry(currentTrack.trackId);
-                                        trackEntry.oneShot.repeatMin = currentTrack.repeat.min;
+                                        trackEntry.repeat.min = currentTrack.repeat.min;
                                         g_playback_manager->sync_track(currentTrackId);
                                     });                                            
                                 }
@@ -553,7 +553,7 @@ namespace tabletopify
                                     worker(Worker_Background).enqueue([=]() -> void
                                     {
                                         auto& trackEntry = g_track_directory->get_entry(currentTrack.trackId);
-                                        trackEntry.oneShot.repeatMax = currentTrack.repeat.max;
+                                        trackEntry.repeat.max = currentTrack.repeat.max;
                                         g_playback_manager->sync_track(currentTrackId);
                                     });                                            
                                 }
@@ -577,8 +577,8 @@ namespace tabletopify
                                     worker(Worker_Background).enqueue([=]() -> void
                                     {
                                         auto& trackEntry = g_track_directory->get_entry(currentTrack.trackId);
-                                        trackEntry.oneShot.repeatMin = currentTrack.repeat.min;
-                                        trackEntry.oneShot.repeatMax = currentTrack.repeat.max;
+                                        trackEntry.repeat.min = currentTrack.repeat.min;
+                                        trackEntry.repeat.max = currentTrack.repeat.max;
                                         g_playback_manager->sync_track(currentTrackId);
                                     });
                                 }
@@ -640,7 +640,7 @@ namespace tabletopify
                                     worker(Worker_Background).enqueue([=]() -> void
                                     {
                                         auto& trackEntry = g_track_directory->get_entry(trackId);
-                                        trackEntry.oneShot.position[index] = newVal;
+                                        trackEntry.position.raw[index] = newVal;
                                         g_playback_manager->sync_track(trackId);
                                     });
                                 }
@@ -708,16 +708,17 @@ namespace tabletopify
                                             trackEntry.title = audioEntry.title;
                                             trackEntry.audioId = currentTrack.audioId;
                                             trackEntry.audioType = audioEntry.data->get_type();
+                                            trackEntry.volume = 1.0f;
+                                            trackEntry.muted = false;
+
                                             switch(trackEntry.audioType)
                                             {
                                                 case ONE_SHOT:
-                                                    trackEntry.volume = 1.0f;
-                                                    trackEntry.muted = false;
-                                                    trackEntry.oneShot.repeatMin = 5.0f;
-                                                    trackEntry.oneShot.repeatMax = 30.0f;
-                                                    trackEntry.oneShot.x = 0.0f;
-                                                    trackEntry.oneShot.y = 0.0f;
-                                                    trackEntry.oneShot.z = 0.0f;
+                                                    trackEntry.repeat.min = 5.0f;
+                                                    trackEntry.repeat.max = 30.0f;
+                                                    trackEntry.position.x = 0.0f;
+                                                    trackEntry.position.y = 0.0f;
+                                                    trackEntry.position.z = 0.0f;
                                                     break;
                                                 case LOOP:
                                                     break;

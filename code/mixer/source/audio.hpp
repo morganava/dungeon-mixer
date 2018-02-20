@@ -122,38 +122,24 @@ namespace tabletopify
         float atmosphereVolume = 1.0f;
         bool muted;
         bool atmosphereMuted = false;
-        union
+        struct
         {
-            struct
+            float min;
+            float max;
+        } repeat;
+        struct
+        {
+            union
             {
-
-                float repeatMin;
-                float repeatMax;
-                union
+                struct
                 {
-                    struct
-                    {
-                        float x;
-                        float y;
-                        float z;
-                    };
-                    float position[3];
+                    float x;
+                    float y;
+                    float z;
                 };
-            } oneShot;
-            struct
-            {
-                union
-                {
-                    struct
-                    {
-                        float x;
-                        float y;
-                        float z;
-                    };
-                    float position[3];
-                };
-            } loop;
-        };
+                float raw[3];
+            };
+        } position;
     };
 
     class track_directory
