@@ -422,7 +422,7 @@ namespace tabletopify
                         nk_layout_row_template_end(ctx);
 
                         nk_label(ctx, currentTrack.title.c_str(), NK_TEXT_LEFT);
-                        // nk_layout_row_push(ctx, close_ratio);
+                        
                         if(nk_button_label(ctx, "X"))
                         {
                             printf("Close %s\n", currentTrack.title.c_str());
@@ -461,16 +461,18 @@ namespace tabletopify
                             {
                                 worker(Worker_Background).enqueue([=]() -> void
                                 {
-                                    auto& trackEntry = g_track_directory->get_entry(currentTrack.trackId);
+                                    auto& trackEntry = g_track_directory->get_entry(currentTrackId);
                                     trackEntry.volume = currentTrack.volume;
+                                    g_playback_manager->sync_track(currentTrackId);
                                 });
                             }
                             if(nk_checkbox_label(ctx, "Mute", &currentTrack.muted))
                             {
                                 worker(Worker_Background).enqueue([=]() -> void
                                 {
-                                    auto& trackEntry = g_track_directory->get_entry(currentTrack.trackId);
+                                    auto& trackEntry = g_track_directory->get_entry(currentTrackId);
                                     trackEntry.muted = currentTrack.muted ? true : false;
+                                    g_playback_manager->sync_track(currentTrackId);
                                 });
                             }
                         }
@@ -479,7 +481,6 @@ namespace tabletopify
                         {
                             case ONE_SHOT:
                             {
-
                                 // Repeat
                                 {
                                     // Text input
@@ -508,6 +509,7 @@ namespace tabletopify
                                             {
                                                 auto& trackEntry = g_track_directory->get_entry(currentTrack.trackId);
                                                 trackEntry.oneShot.repeatMin = currentTrack.oneShot.repeat.min;
+                                                g_playback_manager->sync_track(currentTrackId);
                                             });                                            
                                         }
                                         print_minmax(currentTrack.oneShot.repeat.minBuffer, countof(currentTrack.oneShot.repeat.minBuffer), currentTrack.oneShot.repeat.min);
@@ -526,6 +528,7 @@ namespace tabletopify
                                             {
                                                 auto& trackEntry = g_track_directory->get_entry(currentTrack.trackId);
                                                 trackEntry.oneShot.repeatMax = currentTrack.oneShot.repeat.max;
+                                                g_playback_manager->sync_track(currentTrackId);
                                             });                                            
                                         }
                                         print_minmax(currentTrack.oneShot.repeat.maxBuffer, countof(currentTrack.oneShot.repeat.maxBuffer), currentTrack.oneShot.repeat.max);
@@ -550,6 +553,7 @@ namespace tabletopify
                                                 auto& trackEntry = g_track_directory->get_entry(currentTrack.trackId);
                                                 trackEntry.oneShot.repeatMin = currentTrack.oneShot.repeat.min;
                                                 trackEntry.oneShot.repeatMax = currentTrack.oneShot.repeat.max;
+                                                g_playback_manager->sync_track(currentTrackId);
                                             });
                                         }
                                     }
@@ -610,6 +614,7 @@ namespace tabletopify
                                             {
                                                 auto& trackEntry = g_track_directory->get_entry(trackId);
                                                 trackEntry.oneShot.position[index] = newVal;
+                                                g_playback_manager->sync_track(trackId);
                                             });
                                         }
                                     };
@@ -700,10 +705,15 @@ namespace tabletopify
                                             }
                                         }
 
+                                        // add data to directories
                                         track_id_t trackId = g_track_directory->add_entry(std::move(trackEntry));
                                         auto& currentAtmosphere = g_atmosphere_directory->get_entry(currentAtmosphereId);                                            
                                         currentAtmosphere.tracks.push_back(trackId);
 
+                                        // begin playing
+                                        g_playback_manager->play_track(trackId);
+
+                                        // updates the ui
                                         update_ui_edit_atmosphereEdit(currentAtmosphereId);
                                     });
                                 }
