@@ -49,21 +49,6 @@ namespace tabletopify
         }
     }
 
-    void playback_manager::play(atmosphere_id_t atmosphereId)
-    {
-        this->play_atmosphere(atmosphereId);
-    }
-
-    void playback_manager::stop(atmosphere_id_t atmosphereId)
-    {
-        this->stop_atmosphere(atmosphereId);
-    }
-
-    void playback_manager::sync(track_id_t trackId)
-    {
-        this->sync_track(trackId);
-    }
-
     // atmosphere methods
     
     void playback_manager::play_atmosphere(atmosphere_id_t atmosphereId)
@@ -97,7 +82,7 @@ namespace tabletopify
         playbackEntry.audioData = audioEntry.data;
         _entries.emplace(trackId, std::move(playbackEntry));
 
-        this->sync(trackId);        
+        this->sync_track(trackId);        
     }
 
     void playback_manager::stop_track(track_id_t trackId)

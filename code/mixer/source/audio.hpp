@@ -214,14 +214,6 @@ namespace tabletopify
     public:
         void update(float dt);
 
-        /// old methods
-        // begins playback of atmosphere
-        void play(atmosphere_id_t atmosphereId);
-        // stops playback of atmosphere
-        void stop(atmosphere_id_t atmosphereId);
-        // syncs track info from track_directory to internal data
-        void sync(track_id_t);
-
         /// Atmosphere methods
         void play_atmosphere(atmosphere_id_t atmosphereId);
         void stop_atmosphere(atmosphere_id_t atmosphereId);

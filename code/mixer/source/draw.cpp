@@ -291,7 +291,7 @@ namespace tabletopify
                                 worker(Worker_Background).enqueue([=]() -> void
                                 {
                                     std::cout << "Playing " << currentAtmosphere.title << std::endl;
-                                    g_playback_manager->play(currentAtmosphere.atmosphereId);
+                                    g_playback_manager->play_atmosphere(currentAtmosphere.atmosphereId);
                                 });
                             }
 
