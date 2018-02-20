@@ -74,9 +74,8 @@ namespace tabletopify
 
     }
 
-    sf::SoundBuffer& one_shot_data::get_sound_buffer(bool mono)
+    sf::SoundBuffer& one_shot_data::get_sound_buffer(bool positionable)
     {
-        assert(mono == true);
         if(_loaded == false)
         {
             this->load();
@@ -121,14 +120,14 @@ namespace tabletopify
 
     }
 
-    sf::SoundBuffer& loop_data::get_sound_buffer(bool mono)
+    sf::SoundBuffer& loop_data::get_sound_buffer(bool positionable)
     {
         if(_loaded == false)
         {
             this->load();
         }
         
-        return mono ? _mono_loop_buffer : _loop_buffer;
+        return positionable ? _mono_loop_buffer : _loop_buffer;
     }
 
     void loop_data::load()

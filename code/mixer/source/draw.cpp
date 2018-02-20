@@ -470,6 +470,7 @@ namespace tabletopify
                                 break;
                             case LOOP:
                                 widgets.volume = true;
+                                widgets.position = true;
                                 break;
                         }
 
@@ -590,64 +591,86 @@ namespace tabletopify
                             nk_layout_row_template_begin(ctx, MX_ROW_HEIGHT);
                             nk_layout_row_template_push_static(ctx, MX_ROW_LABEL_OFFSET);
                             nk_layout_row_template_push_static(ctx, MX_ROW_LABEL_WIDTH);
-                            nk_layout_row_template_push_static(ctx, MX_ROW_XYZ_WIDTH);
-                            nk_layout_row_template_push_static(ctx, MX_ROW_XYZ_TEXT_WIDTH);
                             nk_layout_row_template_push_dynamic(ctx);
                             nk_layout_row_template_end(ctx);
 
-                            auto drawPositionComponent = [](nk_context* ctx, track_id_t trackId, char* componentBuffer, size_t componentBufferLen, float& component, size_t index)
+                            nk_spacing(ctx, 1);
+                            nk_label(ctx, "Position:", NK_TEXT_LEFT);
+                            if(nk_checkbox_label(ctx, "Enabled", &currentTrack.position.enabled))
                             {
-                                assert(index < 3);
+                                worker(Worker_Background).enqueue([=]() -> void
+                                {
+                                    auto& trackEntry = g_track_directory->get_entry(currentTrackId);
+                                    trackEntry.position.enabled = currentTrack.position.enabled ? true : false;
 
-                                const float oldVal = component;
-                                float newVal = component;
-                                bool updateBuffer = false;
+                                    g_playback_manager->sync_track(currentTrackId);
+                                });
+                            }
 
-                                if(index == 0)
+                            if(currentTrack.position.enabled)
+                            {
+                                nk_layout_row_template_begin(ctx, MX_ROW_HEIGHT);
+                                nk_layout_row_template_push_static(ctx, MX_ROW_LABEL_OFFSET);
+                                nk_layout_row_template_push_static(ctx, MX_ROW_LABEL_WIDTH);
+                                nk_layout_row_template_push_static(ctx, MX_ROW_XYZ_WIDTH);
+                                nk_layout_row_template_push_static(ctx, MX_ROW_XYZ_TEXT_WIDTH);
+                                nk_layout_row_template_push_dynamic(ctx);
+                                nk_layout_row_template_end(ctx);
+
+                                auto drawPositionComponent = [](nk_context* ctx, track_id_t trackId, char* componentBuffer, size_t componentBufferLen, float& component, size_t index)
                                 {
-                                    nk_spacing(ctx, 1);
-                                    nk_label(ctx, "Position:", NK_TEXT_LEFT);
-                                }
-                                else
-                                {
-                                    nk_spacing(ctx, 2);
-                                }
-                                const char* componentLabel[3] = {"X", "Y", "Z"};
-                                nk_label(ctx, componentLabel[index], NK_TEXT_LEFT);
-                                if(NK_EDIT_COMMITED & nk_edit_string_zero_terminated(ctx,
-                                    NK_EDIT_ALWAYS_INSERT_MODE | NK_EDIT_SIG_ENTER | NK_EDIT_SELECTABLE | NK_EDIT_CLIPBOARD, 
-                                    componentBuffer, componentBufferLen, nk_filter_float))
-                                {
-                                    if(sscanf(componentBuffer, "%f", &newVal))
+                                    assert(index < 3);
+
+                                    const float oldVal = component;
+                                    float newVal = component;
+                                    bool updateBuffer = false;
+
+                                    // if(index == 0)
+                                    // {
+                                    //     nk_spacing(ctx, 1);
+                                    //     nk_label(ctx, "Position:", NK_TEXT_LEFT);
+                                    // }
+                                    // else
                                     {
-                                        newVal = NK_CLAMP(-1.0f, newVal, 1.0f);
+                                        nk_spacing(ctx, 2);
                                     }
-                                    updateBuffer = true;
-                                }
-                                if(nk_slider_float(ctx, -1.0f, &newVal, 1.0f, 0.01f))
-                                {
-                                    updateBuffer = true;
-                                }
-
-                                component = newVal;
-                                if(updateBuffer)
-                                {
-                                    print_position(componentBuffer, componentBufferLen, component);
-                                }
-
-                                if(oldVal != newVal)
-                                {
-                                    worker(Worker_Background).enqueue([=]() -> void
+                                    const char* componentLabel[3] = {"X", "Y", "Z"};
+                                    nk_label(ctx, componentLabel[index], NK_TEXT_LEFT);
+                                    if(NK_EDIT_COMMITED & nk_edit_string_zero_terminated(ctx,
+                                        NK_EDIT_ALWAYS_INSERT_MODE | NK_EDIT_SIG_ENTER | NK_EDIT_SELECTABLE | NK_EDIT_CLIPBOARD, 
+                                        componentBuffer, componentBufferLen, nk_filter_float))
                                     {
-                                        auto& trackEntry = g_track_directory->get_entry(trackId);
-                                        trackEntry.position.raw[index] = newVal;
-                                        g_playback_manager->sync_track(trackId);
-                                    });
-                                }
-                            };
-                            drawPositionComponent(ctx, currentTrack.trackId, currentTrack.position.xBuffer, countof(currentTrack.position.xBuffer), currentTrack.position.x, 0);
-                            drawPositionComponent(ctx, currentTrack.trackId, currentTrack.position.yBuffer, countof(currentTrack.position.yBuffer), currentTrack.position.y, 1);
-                            drawPositionComponent(ctx, currentTrack.trackId, currentTrack.position.zBuffer, countof(currentTrack.position.zBuffer), currentTrack.position.z, 2);
+                                        if(sscanf(componentBuffer, "%f", &newVal))
+                                        {
+                                            newVal = NK_CLAMP(-1.0f, newVal, 1.0f);
+                                        }
+                                        updateBuffer = true;
+                                    }
+                                    if(nk_slider_float(ctx, -1.0f, &newVal, 1.0f, 0.01f))
+                                    {
+                                        updateBuffer = true;
+                                    }
+
+                                    component = newVal;
+                                    if(updateBuffer)
+                                    {
+                                        print_position(componentBuffer, componentBufferLen, component);
+                                    }
+
+                                    if(oldVal != newVal)
+                                    {
+                                        worker(Worker_Background).enqueue([=]() -> void
+                                        {
+                                            auto& trackEntry = g_track_directory->get_entry(trackId);
+                                            trackEntry.position.raw[index] = newVal;
+                                            g_playback_manager->sync_track(trackId);
+                                        });
+                                    }
+                                };
+                                drawPositionComponent(ctx, currentTrack.trackId, currentTrack.position.xBuffer, countof(currentTrack.position.xBuffer), currentTrack.position.x, 0);
+                                drawPositionComponent(ctx, currentTrack.trackId, currentTrack.position.yBuffer, countof(currentTrack.position.yBuffer), currentTrack.position.y, 1);
+                                drawPositionComponent(ctx, currentTrack.trackId, currentTrack.position.zBuffer, countof(currentTrack.position.zBuffer), currentTrack.position.z, 2);
+                            }
                         }
                     }
                 }
@@ -716,13 +739,16 @@ namespace tabletopify
                                                 case ONE_SHOT:
                                                     trackEntry.repeat.min = 5.0f;
                                                     trackEntry.repeat.max = 30.0f;
-                                                    trackEntry.position.x = 0.0f;
-                                                    trackEntry.position.y = 0.0f;
-                                                    trackEntry.position.z = 0.0f;
+                                                    trackEntry.position.enabled = true;
                                                     break;
                                                 case LOOP:
+                                                    trackEntry.position.enabled = false;
                                                     break;
                                             }
+
+                                            trackEntry.position.x = 0.0f;
+                                            trackEntry.position.y = 0.0f;
+                                            trackEntry.position.z = 0.0f;     
                                         }
 
                                         // add data to directories

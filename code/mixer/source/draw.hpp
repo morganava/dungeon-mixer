@@ -77,6 +77,7 @@ namespace tabletopify
                     } repeat;
                     struct
                     {
+                        int enabled;
                         float x;
                         float y;
                         float z;

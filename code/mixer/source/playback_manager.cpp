@@ -23,6 +23,10 @@ namespace tabletopify
                 {
                     playbackEntry.sound.setPosition(playbackEntry.position);
                 }
+                else
+                {
+                    playbackEntry.sound.setPosition({0.0f, 0.0f, 0.0f});   
+                }
                 playbackEntry.sound.setLoop(playbackEntry.seamlessLoop);
 
                 playbackEntry.dirty = false;
@@ -30,7 +34,7 @@ namespace tabletopify
 
             if(playbackEntry.sound.getStatus() == sf::SoundSource::Stopped)
             {
-                if(playbackEntry.timeSincePlaybackEnd == 0.0f)
+                if(playbackEntry.seamlessLoop == false && playbackEntry.timeSincePlaybackEnd == 0.0f)
                 {
                     playbackEntry.repeatDelay = worker(Worker_Background).nextFloat(playbackEntry.repeatMin, playbackEntry.repeatMax);
                 }
@@ -110,16 +114,23 @@ namespace tabletopify
                 playbackEntry.seamlessLoop = false;
                 playbackEntry.repeatMin = trackEntry.repeat.min;
                 playbackEntry.repeatMax = trackEntry.repeat.max;
-                playbackEntry.positional = true;
-                playbackEntry.position = {trackEntry.position.x, trackEntry.position.y, trackEntry.position.z};
                 break;
             case LOOP:
                 playbackEntry.seamlessLoop = true;
-                playbackEntry.repeatMin = 0.0f;
-                playbackEntry.repeatMax = 0.0f;
-                playbackEntry.positional = false;
+                if(playbackEntry.positional != trackEntry.position.enabled)
+                {
+                    auto currentTimeOffset = playbackEntry.sound.getPlayingOffset();
+                    playbackEntry.sound.stop();
+                    auto& soundBuffer = playbackEntry.audioData->get_sound_buffer(trackEntry.position.enabled);
+                    playbackEntry.sound.setBuffer(soundBuffer);
+                    playbackEntry.sound.setPlayingOffset(currentTimeOffset);
+                    playbackEntry.sound.play();
+                }
                 break;
         }
+
+        playbackEntry.positional = trackEntry.position.enabled;
+        playbackEntry.position = {trackEntry.position.x, trackEntry.position.y, trackEntry.position.z};
 
         playbackEntry.timeSincePlaybackEnd = 0.0f;
         playbackEntry.dirty = true;

@@ -25,7 +25,7 @@ namespace tabletopify
 	    virtual ~audio_data() {}
         
         virtual audio_type_t get_type() = 0;
-        virtual sf::SoundBuffer& get_sound_buffer(bool mono) = 0;
+        virtual sf::SoundBuffer& get_sound_buffer(bool positionable) = 0;
 	protected:
 	    // loading data from disk
 	    virtual void load() = 0;
@@ -43,7 +43,7 @@ namespace tabletopify
         ~one_shot_data() override;
 
         audio_type_t get_type() override {return ONE_SHOT;}
-        sf::SoundBuffer& get_sound_buffer(bool mono) override;
+        sf::SoundBuffer& get_sound_buffer(bool positionable) override;
     private:
         void load() override;
         void unload() override;
@@ -59,7 +59,7 @@ namespace tabletopify
         ~loop_data() override;
 
         audio_type_t get_type() override {return LOOP;}
-        sf::SoundBuffer& get_sound_buffer(bool mono) override;
+        sf::SoundBuffer& get_sound_buffer(bool positionable) override;
     private:
         void load() override;
         void unload() override;
@@ -129,6 +129,7 @@ namespace tabletopify
         } repeat;
         struct
         {
+            bool enabled;
             union
             {
                 struct
