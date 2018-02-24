@@ -19,19 +19,31 @@ namespace tabletopify
 		LOOP,
 	} audio_type_t;
 
+    typedef enum
+    {
+        UNLOADED,
+        LOADING,
+        LOADED,
+        UNLOADING,
+        PENDING_UNLOADED,
+    } audio_data_state_t;
+
 	class audio_data
 	{
 	public:
 	    virtual ~audio_data() {}
-        
+
         virtual audio_type_t get_type() = 0;
         virtual sf::SoundBuffer& get_sound_buffer(bool positionable) = 0;
+        static void load(std::shared_ptr<audio_data> audio);
+        static void unload(std::shared_ptr<audio_data> audio);
+        audio_data_state_t state() const {return _state;}
 	protected:
 	    // loading data from disk
-	    virtual void load() = 0;
+	    virtual void load_impl() = 0;
 	    // freeing audio data
-	    virtual void unload() = 0;
-	    bool _loaded = false;
+	    virtual void unload_impl() = 0;
+	    volatile audio_data_state_t _state = UNLOADED;
 
 	    friend class audio_directory;
 	};
@@ -45,8 +57,8 @@ namespace tabletopify
         audio_type_t get_type() override {return ONE_SHOT;}
         sf::SoundBuffer& get_sound_buffer(bool positionable) override;
     private:
-        void load() override;
-        void unload() override;
+        void load_impl() override;
+        void unload_impl() override;
 
         std::vector<std::string> _paths;
         std::vector<sf::SoundBuffer> _buffers;
@@ -54,15 +66,15 @@ namespace tabletopify
 
     class loop_data : public audio_data
     {
-    public:    
+    public:
         loop_data(std::string&& loop_path);
         ~loop_data() override;
 
         audio_type_t get_type() override {return LOOP;}
         sf::SoundBuffer& get_sound_buffer(bool positionable) override;
     private:
-        void load() override;
-        void unload() override;
+        void load_impl() override;
+        void unload_impl() override;
 
         std::string _loop_path;
 
@@ -197,11 +209,12 @@ namespace tabletopify
         float repeatMax;
         bool positional;
         sf::Vector3f position;
-        bool dirty; // when set volume, position, etc need to be synced to the sf::Sound
+        bool dirtyProperties; // when set volume, position, etc need to be synced to the sf::Sound
+        bool dirtyBuffer; // when the sound buffer needs to be re-fetched
 
         float repeatDelay;
-        float timeSincePlaybackEnd;        
-        std::shared_ptr<audio_data> audioData;        
+        float timeSincePlaybackEnd;
+        std::shared_ptr<audio_data> audioData;
         sf::Sound sound;
     };
 

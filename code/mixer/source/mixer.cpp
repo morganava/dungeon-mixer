@@ -34,6 +34,7 @@ namespace tabletopify
         volatile bool finished = false;
         worker(Worker_Background).enqueue([dt]()
         {
+            g_audio_directory->update(dt);
             g_playback_manager->update(dt);
         }, &finished);
 

@@ -31,7 +31,7 @@ namespace tabletopify
         uint64_t sample_count = sourceSound.getSampleCount() / channels;
         std::unique_ptr<int16_t[]> dest_samples(new int16_t[sample_count]);
         const int16_t* source_samples = sourceSound.getSamples();
-        
+
         for(uint64_t i = 0; i < sample_count; i++)
         {
             int32_t value = 0;
@@ -53,11 +53,42 @@ namespace tabletopify
         destSound.loadFromSamples(dest_samples.release(), sample_count, 1, sample_rate);
     }
 
+    // Base Audio Data
+    void audio_data::load(std::shared_ptr<audio_data> audio)
+    {
+        printf("Loading Audio!\n");
+
+        assert(audio->_state == UNLOADED);
+        audio->_state = LOADING;
+
+        worker(Worker_FileIO).enqueue([=]() -> void
+        {
+            audio->load_impl();
+            audio->_state = LOADED;
+        });
+    }
+
+    void audio_data::unload(std::shared_ptr<audio_data> audio)
+    {
+        printf("Unloading Audio!\n");
+        assert(audio->_state == LOADED);
+        audio->_state = UNLOADING;
+
+        worker(Worker_FileIO).enqueue([=]() -> void
+        {
+            audio->unload_impl();
+            // need to set this to PENDING_UNLOADED because at this point
+            // the audio has 2 references to it, so if we set the flag to UNLOADED
+            // the audio_directory::update loop could try and load it again
+            audio->_state = PENDING_UNLOADED;
+        });
+    }
+
     // One-Shot Data
 
     one_shot_data::one_shot_data(std::vector<std::string>&& paths)
     : _paths(paths)
-    { 
+    {
         for(auto& currentPath : _paths)
         {
             verify_file(currentPath);
@@ -76,17 +107,15 @@ namespace tabletopify
 
     sf::SoundBuffer& one_shot_data::get_sound_buffer(bool positionable)
     {
-        if(_loaded == false)
-        {
-            this->load();
-        }
+        assert(this->_state == LOADED);
 
         auto index = worker(Worker_Background).nextIndex(_buffers.size());
         return _buffers[index];
     }
 
-    void one_shot_data::load()
+    void one_shot_data::load_impl()
     {
+        printf("Load Impl!\n");
         for(size_t k = 0; k < _paths.size(); k++)
         {
             const auto& currentPath = _paths[k];
@@ -95,23 +124,21 @@ namespace tabletopify
             currentSample.loadFromFile(currentPath);
             to_mono(currentSample, currentSample);
         }
-        _loaded = true;        
     }
 
-    void one_shot_data::unload()
+    void one_shot_data::unload_impl()
     {
         for(auto& currentBuffer : _buffers)
         {
             currentBuffer = sf::SoundBuffer();
         }
-        _loaded = false;
     }
 
     // Loop Data
 
     loop_data::loop_data(std::string&& loop_path)
     : _loop_path(loop_path)
-    { 
+    {
         verify_file(_loop_path);
     }
 
@@ -122,27 +149,20 @@ namespace tabletopify
 
     sf::SoundBuffer& loop_data::get_sound_buffer(bool positionable)
     {
-        if(_loaded == false)
-        {
-            this->load();
-        }
-        
+        assert(this->_state == LOADED);
+
         return positionable ? _mono_loop_buffer : _loop_buffer;
     }
 
-    void loop_data::load()
+    void loop_data::load_impl()
     {
         _loop_buffer.loadFromFile(_loop_path);
         to_mono(_loop_buffer, _mono_loop_buffer);
-
-        _loaded = true;
     }
 
-    void loop_data::unload()
+    void loop_data::unload_impl()
     {
         _loop_buffer = sf::SoundBuffer();
         _mono_loop_buffer = sf::SoundBuffer();
-
-        _loaded = false;
     }
 }

@@ -6,7 +6,7 @@
 
 namespace tabletopify
 {
-    single_threaded<audio_directory> g_audio_directory;	
+    single_threaded<audio_directory> g_audio_directory;
 
     /// Audio Directory
 
@@ -14,16 +14,55 @@ namespace tabletopify
     {
         for(auto& current_entry : _entries)
         {
-            if(current_entry.data.use_count() == 1)
+            if(current_entry.data.use_count() > 1)
             {
-                current_entry.age += dt;
-                if(current_entry.age >= unload_age &&
-                   current_entry.data->_loaded)
+                printf("audio title: \"%s\" use_count : %li\n", current_entry.title.c_str(), current_entry.data.use_count());
+            }
+            switch(current_entry.data->state())
+            {
+                case UNLOADED:
                 {
-                    printf("Unloading: %s \n", current_entry.title.c_str());
-                    current_entry.data->unload();
-                    current_entry.age = 0.0f;
+                    // something other than the audio_directory has an instance
+                    // of the shared audio_data, so load it
+                    if(current_entry.data.use_count() > 1)
+                    {
+                        audio_data::load(current_entry.data);
+                    }
                 }
+                break;
+                case LOADING:
+                {
+                    // no-op, FileIO worker is doing work
+                }
+                break;
+                case LOADED:
+                {
+                    // audio loaded, but only the audio_directory has a reference
+                    if(current_entry.data.use_count() == 1)
+                    {
+                        current_entry.age += dt;
+                        if(current_entry.age >= unload_age)
+                        {
+                            audio_data::unload(current_entry.data);
+                        }
+                        printf("audio title: \"%s\" age: %f\n", current_entry.title.c_str(), current_entry.age);
+                    }
+                    else
+                    {
+                        current_entry.age = 0.0f;
+                    }
+                }
+                break;
+                case UNLOADING:
+                {
+                    // no-op, FileIO worker is doing work
+                }
+                break;
+                case PENDING_UNLOADED:
+                {
+                    current_entry.data->_state = UNLOADED;
+                }
+                break;
             }
         }
     }
@@ -36,8 +75,8 @@ namespace tabletopify
 
     void audio_directory::add_entry(
         std::string&& uuid,
-        std::string&& title, 
-        std::vector<std::string>&& tags, 
+        std::string&& title,
+        std::vector<std::string>&& tags,
         std::shared_ptr<audio_data>&& data)
     {
         size_t idx = _entries.size();
@@ -78,9 +117,9 @@ namespace tabletopify
             auto& existingTrack = _entries[uuidIt->second];
             throw std::runtime_error(
                 string_format(
-                    "Colliding UUID (%s) between track '%s' and '%s'", 
-                    uuid.c_str(), 
-                    existingTrack.title.c_str(), 
+                    "Colliding UUID (%s) between track '%s' and '%s'",
+                    uuid.c_str(),
+                    existingTrack.title.c_str(),
                     title.c_str()));
         }
         _uuid_map[uuid] = idx;
@@ -192,7 +231,7 @@ namespace tabletopify
                     {
                         foundAnyMatch = false;
                         break;
-                    }                
+                    }
                 }
             }
 
@@ -207,5 +246,5 @@ namespace tabletopify
         // return track ids in list
         std::vector<audio_id_t> result(resultSet.begin(), resultSet.end());
         return result;
-    }    
+    }
 }

@@ -14,8 +14,17 @@ namespace tabletopify
         for(auto& it : _entries)
         {
             auto& playbackEntry = it.second;
+            printf("audio_data::state(): %i\n", playbackEntry.audioData->state());
 
-            if(playbackEntry.dirty == true)
+            if(playbackEntry.audioData->state() != LOADED)
+            {
+                printf("Pending load!\n");
+                continue;
+            }
+
+
+
+            if(playbackEntry.dirtyProperties == true)
             {
                 playbackEntry.sound.setAttenuation(0.0f);
                 playbackEntry.sound.setVolume(100.0f * playbackEntry.volume);
@@ -25,11 +34,21 @@ namespace tabletopify
                 }
                 else
                 {
-                    playbackEntry.sound.setPosition({0.0f, 0.0f, 0.0f});   
+                    playbackEntry.sound.setPosition({0.0f, 0.0f, 0.0f});
                 }
                 playbackEntry.sound.setLoop(playbackEntry.seamlessLoop);
 
-                playbackEntry.dirty = false;
+                playbackEntry.dirtyProperties = false;
+            }
+
+            if(playbackEntry.dirtyBuffer == true)
+            {
+                auto currentTimeOffset = playbackEntry.sound.getPlayingOffset();
+                playbackEntry.sound.stop();
+                auto& soundBuffer = playbackEntry.audioData->get_sound_buffer(playbackEntry.positional);
+                playbackEntry.sound.setBuffer(soundBuffer);
+                playbackEntry.sound.setPlayingOffset(currentTimeOffset);
+                playbackEntry.sound.play();
             }
 
             if(playbackEntry.sound.getStatus() == sf::SoundSource::Stopped)
@@ -40,7 +59,7 @@ namespace tabletopify
                 }
 
                 playbackEntry.timeSincePlaybackEnd += dt;
-                
+
                 if(playbackEntry.timeSincePlaybackEnd >= playbackEntry.repeatDelay)
                 {
                     auto& soundBuffer = playbackEntry.audioData->get_sound_buffer(playbackEntry.positional);
@@ -48,13 +67,13 @@ namespace tabletopify
                     playbackEntry.sound.setBuffer(soundBuffer);
                     playbackEntry.sound.play();
                     playbackEntry.timeSincePlaybackEnd = 0.0f;
-                }                  
+                }
             }
         }
     }
 
     // atmosphere methods
-    
+
     void playback_manager::play_atmosphere(atmosphere_id_t atmosphereId)
     {
         auto& atmosphereEntry = g_atmosphere_directory->get_entry(atmosphereId);
@@ -62,8 +81,8 @@ namespace tabletopify
         {
             this->play_track(trackId);
         }
-    }   
-    
+    }
+
     void playback_manager::stop_atmosphere(atmosphere_id_t atmosphereId)
     {
         auto& atmosphereEntry = g_atmosphere_directory->get_entry(atmosphereId);
@@ -71,7 +90,7 @@ namespace tabletopify
         {
             this->stop_track(trackId);
         }
-    } 
+    }
 
     // track methods
 
@@ -88,7 +107,7 @@ namespace tabletopify
         playbackEntry.audioData = audioEntry.data;
         _entries.emplace(trackId, std::move(playbackEntry));
 
-        this->sync_track(trackId);        
+        this->sync_track(trackId);
     }
 
     void playback_manager::stop_track(track_id_t trackId)
@@ -114,17 +133,17 @@ namespace tabletopify
                 playbackEntry.seamlessLoop = false;
                 playbackEntry.repeatMin = trackEntry.repeat.min;
                 playbackEntry.repeatMax = trackEntry.repeat.max;
+                playbackEntry.dirtyBuffer = false;
                 break;
             case LOOP:
                 playbackEntry.seamlessLoop = true;
                 if(playbackEntry.positional != trackEntry.position.enabled)
                 {
-                    auto currentTimeOffset = playbackEntry.sound.getPlayingOffset();
-                    playbackEntry.sound.stop();
-                    auto& soundBuffer = playbackEntry.audioData->get_sound_buffer(trackEntry.position.enabled);
-                    playbackEntry.sound.setBuffer(soundBuffer);
-                    playbackEntry.sound.setPlayingOffset(currentTimeOffset);
-                    playbackEntry.sound.play();
+                    playbackEntry.dirtyBuffer = true;
+                }
+                else
+                {
+                    playbackEntry.dirtyBuffer = false;
                 }
                 break;
         }
@@ -133,7 +152,7 @@ namespace tabletopify
         playbackEntry.position = {trackEntry.position.x, trackEntry.position.y, trackEntry.position.z};
 
         playbackEntry.timeSincePlaybackEnd = 0.0f;
-        playbackEntry.dirty = true;
+        playbackEntry.dirtyProperties = true;
     }
 
     void playback_manager::stop_all_tracks()
@@ -144,4 +163,4 @@ namespace tabletopify
         }
         _entries.clear();
     }
-}   
+}

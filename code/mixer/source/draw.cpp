@@ -145,6 +145,7 @@ namespace tabletopify
                 trackEdit.trackId = trackId;
                 trackEdit.title = trackEntry.title;
                 trackEdit.audioType = trackEntry.audioType;
+                trackEdit.position.enabled = trackEntry.position.enabled ? 1 : 0;
 
                 switch(trackEntry.audioType)
                 {

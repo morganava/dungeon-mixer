@@ -26,6 +26,7 @@ namespace tabletopify
                 {
                     *wi.finished = true;
                 }
+                wi = {};
             }
             // sleep for 1 ms before looking for work
             sleep_for(1);
@@ -61,7 +62,7 @@ namespace tabletopify
 
     void worker::enqueue(std::function<void(void)>&& work)
     {
-        this->enqueue(std::forward<std::function<void(void)>>(work), nullptr);       
+        this->enqueue(std::forward<std::function<void(void)>>(work), nullptr);
     }
 
     void worker::enqueue(std::function<void(void)>&& work, volatile bool* finished)
@@ -70,8 +71,8 @@ namespace tabletopify
         {
             std::lock_guard<std::mutex> lock(g_worker_manager->_mutex[_index]);
             work_item wi = {work, finished};
-            g_worker_manager->_queue[_index].emplace(std::move(wi));           
-        }        
+            g_worker_manager->_queue[_index].emplace(std::move(wi));
+        }
     }
 
     bool worker::try_dequeue(work_item& out_work)
