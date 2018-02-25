@@ -2,6 +2,7 @@
 
 // tabletopify
 #include "utilities.hpp"
+#include "tag_map.hpp"
 #include "audio.hpp"
 
 namespace tabletopify
@@ -14,10 +15,6 @@ namespace tabletopify
     {
         for(auto& current_entry : _entries)
         {
-            if(current_entry.data.use_count() > 1)
-            {
-                printf("audio title: \"%s\" use_count : %li\n", current_entry.title.c_str(), current_entry.data.use_count());
-            }
             switch(current_entry.data->state())
             {
                 case UNLOADED:

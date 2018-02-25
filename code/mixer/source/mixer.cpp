@@ -1,7 +1,8 @@
 #include "precomp.hpp"
 
-#include "utilities.hpp"
 #include "globals.hpp"
+#include "utilities.hpp"
+#include "tag_map.hpp"
 #include "audio.hpp"
 #include "draw.hpp"
 #include "work_queue.hpp"
@@ -38,7 +39,7 @@ namespace tabletopify
             g_playback_manager->update(dt);
         }, &finished);
 
-        // busy wait 
+        // busy wait
         while(!finished) std::this_thread::yield();
     }
 

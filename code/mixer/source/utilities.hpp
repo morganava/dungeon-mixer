@@ -35,7 +35,7 @@ namespace tabletopify
         // vsnprintf destructively modifes the va_list, so make an initial copy
         va_copy(args2, args1);
         auto len = vsnprintf(nullptr, 0, format, args1);
-        va_end(args1); 
+        va_end(args1);
 
         std::string result(len, 0);
         vsnprintf(const_cast<char*>(result.data()), len+1, format, args2);
@@ -85,7 +85,7 @@ namespace tabletopify
         std::string result = str;
         std::transform(result.begin(), result.end(), result.begin(), ::tolower);
         return result;
-    }    
+    }
 
     // remove whitespace from head and tail of string
     inline

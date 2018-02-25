@@ -2,6 +2,7 @@
 
 // tabletopify
 #include "utilities.hpp"
+#include "tag_map.hpp"
 #include "globals.hpp"
 #include "audio.hpp"
 #include "draw.hpp"
@@ -17,7 +18,7 @@ namespace tabletopify
         for(auto val : result)
         {
             std::cout << " found:" << val << std::endl;
-        }        
+        }
     }
 
     void tag_query(const std::vector<std::string>& tags)
@@ -39,7 +40,7 @@ namespace tabletopify
     void test_split(const std::string& str, const std::string delim)
     {
         auto vals = split(str, delim);
-        std::cout << "split( \"" << str << "\", \"" << delim << "\") -> {";        
+        std::cout << "split( \"" << str << "\", \"" << delim << "\") -> {";
         for(auto s : vals)
         {
             std::cout << s << ",";
@@ -113,7 +114,7 @@ namespace tabletopify
 
             g_atmosphere_directory = single_threaded<atmosphere_directory>(threadId);
 
-            /// test data        
+            /// test data
             g_atmosphere_directory->add_entry({
                 "4d9bdcc6-282e-437b-872a-6f352f0b86f4",
                 1.0f,
@@ -131,7 +132,7 @@ namespace tabletopify
                 0.5f,
                 "Docks",
                 { },
-            });     
+            });
 
             auto atmosphere_ids = g_atmosphere_directory->get_atmosphere_ids();
             update_ui_playback_atmosphereSearch(atmosphere_ids);
@@ -139,7 +140,7 @@ namespace tabletopify
 
             /// Playback Manager
 
-            g_playback_manager = single_threaded<playback_manager>(threadId); 
+            g_playback_manager = single_threaded<playback_manager>(threadId);
         });
     }
 
@@ -149,7 +150,7 @@ namespace tabletopify
         g_worker_manager->finish();
 
         delete g_worker_manager; g_worker_manager = nullptr;
-        
+
         g_atmosphere_directory.free();
         g_track_directory.free();
         g_audio_directory.free();

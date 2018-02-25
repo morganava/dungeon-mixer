@@ -1,3 +1,4 @@
+#pragma once
  // C++
 #include <cassert>
 #include <cstdarg>
@@ -24,4 +25,4 @@
 #include <nuklear.h>
 
 // SFML
-#include <SFML/Audio.hpp> 
+#include <SFML/Audio.hpp>

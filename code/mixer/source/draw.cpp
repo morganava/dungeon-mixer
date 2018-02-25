@@ -2,6 +2,7 @@
 
 // tabletopify
 #include "utilities.hpp"
+#include "tag_map.hpp"
 #include "audio.hpp"
 #include "draw.hpp"
 #include "globals.hpp"

@@ -191,12 +191,7 @@ namespace tabletopify
     	atmosphere_id_t add_entry(atmosphere_entry&& entry);
     	void remove_entry(atmosphere_id_t id);
     private:
-    	// counts up whenever atmospheres are added
-    	atmosphere_id_t _next_id = 0;
-    	// maps id to entry
-    	std::unordered_map<atmosphere_id_t, atmosphere_entry> _entries;
-    	// map a title to a set of atmosphere ids
-    	std::unordered_multimap<std::string, audio_id_t> _title_map;
+        tag_map<atmosphere_id_t, atmosphere_entry> _tag_map;
     };
     extern single_threaded<atmosphere_directory> g_atmosphere_directory;
 
