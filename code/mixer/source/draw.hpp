@@ -6,13 +6,15 @@ namespace tabletopify
     {
         struct
         {
-            struct 
+            struct
             {
                 struct atmosphere_playback
                 {
                     atmosphere_id_t atmosphereId;
                     std::string title;
                     float volume;
+                    bool muted;
+                    bool playing;
                 };
 
                 std::vector<atmosphere_playback> atmospheres;
@@ -31,7 +33,7 @@ namespace tabletopify
                 std::vector<atmosphere_search_result> results;
             } atmosphereSearch;
         } playback;
-        
+
         struct
         {
             struct
@@ -84,7 +86,7 @@ namespace tabletopify
                         char xBuffer[6];
                         char yBuffer[6];
                         char zBuffer[6];
-                    } position;                    
+                    } position;
                 };
 
                 std::vector<track_edit> tracks;
@@ -101,7 +103,7 @@ namespace tabletopify
                 char searchBuffer[64] = "";
                 std::vector<track_result> results;
             } trackSearch;
-        } edit;  
+        } edit;
     };
     extern UI* g_ui;
 

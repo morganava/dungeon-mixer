@@ -14,15 +14,11 @@ namespace tabletopify
         for(auto& it : _entries)
         {
             auto& playbackEntry = it.second;
-            printf("audio_data::state(): %i\n", playbackEntry.audioData->state());
-
             if(playbackEntry.audioData->state() != LOADED)
             {
                 printf("Pending load!\n");
                 continue;
             }
-
-
 
             if(playbackEntry.dirtyProperties == true)
             {
@@ -101,10 +97,9 @@ namespace tabletopify
         assert(_entries.find(trackId) == _entries.end());
 
         auto& trackEntry = g_track_directory->get_entry(trackId);
-        auto& audioEntry = g_audio_directory->get_entry(trackEntry.audioId);
 
         playback_entry playbackEntry;
-        playbackEntry.audioData = audioEntry.data;
+        playbackEntry.audioData = trackEntry.audioData;
         _entries.emplace(trackId, std::move(playbackEntry));
 
         this->sync_track(trackId);
@@ -122,37 +117,40 @@ namespace tabletopify
     {
         auto& trackEntry = g_track_directory->get_entry(trackId);
         auto it = _entries.find(trackId);
-        assert(it != _entries.end());
-        auto& playbackEntry = it->second;
-
-        playbackEntry.volume = (trackEntry.atmosphereMuted ? 0.0f : trackEntry.atmosphereVolume) * (trackEntry.muted ? 0.0f : trackEntry.volume);
-
-        switch(playbackEntry.audioData->get_type())
+        // if this track isn't playing nothing to do
+        if(it != _entries.end())
         {
-            case ONE_SHOT:
-                playbackEntry.seamlessLoop = false;
-                playbackEntry.repeatMin = trackEntry.repeat.min;
-                playbackEntry.repeatMax = trackEntry.repeat.max;
-                playbackEntry.dirtyBuffer = false;
-                break;
-            case LOOP:
-                playbackEntry.seamlessLoop = true;
-                if(playbackEntry.positional != trackEntry.position.enabled)
-                {
-                    playbackEntry.dirtyBuffer = true;
-                }
-                else
-                {
+            auto& playbackEntry = it->second;
+
+            playbackEntry.volume = (trackEntry.atmosphereMuted ? 0.0f : trackEntry.atmosphereVolume) * (trackEntry.muted ? 0.0f : trackEntry.volume);
+
+            switch(playbackEntry.audioData->get_type())
+            {
+                case ONE_SHOT:
+                    playbackEntry.seamlessLoop = false;
+                    playbackEntry.repeatMin = trackEntry.repeat.min;
+                    playbackEntry.repeatMax = trackEntry.repeat.max;
                     playbackEntry.dirtyBuffer = false;
-                }
-                break;
+                    break;
+                case LOOP:
+                    playbackEntry.seamlessLoop = true;
+                    if(playbackEntry.positional != trackEntry.position.enabled)
+                    {
+                        playbackEntry.dirtyBuffer = true;
+                    }
+                    else
+                    {
+                        playbackEntry.dirtyBuffer = false;
+                    }
+                    break;
+            }
+
+            playbackEntry.positional = trackEntry.position.enabled;
+            playbackEntry.position = {trackEntry.position.x, trackEntry.position.y, trackEntry.position.z};
+
+            playbackEntry.timeSincePlaybackEnd = 0.0f;
+            playbackEntry.dirtyProperties = true;
         }
-
-        playbackEntry.positional = trackEntry.position.enabled;
-        playbackEntry.position = {trackEntry.position.x, trackEntry.position.y, trackEntry.position.z};
-
-        playbackEntry.timeSincePlaybackEnd = 0.0f;
-        playbackEntry.dirtyProperties = true;
     }
 
     void playback_manager::stop_all_tracks()

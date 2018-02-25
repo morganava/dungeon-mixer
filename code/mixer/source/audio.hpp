@@ -128,7 +128,7 @@ namespace tabletopify
     struct track_entry
     {
         std::string title;
-        audio_id_t audioId;
+        std::shared_ptr<audio_data> audioData;
         audio_type_t audioType;
         float volume;
         float atmosphereVolume = 1.0f;

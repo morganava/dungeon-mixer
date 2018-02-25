@@ -12,8 +12,8 @@ namespace tabletopify
     static UI ui;
     UI* g_ui = &ui;
 
-    /* 
-    Constants 
+    /*
+    Constants
     */
 
     /* Globals */
@@ -29,7 +29,7 @@ namespace tabletopify
     constexpr int MX_VOLUME_HEIGHT = 32;
     constexpr int MX_VOLUME_BUTTON_SIZE = 32;
 
-    constexpr int MX_ROW_LABEL_OFFSET = 16;    
+    constexpr int MX_ROW_LABEL_OFFSET = 16;
     constexpr int MX_ROW_LABEL_WIDTH = 72;
 
     constexpr int MX_ROW_MUTE_WIDTH = 50;
@@ -69,12 +69,12 @@ namespace tabletopify
     constexpr int MX_ATMOSPHERE_HEIGHT = MX_ATMOSPHERE_TITLE_HEIGHT + MX_ATMOSPHERE_BUTTON_CONSTELLATION_HEIGHT;
 
 
-    
-    /* 
-    State 
+
+    /*
+    State
     */
 
-    enum 
+    enum
     {
         MX_MODE_PLAY,
         MX_MODE_EDIT,
@@ -203,9 +203,9 @@ namespace tabletopify
         });
     }
 
-    /* 
+    /*
     Draw Calls
-    */  
+    */
 
     void draw_top_bar(nk_context* ctx, int width)
     {
@@ -217,33 +217,41 @@ namespace tabletopify
             nk_layout_row_push(ctx, MX_MODE_BUTTON_WIDTH);
             if(nk_button_label(ctx, "Playback"))
             {
-                worker(Worker_UI).enqueue([]() -> void {MX_MODE = MX_MODE_PLAY;});
-                worker(Worker_Background).enqueue([]() -> void
+                if(MX_MODE != MX_MODE_PLAY)
                 {
-                    g_playback_manager->stop_all_tracks();
-                });
+                    worker(Worker_UI).enqueue([]() -> void
+                    {
+                        MX_MODE = MX_MODE_PLAY;
+                        for(auto& currentAtmosphere : g_ui->playback.atmosphereList.atmospheres)
+                        {
+                            currentAtmosphere.playing = false;
+                        }
+                    });
+                    worker(Worker_Background).enqueue([]() -> void
+                    {
+                        g_playback_manager->stop_all_tracks();
+                    });
+                }
             }
             nk_layout_row_push(ctx, MX_MODE_BUTTON_WIDTH);
             if(nk_button_label(ctx, "Edit"))
             {
-                worker(Worker_UI).enqueue([]() -> void {MX_MODE = MX_MODE_EDIT;});
-                worker(Worker_Background).enqueue([]() -> void
+                if(MX_MODE != MX_MODE_EDIT)
                 {
-                    g_playback_manager->stop_all_tracks();
-                });
-                auto idx = g_ui->edit.atmosphereList.selectedIndex;
-                if(idx != ~size_t(0))
-                {
-                    auto& currentAtmosphere = g_ui->edit.atmosphereList.atmospheres[idx];
-                    auto atmosphereId = currentAtmosphere.atmosphereId;
+                    worker(Worker_UI).enqueue([]() -> void { MX_MODE = MX_MODE_EDIT;});
+                    auto atmosphereId = g_ui->edit.atmosphereList.selectedAtmosphereId();
                     worker(Worker_Background).enqueue([=]() -> void
                     {
-                        g_playback_manager->play_atmosphere(atmosphereId);
+                        g_playback_manager->stop_all_tracks();
+                        if(atmosphereId != INVALID_ATMOSPHERE_ID)
+                        {
+                            g_playback_manager->play_atmosphere(atmosphereId);
+                        }
                     });
                 }
             }
         }
-        nk_end(ctx);    
+        nk_end(ctx);
     }
 
     void draw_play_screen(nk_context* ctx, int width, int height, bool hidden)
@@ -272,12 +280,16 @@ namespace tabletopify
                             nk_layout_row_template_end(ctx);
 
                             nk_label(ctx, currentAtmosphere.title.c_str(), NK_TEXT_LEFT);
-                            if(nk_button_label(ctx, "X")) 
+                            if(nk_button_label(ctx, "X"))
                             {
                                 // remove this atmosphere from active list
-                                worker(Worker_UI).enqueue([=]() -> void 
+                                worker(Worker_UI).enqueue([=]() -> void
                                 {
                                     g_ui->playback.atmosphereList.atmospheres.erase(g_ui->playback.atmosphereList.atmospheres.begin() + k);
+                                });
+                                worker(Worker_Background).enqueue([=]() -> void
+                                {
+                                    g_playback_manager->stop_atmosphere(currentAtmosphere.atmosphereId);
                                 });
                             }
 
@@ -290,21 +302,48 @@ namespace tabletopify
                             const float volumeStep = 0.001f;
                             if(nk_slider_float(ctx, 0.0f, &currentAtmosphere.volume, 1.0f, volumeStep))
                             {
-
+                                worker(Worker_Background).enqueue([=]() -> void
+                                {
+                                    auto& atmosphereEntry = g_atmosphere_directory->get_entry(currentAtmosphere.atmosphereId);
+                                    for(auto trackId : atmosphereEntry.tracks)
+                                    {
+                                        auto& currentTrack = g_track_directory->get_entry(trackId);
+                                        currentTrack.atmosphereVolume = currentAtmosphere.volume;
+                                        g_playback_manager->sync_track(trackId);
+                                    }
+                                });
                             }
                             if(nk_button_label(ctx, "V"))
                             {
-
-                            }
-                            if(nk_button_label(ctx, "P"))
-                            {
+                                currentAtmosphere.muted = !currentAtmosphere.muted;
                                 worker(Worker_Background).enqueue([=]() -> void
                                 {
-                                    std::cout << "Playing " << currentAtmosphere.title << std::endl;
-                                    g_playback_manager->play_atmosphere(currentAtmosphere.atmosphereId);
+                                    auto& atmosphereEntry = g_atmosphere_directory->get_entry(currentAtmosphere.atmosphereId);
+                                    for(auto trackId : atmosphereEntry.tracks)
+                                    {
+                                        auto& currentTrack = g_track_directory->get_entry(trackId);
+                                        currentTrack.atmosphereMuted = currentAtmosphere.muted;
+                                        g_playback_manager->sync_track(trackId);
+                                    }
                                 });
                             }
-
+                            if(nk_button_label(ctx, currentAtmosphere.playing ? "S" : "P"))
+                            {
+                                currentAtmosphere.playing = !currentAtmosphere.playing;
+                                worker(Worker_Background).enqueue([=]() -> void
+                                {
+                                    if(currentAtmosphere.playing)
+                                    {
+                                        std::cout << "Playing " << currentAtmosphere.title << std::endl;
+                                        g_playback_manager->play_atmosphere(currentAtmosphere.atmosphereId);
+                                    }
+                                    else
+                                    {
+                                        std::cout << "Stopping " << currentAtmosphere.title << std::endl;
+                                        g_playback_manager->stop_atmosphere(currentAtmosphere.atmosphereId);
+                                    }
+                                });
+                            }
                         }
                         nk_group_end(ctx);
                     }
@@ -317,7 +356,7 @@ namespace tabletopify
                 {
                     nk_layout_row_begin(ctx, NK_DYNAMIC, MX_TEXT_SEARCH_HEIGHT, 1);
                     nk_layout_row_push(ctx, 1.0f);
-                   
+
                     if(NK_EDIT_COMMITED & nk_edit_string_zero_terminated(ctx, NK_EDIT_ALWAYS_INSERT_MODE | NK_EDIT_SIG_ENTER | NK_EDIT_SELECTABLE | NK_EDIT_CLIPBOARD, g_ui->playback.atmosphereSearch.searchBuffer, countof(g_ui->playback.atmosphereSearch.searchBuffer), nk_filter_default))
                     {
                         std::string titleQuery = g_ui->playback.atmosphereSearch.searchBuffer;
@@ -361,6 +400,8 @@ namespace tabletopify
                                             currentAtmosphere.atmosphereId,
                                             currentAtmosphere.title,
                                             1.0f,
+                                            false,
+                                            false,
                                         });
                                     });
                                 }
@@ -370,7 +411,7 @@ namespace tabletopify
                         nk_group_end(ctx);
                     }
                 }
-                nk_group_end(ctx);          
+                nk_group_end(ctx);
             }
             nk_layout_row_end(ctx);
         }
@@ -401,7 +442,7 @@ namespace tabletopify
                             {
                                 g_ui->edit.atmosphereList.selectedIndex = idx;
                                 auto atmosphereId = g_ui->edit.atmosphereList.atmospheres[idx].atmosphereId;
-                                worker(Worker_Background).enqueue([=]() -> void 
+                                worker(Worker_Background).enqueue([=]() -> void
                                 {
                                     // populate the atmosphereEdit list based on the atmosphereId
                                     update_ui_edit_atmosphereEdit(atmosphereId);
@@ -432,11 +473,11 @@ namespace tabletopify
                         nk_layout_row_template_end(ctx);
 
                         nk_label(ctx, currentTrack.title.c_str(), NK_TEXT_LEFT);
-                        
+
                         if(nk_button_label(ctx, "X"))
                         {
                             printf("Close %s\n", currentTrack.title.c_str());
-                            
+
                             worker(Worker_Background).enqueue([=]() -> void
                             {
                                 // stop it from playing
@@ -454,7 +495,7 @@ namespace tabletopify
                                 update_ui_edit_atmosphereEdit(currentAtmosphereId);
                             });
                         }
-    
+
                         struct
                         {
                             bool volume = false;
@@ -507,7 +548,7 @@ namespace tabletopify
                                 });
                             }
                         }
-    
+
                         // Repeat
                         if(widgets.repeat)
                         {
@@ -524,8 +565,8 @@ namespace tabletopify
                             nk_spacing(ctx, 1);
                             nk_label(ctx, "Repeat:", NK_TEXT_LEFT);
                             nk_label(ctx, "Min", NK_TEXT_CENTERED);
-                            if(NK_EDIT_COMMITED & nk_edit_string_zero_terminated(ctx, 
-                                NK_EDIT_ALWAYS_INSERT_MODE | NK_EDIT_SIG_ENTER | NK_EDIT_SELECTABLE | NK_EDIT_CLIPBOARD, 
+                            if(NK_EDIT_COMMITED & nk_edit_string_zero_terminated(ctx,
+                                NK_EDIT_ALWAYS_INSERT_MODE | NK_EDIT_SIG_ENTER | NK_EDIT_SELECTABLE | NK_EDIT_CLIPBOARD,
                                 currentTrack.repeat.minBuffer, countof(currentTrack.repeat.minBuffer), nk_filter_float))
                             {
                                 float newVal;
@@ -538,13 +579,13 @@ namespace tabletopify
                                         auto& trackEntry = g_track_directory->get_entry(currentTrack.trackId);
                                         trackEntry.repeat.min = currentTrack.repeat.min;
                                         g_playback_manager->sync_track(currentTrackId);
-                                    });                                            
+                                    });
                                 }
                                 print_minmax(currentTrack.repeat.minBuffer, countof(currentTrack.repeat.minBuffer), currentTrack.repeat.min);
                             }
                             nk_label(ctx, "Max", NK_TEXT_CENTERED);
-                            if(NK_EDIT_COMMITED & nk_edit_string_zero_terminated(ctx, 
-                                NK_EDIT_ALWAYS_INSERT_MODE | NK_EDIT_SIG_ENTER | NK_EDIT_SELECTABLE | NK_EDIT_CLIPBOARD, 
+                            if(NK_EDIT_COMMITED & nk_edit_string_zero_terminated(ctx,
+                                NK_EDIT_ALWAYS_INSERT_MODE | NK_EDIT_SIG_ENTER | NK_EDIT_SELECTABLE | NK_EDIT_CLIPBOARD,
                                 currentTrack.repeat.maxBuffer, countof(currentTrack.repeat.maxBuffer), nk_filter_float))
                             {
                                 float newVal;
@@ -557,7 +598,7 @@ namespace tabletopify
                                         auto& trackEntry = g_track_directory->get_entry(currentTrack.trackId);
                                         trackEntry.repeat.max = currentTrack.repeat.max;
                                         g_playback_manager->sync_track(currentTrackId);
-                                    });                                            
+                                    });
                                 }
                                 print_minmax(currentTrack.repeat.maxBuffer, countof(currentTrack.repeat.maxBuffer), currentTrack.repeat.max);
                             }
@@ -638,7 +679,7 @@ namespace tabletopify
                                     const char* componentLabel[3] = {"X", "Y", "Z"};
                                     nk_label(ctx, componentLabel[index], NK_TEXT_LEFT);
                                     if(NK_EDIT_COMMITED & nk_edit_string_zero_terminated(ctx,
-                                        NK_EDIT_ALWAYS_INSERT_MODE | NK_EDIT_SIG_ENTER | NK_EDIT_SELECTABLE | NK_EDIT_CLIPBOARD, 
+                                        NK_EDIT_ALWAYS_INSERT_MODE | NK_EDIT_SIG_ENTER | NK_EDIT_SELECTABLE | NK_EDIT_CLIPBOARD,
                                         componentBuffer, componentBufferLen, nk_filter_float))
                                     {
                                         if(sscanf(componentBuffer, "%f", &newVal))
@@ -688,12 +729,12 @@ namespace tabletopify
                         // do search and populate on background worker
                         std::string title_query = g_ui->edit.trackSearch.searchBuffer;
                         std::vector<std::string> tag_query = split(g_ui->edit.trackSearch.searchBuffer, " ");
-                        
-                        worker(Worker_Background).enqueue([=]() -> void 
+
+                        worker(Worker_Background).enqueue([=]() -> void
                         {
                             auto title_results = g_audio_directory->get_audio_ids_by_title(title_query);
                             auto tag_results = g_audio_directory->get_audio_ids_by_tag(tag_query);
-                            
+
                             std::unordered_set<audio_id_t> title_audio(title_results.begin(), title_results.end());
                             auto& aggregate_results = title_results;
                             for(auto id : tag_results)
@@ -730,7 +771,7 @@ namespace tabletopify
                                             auto& audioEntry = g_audio_directory->get_entry(currentTrack.audioId);
 
                                             trackEntry.title = audioEntry.title;
-                                            trackEntry.audioId = currentTrack.audioId;
+                                            trackEntry.audioData = audioEntry.data;
                                             trackEntry.audioType = audioEntry.data->get_type();
                                             trackEntry.volume = 1.0f;
                                             trackEntry.muted = false;
@@ -749,12 +790,12 @@ namespace tabletopify
 
                                             trackEntry.position.x = 0.0f;
                                             trackEntry.position.y = 0.0f;
-                                            trackEntry.position.z = 0.0f;     
+                                            trackEntry.position.z = 0.0f;
                                         }
 
                                         // add data to directories
                                         track_id_t trackId = g_track_directory->add_entry(std::move(trackEntry));
-                                        auto& currentAtmosphere = g_atmosphere_directory->get_entry(currentAtmosphereId);                                            
+                                        auto& currentAtmosphere = g_atmosphere_directory->get_entry(currentAtmosphereId);
                                         currentAtmosphere.tracks.push_back(trackId);
 
                                         // begin playing
