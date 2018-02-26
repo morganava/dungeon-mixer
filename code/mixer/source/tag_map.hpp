@@ -2,96 +2,99 @@
 
 namespace tabletopify
 {
-    template<typename KEY, typename VALUE>
+    template<typename KEY>
     class tag_map
     {
     public:
-        std::vector<KEY> get_keys() const
+        std::vector<KEY> get_keys_by_string_query(const std::string& query_string) const
         {
-            std::vector<KEY> result;
-            for(const auto& it : _entries)
-            {
-                result.push_back(it.first);
-            }
-            return result;
+            auto lower_query = to_lower(query_string);
+            auto query_tags = split(lower_query, " ");
+
+            return get_keys_by_tag_query(query_tags);
         }
 
-        std::vector<KEY> get_keys_by_tag_query(const std::string& query_string) const
+        void remove_key(KEY key)
         {
-            std::vector<KEY> result;
-
-            auto queries = split(query_string, " ");
-            for(auto& str : queries)
+            // iterate over all tags for this key
+            auto tag_range = _key_to_tags.equal_range(key);
+            for(auto tag_it= tag_range.first; tag_it != tag_range.second;)
             {
-                str = to_lower(str);
-            }
+                auto& tag = tag_it->second;
 
-            for(const auto& it : _entries)
-            {
-                auto currentKey = it.first;
-                auto range = _tag_map.equal_range(currentKey);
-
-                // all query strings must be contained in the range
-                bool totalMatch = true;
-                for(auto currentQuery : queries)
+                // erase the tag/key pair
+                auto key_range = _tag_to_keys.equal_range(tag);
+                for(auto key_it = key_range.first; key_it != key_range.second; ++key_it)
                 {
-                    bool match = false;
-                    for(auto it = range.first; it != range.second; ++it)
+                    if(key_it->second == key)
                     {
-                        auto currentTag = it->second;
-                        if(contains(currentTag, currentQuery))
-                        {
-                            match = true;
-                            break;
-                        }
-                    }
-
-                    if(match == false)
-                    {
-                        totalMatch = false;
+                        _tag_to_keys.erase(key_it);
                         break;
                     }
                 }
 
-                if(totalMatch)
-                {
-                    result.push_back(currentKey);
-                }
+                // erase the key/tag pair
+                tag_it = _key_to_tags.erase(tag_it);
             }
 
-            return result;
+            _keys.erase(key);
         }
 
-        VALUE& get_entry(KEY key)
+        void add_key(KEY key, const std::vector<std::string>& tags)
         {
-            auto it = _entries.find(key);
-            assert(it != _entries.end());
+            printf("Adding key: %lu\n", key);
+            for(const auto& str : tags)
+            {
+                printf(" %s\n", str.c_str());
+            }
 
-            return it->second;
-        }
-
-        void remove_entry(KEY key)
-        {
-            _entries.erase(key);
-            _tag_map.erase(key);
-        }
-
-        KEY add_entry(VALUE&& value, std::vector<std::string>&& tags)
-        {
-            const auto key = ++_next_key;
-            _entries.insert({key, value});
+            assert(_key_to_tags.find(key) == _key_to_tags.end());
 
             for(auto tag : tags)
             {
-                _tag_map.insert({key, std::move(tag)});
+                _tag_to_keys.insert({tag, key});
+                _key_to_tags.insert({key, tag});
             }
 
-            return key;
+            _keys.insert(key);
         }
 
     private:
-        KEY _next_key = 0;
-        std::unordered_map<KEY, VALUE> _entries;
-        std::unordered_multimap<KEY, std::string> _tag_map;
+        std::vector<KEY> get_keys_by_tag_query(const std::vector<std::string>& query_tags) const
+        {
+            printf("Querying!\n");
+            std::unordered_set<KEY> result(_keys.begin(), _keys.end());
+            for(auto tag : query_tags)
+            {
+                printf("Querying tag: \"%s\"\n", tag.c_str());
+
+                // get all keys which have the current tag
+                std::unordered_set<KEY> intermediates;
+                auto range = _tag_to_keys.equal_range(tag);
+                for(auto it = range.first; it != range.second; ++it)
+                {
+                    intermediates.insert(it->second);
+                }
+
+                // only include keys in updated result in both the aggregate
+                // results and this tag's result
+                std::unordered_set<KEY> newResult;
+                for(auto currentKey : result)
+                {
+                    if(intermediates.find(currentKey) != intermediates.end())
+                    {
+                        newResult.insert(currentKey);
+                    }
+                }
+
+                result = std::move(newResult);
+            }
+
+            return std::vector<KEY>(result.begin(), result.end());
+        }
+
+        std::unordered_multimap<std::string, KEY> _tag_to_keys;
+        std::unordered_multimap<KEY, std::string> _key_to_tags;
+        std::unordered_set<KEY> _keys;
     };
 }

@@ -100,6 +100,7 @@ namespace tabletopify
                     audio_id_t audioId;
                 };
 
+                std::string previousQuery;
                 char searchBuffer[64] = "";
                 std::vector<track_result> results;
             } trackSearch;

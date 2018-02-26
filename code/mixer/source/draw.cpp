@@ -360,24 +360,15 @@ namespace tabletopify
 
                     if(NK_EDIT_COMMITED & nk_edit_string_zero_terminated(ctx, NK_EDIT_ALWAYS_INSERT_MODE | NK_EDIT_SIG_ENTER | NK_EDIT_SELECTABLE | NK_EDIT_CLIPBOARD, g_ui->playback.atmosphereSearch.searchBuffer, countof(g_ui->playback.atmosphereSearch.searchBuffer), nk_filter_default))
                     {
-                        std::string titleQuery = g_ui->playback.atmosphereSearch.searchBuffer;
+                        std::string query = g_ui->playback.atmosphereSearch.searchBuffer;
                         auto& previousQuery = g_ui->playback.atmosphereSearch.prevSearch;
 
-                        if(previousQuery != titleQuery)
+                        if(previousQuery != query)
                         {
-                            previousQuery = titleQuery;
-                            worker(Worker_Background).enqueue([titleQuery=std::move(trim(titleQuery))]() -> void
+                            previousQuery = query;
+                            worker(Worker_Background).enqueue([=]() -> void
                             {
-                                std::vector<atmosphere_id_t> searchResults;
-                                if(titleQuery.empty())
-                                {
-                                    searchResults = std::move(g_atmosphere_directory->get_atmosphere_ids());
-                                }
-                                else
-                                {
-                                    searchResults = std::move(g_atmosphere_directory->get_atmosphere_ids_by_title(titleQuery));
-                                }
-
+                                auto searchResults = g_atmosphere_directory->get_atmosphere_ids_by_query(query);
                                 update_ui_playback_atmosphereSearch(searchResults);
                             });
                         }
@@ -728,26 +719,18 @@ namespace tabletopify
                     if(NK_EDIT_COMMITED & nk_edit_string_zero_terminated(ctx, NK_EDIT_ALWAYS_INSERT_MODE | NK_EDIT_SIG_ENTER | NK_EDIT_SELECTABLE | NK_EDIT_CLIPBOARD, g_ui->edit.trackSearch.searchBuffer, countof(g_ui->edit.trackSearch.searchBuffer), nk_filter_default))
                     {
                         // do search and populate on background worker
-                        std::string title_query = g_ui->edit.trackSearch.searchBuffer;
-                        std::vector<std::string> tag_query = split(g_ui->edit.trackSearch.searchBuffer, " ");
+                        std::string query = g_ui->edit.trackSearch.searchBuffer;
+                        auto& previousQuery = g_ui->edit.trackSearch.previousQuery;
 
-                        worker(Worker_Background).enqueue([=]() -> void
+                        if(previousQuery != query)
                         {
-                            auto title_results = g_audio_directory->get_audio_ids_by_title(title_query);
-                            auto tag_results = g_audio_directory->get_audio_ids_by_tag(tag_query);
-
-                            std::unordered_set<audio_id_t> title_audio(title_results.begin(), title_results.end());
-                            auto& aggregate_results = title_results;
-                            for(auto id : tag_results)
+                            previousQuery = query;
+                            worker(Worker_Background).enqueue([=]() -> void
                             {
-                                // only include tag results if they weren't already found in title
-                                if(title_audio.find(id) == title_audio.end())
-                                {
-                                    aggregate_results.push_back(id);
-                                }
-                            }
-                            update_ui_edit_trackSearch(aggregate_results);
-                        });
+                                auto searchResults = g_audio_directory->get_audio_ids_by_query(query);
+                                update_ui_edit_trackSearch(searchResults);
+                            });
+                        }
                     }
 
                     nk_layout_row_begin(ctx, NK_DYNAMIC, height - MX_TEXT_SEARCH_HEIGHT, 1);

@@ -107,15 +107,15 @@ namespace tabletopify
 		std::vector<std::string> get_tags_by_audio_id(audio_id_t id) const;
 		std::shared_ptr<audio_data> get_audio_data_by_audio_id(audio_id_t id) const;
 		std::vector<audio_id_t> get_audio_ids() const;
-		std::vector<audio_id_t> get_audio_ids_by_title(const std::string& title_query) const;
-		std::vector<audio_id_t> get_audio_ids_by_tag(const std::vector<std::string>& queries) const;
+        std::vector<audio_id_t> get_audio_ids_by_query(const std::string& query_string) const;
 
         audio_entry& get_entry(audio_id_t id);
-		void add_entry(std::string&& uuid,std::string&& title, std::vector<std::string>&& tags, std::shared_ptr<audio_data>&& data);
+		// audio_id_t add_entry(audio_entry&& entry);
+        void add_entry(std::string&& uuid,std::string&& title, std::vector<std::string>&& tags, std::shared_ptr<audio_data>&& data);
+
 	private:
 		std::vector<audio_entry> _entries;
-		// map a tag to set of track ids
-		std::unordered_map<std::string, std::unordered_set<audio_id_t>> _tag_map;
+		tag_map<audio_id_t> _tag_map;
 		// map track uuid to track id
 		std::unordered_map<std::string, audio_id_t> _uuid_map;
 
@@ -185,13 +185,15 @@ namespace tabletopify
     	void update(float dt);
 
     	std::vector<atmosphere_id_t> get_atmosphere_ids() const;
-    	std::vector<atmosphere_id_t> get_atmosphere_ids_by_title(const std::string& title_query) const;
+    	std::vector<atmosphere_id_t> get_atmosphere_ids_by_query(const std::string& query_string) const;
 
     	atmosphere_entry& get_entry(atmosphere_id_t id);
     	atmosphere_id_t add_entry(atmosphere_entry&& entry);
     	void remove_entry(atmosphere_id_t id);
     private:
-        tag_map<atmosphere_id_t, atmosphere_entry> _tag_map;
+        atmosphere_id_t _next_id = 0;
+        std::unordered_map<atmosphere_id_t, atmosphere_entry> _entries;
+        tag_map<atmosphere_id_t> _tag_map;
     };
     extern single_threaded<atmosphere_directory> g_atmosphere_directory;
 

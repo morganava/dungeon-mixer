@@ -14,7 +14,7 @@ namespace tabletopify
     void title_query(const std::string& title)
     {
         std::cout << "title query: " << title << std::endl;
-        auto result = g_audio_directory->get_audio_ids_by_title(title);
+        auto result = g_audio_directory->get_audio_ids_by_query(title);
         for(auto val : result)
         {
             std::cout << " found:" << val << std::endl;
@@ -24,13 +24,15 @@ namespace tabletopify
     void tag_query(const std::vector<std::string>& tags)
     {
         std::cout << "tag query: ";
+        std::stringstream ss;
         for(auto tag : tags)
         {
             std::cout << tag << " ";
+            ss << tag << " ";
         }
         std::cout << std::endl;
 
-        auto result = g_audio_directory->get_audio_ids_by_tag(tags);
+        auto result = g_audio_directory->get_audio_ids_by_query(ss.str());
         for(auto val : result)
         {
             std::cout << " found:" << val << std::endl;

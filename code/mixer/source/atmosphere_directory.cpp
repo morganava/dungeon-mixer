@@ -13,32 +13,46 @@ namespace tabletopify
 
     std::vector<atmosphere_id_t> atmosphere_directory::get_atmosphere_ids() const
     {
-        return _tag_map.get_keys();
+        std::vector<atmosphere_id_t> result;
+        for(auto it : _entries)
+        {
+            result.push_back(it.first);
+        }
+
+        return result;
     }
 
-    std::vector<atmosphere_id_t> atmosphere_directory::get_atmosphere_ids_by_title(const std::string& title_query) const
+    std::vector<atmosphere_id_t> atmosphere_directory::get_atmosphere_ids_by_query(const std::string& query_string) const
     {
-        return _tag_map.get_keys_by_tag_query(title_query);
+        return _tag_map.get_keys_by_string_query(query_string);
     }
 
     atmosphere_entry& atmosphere_directory::get_entry(atmosphere_id_t id)
     {
-        return _tag_map.get_entry(id);
+        auto it = _entries.find(id);
+        assert(it != _entries.end());
+
+        return it->second;
     }
 
     atmosphere_id_t atmosphere_directory::add_entry(atmosphere_entry&& entry)
     {
-        std::vector<std::string> tags = split(entry.title, " ");
-        for(auto& currentTag : tags)
-        {
-            currentTag = to_lower(currentTag);
-        }
+        const auto key = _next_id++;
 
-        return _tag_map.add_entry(std::move(entry), std::move(tags));
+        std::vector<std::string> tags = split(to_lower(entry.title), " ");
+        _tag_map.add_key(key, tags);
+
+        _entries.insert({key, std::move(entry)});
+
+        return key;
     }
 
     void atmosphere_directory::remove_entry(atmosphere_id_t id)
     {
-        _tag_map.remove_entry(id);
+        auto it = _entries.find(id);
+        assert(it != _entries.end());
+        _entries.erase(it);
+
+        _tag_map.remove_key(  id);
     }
 }
