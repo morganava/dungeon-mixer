@@ -28,5 +28,6 @@ target_link_libraries(tabletop_mixer GLEW)
 target_link_libraries(tabletop_mixer ${SFML_LIBRARIES})
 target_link_libraries(tabletop_mixer pthread)
 
-include_directories(../../nuklear/include)    
+include_directories(../../nuklear/include)
 include_directories(${SFML_INCLUDE_DIR})
+include_directories(../../json/include)

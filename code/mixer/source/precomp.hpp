@@ -26,3 +26,6 @@
 
 // SFML
 #include <SFML/Audio.hpp>
+
+// json
+#include <json.hpp>
