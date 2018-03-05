@@ -105,6 +105,7 @@ namespace tabletopify
         std::this_thread::sleep_for(std::chrono::milliseconds(ms));
     }
 
+    // verifies a file exists and can be opened and read
     inline
     void verify_file(std::string& path)
     {
@@ -117,6 +118,37 @@ namespace tabletopify
         }
         fclose(file);
         printf("Verified: %s\n", cpath);
+    }
+
+    // https://stackoverflow.com/questions/2552416/how-can-i-find-the-users-home-dir-in-a-cross-platform-manner-using-c
+    inline
+    fs::path get_home_path()
+    {
+        std::stringstream ss;
+        ss << getenv("HOME") << '/';
+        return ss.str();
+    }
+
+    inline
+    std::vector<fs::path> get_subdirectories(fs::path path)
+    {
+        std::vector<fs::path> result;
+
+        for(auto& p : fs::directory_iterator(path))
+        {
+            result.push_back(p);
+        }
+
+        return result;
+    }
+
+
+    inline
+    fs::path get_tabletopify_path()
+    {
+        std::stringstream ss;
+        ss << get_home_path().native() << ".tabletopify/";
+        return ss.str();
     }
 
     // ensures object is only accessed from a single thread

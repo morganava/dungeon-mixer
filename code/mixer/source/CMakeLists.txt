@@ -8,6 +8,7 @@ add_compile_options(-Werror)
 add_compile_options(-Wfatal-errors)
 add_compile_options(-O3)
 add_compile_options(-g)
+add_compile_options(-std=c++17)
 
 add_executable(tabletop_mixer
     globals.cpp
@@ -27,6 +28,7 @@ target_link_libraries(tabletop_mixer ${OPENGL_glu_LIBRARY})
 target_link_libraries(tabletop_mixer GLEW)
 target_link_libraries(tabletop_mixer ${SFML_LIBRARIES})
 target_link_libraries(tabletop_mixer pthread)
+target_link_libraries(tabletop_mixer stdc++fs)
 
 include_directories(../../nuklear/include)
 include_directories(${SFML_INCLUDE_DIR})

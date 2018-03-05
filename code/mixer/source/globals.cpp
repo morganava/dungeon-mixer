@@ -75,6 +75,17 @@ namespace tabletopify
 
     void init_globals()
     {
+
+        // print tabletopify directory
+        std::cout << "Tabletopify: " << get_tabletopify_path().native() << std::endl;
+
+        auto subdirs = get_subdirectories(get_tabletopify_path());
+        for(auto p : subdirs)
+        {
+            std::cout << " " << p.native() << std::endl;
+        }
+
+
         // work queue
         g_worker_manager = new worker_manager();
         g_worker_manager->initialize();
@@ -87,15 +98,15 @@ namespace tabletopify
 
             g_audio_directory = single_threaded<audio_directory>(threadId);
             // one-shot
-            std::vector<std::string> sawing_paths = {"/home/pospeselr/Downloads/sawing.wav"};
+            std::vector<std::string> sawing_paths = {get_tabletopify_path().native() + "68edc865-9d66-46c2-82b3-9b3e5c9e42dc/sawing.wav"};
             g_audio_directory->add_entry(
                 "37fbd587-ab8a-4e85-898c-be2c76d79440",
-                "Sawinging",
+                "Sawing",
                 {"construction", "saw", "shared"},
                 std::make_shared<one_shot_data>(std::move(sawing_paths)));
 
             // loop
-            std::string seagull_path = "/home/pospeselr/Downloads/seagulls.wav";
+            std::string seagull_path = get_tabletopify_path().native() + "68edc865-9d66-46c2-82b3-9b3e5c9e42dc/seagulls.wav";
             g_audio_directory->add_entry(
                 "21b24cc6-d659-4c39-ae69-75d7938fd7b3",
                 "Seagulls",

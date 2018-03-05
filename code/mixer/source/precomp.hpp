@@ -20,6 +20,8 @@
 #include <queue>
 #include <chrono>
 #include <atomic>
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
 
 // nuklear
 #include <nuklear.h>
