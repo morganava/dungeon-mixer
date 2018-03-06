@@ -1,4 +1,5 @@
 #pragma once
+
  // C++
 #include <cassert>
 #include <cstdarg>
@@ -20,14 +21,16 @@
 #include <queue>
 #include <chrono>
 #include <atomic>
+#include <fstream>
 #include <experimental/filesystem>
 namespace fs = std::experimental::filesystem;
 
-// nuklear
+// nuklear : https://github.com/vurtun/nuklear
 #include <nuklear.h>
 
 // SFML
 #include <SFML/Audio.hpp>
 
-// json
+// json : https://github.com/nlohmann/json
 #include <json.hpp>
+namespace nl = nlohmann;

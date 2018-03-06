@@ -124,9 +124,8 @@ namespace tabletopify
     inline
     fs::path get_home_path()
     {
-        std::stringstream ss;
-        ss << getenv("HOME") << '/';
-        return ss.str();
+        static fs::path home = std::string(getenv("HOME")) + "/";
+        return home;
     }
 
     inline
@@ -146,9 +145,8 @@ namespace tabletopify
     inline
     fs::path get_tabletopify_path()
     {
-        std::stringstream ss;
-        ss << get_home_path().native() << ".tabletopify/";
-        return ss.str();
+        static fs::path tabletopify = get_home_path() / ".tabletopify";
+        return tabletopify;
     }
 
     // ensures object is only accessed from a single thread
