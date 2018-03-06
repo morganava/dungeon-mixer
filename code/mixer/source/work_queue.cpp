@@ -106,4 +106,24 @@ namespace tabletopify
         std::uniform_int_distribution<size_t> uniform(size_t(0), count - 1);
         return  uniform(g_worker_manager->_rand[_index]);
     }
+
+    uuid worker::nextUUID()
+    {
+        assert(g_worker_manager->_thread_ids[_index] == std::this_thread::get_id());
+
+        uuid result;
+        std::uniform_int_distribution<uint8_t> uniform(uint8_t(0), ~uint8_t(0));
+        auto& rand = g_worker_manager->_rand[_index];
+        for(auto& val : result.raw)
+        {
+            val = uniform(rand);
+        }
+
+        // set version to 4
+        result.raw[6] = (result.raw[6] & 0x0F) | 0x40;
+        // set variant to 1
+        result.raw[8] = (result.raw[8] & 0x3F) | 0x80;
+
+        return result;
+    }
 }

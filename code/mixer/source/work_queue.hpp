@@ -28,7 +28,7 @@ namespace tabletopify
 
     private:
         std::atomic_bool _accepting_work = true;
-        
+
         std::mutex _mutex[Worker_Count];
         std::queue<work_item> _queue[Worker_Count];
         std::thread _threads[Worker_Count];
@@ -52,5 +52,6 @@ namespace tabletopify
         bool try_dequeue(work_item& out_work);
         float nextFloat(float min, float max);
         size_t nextIndex(size_t count);
+        uuid nextUUID();
     };
 }

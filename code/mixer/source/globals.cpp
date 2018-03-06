@@ -10,72 +10,10 @@
 
 namespace tabletopify
 {
-    // test code
-    void title_query(const std::string& title)
-    {
-        std::cout << "title query: " << title << std::endl;
-        auto result = g_audio_directory->get_audio_ids_by_query(title);
-        for(auto val : result)
-        {
-            std::cout << " found:" << val << std::endl;
-        }
-    }
-
-    void tag_query(const std::vector<std::string>& tags)
-    {
-        std::cout << "tag query: ";
-        std::stringstream ss;
-        for(auto tag : tags)
-        {
-            std::cout << tag << " ";
-            ss << tag << " ";
-        }
-        std::cout << std::endl;
-
-        auto result = g_audio_directory->get_audio_ids_by_query(ss.str());
-        for(auto val : result)
-        {
-            std::cout << " found:" << val << std::endl;
-        }
-    }
-
-    void test_split(const std::string& str, const std::string delim)
-    {
-        auto vals = split(str, delim);
-        std::cout << "split( \"" << str << "\", \"" << delim << "\") -> {";
-        for(auto s : vals)
-        {
-            std::cout << s << ",";
-        }
-        std::cout << "}" << std::endl;
-    }
-
-    void test_tag_query()
-    {
-        tag_query({"one-shot"});
-        tag_query({"construction"});
-        tag_query({"gibberish"});
-        tag_query({"not-found", "one"});
-        tag_query({"loop", "one"});
-        tag_query({"shared"});
-        tag_query({"one-shot", "seagull"});
-        tag_query({"one-shot", "saw"});
-
-        title_query("butthead");
-        title_query("sea");
-        title_query("seagulls");
-        title_query("saw");
-
-        test_split("hello world", " ");
-        test_split("  what the fuck  ", " ");
-        test_split("big   space", " ");
-    }
-
     // globals
 
     void init_globals()
     {
-
         // print tabletopify directory
         std::cout << "Tabletopify: " << get_tabletopify_path().native() << std::endl;
 
@@ -85,34 +23,14 @@ namespace tabletopify
 
         worker(Worker_Background).enqueue([]() -> void
         {
+            for(size_t k = 0; k < 20; k++)
+                std::cout << worker(Worker_Background).nextUUID() << std::endl;
+
             auto threadId = std::this_thread::get_id();
 
             /// Audio directory
 
             g_audio_directory = single_threaded<audio_directory>(threadId);
-            // one-shot
-#if 0
-            std::vector<std::string> sawing_paths = {get_tabletopify_path() / "68edc865-9d66-46c2-82b3-9b3e5c9e42dc/sawing.wav"};
-            g_audio_directory->add_entry(
-                "37fbd587-ab8a-4e85-898c-be2c76d79440",
-                "Sawing",
-                {"construction", "saw", "shared"},
-                std::make_shared<one_shot_data>(std::move(sawing_paths)));
-
-            // loop
-            std::string seagull_path = get_tabletopify_path() / "68edc865-9d66-46c2-82b3-9b3e5c9e42dc/seagulls.wav";
-            g_audio_directory->add_entry(
-                "21b24cc6-d659-4c39-ae69-75d7938fd7b3",
-                "Seagulls",
-                {"seaside", "seagulls", "shared"},
-                std::make_shared<loop_data>(std::move(seagull_path)));
-
-            test_tag_query();
-#endif
-
-            // populate search
-            auto audio_ids = g_audio_directory->get_audio_ids();
-            update_ui_edit_trackSearch(audio_ids);
 
             /// Track directory
 
@@ -216,9 +134,9 @@ namespace tabletopify
 
         delete g_worker_manager; g_worker_manager = nullptr;
 
+        g_playback_manager.free();
         g_atmosphere_directory.free();
         g_track_directory.free();
         g_audio_directory.free();
-
     }
 }

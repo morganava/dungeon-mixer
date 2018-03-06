@@ -181,4 +181,41 @@ namespace tabletopify
         std::thread::id _id;
         T* _val = nullptr;
     };
+
+    struct uuid
+    {
+        union
+        {
+            uint8_t raw[16] = {0};
+        };
+
+        std::string str() const
+        {
+            std::string result(36, 0);
+            char* head = result.data();
+            uint_fast16_t i = 0;
+            for(; i < 4; ++i) head += snprintf(head, 3, "%02x", raw[i]);
+            head += snprintf(head, 2, "-");
+            for(; i < 6; ++i) head += snprintf(head, 3, "%02x", raw[i]);
+            head += snprintf(head, 2, "-");
+            for(; i < 8; ++i) head += snprintf(head, 3, "%02x", raw[i]);
+            head += snprintf(head, 2, "-");
+            for(; i < 10; ++i) head += snprintf(head, 3, "%02x", raw[i]);
+            head += snprintf(head, 2, "-");
+            for(; i < 16; ++i) head += snprintf(head, 3, "%02x", raw[i]);
+
+            return result;
+        }
+
+        operator std::string() const
+        {
+            return this->str();
+        }
+    };
+
+    inline
+    std::ostream& operator<<(std::ostream& out, const struct uuid& id)
+    {
+        return out << id.str();
+    }
 }

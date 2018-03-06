@@ -13,73 +13,7 @@ namespace tabletopify
     static UI ui;
     UI* g_ui = &ui;
 
-    /*
-    Constants
-    */
-
-    /* Globals */
-    constexpr int MX_ROW_HEIGHT = 32;
-    constexpr int MX_BUTTON_SIZE = MX_ROW_HEIGHT;
-
-    /* Playback */
-
-    constexpr int MX_CLOSE_BUTTON_SIZE = 24;
-
-    /* Edit */
-
-    constexpr int MX_VOLUME_HEIGHT = 32;
-    constexpr int MX_VOLUME_BUTTON_SIZE = 32;
-
-    constexpr int MX_ROW_LABEL_OFFSET = 16;
-    constexpr int MX_ROW_LABEL_WIDTH = 72;
-
-    constexpr int MX_ROW_MUTE_WIDTH = 50;
-    constexpr int MX_ROW_MINMAX_WIDTH = 32;
-    constexpr int MX_ROW_XYZ_WIDTH = 16;
-    constexpr int MX_ROW_XYZ_TEXT_WIDTH = 64;
-
-
-    // OLD SHIT
-
-    constexpr float MX_GROUP_BORDER = 1.0f;
-    // interior spacing of group
-    constexpr float MX_GROUP_PADDING_X = 2.5f;
-    constexpr float MX_GROUP_PADDING_Y = 5.0f;
-    // distance between adjacent widgets
-    constexpr float MX_GROUP_SPACING = 5.0f;
-
-    constexpr int MX_TOPBAR_HEIGHT = 100;
-    constexpr int MX_GROUP_MARGIN = 0;
-    constexpr int MX_TEXT_PADDING = 0;
-    constexpr int MX_BUTTON_PADDING = 0;
-    constexpr int MX_WIDGET_MARGIN = 2;
-
-    // top bar
-    constexpr int MX_MODE_BUTTON_WIDTH = 100;
-
-    // search bars
-    constexpr int MX_TEXT_SEARCH_HEIGHT = 24;
-    constexpr int MX_TEXT_FIELD_LENGTH = 256;
-
-    // atmosphere entries
-    constexpr int MX_ATMOSPHERE_TITLE_HEIGHT = 32;
-    constexpr int MX_ATMOSPHERE_BUTTON_SIZE = 20;
-    constexpr int MX_ATMOSPHERE_BUTTON_SPACER = 6;
-    constexpr int MX_ATMOSPHERE_BUTTON_CONSTELLATION_WIDTH = 3 * MX_ATMOSPHERE_BUTTON_SIZE + 4 * MX_ATMOSPHERE_BUTTON_SPACER;
-    constexpr int MX_ATMOSPHERE_BUTTON_CONSTELLATION_HEIGHT = 2 * MX_ATMOSPHERE_BUTTON_SIZE + 3 * MX_ATMOSPHERE_BUTTON_SPACER;
-    constexpr int MX_ATMOSPHERE_HEIGHT = MX_ATMOSPHERE_TITLE_HEIGHT + MX_ATMOSPHERE_BUTTON_CONSTELLATION_HEIGHT;
-
-
-
-    /*
-    State
-    */
-
-    enum
-    {
-        MX_MODE_PLAY,
-        MX_MODE_EDIT,
-    } MX_MODE = MX_MODE_EDIT;
+    mode_t MX_MODE = MX_MODE_EDIT;
 
     /*
     Text Formatting
