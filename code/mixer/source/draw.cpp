@@ -146,10 +146,13 @@ namespace tabletopify
     {
         if (nk_begin(ctx, "top_bar", nk_rect(0, 0, width, MX_TOPBAR_HEIGHT), NK_WINDOW_NO_SCROLLBAR))
         {
-            nk_layout_row_begin(ctx, NK_STATIC, MX_TOPBAR_HEIGHT, 3);
-            nk_layout_row_push(ctx, width - 2 * MX_MODE_BUTTON_WIDTH - 4 * MX_WIDGET_MARGIN);
+            nk_layout_row_template_begin(ctx, MX_TOPBAR_HEIGHT);
+            nk_layout_row_template_push_dynamic(ctx);
+            nk_layout_row_template_push_static(ctx, MX_MODE_BUTTON_WIDTH);
+            nk_layout_row_template_push_static(ctx, MX_MODE_BUTTON_WIDTH);
+            nk_layout_row_template_end(ctx);
+
             nk_spacing(ctx, 1);
-            nk_layout_row_push(ctx, MX_MODE_BUTTON_WIDTH);
             if(nk_button_label(ctx, "Playback"))
             {
                 if(MX_MODE != MX_MODE_PLAY)
@@ -168,7 +171,6 @@ namespace tabletopify
                     });
                 }
             }
-            nk_layout_row_push(ctx, MX_MODE_BUTTON_WIDTH);
             if(nk_button_label(ctx, "Edit"))
             {
                 if(MX_MODE != MX_MODE_EDIT)
@@ -353,31 +355,59 @@ namespace tabletopify
             nk_layout_row_begin(ctx, NK_DYNAMIC, height, 3);
             nk_layout_row_push(ctx, 1.0f/3.0f);
             {
-                nk_group_begin(ctx, "edit_screen>left_group", 0);
+                nk_group_begin(ctx, "edit_screen>left_group", NK_WINDOW_NO_SCROLLBAR);
                 {
-                    // float close_ratio = nk_layout_ratio_from_pixel(ctx, MX_CLOSE_BUTTON_SIZE);
-                    for(size_t idx = 0; idx < g_ui->edit.atmosphereList.atmospheres.size(); ++idx)
+                    nk_layout_row_begin(ctx, NK_DYNAMIC, height - MX_ATMOSPHERE_BUTTON, 1);
+                    nk_layout_row_push(ctx, 1.0f);
                     {
-                        auto& currentAtmosphere = g_ui->edit.atmosphereList.atmospheres[idx];
-
-                        nk_layout_row_dynamic(ctx, MX_ROW_HEIGHT, 1);
-                        if(nk_widget_is_mouse_clicked(ctx, NK_BUTTON_LEFT))
+                        nk_group_begin(ctx, "edit_screen>left_group>atmosphere_list", 0);
                         {
-                            printf("Selected %s\n", currentAtmosphere.title.c_str());
-                            if(g_ui->edit.atmosphereList.selectedIndex != idx )
+                            for(size_t idx = 0; idx < g_ui->edit.atmosphereList.atmospheres.size(); ++idx)
                             {
-                                g_ui->edit.atmosphereList.selectedIndex = idx;
-                                auto atmosphereId = g_ui->edit.atmosphereList.atmospheres[idx].atmosphereId;
-                                worker(Worker_Background).enqueue([=]() -> void
+                                auto& currentAtmosphere = g_ui->edit.atmosphereList.atmospheres[idx];
+
+                                nk_layout_row_dynamic(ctx, MX_ROW_HEIGHT, 1);
+                                if(nk_widget_is_mouse_clicked(ctx, NK_BUTTON_DOUBLE))
                                 {
-                                    // populate the atmosphereEdit list based on the atmosphereId
-                                    update_ui_edit_atmosphereEdit(atmosphereId);
-                                    g_playback_manager->stop_all_tracks();
-                                    g_playback_manager->play_atmosphere(atmosphereId);
-                                });
+                                    printf("Double?\n");
+                                }
+                                else if(nk_widget_is_mouse_clicked(ctx, NK_BUTTON_LEFT))
+                                {
+                                    printf("Selected %s\n", currentAtmosphere.title.c_str());
+                                    if(g_ui->edit.atmosphereList.selectedIndex != idx )
+                                    {
+                                        g_ui->edit.atmosphereList.selectedIndex = idx;
+                                        auto atmosphereId = g_ui->edit.atmosphereList.selectedAtmosphereId();
+                                        worker(Worker_Background).enqueue([=]() -> void
+                                        {
+                                            // populate the atmosphereEdit list based on the atmosphereId
+                                            update_ui_edit_atmosphereEdit(atmosphereId);
+                                            g_playback_manager->stop_all_tracks();
+                                            g_playback_manager->play_atmosphere(atmosphereId);
+                                        });
+                                    }
+                                }
+                                nk_label(ctx, currentAtmosphere.title.c_str(), NK_TEXT_ALIGN_LEFT);
                             }
                         }
-                        nk_label(ctx, currentAtmosphere.title.c_str(), NK_TEXT_ALIGN_LEFT);
+                        nk_group_end(ctx);
+                    }
+
+                    // nk_layout_row_begin(ctx, NK_DYNAMIC, MX_ATMOSPHERE_BUTTON, 1);
+                    // nk_layout_row_push(ctx, 1.0f);
+                    nk_layout_row_template_begin(ctx, MX_ATMOSPHERE_BUTTON);
+                    nk_layout_row_template_push_static(ctx, MX_ATMOSPHERE_BUTTON);
+                    nk_layout_row_template_push_dynamic(ctx);
+                    nk_layout_row_template_push_static(ctx, MX_ATMOSPHERE_BUTTON);
+                    nk_layout_row_template_end(ctx);
+                    if(nk_button_label(ctx, "+"))
+                    {
+                        printf("Add atmosphere\n");
+                    }
+                    nk_spacing(ctx, 1);
+                    if(nk_button_label(ctx, "-"))
+                    {
+                        printf("Remove atmosphere\n");
                     }
                 }
                 nk_group_end(ctx);
@@ -742,11 +772,18 @@ namespace tabletopify
         std::cout << "window spacing: " << ctx->style.window.spacing << std::endl;
 
         // set style
-        ctx->style.window.group_border = MX_GROUP_BORDER;
+
+        ctx->style.window.border = 0.0f;
+        ctx->style.window.group_border = 0.0f;
+        ctx->style.window.padding = nk_vec2(0, 0);
+        ctx->style.window.group_padding = nk_vec2(0, 0);
+
         ctx->style.window.scrollbar_size = nk_vec2(10, 0);
-        ctx->style.window.group_padding = nk_vec2(MX_GROUP_PADDING_X, MX_GROUP_PADDING_Y);
-        ctx->style.window.spacing = nk_vec2(MX_GROUP_SPACING, MX_GROUP_SPACING);
+        ctx->style.window.spacing = nk_vec2(0, 0);
+
         ctx->style.button.padding = nk_vec2(0, 0);
+        ctx->style.button.border = 0.0f;
+
         ctx->style.scrollh.padding = nk_vec2(0, 0);
         ctx->style.scrollh.border = 0.0f;
     }

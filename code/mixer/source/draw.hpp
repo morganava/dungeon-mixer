@@ -30,18 +30,18 @@ namespace tabletopify
 
     // OLD SHIT
 
-    constexpr float MX_GROUP_BORDER = 1.0f;
+    constexpr float MX_GROUP_BORDER = 0.0f;
     // interior spacing of group
-    constexpr float MX_GROUP_PADDING_X = 2.5f;
-    constexpr float MX_GROUP_PADDING_Y = 5.0f;
+    constexpr float MX_GROUP_PADDING_X = 0.0f;
+    constexpr float MX_GROUP_PADDING_Y = 0.0f;
     // distance between adjacent widgets
-    constexpr float MX_GROUP_SPACING = 5.0f;
+    constexpr float MX_GROUP_SPACING = 0.0f;
 
     constexpr int MX_TOPBAR_HEIGHT = 100;
-    constexpr int MX_GROUP_MARGIN = 0;
-    constexpr int MX_TEXT_PADDING = 0;
-    constexpr int MX_BUTTON_PADDING = 0;
-    constexpr int MX_WIDGET_MARGIN = 2;
+    // constexpr int MX_GROUP_MARGIN = 0;
+    // constexpr int MX_TEXT_PADDING = 0;
+    // constexpr int MX_BUTTON_PADDING = 0;
+    // constexpr int MX_WIDGET_MARGIN = 2;
 
     // top bar
     constexpr int MX_MODE_BUTTON_WIDTH = 100;
@@ -57,6 +57,9 @@ namespace tabletopify
     constexpr int MX_ATMOSPHERE_BUTTON_CONSTELLATION_WIDTH = 3 * MX_ATMOSPHERE_BUTTON_SIZE + 4 * MX_ATMOSPHERE_BUTTON_SPACER;
     constexpr int MX_ATMOSPHERE_BUTTON_CONSTELLATION_HEIGHT = 2 * MX_ATMOSPHERE_BUTTON_SIZE + 3 * MX_ATMOSPHERE_BUTTON_SPACER;
     constexpr int MX_ATMOSPHERE_HEIGHT = MX_ATMOSPHERE_TITLE_HEIGHT + MX_ATMOSPHERE_BUTTON_CONSTELLATION_HEIGHT;
+
+    // atmosphere create/delete
+    constexpr int MX_ATMOSPHERE_BUTTON = 24;
 
     /*
     Mode
