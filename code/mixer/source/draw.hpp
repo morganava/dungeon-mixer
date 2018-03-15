@@ -61,6 +61,8 @@ namespace tabletopify
     // atmosphere create/delete
     constexpr int MX_ATMOSPHERE_BUTTON = 24;
 
+    constexpr size_t INVALID_INDEX = ~size_t(0);
+
     /*
     Mode
     */
@@ -119,7 +121,7 @@ namespace tabletopify
 
                 atmosphere_id_t selectedAtmosphereId() const
                 {
-                    if(selectedIndex != ~size_t(0))
+                    if(selectedIndex != INVALID_INDEX)
                     {
                         return atmospheres[selectedIndex].atmosphereId;
                     }

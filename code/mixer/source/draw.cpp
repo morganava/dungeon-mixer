@@ -116,7 +116,7 @@ namespace tabletopify
 
         worker(Worker_UI).enqueue([tracks = std::move(tracks)]() -> void
         {
-            g_ui->edit.atmosphereEdit.tracks = tracks;
+            g_ui->edit.atmosphereEdit.tracks = std::move(tracks);
         });
     }
 
@@ -350,6 +350,8 @@ namespace tabletopify
     {
         float win_x = hidden ? width : 0;
 
+        auto selectedAtmosphereId = g_ui->edit.atmosphereList.selectedAtmosphereId();;
+
         if (nk_begin(ctx, "edit_screen", nk_rect(win_x, MX_TOPBAR_HEIGHT, width, height), NK_WINDOW_NO_SCROLLBAR))
         {
             nk_layout_row_begin(ctx, NK_DYNAMIC, height, 3);
@@ -376,14 +378,17 @@ namespace tabletopify
                                     printf("Selected %s\n", currentAtmosphere.title.c_str());
                                     if(g_ui->edit.atmosphereList.selectedIndex != idx )
                                     {
-                                        g_ui->edit.atmosphereList.selectedIndex = idx;
-                                        auto atmosphereId = g_ui->edit.atmosphereList.selectedAtmosphereId();
-                                        worker(Worker_Background).enqueue([=]() -> void
+                                        worker(Worker_UI).enqueue([=]() -> void
                                         {
-                                            // populate the atmosphereEdit list based on the atmosphereId
-                                            update_ui_edit_atmosphereEdit(atmosphereId);
-                                            g_playback_manager->stop_all_tracks();
-                                            g_playback_manager->play_atmosphere(atmosphereId);
+                                            g_ui->edit.atmosphereList.selectedIndex = idx;
+                                            auto atmosphereId = g_ui->edit.atmosphereList.selectedAtmosphereId();
+                                            worker(Worker_Background).enqueue([=]() -> void
+                                            {
+                                                // populate the atmosphereEdit list based on the atmosphereId
+                                                update_ui_edit_atmosphereEdit(atmosphereId);
+                                                g_playback_manager->stop_all_tracks();
+                                                g_playback_manager->play_atmosphere(atmosphereId);
+                                            });
                                         });
                                     }
                                 }
@@ -393,8 +398,6 @@ namespace tabletopify
                         nk_group_end(ctx);
                     }
 
-                    // nk_layout_row_begin(ctx, NK_DYNAMIC, MX_ATMOSPHERE_BUTTON, 1);
-                    // nk_layout_row_push(ctx, 1.0f);
                     nk_layout_row_template_begin(ctx, MX_ATMOSPHERE_BUTTON);
                     nk_layout_row_template_push_static(ctx, MX_ATMOSPHERE_BUTTON);
                     nk_layout_row_template_push_dynamic(ctx);
@@ -403,11 +406,59 @@ namespace tabletopify
                     if(nk_button_label(ctx, "+"))
                     {
                         printf("Add atmosphere\n");
+                        worker(Worker_Background).enqueue([]() -> void
+                        {
+                            atmosphere_entry atmosphereEntry =
+                            {
+                                worker(Worker_Background).nextUUID(),
+                                1.0f,
+                                "New Atmosphere",
+                                {}
+                            };
+                            auto newAtmosphereId = g_atmosphere_directory->add_entry(std::move(atmosphereEntry));
+                            auto atmosphereIds = g_atmosphere_directory->get_atmosphere_ids();
+                            update_ui_edit_atmosphereList(atmosphereIds);
+                            update_ui_edit_atmosphereEdit(newAtmosphereId);
+                            worker(Worker_UI).enqueue([]() -> void
+                            {
+                                g_ui->edit.atmosphereList.selectedIndex = g_ui->edit.atmosphereList.atmospheres.size() - 1;
+                            });
+                        });
+
                     }
                     nk_spacing(ctx, 1);
                     if(nk_button_label(ctx, "-"))
                     {
                         printf("Remove atmosphere\n");
+                        worker(Worker_Background).enqueue([=]() -> void
+                        {
+                            g_playback_manager->stop_atmosphere(selectedAtmosphereId);
+
+                            auto& deadAtmosphere = g_atmosphere_directory->get_entry(selectedAtmosphereId);
+                            for(auto trackId : deadAtmosphere.tracks)
+                            {
+                                g_track_directory->remove_entry(trackId);
+                            }
+                            g_atmosphere_directory->remove_entry(selectedAtmosphereId);
+                            auto atmosphereIds = g_atmosphere_directory->get_atmosphere_ids();
+                            update_ui_edit_atmosphereList(atmosphereIds);
+                            update_ui_edit_atmosphereEdit(INVALID_ATMOSPHERE_ID);
+
+                            // remove the remove id from the atmosphere search list
+                            std::vector<atmosphere_id_t> searchedAtmosphereIds;
+                            for(auto& searchResult : g_ui->playback.atmosphereSearch.results)
+                            {
+                                if(searchResult.atmosphereId != selectedAtmosphereId)
+                                {
+                                    searchedAtmosphereIds.push_back(searchResult.atmosphereId);
+                                }
+                            }
+                            update_ui_playback_atmosphereSearch(searchedAtmosphereIds);
+                            worker(Worker_UI).enqueue([]() -> void
+                            {
+                                g_ui->edit.atmosphereList.selectedIndex = INVALID_INDEX;
+                            });
+                        });
                     }
                 }
                 nk_group_end(ctx);

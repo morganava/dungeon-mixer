@@ -40,26 +40,6 @@ namespace tabletopify
 
             g_atmosphere_directory = single_threaded<atmosphere_directory>(threadId);
 
-            /// test data
-            g_atmosphere_directory->add_entry({
-                "4d9bdcc6-282e-437b-872a-6f352f0b86f4",
-                1.0f,
-                "Build Site",
-                { },
-            });
-            g_atmosphere_directory->add_entry({
-                "0836fcc5-dfe3-42c8-9874-bafbd2e39465",
-                0.8f,
-                "Sea",
-                { },
-            });
-            g_atmosphere_directory->add_entry({
-                "62c09984-532d-4c2d-b18a-200b11194698",
-                0.5f,
-                "Docks",
-                { },
-            });
-
             auto atmosphere_ids = g_atmosphere_directory->get_atmosphere_ids();
             update_ui_playback_atmosphereSearch(atmosphere_ids);
             update_ui_edit_atmosphereList(atmosphere_ids);
