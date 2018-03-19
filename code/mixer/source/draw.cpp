@@ -398,10 +398,11 @@ namespace tabletopify
                                 }
                                 if(currentAtmosphere.renaming)
                                 {
-                                    ctx->current->edit.active = true;
+                                    constexpr auto editFlags = NK_EDIT_ALWAYS_INSERT_MODE | NK_EDIT_SIG_ENTER | NK_EDIT_SELECTABLE | NK_EDIT_CLIPBOARD;
+                                    nk_edit_focus(ctx, editFlags);
                                     if(NK_EDIT_COMMITED & nk_edit_string_zero_terminated(ctx,
-                                        NK_EDIT_ALWAYS_INSERT_MODE | NK_EDIT_SIG_ENTER | NK_EDIT_SELECTABLE | NK_EDIT_CLIPBOARD,
-                                        g_ui->edit.atmosphereList.renameBuffer, countof(g_ui->edit.atmosphereList.renameBuffer), nk_filter_default))
+                                        editFlags, g_ui->edit.atmosphereList.renameBuffer,
+                                        countof(g_ui->edit.atmosphereList.renameBuffer), nk_filter_default))
                                     {
                                         currentAtmosphere.renaming = false;
                                         currentAtmosphere.title = g_ui->edit.atmosphereList.renameBuffer;
