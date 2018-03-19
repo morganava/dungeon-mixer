@@ -7,6 +7,7 @@
 #include "audio.hpp"
 #include "draw.hpp"
 #include "work_queue.hpp"
+#include "logger.hpp"
 
 namespace tabletopify
 {
@@ -14,18 +15,15 @@ namespace tabletopify
 
     void init_globals()
     {
-        // print tabletopify directory
-        std::cout << "Tabletopify: " << get_tabletopify_path().native() << std::endl;
-
         // work queue
         g_worker_manager = new worker_manager();
         g_worker_manager->initialize();
 
+        init_logger(LogLevel_Info);
+
+        // init audio managers
         worker(Worker_Background).enqueue([]() -> void
         {
-            for(size_t k = 0; k < 20; k++)
-                std::cout << worker(Worker_Background).nextUUID() << std::endl;
-
             auto threadId = std::this_thread::get_id();
 
             /// Audio directory
@@ -49,6 +47,7 @@ namespace tabletopify
             g_playback_manager = single_threaded<playback_manager>(threadId);
         });
 
+        // load our audio manifests
         worker(Worker_FileIO).enqueue([]() -> void
         {
             // iterate over each subdirectory in the tabletopify directory

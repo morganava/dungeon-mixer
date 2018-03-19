@@ -15,6 +15,7 @@ namespace tabletopify
         Worker_UI = 0,
         Worker_FileIO,
         Worker_Background,
+        Worker_Logging,
 
         Worker_Count,
     };

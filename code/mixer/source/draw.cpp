@@ -54,7 +54,7 @@ namespace tabletopify
         for(auto id : atmosphere_ids)
         {
             auto& currentAtmosphere = g_atmosphere_directory->get_entry(id);
-            atmospheres.push_back({currentAtmosphere.title, id});
+            atmospheres.push_back({currentAtmosphere.title, id, false});
         }
 
         worker(Worker_UI).enqueue([atmospheres = std::move(atmospheres)]() -> void
@@ -372,8 +372,12 @@ namespace tabletopify
                                 if(nk_widget_is_mouse_clicked(ctx, NK_BUTTON_DOUBLE))
                                 {
                                     printf("Double?\n");
+                                    currentAtmosphere.renaming = true;
+                                    snprintf(g_ui->edit.atmosphereList.renameBuffer, sizeof(g_ui->edit.atmosphereList.renameBuffer), "%s", currentAtmosphere.title.c_str());
+
                                 }
-                                else if(nk_widget_is_mouse_clicked(ctx, NK_BUTTON_LEFT))
+                                else if(currentAtmosphere.renaming == false &&
+                                        nk_widget_is_mouse_clicked(ctx, NK_BUTTON_LEFT))
                                 {
                                     printf("Selected %s\n", currentAtmosphere.title.c_str());
                                     if(g_ui->edit.atmosphereList.selectedIndex != idx )
@@ -392,7 +396,21 @@ namespace tabletopify
                                         });
                                     }
                                 }
-                                nk_label(ctx, currentAtmosphere.title.c_str(), NK_TEXT_ALIGN_LEFT);
+                                if(currentAtmosphere.renaming)
+                                {
+                                    ctx->current->edit.active = true;
+                                    if(NK_EDIT_COMMITED & nk_edit_string_zero_terminated(ctx,
+                                        NK_EDIT_ALWAYS_INSERT_MODE | NK_EDIT_SIG_ENTER | NK_EDIT_SELECTABLE | NK_EDIT_CLIPBOARD,
+                                        g_ui->edit.atmosphereList.renameBuffer, countof(g_ui->edit.atmosphereList.renameBuffer), nk_filter_default))
+                                    {
+                                        currentAtmosphere.renaming = false;
+                                        currentAtmosphere.title = g_ui->edit.atmosphereList.renameBuffer;
+                                    }
+                                }
+                                else
+                                {
+                                    nk_label(ctx, currentAtmosphere.title.c_str(), NK_TEXT_ALIGN_LEFT);
+                                }
                             }
                         }
                         nk_group_end(ctx);

@@ -114,10 +114,12 @@ namespace tabletopify
                 {
                     std::string title;
                     atmosphere_id_t atmosphereId;
+                    bool renaming;
                 };
 
                 std::vector<atmosphere_edit> atmospheres;
-                size_t selectedIndex = ~size_t(0);
+                size_t selectedIndex = INVALID_INDEX;
+                char renameBuffer[64] = "";
 
                 atmosphere_id_t selectedAtmosphereId() const
                 {
