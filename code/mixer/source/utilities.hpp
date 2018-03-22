@@ -218,4 +218,12 @@ namespace tabletopify
     {
         return out << id.str();
     }
+
+
+    #define MX_DEBUGBREAK(...) __builtin_trap()
+
+    #define STRINGIFY2(X) #X
+    #define STRINGIFY(X) STRINGIFY2(X)
+    #define __STR_LINE__ STRINGIFY(__LINE__)
+    #define MX_ASSERT(X) do {bool result = (X); if(!result) { tabletopify::blocking_log(LogLevel_Error, "Assertion Failure: " __FILE__ ":" __STR_LINE__ " " #X); MX_DEBUGBREAK();} } while(false);
 }

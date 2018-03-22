@@ -46,4 +46,17 @@ namespace tabletopify
 			log_message(lvl, now, msg.c_str());
 		});
 	}
+
+    inline
+    void blocking_log(log_level_t lvl, const char* msg)
+    {
+        volatile bool finished = false;
+        auto now = std::chrono::system_clock::now();
+        worker(Worker_Logging).enqueue([=]() -> void
+        {
+            log_message(lvl, now, msg);
+        },
+        &finished);
+        while(!finished) std::this_thread::yield();
+    }
 }
