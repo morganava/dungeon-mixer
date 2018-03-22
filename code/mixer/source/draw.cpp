@@ -182,7 +182,7 @@ namespace tabletopify
         }
     }
 
-    static void close_ui_playback_atmosphere(size_t index, atmosphere_id_t atmosphereId)
+    static void remove_atmosphere_from_favorites(size_t index, atmosphere_id_t atmosphereId)
     {
         // remove this atmosphere from active list
         worker(Worker_UI).enqueue([=]() -> void
@@ -197,7 +197,7 @@ namespace tabletopify
         });
     }
 
-    static void set_ui_playback_atmosphere_volume(atmosphere_id_t atmosphereId, float volume)
+    static void set_atmosphere_volume(atmosphere_id_t atmosphereId, float volume)
     {
         worker(Worker_Background).enqueue([=]() -> void
         {
@@ -211,7 +211,7 @@ namespace tabletopify
         });
     }
 
-    static void set_ui_playback_atmosphere_muted(atmosphere_id_t atmosphereId, bool muted)
+    static void set_atmosphere_mute(atmosphere_id_t atmosphereId, bool muted)
     {
         worker(Worker_Background).enqueue([=]() -> void
         {
@@ -225,7 +225,7 @@ namespace tabletopify
         });
     }
 
-    static void toggle_ui_playback_atmosphere_playing(atmosphere_id_t atmosphereId, bool playing)
+    static void set_atmosphere_playing(atmosphere_id_t atmosphereId, bool playing)
     {
         worker(Worker_Background).enqueue([=]() -> void
         {
@@ -240,7 +240,7 @@ namespace tabletopify
         });
     }
 
-    static void update_ui_playback_atmosphere_searchQuery(std::string& query)
+    static void do_atmosphere_query(std::string& query)
     {
         worker(Worker_Background).enqueue([=]() -> void
         {
@@ -249,17 +249,14 @@ namespace tabletopify
         });
     }
 
-    static void update_ui_playback_add_atmosphere(auto& currentAtmosphere)
+    static void add_atmosphere_to_favorites(atmosphere_id_t atmosphereId, const std::string& atmosphereTitle)
     {
-        auto atmosphereId = currentAtmosphere.atmosphereId;
-        auto title = currentAtmosphere.title;
-
         worker(Worker_UI).enqueue([=]() -> void
         {
             g_ui->playback.atmosphereList.atmospheres.push_back(
             {
                 atmosphereId,
-                title,
+                atmosphereTitle,
                 1.0f,
                 false,
                 false,
@@ -267,32 +264,24 @@ namespace tabletopify
         });
     }
 
-    static void init_ui_edit_atmosphere_rename(auto& currentAtmosphere)
-    {
-        currentAtmosphere.renaming = true;
-        snprintf(g_ui->edit.atmosphereList.renameBuffer, sizeof(g_ui->edit.atmosphereList.renameBuffer), "%s", currentAtmosphere.title.c_str());
-    }
 
-    static void select_ui_edit_atmosphere(size_t idx)
+    static void select_atmosphere_for_edit(size_t idx)
     {
-        worker(Worker_UI).enqueue([=]() -> void
+        if(g_ui->edit.atmosphereList.selectedIndex != idx )
         {
-            g_ui->edit.atmosphereList.selectedIndex = idx;
-            auto atmosphereId = g_ui->edit.atmosphereList.selectedAtmosphereId();
-            worker(Worker_Background).enqueue([=]() -> void
+            worker(Worker_UI).enqueue([=]() -> void
             {
-                // populate the atmosphereEdit list based on the atmosphereId
-                update_ui_edit_atmosphereEdit(atmosphereId);
-                g_playback_manager->stop_all_tracks();
-                g_playback_manager->play_atmosphere(atmosphereId);
+                g_ui->edit.atmosphereList.selectedIndex = idx;
+                auto atmosphereId = g_ui->edit.atmosphereList.selectedAtmosphereId();
+                worker(Worker_Background).enqueue([=]() -> void
+                {
+                    // populate the atmosphereEdit list based on the atmosphereId
+                    update_ui_edit_atmosphereEdit(atmosphereId);
+                    g_playback_manager->stop_all_tracks();
+                    g_playback_manager->play_atmosphere(atmosphereId);
+                });
             });
-        });
-    }
-
-    static void finish_ui_edit_atmosphere_reame(auto& currentAtmosphere)
-    {
-        currentAtmosphere.renaming = false;
-        currentAtmosphere.title = g_ui->edit.atmosphereList.renameBuffer;
+        }
     }
 
     static void add_new_atmosphere()
@@ -423,6 +412,15 @@ namespace tabletopify
         });
     }
 
+    static void do_track_query(std::string& query)
+    {
+        worker(Worker_Background).enqueue([=]() -> void
+        {
+            auto searchResults = g_audio_directory->get_audio_ids_by_query(query);
+            update_ui_edit_trackSearch(searchResults);
+        });
+    }
+
     static void add_track(atmosphere_id_t atmosphereId, audio_id_t audioId)
     {
         worker(Worker_Background).enqueue([=]() -> void
@@ -522,7 +520,7 @@ namespace tabletopify
                             nk_label(ctx, currentAtmosphere.title.c_str(), NK_TEXT_LEFT);
                             if(nk_button_label(ctx, "X"))
                             {
-                                close_ui_playback_atmosphere(k, currentAtmosphere.atmosphereId);
+                                remove_atmosphere_from_favorites(k, currentAtmosphere.atmosphereId);
                             }
 
                             nk_layout_row_template_begin(ctx, MX_ROW_HEIGHT);
@@ -534,17 +532,17 @@ namespace tabletopify
                             const float volumeStep = 0.001f;
                             if(nk_slider_float(ctx, 0.0f, &currentAtmosphere.volume, 1.0f, volumeStep))
                             {
-                                set_ui_playback_atmosphere_volume(currentAtmosphere.atmosphereId, currentAtmosphere.volume);
+                                set_atmosphere_volume(currentAtmosphere.atmosphereId, currentAtmosphere.volume);
                             }
                             if(nk_button_label(ctx, "V"))
                             {
                                 currentAtmosphere.muted = !currentAtmosphere.muted;
-                                set_ui_playback_atmosphere_muted(currentAtmosphere.atmosphereId, currentAtmosphere.muted);
+                                set_atmosphere_mute(currentAtmosphere.atmosphereId, currentAtmosphere.muted);
                             }
                             if(nk_button_label(ctx, currentAtmosphere.playing ? "S" : "P"))
                             {
                                 currentAtmosphere.playing = !currentAtmosphere.playing;
-                                toggle_ui_playback_atmosphere_playing(currentAtmosphere.atmosphereId, currentAtmosphere.playing);
+                                set_atmosphere_playing(currentAtmosphere.atmosphereId, currentAtmosphere.playing);
                             }
                         }
                         nk_group_end(ctx);
@@ -567,7 +565,7 @@ namespace tabletopify
                         if(previousQuery != query)
                         {
                             previousQuery = query;
-                            update_ui_playback_atmosphere_searchQuery(query);
+                            do_atmosphere_query(query);
                         }
                     }
 
@@ -581,7 +579,7 @@ namespace tabletopify
                                 nk_layout_row_dynamic(ctx, 50, 1);
                                 if(nk_widget_is_mouse_clicked(ctx, NK_BUTTON_DOUBLE))
                                 {
-                                    update_ui_playback_add_atmosphere(currentAtmosphere);
+                                    add_atmosphere_to_favorites(currentAtmosphere.atmosphereId, currentAtmosphere.title);
                                 }
                                 nk_label(ctx, currentAtmosphere.title.c_str(), NK_TEXT_CENTERED);
                             }
@@ -621,17 +619,14 @@ namespace tabletopify
                                 nk_layout_row_dynamic(ctx, MX_ROW_HEIGHT, 1);
                                 if(nk_widget_is_mouse_clicked(ctx, NK_BUTTON_DOUBLE))
                                 {
-                                    init_ui_edit_atmosphere_rename(currentAtmosphere);
-
+                                    currentAtmosphere.renaming = true;
+                                    snprintf(g_ui->edit.atmosphereList.renameBuffer, sizeof(g_ui->edit.atmosphereList.renameBuffer), "%s", currentAtmosphere.title.c_str());
                                 }
                                 else if(currentAtmosphere.renaming == false &&
                                         nk_widget_is_mouse_clicked(ctx, NK_BUTTON_LEFT))
                                 {
                                     printf("Selected %s\n", currentAtmosphere.title.c_str());
-                                    if(g_ui->edit.atmosphereList.selectedIndex != idx )
-                                    {
-                                        select_ui_edit_atmosphere(idx);
-                                    }
+                                    select_atmosphere_for_edit(idx);
                                 }
                                 if(currentAtmosphere.renaming)
                                 {
@@ -641,7 +636,8 @@ namespace tabletopify
                                         editFlags, g_ui->edit.atmosphereList.renameBuffer,
                                         countof(g_ui->edit.atmosphereList.renameBuffer), nk_filter_default))
                                     {
-                                        finish_ui_edit_atmosphere_reame(currentAtmosphere);
+                                        currentAtmosphere.renaming = false;
+                                        currentAtmosphere.title = g_ui->edit.atmosphereList.renameBuffer;
                                     }
                                 }
                                 else
@@ -884,11 +880,7 @@ namespace tabletopify
                         if(previousQuery != query)
                         {
                             previousQuery = query;
-                            worker(Worker_Background).enqueue([=]() -> void
-                            {
-                                auto searchResults = g_audio_directory->get_audio_ids_by_query(query);
-                                update_ui_edit_trackSearch(searchResults);
-                            });
+                            do_track_query(query);
                         }
                     }
 
