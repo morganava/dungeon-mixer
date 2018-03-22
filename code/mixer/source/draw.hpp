@@ -182,11 +182,6 @@ namespace tabletopify
     };
     extern UI* g_ui;
 
-    void update_ui_playback_atmosphereSearch(const std::vector<atmosphere_id_t>& atmosphere_ids);
-    void update_ui_edit_atmosphereList(const std::vector<atmosphere_id_t>& atmosphere_ids);
-    void update_ui_edit_atmosphereEdit(atmosphere_id_t atmosphere_id);
-    void update_ui_edit_trackSearch(const std::vector<audio_id_t>& audio_ids);
-
     void draw_init(nk_context* ctx);
 	void draw_update(nk_context* ctx, int width, int height);
 }

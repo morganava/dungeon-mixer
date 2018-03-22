@@ -38,10 +38,6 @@ namespace tabletopify
 
             g_atmosphere_directory = single_threaded<atmosphere_directory>(threadId);
 
-            auto atmosphere_ids = g_atmosphere_directory->get_atmosphere_ids();
-            update_ui_playback_atmosphereSearch(atmosphere_ids);
-            update_ui_edit_atmosphereList(atmosphere_ids);
-
             /// Playback Manager
 
             g_playback_manager = single_threaded<playback_manager>(threadId);
@@ -98,9 +94,6 @@ namespace tabletopify
                             std::move(tags),
                             std::move(audioData));
                     }
-
-                    auto audio_ids = g_audio_directory->get_audio_ids();
-                    update_ui_edit_trackSearch(audio_ids);
                 });
             }
         });
