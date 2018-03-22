@@ -168,7 +168,7 @@ namespace tabletopify
 
             struct
             {
-                struct track_result
+                struct audio_result
                 {
                     std::string title;
                     audio_id_t audioId;
@@ -176,8 +176,8 @@ namespace tabletopify
 
                 std::string previousQuery;
                 char searchBuffer[64] = "";
-                std::vector<track_result> results;
-            } trackSearch;
+                std::vector<audio_result> results;
+            } audioSearch;
         } edit;
     };
     extern UI* g_ui;

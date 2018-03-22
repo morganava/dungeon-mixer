@@ -122,7 +122,7 @@ namespace tabletopify
 
     static void update_ui_edit_trackSearch(const std::vector<audio_id_t>& audio_ids)
     {
-        decltype(g_ui->edit.trackSearch.results) searchResults;
+        decltype(g_ui->edit.audioSearch.results) searchResults;
         for(auto id : audio_ids)
         {
             searchResults.push_back(
@@ -134,7 +134,7 @@ namespace tabletopify
 
         worker(Worker_UI).enqueue([results = std::move(searchResults)]() -> void
         {
-            g_ui->edit.trackSearch.results = results;
+            g_ui->edit.audioSearch.results = std::move(results);
         });
     }
 
@@ -412,7 +412,7 @@ namespace tabletopify
         });
     }
 
-    static void do_track_query(std::string& query)
+    static void do_audio_query(std::string& query)
     {
         worker(Worker_Background).enqueue([=]() -> void
         {
@@ -871,16 +871,19 @@ namespace tabletopify
                 {
                     nk_layout_row_begin(ctx, NK_DYNAMIC, MX_TEXT_SEARCH_HEIGHT, 1);
                     nk_layout_row_push(ctx, 1.0f);
-                    if(NK_EDIT_COMMITED & nk_edit_string_zero_terminated(ctx, NK_EDIT_ALWAYS_INSERT_MODE | NK_EDIT_SIG_ENTER | NK_EDIT_SELECTABLE | NK_EDIT_CLIPBOARD, g_ui->edit.trackSearch.searchBuffer, countof(g_ui->edit.trackSearch.searchBuffer), nk_filter_default))
+                    if(NK_EDIT_COMMITED & nk_edit_string_zero_terminated(ctx,
+                        NK_EDIT_ALWAYS_INSERT_MODE | NK_EDIT_SIG_ENTER | NK_EDIT_SELECTABLE | NK_EDIT_CLIPBOARD,
+                        g_ui->edit.audioSearch.searchBuffer, countof(g_ui->edit.audioSearch.searchBuffer),
+                        nk_filter_default))
                     {
                         // do search and populate on background worker
-                        std::string query = g_ui->edit.trackSearch.searchBuffer;
-                        auto& previousQuery = g_ui->edit.trackSearch.previousQuery;
+                        std::string query = g_ui->edit.audioSearch.searchBuffer;
+                        auto& previousQuery = g_ui->edit.audioSearch.previousQuery;
 
                         if(previousQuery != query)
                         {
                             previousQuery = query;
-                            do_track_query(query);
+                            do_audio_query(query);
                         }
                     }
 
@@ -889,7 +892,7 @@ namespace tabletopify
                     {
                         nk_group_begin(ctx, "edit_screen>right_group>search_results", 0);
                         {
-                            for(const auto& currentTrack : g_ui->edit.trackSearch.results)
+                            for(const auto& currentTrack : g_ui->edit.audioSearch.results)
                             {
                                 nk_layout_row_dynamic(ctx, 50, 1);
                                 if(nk_widget_is_mouse_clicked(ctx, NK_BUTTON_DOUBLE))
