@@ -2,11 +2,11 @@
 
 // tabletopify
 #include "utilities.hpp"
+#include "work_queue.hpp"
+#include "logger.hpp"
 #include "tag_map.hpp"
 #include "audio.hpp"
 #include "draw.hpp"
-#include "globals.hpp"
-#include "work_queue.hpp"
 
 namespace tabletopify
 {
@@ -351,7 +351,7 @@ namespace tabletopify
             // remove track from atmosphere
             auto& atmosphereEntry = g_atmosphere_directory->get_entry(atmosphereId);
             auto it = find(atmosphereEntry.tracks.begin(), atmosphereEntry.tracks.end(), trackId);
-            assert(it != atmosphereEntry.tracks.end());
+            MX_ASSERT(it != atmosphereEntry.tracks.end());
             atmosphereEntry.tracks.erase(it);
 
             // remove track
@@ -820,7 +820,7 @@ namespace tabletopify
 
                                 auto drawPositionComponent = [](nk_context* ctx, track_id_t trackId, char* componentBuffer, size_t componentBufferLen, float& component, size_t index)
                                 {
-                                    assert(index < 3);
+                                    MX_ASSERT(index < 3);
 
                                     const float oldVal = component;
                                     float newVal = component;

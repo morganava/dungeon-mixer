@@ -2,6 +2,7 @@
 
 #include "utilities.hpp"
 #include "work_queue.hpp"
+#include "logger.hpp"
 
 namespace tabletopify
 {
@@ -77,7 +78,7 @@ namespace tabletopify
 
     bool worker::try_dequeue(work_item& out_work)
     {
-        assert(g_worker_manager->_thread_ids[_index] == std::this_thread::get_id());
+        MX_ASSERT(g_worker_manager->_thread_ids[_index] == std::this_thread::get_id());
 
         std::lock_guard<std::mutex> lock(g_worker_manager->_mutex[_index]);
         if(g_worker_manager->_queue[_index].size() > 0)
@@ -91,8 +92,8 @@ namespace tabletopify
 
     float worker::nextFloat(float min, float max)
     {
-        assert(min <= max);
-        assert(g_worker_manager->_thread_ids[_index] == std::this_thread::get_id());
+        MX_ASSERT(min <= max);
+        MX_ASSERT(g_worker_manager->_thread_ids[_index] == std::this_thread::get_id());
 
         std::uniform_real_distribution<float> uniform(min, max);
         return uniform(g_worker_manager->_rand[_index]);
@@ -100,8 +101,8 @@ namespace tabletopify
 
     size_t worker::nextIndex(size_t count)
     {
-        assert(count > 0);
-        assert(g_worker_manager->_thread_ids[_index] == std::this_thread::get_id());
+        MX_ASSERT(count > 0);
+        MX_ASSERT(g_worker_manager->_thread_ids[_index] == std::this_thread::get_id());
 
         std::uniform_int_distribution<size_t> uniform(size_t(0), count - 1);
         return  uniform(g_worker_manager->_rand[_index]);
@@ -109,7 +110,7 @@ namespace tabletopify
 
     uuid worker::nextUUID()
     {
-        assert(g_worker_manager->_thread_ids[_index] == std::this_thread::get_id());
+        MX_ASSERT(g_worker_manager->_thread_ids[_index] == std::this_thread::get_id());
 
         uuid result;
         std::uniform_int_distribution<uint8_t> uniform(uint8_t(0), ~uint8_t(0));

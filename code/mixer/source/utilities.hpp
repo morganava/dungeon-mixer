@@ -2,6 +2,9 @@
 
 namespace tabletopify
 {
+    void assertion_log(const char* msg);
+
+    #define MX_ASSERT(X) do {bool result = (X); if(!result) { tabletopify::assertion_log("Assertion Failure: " __FILE__ ":" __STR_LINE__ " " #X); MX_DEBUGBREAK();} } while(false);
 
     // print operator for some nuklear types
     inline
@@ -225,5 +228,4 @@ namespace tabletopify
     #define STRINGIFY2(X) #X
     #define STRINGIFY(X) STRINGIFY2(X)
     #define __STR_LINE__ STRINGIFY(__LINE__)
-    #define MX_ASSERT(X) do {bool result = (X); if(!result) { tabletopify::blocking_log(LogLevel_Error, "Assertion Failure: " __FILE__ ":" __STR_LINE__ " " #X); MX_DEBUGBREAK();} } while(false);
 }

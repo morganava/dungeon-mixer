@@ -16,7 +16,7 @@ namespace tabletopify
 					 const char* msg);
 
 
-	template<typename... Args> inline
+	template<typename... Args>
 	void log(log_level_t lvl, const char* format, const Args&... args)
 	{
 		auto now = std::chrono::system_clock::now();
@@ -27,36 +27,8 @@ namespace tabletopify
 		});
 	}
 
-	inline
-	void log(log_level_t lvl, const char* msg)
-	{
-		auto now = std::chrono::system_clock::now();
-		worker(Worker_Logging).enqueue([=]() -> void
-		{
-			log_message(lvl, now, msg);
-		});
-	}
+	void log(log_level_t lvl, const char* msg);
+	void log(log_level_t lvl, std::string&& msg);
 
-	inline
-	void log(log_level_t lvl, std::string&& msg)
-	{
-		auto now = std::chrono::system_clock::now();
-		worker(Worker_Logging).enqueue([lvl=lvl, now=now, msg=std::forward<std::string>(msg)]() -> void
-		{
-			log_message(lvl, now, msg.c_str());
-		});
-	}
-
-    inline
-    void blocking_log(log_level_t lvl, const char* msg)
-    {
-        volatile bool finished = false;
-        auto now = std::chrono::system_clock::now();
-        worker(Worker_Logging).enqueue([=]() -> void
-        {
-            log_message(lvl, now, msg);
-        },
-        &finished);
-        while(!finished) std::this_thread::yield();
-    }
+    void assertion_log(const char* msg);
 }

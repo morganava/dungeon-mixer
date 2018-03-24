@@ -2,8 +2,11 @@
 
 // tabletopify
 #include "utilities.hpp"
+#include "work_queue.hpp"
+#include "logger.hpp"
 #include "tag_map.hpp"
 #include "audio.hpp"
+
 
 namespace tabletopify
 {
@@ -30,7 +33,7 @@ namespace tabletopify
     atmosphere_entry& atmosphere_directory::get_entry(atmosphere_id_t id)
     {
         auto it = _entries.find(id);
-        assert(it != _entries.end());
+        MX_ASSERT(it != _entries.end());
 
         return it->second;
     }
@@ -50,7 +53,7 @@ namespace tabletopify
     void atmosphere_directory::remove_entry(atmosphere_id_t id)
     {
         auto it = _entries.find(id);
-        assert(it != _entries.end());
+        MX_ASSERT(it != _entries.end());
         _entries.erase(it);
 
         _tag_map.remove_key(  id);

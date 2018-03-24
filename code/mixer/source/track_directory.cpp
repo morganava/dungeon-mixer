@@ -2,6 +2,8 @@
 
 // tabletopify
 #include "utilities.hpp"
+#include "work_queue.hpp"
+#include "logger.hpp"
 #include "tag_map.hpp"
 #include "audio.hpp"
 
@@ -14,7 +16,7 @@ namespace tabletopify
     track_entry& track_directory::get_entry(track_id_t id)
     {
         auto it = _entries.find(id);
-        assert(it != _entries.end());
+        MX_ASSERT(it != _entries.end());
 
         return it->second;
     }
@@ -24,7 +26,7 @@ namespace tabletopify
         auto id = ++_next_id;
 
         auto it = _entries.find(id);
-        assert(it == _entries.end());
+        MX_ASSERT(it == _entries.end());
 
         _entries.emplace(id, entry);
 
@@ -34,7 +36,7 @@ namespace tabletopify
     void track_directory::remove_entry(track_id_t id)
     {
         auto it = _entries.find(id);
-        assert(it != _entries.end());
+        MX_ASSERT(it != _entries.end());
 
         _entries.erase(it);
     }

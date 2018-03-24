@@ -2,9 +2,10 @@
 
 // tabletopify
 #include "utilities.hpp"
+#include "work_queue.hpp"
+#include "logger.hpp"
 #include "tag_map.hpp"
 #include "audio.hpp"
-#include "work_queue.hpp"
 
 namespace tabletopify
 {
@@ -59,7 +60,7 @@ namespace tabletopify
     {
         printf("Loading Audio!\n");
 
-        assert(audio->_state == UNLOADED);
+        MX_ASSERT(audio->_state == UNLOADED);
         audio->_state = LOADING;
 
         worker(Worker_FileIO).enqueue([=]() -> void
@@ -72,7 +73,7 @@ namespace tabletopify
     void audio_data::unload(std::shared_ptr<audio_data> audio)
     {
         printf("Unloading Audio!\n");
-        assert(audio->_state == LOADED);
+        MX_ASSERT(audio->_state == LOADED);
         audio->_state = UNLOADING;
 
         worker(Worker_FileIO).enqueue([=]() -> void
@@ -108,7 +109,7 @@ namespace tabletopify
 
     sf::SoundBuffer& one_shot_data::get_sound_buffer(bool positionable)
     {
-        assert(this->_state == LOADED);
+        MX_ASSERT(this->_state == LOADED);
 
         auto index = worker(Worker_Background).nextIndex(_buffers.size());
         return _buffers[index];
@@ -150,7 +151,7 @@ namespace tabletopify
 
     sf::SoundBuffer& loop_data::get_sound_buffer(bool positionable)
     {
-        assert(this->_state == LOADED);
+        MX_ASSERT(this->_state == LOADED);
 
         return positionable ? _mono_loop_buffer : _loop_buffer;
     }

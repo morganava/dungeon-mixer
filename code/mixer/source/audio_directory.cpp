@@ -2,8 +2,11 @@
 
 // tabletopify
 #include "utilities.hpp"
+#include "work_queue.hpp"
+#include "logger.hpp"
 #include "tag_map.hpp"
 #include "audio.hpp"
+
 
 namespace tabletopify
 {
@@ -66,7 +69,7 @@ namespace tabletopify
 
     audio_entry& audio_directory::get_entry(audio_id_t id)
     {
-        assert(id != INVALID_AUDIO_ID && id < _entries.size());
+        MX_ASSERT(id != INVALID_AUDIO_ID && id < _entries.size());
         return _entries[id];
     }
 
@@ -102,7 +105,7 @@ namespace tabletopify
         _tag_map.add_key(key, entry.tags);
         // update our uuid map (checking for collisions)
         auto uuidIt = _uuid_map.find(uuid);
-        assert(uuidIt == _uuid_map.end());
+        MX_ASSERT(uuidIt == _uuid_map.end());
         _uuid_map[uuid] = key;
 
         // push entry

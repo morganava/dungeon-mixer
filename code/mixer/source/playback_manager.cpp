@@ -5,6 +5,7 @@
 #include "tag_map.hpp"
 #include "audio.hpp"
 #include "work_queue.hpp"
+#include "logger.hpp"
 
 namespace tabletopify
 {
@@ -17,7 +18,6 @@ namespace tabletopify
             auto& playbackEntry = it.second;
             if(playbackEntry.audioData->state() != LOADED)
             {
-                printf("Pending load!\n");
                 continue;
             }
 
@@ -93,9 +93,9 @@ namespace tabletopify
 
     void playback_manager::play_track(track_id_t trackId)
     {
-        printf("Playing: %lu\n", trackId);
+        log(LogLevel_Info, "playing trackid %lu", trackId);
 
-        assert(_entries.find(trackId) == _entries.end());
+        MX_ASSERT(_entries.find(trackId) == _entries.end());
 
         auto& trackEntry = g_track_directory->get_entry(trackId);
 
@@ -109,7 +109,7 @@ namespace tabletopify
     void playback_manager::stop_track(track_id_t trackId)
     {
         auto it = _entries.find(trackId);
-        assert(it != _entries.end());
+        MX_ASSERT(it != _entries.end());
         it->second.sound.stop();
         _entries.erase(it);
     }

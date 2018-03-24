@@ -48,7 +48,7 @@ namespace tabletopify
                 printf(" %s\n", str.c_str());
             }
 
-            assert(_key_to_tags.find(key) == _key_to_tags.end());
+            MX_ASSERT(_key_to_tags.find(key) == _key_to_tags.end());
 
             for(auto tag : tags)
             {
