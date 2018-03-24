@@ -178,6 +178,9 @@ namespace tabletopify
                 {
                     g_playback_manager->play_atmosphere(atmosphereId);
                 }
+
+                auto searchResults = g_audio_directory->get_audio_ids_by_query(g_ui->edit.audioSearch.previousQuery);
+                update_ui_edit_trackSearch(searchResults);
             });
         }
     }
@@ -314,35 +317,38 @@ namespace tabletopify
     static void remove_atmosphere(atmosphere_id_t atmosphereId)
     {
         printf("Remove atmosphere\n");
-        worker(Worker_Background).enqueue([=]() -> void
+        if(atmosphereId != INVALID_ATMOSPHERE_ID)
         {
-            g_playback_manager->stop_atmosphere(atmosphereId);
-
-            auto& deadAtmosphere = g_atmosphere_directory->get_entry(atmosphereId);
-            for(auto trackId : deadAtmosphere.tracks)
+            worker(Worker_Background).enqueue([=]() -> void
             {
-                g_track_directory->remove_entry(trackId);
-            }
-            g_atmosphere_directory->remove_entry(atmosphereId);
-            auto atmosphereIds = g_atmosphere_directory->get_atmosphere_ids();
-            update_ui_edit_atmosphereList(atmosphereIds);
-            update_ui_edit_atmosphereEdit(INVALID_ATMOSPHERE_ID);
+                g_playback_manager->stop_atmosphere(atmosphereId);
 
-            // remove the remove id from the atmosphere search list
-            std::vector<atmosphere_id_t> searchedAtmosphereIds;
-            for(auto& searchResult : g_ui->playback.atmosphereSearch.results)
-            {
-                if(searchResult.atmosphereId != atmosphereId)
+                auto& deadAtmosphere = g_atmosphere_directory->get_entry(atmosphereId);
+                for(auto trackId : deadAtmosphere.tracks)
                 {
-                    searchedAtmosphereIds.push_back(searchResult.atmosphereId);
+                    g_track_directory->remove_entry(trackId);
                 }
-            }
-            update_ui_playback_atmosphereSearch(searchedAtmosphereIds);
-            worker(Worker_UI).enqueue([]() -> void
-            {
-                g_ui->edit.atmosphereList.selectedIndex = INVALID_INDEX;
+                g_atmosphere_directory->remove_entry(atmosphereId);
+                auto atmosphereIds = g_atmosphere_directory->get_atmosphere_ids();
+                update_ui_edit_atmosphereList(atmosphereIds);
+                update_ui_edit_atmosphereEdit(INVALID_ATMOSPHERE_ID);
+
+                // remove the remove id from the atmosphere search list
+                std::vector<atmosphere_id_t> searchedAtmosphereIds;
+                for(auto& searchResult : g_ui->playback.atmosphereSearch.results)
+                {
+                    if(searchResult.atmosphereId != atmosphereId)
+                    {
+                        searchedAtmosphereIds.push_back(searchResult.atmosphereId);
+                    }
+                }
+                update_ui_playback_atmosphereSearch(searchedAtmosphereIds);
+                worker(Worker_UI).enqueue([]() -> void
+                {
+                    g_ui->edit.atmosphereList.selectedIndex = INVALID_INDEX;
+                });
             });
-        });
+        }
     }
 
     static void begin_rename_atmosphere(auto& atmosphereEdit)
