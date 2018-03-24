@@ -190,6 +190,7 @@ namespace tabletopify
     	atmosphere_entry& get_entry(atmosphere_id_t id);
     	atmosphere_id_t add_entry(atmosphere_entry&& entry);
     	void remove_entry(atmosphere_id_t id);
+        void rename_entry(atmosphere_id_t id, const std::string& newName);
     private:
         atmosphere_id_t _next_id = 0;
         std::unordered_map<atmosphere_id_t, atmosphere_entry> _entries;

@@ -56,6 +56,20 @@ namespace tabletopify
         MX_ASSERT(it != _entries.end());
         _entries.erase(it);
 
-        _tag_map.remove_key(  id);
+        _tag_map.remove_key(id);
+    }
+
+    void atmosphere_directory::rename_entry(atmosphere_id_t id, const std::string& newName)
+    {
+        auto it = _entries.find(id);
+        MX_ASSERT(it != _entries.end());
+
+        // early out if the same name
+        if(it->second.title == newName) return;
+        it->second.title = newName;
+
+        _tag_map.remove_key(id);
+        std::vector<std::string> tags = split(to_lower(newName), " ");
+        _tag_map.add_key(id, tags);
     }
 }

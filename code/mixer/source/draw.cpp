@@ -341,6 +341,32 @@ namespace tabletopify
         });
     }
 
+    static void begin_rename_atmosphere(auto& atmosphereEdit)
+    {
+        atmosphereEdit.renaming = true;
+        snprintf(g_ui->edit.atmosphereList.renameBuffer, sizeof(g_ui->edit.atmosphereList.renameBuffer), "%s", atmosphereEdit.title.c_str());
+    }
+
+    static void finish_rename_atmosphere(auto& atmosphereEdit)
+    {
+        atmosphereEdit.renaming = false;
+        atmosphereEdit.title = g_ui->edit.atmosphereList.renameBuffer;
+
+        for(auto& atmospherePlayback : g_ui->playback.atmosphereList.atmospheres)
+        {
+            if(atmospherePlayback.atmosphereId == atmosphereEdit.atmosphereId)
+            {
+                atmospherePlayback.title = atmosphereEdit.title;
+                break;
+            }
+        }
+
+        worker(Worker_Background).enqueue([=]() -> void
+        {
+            g_atmosphere_directory->rename_entry(atmosphereEdit.atmosphereId, atmosphereEdit.title);
+        });
+    }
+
     static void remove_track(atmosphere_id_t atmosphereId, track_id_t trackId)
     {
         worker(Worker_Background).enqueue([=]() -> void
@@ -619,8 +645,7 @@ namespace tabletopify
                                 nk_layout_row_dynamic(ctx, MX_ROW_HEIGHT, 1);
                                 if(nk_widget_is_mouse_clicked(ctx, NK_BUTTON_DOUBLE))
                                 {
-                                    currentAtmosphere.renaming = true;
-                                    snprintf(g_ui->edit.atmosphereList.renameBuffer, sizeof(g_ui->edit.atmosphereList.renameBuffer), "%s", currentAtmosphere.title.c_str());
+                                    begin_rename_atmosphere(currentAtmosphere);
                                 }
                                 else if(currentAtmosphere.renaming == false &&
                                         nk_widget_is_mouse_clicked(ctx, NK_BUTTON_LEFT))
@@ -636,8 +661,7 @@ namespace tabletopify
                                         editFlags, g_ui->edit.atmosphereList.renameBuffer,
                                         countof(g_ui->edit.atmosphereList.renameBuffer), nk_filter_default))
                                     {
-                                        currentAtmosphere.renaming = false;
-                                        currentAtmosphere.title = g_ui->edit.atmosphereList.renameBuffer;
+                                        finish_rename_atmosphere(currentAtmosphere);
                                     }
                                 }
                                 else

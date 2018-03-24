@@ -1,7 +1,6 @@
 #pragma once
 
  // C++
-#include <cassert>
 #include <cstdarg>
 #include <cstdint>
 #include <cstdio>
