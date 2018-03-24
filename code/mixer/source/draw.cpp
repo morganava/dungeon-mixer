@@ -188,13 +188,17 @@ namespace tabletopify
         worker(Worker_UI).enqueue([=]() -> void
         {
             auto& atmospheres = g_ui->playback.atmosphereList.atmospheres;
+            // disable playback of atmosphere if playing
+            if(atmospheres[index].playing)
+            {
+                worker(Worker_Background).enqueue([=]() -> void
+                {
+                    g_playback_manager->stop_atmosphere(atmosphereId);
+                });
+            }
             atmospheres.erase(atmospheres.begin() + index);
         });
-        // disable playback of atmosphere
-        worker(Worker_Background).enqueue([=]() -> void
-        {
-            g_playback_manager->stop_atmosphere(atmosphereId);
-        });
+
     }
 
     static void set_atmosphere_volume(atmosphere_id_t atmosphereId, float volume)
