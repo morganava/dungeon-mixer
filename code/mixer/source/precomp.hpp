@@ -33,3 +33,6 @@ namespace fs = std::experimental::filesystem;
 // json : https://github.com/nlohmann/json
 #include <json.hpp>
 namespace nl = nlohmann;
+
+// nativefiledialog : https://github.com/mlabbe/nativefiledialog
+#include <nfd.h>

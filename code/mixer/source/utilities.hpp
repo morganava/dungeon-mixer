@@ -150,6 +150,9 @@ namespace tabletopify
         return result;
     }
 
+    fs::path open_dialog(const char* filterList);
+    fs::path save_dialog(const char* filterList);
+
 
     inline
     fs::path get_tabletopify_path()

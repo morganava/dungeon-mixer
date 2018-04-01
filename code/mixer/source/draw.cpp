@@ -511,11 +511,17 @@ namespace tabletopify
         if (nk_begin(ctx, "top_bar", nk_rect(0, 0, width, MX_TOPBAR_HEIGHT), NK_WINDOW_NO_SCROLLBAR))
         {
             nk_layout_row_template_begin(ctx, MX_TOPBAR_HEIGHT);
+            nk_layout_row_template_push_static(ctx, MX_MODE_BUTTON_WIDTH);
             nk_layout_row_template_push_dynamic(ctx);
             nk_layout_row_template_push_static(ctx, MX_MODE_BUTTON_WIDTH);
             nk_layout_row_template_push_static(ctx, MX_MODE_BUTTON_WIDTH);
             nk_layout_row_template_end(ctx);
 
+            if(nk_button_label(ctx, "OPEN"))
+            {
+                open_dialog(nullptr);
+                save_dialog(nullptr);
+            }
             nk_spacing(ctx, 1);
             if(nk_button_label(ctx, "Playback"))
             {
