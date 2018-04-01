@@ -20,7 +20,9 @@ add_executable(tabletop_mixer
     playback_manager.cpp
     draw.cpp
     work_queue.cpp
-    logger.cpp)
+    logger.cpp
+    utilities.cpp
+    nuklear_extensions.cpp)
 
 target_link_libraries(tabletop_mixer nuklear)
 target_link_libraries(tabletop_mixer glfw)

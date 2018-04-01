@@ -31,6 +31,7 @@ namespace tabletopify
             {
                 *wi.finished = true;
             }
+            wi = {};
         }
 
         // draw widgets

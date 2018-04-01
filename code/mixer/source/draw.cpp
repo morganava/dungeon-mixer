@@ -7,6 +7,7 @@
 #include "tag_map.hpp"
 #include "audio.hpp"
 #include "draw.hpp"
+#include "nuklear_extensions.hpp"
 
 namespace tabletopify
 {
@@ -354,7 +355,7 @@ namespace tabletopify
     static void begin_rename_atmosphere(auto& atmosphereEdit)
     {
         atmosphereEdit.renaming = true;
-        snprintf(g_ui->edit.atmosphereList.renameBuffer, sizeof(g_ui->edit.atmosphereList.renameBuffer), "%s", atmosphereEdit.title.c_str());
+        g_ui->edit.atmosphereList.renameBuffer = atmosphereEdit.title;
     }
 
     static void finish_rename_atmosphere(auto& atmosphereEdit)
@@ -593,9 +594,11 @@ namespace tabletopify
                     nk_layout_row_begin(ctx, NK_DYNAMIC, MX_TEXT_SEARCH_HEIGHT, 1);
                     nk_layout_row_push(ctx, 1.0f);
 
-                    if(NK_EDIT_COMMITED & nk_edit_string_zero_terminated(ctx, NK_EDIT_ALWAYS_INSERT_MODE | NK_EDIT_SIG_ENTER | NK_EDIT_SELECTABLE | NK_EDIT_CLIPBOARD, g_ui->playback.atmosphereSearch.searchBuffer, countof(g_ui->playback.atmosphereSearch.searchBuffer), nk_filter_default))
+                    if(NK_EDIT_COMMITED & nk_edit_string_zero_terminated(ctx,
+                        NK_EDIT_ALWAYS_INSERT_MODE | NK_EDIT_SIG_ENTER | NK_EDIT_SELECTABLE | NK_EDIT_CLIPBOARD,
+                        g_ui->playback.atmosphereSearch.searchBuffer, nk_filter_default))
                     {
-                        std::string query = g_ui->playback.atmosphereSearch.searchBuffer;
+                        std::string query = g_ui->playback.atmosphereSearch.searchBuffer.buffer();
                         auto& previousQuery = g_ui->playback.atmosphereSearch.prevSearch;
 
                         if(previousQuery != query)
@@ -668,8 +671,7 @@ namespace tabletopify
                                     constexpr auto editFlags = NK_EDIT_ALWAYS_INSERT_MODE | NK_EDIT_SIG_ENTER | NK_EDIT_SELECTABLE | NK_EDIT_CLIPBOARD;
                                     nk_edit_focus(ctx, editFlags);
                                     if(NK_EDIT_COMMITED & nk_edit_string_zero_terminated(ctx,
-                                        editFlags, g_ui->edit.atmosphereList.renameBuffer,
-                                        countof(g_ui->edit.atmosphereList.renameBuffer), nk_filter_default))
+                                        editFlags, g_ui->edit.atmosphereList.renameBuffer, nk_filter_default))
                                     {
                                         finish_rename_atmosphere(currentAtmosphere);
                                     }
@@ -907,7 +909,7 @@ namespace tabletopify
                     nk_layout_row_push(ctx, 1.0f);
                     if(NK_EDIT_COMMITED & nk_edit_string_zero_terminated(ctx,
                         NK_EDIT_ALWAYS_INSERT_MODE | NK_EDIT_SIG_ENTER | NK_EDIT_SELECTABLE | NK_EDIT_CLIPBOARD,
-                        g_ui->edit.audioSearch.searchBuffer, countof(g_ui->edit.audioSearch.searchBuffer),
+                        g_ui->edit.audioSearch.searchBuffer,
                         nk_filter_default))
                     {
                         // do search and populate on background worker

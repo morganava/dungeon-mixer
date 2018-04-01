@@ -5,7 +5,6 @@
 #include "tag_map.hpp"
 #include "globals.hpp"
 #include "audio.hpp"
-#include "draw.hpp"
 #include "work_queue.hpp"
 #include "logger.hpp"
 

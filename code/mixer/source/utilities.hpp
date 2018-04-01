@@ -1,10 +1,16 @@
 #pragma once
 
+#define MX_DEBUGBREAK(...) __builtin_trap()
+
+#define STRINGIFY2(X) #X
+#define STRINGIFY(X) STRINGIFY2(X)
+#define __STR_LINE__ STRINGIFY(__LINE__)
+
+#define MX_ASSERT(X) do {bool result = (X); if(!result) { tabletopify::assertion_log("Assertion Failure: " __FILE__ ":" __STR_LINE__ " " #X); MX_DEBUGBREAK();} } while(false);
+
 namespace tabletopify
 {
     void assertion_log(const char* msg);
-
-    #define MX_ASSERT(X) do {bool result = (X); if(!result) { tabletopify::assertion_log("Assertion Failure: " __FILE__ ":" __STR_LINE__ " " #X); MX_DEBUGBREAK();} } while(false);
 
     // print operator for some nuklear types
     inline
@@ -222,10 +228,28 @@ namespace tabletopify
         return out << id.str();
     }
 
+    struct text_buffer
+    {
+    public:
+        text_buffer() : text_buffer(2) {}
 
-    #define MX_DEBUGBREAK(...) __builtin_trap()
+        text_buffer(size_t capacity)
+        : _capacity(capacity)
+        , _buffer(new char[_capacity])
+        {
+            for(size_t idx = 0; idx < _capacity; ++idx)
+                _buffer[idx] = 0;
+        }
 
-    #define STRINGIFY2(X) #X
-    #define STRINGIFY(X) STRINGIFY2(X)
-    #define __STR_LINE__ STRINGIFY(__LINE__)
+        size_t capacity() const { return _capacity; }
+        char* buffer() { return _buffer.get(); }
+
+        void update();
+        text_buffer& operator=(const std::string& str);
+        operator std::string() const;
+
+    private:
+        size_t _capacity;
+        std::unique_ptr<char[]> _buffer;
+    };
 }

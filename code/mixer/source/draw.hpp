@@ -80,6 +80,7 @@ namespace tabletopify
         {
             struct
             {
+
                 struct atmosphere_playback
                 {
                     atmosphere_id_t atmosphereId;
@@ -101,7 +102,7 @@ namespace tabletopify
                 };
 
                 std::string prevSearch;
-                char searchBuffer[64] = "";
+                text_buffer searchBuffer;
                 std::vector<atmosphere_search_result> results;
             } atmosphereSearch;
         } playback;
@@ -119,7 +120,7 @@ namespace tabletopify
 
                 std::vector<atmosphere_edit> atmospheres;
                 size_t selectedIndex = INVALID_INDEX;
-                char renameBuffer[64] = "";
+                text_buffer renameBuffer;
 
                 atmosphere_id_t selectedAtmosphereId() const
                 {
@@ -175,7 +176,7 @@ namespace tabletopify
                 };
 
                 std::string previousQuery;
-                char searchBuffer[64] = "";
+                text_buffer searchBuffer;
                 std::vector<audio_result> results;
             } audioSearch;
         } edit;
