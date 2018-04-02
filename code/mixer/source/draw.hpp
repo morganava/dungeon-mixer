@@ -80,11 +80,11 @@ namespace tabletopify
         {
             struct
             {
-
                 struct atmosphere_playback
                 {
                     atmosphere_id_t atmosphereId;
                     std::string title;
+                    std::string uuid;
                     float volume;
                     bool muted;
                     bool playing;

@@ -10,6 +10,7 @@
 #include <memory>
 #include <random>
 #include <sstream>
+using ss = std::stringstream;
 #include <string>
 #include <unordered_map>
 #include <unordered_set>

@@ -8,6 +8,7 @@
 #include "audio.hpp"
 #include "draw.hpp"
 #include "nuklear_extensions.hpp"
+#include "serialization.hpp"
 
 namespace tabletopify
 {
@@ -79,7 +80,7 @@ namespace tabletopify
                 trackEdit.volume = trackEntry.volume;
                 trackEdit.muted = trackEntry.muted ? 1 : 0;
                 trackEdit.trackId = trackId;
-                trackEdit.title = trackEntry.title;
+                trackEdit.title = trackEntry.audioTitle;
                 trackEdit.audioType = trackEntry.audioType;
                 trackEdit.position.enabled = trackEntry.position.enabled ? 1 : 0;
 
@@ -257,17 +258,23 @@ namespace tabletopify
         });
     }
 
-    static void add_atmosphere_to_favorites(atmosphere_id_t atmosphereId, const std::string& atmosphereTitle)
+    static void add_atmosphere_to_favorites(atmosphere_id_t atmosphereId)
     {
-        worker(Worker_UI).enqueue([=]() -> void
+        worker(Worker_Background).enqueue([=]() -> void
         {
-            g_ui->playback.atmosphereList.atmospheres.push_back(
+            auto& atmosphereEntry = g_atmosphere_directory->get_entry(atmosphereId);
+
+            worker(Worker_UI).enqueue([=]() -> void
             {
-                atmosphereId,
-                atmosphereTitle,
-                1.0f,
-                false,
-                false,
+                g_ui->playback.atmosphereList.atmospheres.push_back(
+                {
+                    atmosphereId,
+                    atmosphereEntry.title,
+                    atmosphereEntry.uuid,
+                    1.0f,
+                    false,
+                    false,
+                });
             });
         });
     }
@@ -300,7 +307,6 @@ namespace tabletopify
             atmosphere_entry atmosphereEntry =
             {
                 worker(Worker_Background).nextUUID(),
-                1.0f,
                 "New Atmosphere",
                 {}
             };
@@ -466,7 +472,8 @@ namespace tabletopify
             {
                 auto& audioEntry = g_audio_directory->get_entry(audioId);
 
-                trackEntry.title = audioEntry.title;
+                trackEntry.audioTitle = audioEntry.title;
+                trackEntry.audioUuid = audioEntry.uuid;
                 trackEntry.audioData = audioEntry.data;
                 trackEntry.audioType = audioEntry.data->get_type();
                 trackEntry.volume = 1.0f;
@@ -512,6 +519,7 @@ namespace tabletopify
         {
             nk_layout_row_template_begin(ctx, MX_TOPBAR_HEIGHT);
             nk_layout_row_template_push_static(ctx, MX_MODE_BUTTON_WIDTH);
+            nk_layout_row_template_push_static(ctx, MX_MODE_BUTTON_WIDTH);
             nk_layout_row_template_push_dynamic(ctx);
             nk_layout_row_template_push_static(ctx, MX_MODE_BUTTON_WIDTH);
             nk_layout_row_template_push_static(ctx, MX_MODE_BUTTON_WIDTH);
@@ -520,7 +528,15 @@ namespace tabletopify
             if(nk_button_label(ctx, "OPEN"))
             {
                 open_dialog(nullptr);
-                save_dialog(nullptr);
+
+            }
+            if(nk_button_label(ctx, "SAVE"))
+            {
+                auto savePath = save_dialog("json");
+                if(!savePath.empty())
+                {
+                    save_user_mix(savePath);
+                }
             }
             nk_spacing(ctx, 1);
             if(nk_button_label(ctx, "Playback"))
@@ -624,7 +640,7 @@ namespace tabletopify
                                 nk_layout_row_dynamic(ctx, 50, 1);
                                 if(nk_widget_is_mouse_clicked(ctx, NK_BUTTON_DOUBLE))
                                 {
-                                    add_atmosphere_to_favorites(currentAtmosphere.atmosphereId, currentAtmosphere.title);
+                                    add_atmosphere_to_favorites(currentAtmosphere.atmosphereId);
                                 }
                                 nk_label(ctx, currentAtmosphere.title.c_str(), NK_TEXT_CENTERED);
                             }

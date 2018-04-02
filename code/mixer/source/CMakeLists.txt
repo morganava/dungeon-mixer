@@ -23,6 +23,7 @@ add_executable(tabletop_mixer
     work_queue.cpp
     logger.cpp
     utilities.cpp
+    serialization.cpp
     nuklear_extensions.cpp)
 
 target_link_libraries(tabletop_mixer nuklear)

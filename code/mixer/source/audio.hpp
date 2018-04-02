@@ -127,7 +127,8 @@ namespace tabletopify
     // description for how audio is to played in an atmosphere
     struct track_entry
     {
-        std::string title;
+        std::string audioTitle;
+        std::string audioUuid;
         std::shared_ptr<audio_data> audioData;
         audio_type_t audioType;
         float volume;
@@ -169,10 +170,7 @@ namespace tabletopify
 
     struct atmosphere_entry
     {
-    	// atmosphere unique id
-    	std::string uuid;
-    	// volume
-    	float volume;
+        std::string uuid;
     	// query title
     	std::string title;
     	// tracks

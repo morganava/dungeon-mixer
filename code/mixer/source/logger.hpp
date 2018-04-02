@@ -29,6 +29,7 @@ namespace tabletopify
 
 	void log(log_level_t lvl, const char* msg);
 	void log(log_level_t lvl, std::string&& msg);
+	void log(log_level_t lvl, const std::ostream& msg);
 
     void assertion_log(const char* msg);
 }

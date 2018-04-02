@@ -51,6 +51,10 @@ namespace tabletopify
         });
     }
 
+    void log(log_level_t lvl, const std::ostream& msg)
+    {
+        log(lvl, dynamic_cast<const std::stringstream&>(msg).str());
+    }
 
     void assertion_log(const char* msg)
     {
