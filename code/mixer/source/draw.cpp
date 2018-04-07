@@ -527,7 +527,11 @@ namespace tabletopify
 
             if(nk_button_label(ctx, "OPEN"))
             {
-                open_dialog(nullptr);
+                auto openPath = open_dialog("json");
+                if(!openPath.empty())
+                {
+                    open_user_mix(openPath);
+                }
 
             }
             if(nk_button_label(ctx, "SAVE"))

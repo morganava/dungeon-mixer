@@ -9,6 +9,8 @@
 
 namespace tabletopify
 {
+    const char MIX_VERSION[] = "0.1";
+
     void load_audio_manifests()
     {
         worker(Worker_FileIO).enqueue([]() -> void
@@ -36,7 +38,7 @@ namespace tabletopify
                     for(auto track : trackList)
                     {
                         std::string title = track["Title"];
-                        std::string uuid = track["UUID"];
+                        std::string audioUUID = track["AudioID"];
                         std::string type = track["Type"];
                         std::vector<std::string> tags = track["Tags"];
                         std::vector<std::string> files = track["Files"];
@@ -57,7 +59,7 @@ namespace tabletopify
                         }
 
                         g_audio_directory->add_entry(
-                            std::move(uuid),
+                            std::move(audioUUID),
                             std::move(title),
                             std::move(tags),
                             std::move(audioData));
@@ -67,9 +69,156 @@ namespace tabletopify
         });
     }
 
+    void open_user_mix(const fs::path& mixPath)
+    {
+        log(LogLevel_Info, ss() << "Begin open user mix: " << mixPath);
+
+        worker(Worker_FileIO).enqueue([=]() -> void
+        {
+            auto mixSize = fs::file_size(mixPath);
+            std::string mixData(mixSize, 0);
+
+            std::ifstream mixFile(mixPath, std::ios_base::in | std::ios_base::binary);
+            mixFile.read(mixData.data(), mixSize);
+            mixFile.close();
+
+            worker(Worker_Background).enqueue([mixPath=mixPath, mixData=std::move(mixData)]() -> void
+            {
+                auto jObj = nl::json::parse(mixData);
+
+                std::string version = jObj["Version"];
+                if(version != MIX_VERSION)
+                {
+                    log(LogLevel_Error, ss() << "Failed to open " << mixPath << ", version mismatch");
+                    return;
+                }
+
+                using edits_list_t = decltype(g_ui->edit.atmosphereList.atmospheres);
+                edits_list_t editList;
+
+                auto& jAtmosphereList = jObj["Atmospheres"];
+                for(auto& jAtmosphere : jAtmosphereList)
+                {
+                    std::string title = jAtmosphere["Title"];
+                    std::string atmosphereUUID = jAtmosphere["AtmosphereID"];
+                    std::vector<track_id_t> tracks;
+                    auto& jTrackList = jAtmosphere["Tracks"];
+                    for(auto& jTrack : jTrackList)
+                    {
+                        auto& jAudioUUID = jTrack["AudioID"];
+                        MX_ASSERT(jAudioUUID.is_string());
+                        auto& jVolume = jTrack["Volume"];
+                        MX_ASSERT(jVolume.is_number());
+                        auto& jMuted = jTrack["Muted"];
+                        MX_ASSERT(jMuted.is_boolean());
+                        auto& jType = jTrack["Type"];
+                        MX_ASSERT(jType.is_string());
+                        auto& jPosition = jTrack["Position"];
+                        MX_ASSERT(jPosition.is_array() || jPosition.is_null());
+                        auto& jRepeat = jTrack["Repeat"];
+                        MX_ASSERT(jRepeat.is_array() || jRepeat.is_null());
+
+                        auto audioId = g_audio_directory->get_audio_id_by_uuid(jAudioUUID);
+
+                        track_entry trackEntry;
+                        {
+                            auto& audioEntry = g_audio_directory->get_entry(audioId);
+
+                            trackEntry.audioTitle = audioEntry.title;
+                            trackEntry.audioUuid = audioEntry.uuid;
+                            trackEntry.audioData = audioEntry.data;
+                            trackEntry.audioType = audioEntry.data->get_type();
+                            trackEntry.volume = jVolume;
+                            trackEntry.muted = jMuted;
+
+                            switch(trackEntry.audioType)
+                            {
+                                case ONE_SHOT:
+                                    MX_ASSERT(jType == "OneShot");
+                                    MX_ASSERT(jRepeat.is_array());
+                                    MX_ASSERT(jRepeat[0].is_number());
+                                    MX_ASSERT(jRepeat[1].is_number());
+                                    trackEntry.repeat.min = jRepeat[0];
+                                    trackEntry.repeat.max = jRepeat[1];
+                                    break;
+                                case LOOP:
+                                    MX_ASSERT(jType == "Loop");
+                                    break;
+                            }
+
+                            if(jPosition.is_array())
+                            {
+                                MX_ASSERT(jPosition[0].is_number());
+                                MX_ASSERT(jPosition[1].is_number());
+                                MX_ASSERT(jPosition[2].is_number());
+                                trackEntry.position.enabled = true;
+                                trackEntry.position.x = jPosition[0];
+                                trackEntry.position.y = jPosition[1];
+                                trackEntry.position.z = jPosition[2];
+                            }
+                            trackEntry.position.enabled = false;
+                        }
+
+                        auto trackId = g_track_directory->add_entry(std::move(trackEntry));
+                        tracks.push_back(trackId);
+                    }
+                    atmosphere_entry atmosphereEntry =
+                    {
+                        atmosphereUUID,
+                        title,
+                        std::move(tracks),
+                    };
+                    auto atmosphereId = g_atmosphere_directory->add_entry(std::move(atmosphereEntry));
+
+                    editList.push_back({title, atmosphereId, false});
+                }
+
+                auto& jFavoritesList = jObj["Favorites"];
+                MX_ASSERT(jFavoritesList.is_array());
+
+                using favorites_list_t = decltype(g_ui->playback.atmosphereList.atmospheres);
+                favorites_list_t favoritesList;
+
+                for(auto& jFavorite : jFavoritesList)
+                {
+                    auto& jUUID = jFavorite["AtmosphereID"];
+                    MX_ASSERT(jUUID.is_string());
+                    auto& jVolume = jFavorite["Volume"];
+                    MX_ASSERT(jVolume.is_number());
+                    auto& jMuted = jFavorite["Muted"];
+                    MX_ASSERT(jMuted.is_boolean());
+
+                    auto atmosphereId = g_atmosphere_directory->get_atmosphere_id_by_uuid(jUUID);
+                    MX_ASSERT(atmosphereId != INVALID_ATMOSPHERE_ID);
+                    auto& atmosphereEntry = g_atmosphere_directory->get_entry(atmosphereId);
+
+                    favorites_list_t::value_type favorite;
+                    {
+                        favorite.atmosphereId = atmosphereId;
+                        favorite.title = atmosphereEntry.title;
+                        favorite.uuid = atmosphereEntry.uuid;
+                        favorite.volume = jVolume;
+                        favorite.muted = jMuted;
+                        favorite.playing = false;
+                    }
+
+                    favoritesList.push_back(std::move(favorite));
+                }
+
+                worker(Worker_UI).enqueue([mixPath=mixPath, editList=std::move(editList), favoritesList=std::move(favoritesList)]() -> void
+                {
+                    g_ui->edit.atmosphereList.atmospheres = std::move(editList);
+                    g_ui->playback.atmosphereList.atmospheres = std::move(favoritesList);
+
+                    log(LogLevel_Info, ss() << "Finish open user mix: " << mixPath);
+                });
+            });
+        });
+    }
+
     void save_user_mix(const fs::path& path)
     {
-        log(LogLevel_Info, ss() << "Begin saving user mix: " << path);
+        log(LogLevel_Info, ss() << "Begin save user mix: " << path);
 
         worker(Worker_UI).enqueue([=]() -> void
         {
@@ -78,7 +227,7 @@ namespace tabletopify
             for(auto& atmospherePlayback : g_ui->playback.atmosphereList.atmospheres)
             {
                 nl::json jFavorite;
-                jFavorite["UUID"] = atmospherePlayback.uuid;
+                jFavorite["AtmosphereID"] = atmospherePlayback.uuid;
                 jFavorite["Volume"] = atmospherePlayback.volume;
                 jFavorite["Muted"] = atmospherePlayback.muted;
                 jFavoriteList.push_back(jFavorite);
@@ -88,7 +237,7 @@ namespace tabletopify
             worker(Worker_Background).enqueue([path=path, jFavoriteList=std::move(jFavoriteList)]() -> void
             {
                 nl::json jObj;
-                jObj["Version"] = "1.0";
+                jObj["Version"] = "0.1";
                 jObj["Favorites"] = jFavoriteList;
                 auto jAtmosphereList = nl::json::array();
                 // serialize each atmosphere
@@ -97,7 +246,7 @@ namespace tabletopify
                     auto& atmosphereEntry = g_atmosphere_directory->get_entry(atmosphereId);
                     nl::json jAtmosphere;
                     jAtmosphere["Title"] = atmosphereEntry.title;
-                    jAtmosphere["UUID"] = atmosphereEntry.uuid;
+                    jAtmosphere["AtmosphereID"] = atmosphereEntry.uuid;
 
                     auto jTrackList = nl::json::array();
                     // serialize each track
@@ -105,7 +254,7 @@ namespace tabletopify
                     {
                         auto& trackEntry = g_track_directory->get_entry(trackId);
                         nl::json jTrack;
-                        jTrack["UUID"] = trackEntry.audioUuid;
+                        jTrack["AudioID"] = trackEntry.audioUuid;
                         jTrack["Volume"] = trackEntry.volume;
                         jTrack["Muted"] = trackEntry.muted;
                         switch(trackEntry.audioType)
@@ -133,11 +282,11 @@ namespace tabletopify
                 // save to disk on IO thread
                 worker(Worker_FileIO).enqueue([json=std::move(jObj.dump(4)), path=path]() -> void
                 {
-                    std::ofstream mixFile(path.native(), std::ios_base::out | std::ios_base::binary);
+                    std::ofstream mixFile(path, std::ios_base::out | std::ios_base::binary);
                     mixFile << json;
                     mixFile.close();
 
-                    log(LogLevel_Info, ss() << "Finish saving user mix: " << path);
+                    log(LogLevel_Info, ss() << "Finish save user mix: " << path);
                 });
             });
         });

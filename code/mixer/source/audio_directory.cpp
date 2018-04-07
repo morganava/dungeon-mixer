@@ -112,6 +112,16 @@ namespace tabletopify
         _entries.push_back(std::move(entry));
     }
 
+    audio_id_t audio_directory::get_audio_id_by_uuid(const std::string& uuid) const
+    {
+        auto it = _uuid_map.find(uuid);
+        if(it == _uuid_map.end())
+        {
+            return INVALID_AUDIO_ID;
+        }
+        return it->second;
+    }
+
     std::string audio_directory::get_title_by_audio_id(audio_id_t id) const
     {
         return _entries[id].title;

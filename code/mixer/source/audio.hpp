@@ -185,14 +185,17 @@ namespace tabletopify
     	std::vector<atmosphere_id_t> get_atmosphere_ids() const;
     	std::vector<atmosphere_id_t> get_atmosphere_ids_by_query(const std::string& query_string) const;
 
+        atmosphere_id_t get_atmosphere_id_by_uuid(const std::string& uuid) const;
     	atmosphere_entry& get_entry(atmosphere_id_t id);
     	atmosphere_id_t add_entry(atmosphere_entry&& entry);
     	void remove_entry(atmosphere_id_t id);
         void rename_entry(atmosphere_id_t id, const std::string& newName);
     private:
         atmosphere_id_t _next_id = 0;
-        std::unordered_map<atmosphere_id_t, atmosphere_entry> _entries;
+        std::map<atmosphere_id_t, atmosphere_entry> _entries;
         tag_map<atmosphere_id_t> _tag_map;
+        // map track uuid to atmosphere id
+        std::unordered_map<std::string, atmosphere_id_t> _uuid_map;
     };
     extern single_threaded<atmosphere_directory> g_atmosphere_directory;
 
