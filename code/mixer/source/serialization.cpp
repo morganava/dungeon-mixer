@@ -11,6 +11,19 @@ namespace tabletopify
 {
     const char MIX_VERSION[] = "0.1";
 
+    // https://stackoverflow.com/questions/2552416/how-can-i-find-the-users-home-dir-in-a-cross-platform-manner-using-c
+    static fs::path get_home_path()
+    {
+        static fs::path home = std::string(getenv("HOME"));
+        return home;
+    }
+
+    static fs::path get_tabletopify_path()
+    {
+        static fs::path tabletopify = get_home_path() / ".tabletopify";
+        return tabletopify;
+    }
+
     void load_audio_manifests()
     {
         worker(Worker_FileIO).enqueue([]() -> void
@@ -41,10 +54,11 @@ namespace tabletopify
                         uuid audioId = track["AudioId"];
                         std::string type = track["Type"];
                         std::vector<std::string> tags = track["Tags"];
-                        std::vector<std::string> files = track["Files"];
-                        for(auto& currentFile : files)
+                        std::vector<std::string> filenames = track["Files"];
+                        std::vector<fs::path> files;
+                        for(auto& currentFilename : filenames)
                         {
-                            currentFile = basePath / currentFile;
+                            files.push_back(basePath / currentFilename);
                         }
 
                         std::shared_ptr<audio_data> audioData;

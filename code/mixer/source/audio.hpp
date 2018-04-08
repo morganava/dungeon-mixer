@@ -52,7 +52,7 @@ namespace tabletopify
     class one_shot_data : public audio_data
     {
     public:
-        one_shot_data(std::vector<std::string>&& paths);
+        one_shot_data(std::vector<fs::path>&& paths);
         ~one_shot_data() override;
 
         audio_type_t get_type() override {return ONE_SHOT;}
@@ -61,14 +61,14 @@ namespace tabletopify
         void load_impl() override;
         void unload_impl() override;
 
-        std::vector<std::string> _paths;
+        std::vector<fs::path> _paths;
         std::vector<sf::SoundBuffer> _buffers;
     };
 
     class loop_data : public audio_data
     {
     public:
-        loop_data(std::string&& loop_path);
+        loop_data(fs::path&& loop_path);
         ~loop_data() override;
 
         audio_type_t get_type() override {return LOOP;}
@@ -77,7 +77,7 @@ namespace tabletopify
         void load_impl() override;
         void unload_impl() override;
 
-        std::string _loop_path;
+        fs::path _loop_path;
 
         sf::SoundBuffer _loop_buffer;
         sf::SoundBuffer _mono_loop_buffer;

@@ -3,7 +3,6 @@
 #include "uuid.hpp"
 #include "utilities.hpp"
 #include "work_queue.hpp"
-#include "logger.hpp"
 
 namespace tabletopify
 {
@@ -42,7 +41,7 @@ namespace tabletopify
                 wi = {};
             }
             // sleep for 1 ms before looking for work
-            sleep_for(1);
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
     }
 

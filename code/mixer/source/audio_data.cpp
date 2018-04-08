@@ -1,11 +1,11 @@
 #include "precomp.hpp"
 
 // tabletopify
-#include "uuid.hpp"
 #include "utilities.hpp"
 #include "work_queue.hpp"
 #include "logger.hpp"
 #include "audio.hpp"
+#include "serialization.hpp"
 
 namespace tabletopify
 {
@@ -88,12 +88,12 @@ namespace tabletopify
 
     // One-Shot Data
 
-    one_shot_data::one_shot_data(std::vector<std::string>&& paths)
+    one_shot_data::one_shot_data(std::vector<fs::path>&& paths)
     : _paths(paths)
     {
         for(auto& currentPath : _paths)
         {
-            verify_file(currentPath);
+            MX_ASSERT(fs::exists(currentPath));
         }
 
         for(size_t k = 0; k < _paths.size(); k++)
@@ -138,10 +138,10 @@ namespace tabletopify
 
     // Loop Data
 
-    loop_data::loop_data(std::string&& loop_path)
-    : _loop_path(loop_path)
+    loop_data::loop_data(fs::path&& loop_path)
+    : _loop_path(std::move(loop_path))
     {
-        verify_file(_loop_path);
+        MX_ASSERT(fs::exists(_loop_path));
     }
 
     loop_data::~loop_data()
