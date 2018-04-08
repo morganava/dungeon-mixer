@@ -1,5 +1,7 @@
 #pragma once
 
+#include "text_buffer.hpp"
+
 namespace tabletopify
 {
     /*

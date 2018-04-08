@@ -1,5 +1,7 @@
 #pragma once
 
+#include "uuid.hpp"
+
 namespace tabletopify
 {
     struct work_item

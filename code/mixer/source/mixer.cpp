@@ -1,8 +1,6 @@
 #include "precomp.hpp"
 
 #include "globals.hpp"
-#include "uuid.hpp"
-#include "utilities.hpp"
 #include "audio.hpp"
 #include "draw.hpp"
 #include "work_queue.hpp"
@@ -13,9 +11,6 @@ namespace tabletopify
     void init_callback(nk_context* ctx)
     {
         init_globals();
-
-        log(LogLevel_Info, "%s: %i", "Hello from logger thread!", __LINE__);
-        log(LogLevel_Error, "YOu done FuCked Up!");
 
         draw_init(ctx);
     }

@@ -26,7 +26,8 @@ add_executable(tabletop_mixer
     serialization.cpp
     nuklear_extensions.cpp
     uuid.cpp
-    tag_map.cpp)
+    tag_map.cpp
+    text_buffer.cpp)
 
 target_link_libraries(tabletop_mixer nuklear)
 target_link_libraries(tabletop_mixer glfw)

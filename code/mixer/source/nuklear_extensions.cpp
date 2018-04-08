@@ -1,6 +1,6 @@
 #include "precomp.hpp"
 
-#include "utilities.hpp"
+#include "text_buffer.hpp"
 #include "nuklear_extensions.hpp"
 
 namespace tabletopify

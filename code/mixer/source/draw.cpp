@@ -977,10 +977,7 @@ namespace tabletopify
 
     void draw_init(nk_context* ctx)
     {
-        std::cout << "window padding: " << ctx->style.window.padding << std::endl;
-        std::cout << "window spacing: " << ctx->style.window.spacing << std::endl;
-
-        // set style
+         // set style
 
         ctx->style.window.border = 0.0f;
         ctx->style.window.group_border = 0.0f;

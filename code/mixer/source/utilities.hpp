@@ -36,19 +36,29 @@ namespace tabletopify
     constexpr size_t countof(const T (&)[N]) { return N; }
 
     inline
-    std::string string_format(const char* format, ...)
+    std::string vstring_format(const char* format, va_list argsSrc)
     {
         va_list args1, args2;
+        va_copy(args1, argsSrc);
+        va_copy(args2, argsSrc);
 
-        va_start (args1, format);
-        // vsnprintf destructively modifes the va_list, so make an initial copy
-        va_copy(args2, args1);
         auto len = vsnprintf(nullptr, 0, format, args1);
         va_end(args1);
 
         std::string result(len, 0);
         vsnprintf(const_cast<char*>(result.data()), len+1, format, args2);
         va_end(args2);
+
+        return result;
+    };
+
+    inline
+    std::string string_format(const char* format, ...)
+    {
+        va_list args;
+        va_start(args, format);
+        std::string result = vstring_format(format, args);
+        va_end(args);
 
         return result;
     }
@@ -160,29 +170,4 @@ namespace tabletopify
         static fs::path tabletopify = get_home_path() / ".tabletopify";
         return tabletopify;
     }
-
-    struct text_buffer
-    {
-    public:
-        text_buffer() : text_buffer(2) {}
-
-        text_buffer(size_t capacity)
-        : _capacity(capacity)
-        , _buffer(new char[_capacity])
-        {
-            for(size_t idx = 0; idx < _capacity; ++idx)
-                _buffer[idx] = 0;
-        }
-
-        size_t capacity() const { return _capacity; }
-        char* buffer() { return _buffer.get(); }
-
-        void update();
-        text_buffer& operator=(const std::string& str);
-        operator std::string() const;
-
-    private:
-        size_t _capacity;
-        std::unique_ptr<char[]> _buffer;
-    };
 }

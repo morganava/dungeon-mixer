@@ -1,6 +1,5 @@
 #include "precomp.hpp"
 
-#include "uuid.hpp"
 #include "utilities.hpp"
 #include "work_queue.hpp"
 #include "logger.hpp"
@@ -21,7 +20,7 @@ namespace tabletopify
         log_level = lvl;
     }
 
-    void log_message(log_level_t lvl,
+    static void log_message(log_level_t lvl,
                      std::chrono::system_clock::time_point now,
                      const char* msg)
     {
@@ -34,22 +33,23 @@ namespace tabletopify
         }
     }
 
-    void log(log_level_t lvl, const char* msg)
-    {
-        auto now = std::chrono::system_clock::now();
-        worker(Worker_Logging).enqueue([=]() -> void
-        {
-            log_message(lvl, now, msg);
-        });
-    }
-
     void log(log_level_t lvl, std::string&& msg)
     {
         auto now = std::chrono::system_clock::now();
-        worker(Worker_Logging).enqueue([lvl=lvl, now=now, msg=std::forward<std::string>(msg)]() -> void
+        worker(Worker_Logging).enqueue([lvl=lvl, now=now, msg=std::move(msg)]() -> void
         {
             log_message(lvl, now, msg.c_str());
         });
+    }
+
+    void log(log_level_t lvl, const char* format, ...)
+    {
+        va_list args;
+        va_start(args, format);
+        std::string msg = vstring_format(format, args);
+        va_end(args);
+
+        log(lvl, std::move(msg));
     }
 
     void log(log_level_t lvl, const std::ostream& msg)
