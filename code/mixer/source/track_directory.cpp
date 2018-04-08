@@ -5,12 +5,34 @@
 #include "utilities.hpp"
 #include "work_queue.hpp"
 #include "logger.hpp"
-#include "tag_map.hpp"
 #include "audio.hpp"
 
 namespace tabletopify
 {
-    single_threaded<track_directory> g_track_directory;
+    track_directory* g_track_directory = nullptr;
+    track_directory* get_track_directory()
+    {
+        MX_ASSERT(worker(Worker_Background).getThreadId() == std::this_thread::get_id());
+        return g_track_directory;
+    }
+    void init_track_directory(track_directory&& trackDirectory)
+    {
+        if(g_track_directory == nullptr)
+        {
+            g_track_directory = new track_directory(std::forward<track_directory>(trackDirectory));
+        }
+        else
+        {
+            MX_ASSERT(worker(Worker_Background).getThreadId() == std::this_thread::get_id());
+            *g_track_directory = std::forward<track_directory>(trackDirectory);
+        }
+    }
+    void free_track_directory()
+    {
+        delete g_track_directory;
+        g_track_directory = nullptr;
+    }
+
     track_handle_t track_directory::_next_handle = 0;
 
     /// Track Directory

@@ -48,6 +48,7 @@ namespace tabletopify
         const size_t _index;
     public:
         worker(size_t index) : _index(index) {}
+        std::thread::id getThreadId() const;
         void enqueue(std::function<void(void)>&& work);
         void enqueue(std::function<void(void)>&& work, volatile bool* finished);
         bool try_dequeue(work_item& out_work);

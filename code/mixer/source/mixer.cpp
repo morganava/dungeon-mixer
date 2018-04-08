@@ -3,7 +3,6 @@
 #include "globals.hpp"
 #include "uuid.hpp"
 #include "utilities.hpp"
-#include "tag_map.hpp"
 #include "audio.hpp"
 #include "draw.hpp"
 #include "work_queue.hpp"
@@ -41,8 +40,8 @@ namespace tabletopify
         volatile bool finished = false;
         worker(Worker_Background).enqueue([dt]()
         {
-            g_audio_directory->update(dt);
-            g_playback_manager->update(dt);
+            get_audio_directory()->update(dt);
+            get_playback_manager()->update(dt);
         }, &finished);
 
         // busy wait

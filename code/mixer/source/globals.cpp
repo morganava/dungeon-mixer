@@ -1,9 +1,7 @@
 #include "precomp.hpp"
 
 // tabletopify
-#include "uuid.hpp"
-#include "utilities.hpp"
-#include "tag_map.hpp"
+// #include "utilities.hpp"
 #include "globals.hpp"
 #include "audio.hpp"
 #include "work_queue.hpp"
@@ -20,29 +18,14 @@ namespace tabletopify
         g_worker_manager = new worker_manager();
         g_worker_manager->initialize();
 
+        // init logger with desired log verbosity
         init_logger(LogLevel_Info);
 
         // init audio managers
-        worker(Worker_Background).enqueue([]() -> void
-        {
-            auto threadId = std::this_thread::get_id();
-
-            /// Audio directory
-
-            g_audio_directory = single_threaded<audio_directory>(threadId);
-
-            /// Track directory
-
-            g_track_directory = single_threaded<track_directory>(threadId);
-
-            /// Atmosphere Directory
-
-            g_atmosphere_directory = single_threaded<atmosphere_directory>(threadId);
-
-            /// Playback Manager
-
-            g_playback_manager = single_threaded<playback_manager>(threadId);
-        });
+        init_audio_directory();
+        init_track_directory({});
+        init_atmosphere_directory({});
+        init_playback_manager();
 
         // load our audio manifests
         load_audio_manifests();
@@ -55,9 +38,9 @@ namespace tabletopify
 
         delete g_worker_manager; g_worker_manager = nullptr;
 
-        g_playback_manager.free();
-        g_atmosphere_directory.free();
-        g_track_directory.free();
-        g_audio_directory.free();
+        free_playback_manager();
+        free_atmosphere_directory();
+        free_track_directory();
+        free_audio_directory();
     }
 }

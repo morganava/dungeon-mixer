@@ -5,7 +5,6 @@
 #include "utilities.hpp"
 #include "work_queue.hpp"
 #include "logger.hpp"
-#include "tag_map.hpp"
 #include "audio.hpp"
 #include "draw.hpp"
 #include "nuklear_extensions.hpp"
@@ -41,7 +40,7 @@ namespace tabletopify
         decltype(g_ui->playback.atmosphereSearch.results) searchResults;
         for(auto handle : atmosphereHandles)
         {
-            auto& currentAtmosphere = g_atmosphere_directory->get_entry(handle);
+            auto& currentAtmosphere = get_atmosphere_directory()->get_entry(handle);
             searchResults.push_back({handle, currentAtmosphere.title});
         }
 
@@ -56,7 +55,7 @@ namespace tabletopify
         decltype(g_ui->edit.atmosphereList.atmospheres) atmospheres;
         for(auto handle : atmosphereHandles)
         {
-            auto& currentAtmosphere = g_atmosphere_directory->get_entry(handle);
+            auto& currentAtmosphere = get_atmosphere_directory()->get_entry(handle);
             atmospheres.push_back({currentAtmosphere.title, handle, false});
         }
 
@@ -72,10 +71,10 @@ namespace tabletopify
 
         if(atmosphereHandle != MX_INVALID_HANDLE)
         {
-            auto& selectedAtmosphere = g_atmosphere_directory->get_entry(atmosphereHandle);
+            auto& selectedAtmosphere = get_atmosphere_directory()->get_entry(atmosphereHandle);
             for(auto trackHandle : selectedAtmosphere.tracks)
             {
-                auto& trackEntry = g_track_directory->get_entry(trackHandle);
+                auto& trackEntry = get_track_directory()->get_entry(trackHandle);
 
                 decltype(tracks)::value_type trackEdit;
                 trackEdit.volume = trackEntry.volume;
@@ -128,7 +127,7 @@ namespace tabletopify
         decltype(g_ui->edit.audioSearch.results) searchResults;
         for(auto currentHandle : audioHandles)
         {
-            auto& audioEntry = g_audio_directory->get_entry(currentHandle);
+            auto& audioEntry = get_audio_directory()->get_entry(currentHandle);
             searchResults.push_back(
             {
                 audioEntry.title,
@@ -157,9 +156,9 @@ namespace tabletopify
 
             worker(Worker_Background).enqueue([]() -> void
             {
-                g_playback_manager->stop_all_tracks();
+                get_playback_manager()->stop_all_tracks();
                 // update UI search results with current query (in case edit changed them)
-                auto searchResults = g_atmosphere_directory->get_atmosphere_handles_by_query(g_ui->playback.atmosphereSearch.prevSearch);
+                auto searchResults = get_atmosphere_directory()->get_atmosphere_handles_by_query(g_ui->playback.atmosphereSearch.prevSearch);
                 update_ui_playback_atmosphereSearch(searchResults);
             });
         }
@@ -177,13 +176,13 @@ namespace tabletopify
             auto atmosphereHandle = g_ui->edit.atmosphereList.selectedAtmosphereHandle();
             worker(Worker_Background).enqueue([=]() -> void
             {
-                g_playback_manager->stop_all_tracks();
+                get_playback_manager()->stop_all_tracks();
                 if(atmosphereHandle != MX_INVALID_HANDLE)
                 {
-                    g_playback_manager->play_atmosphere(atmosphereHandle);
+                    get_playback_manager()->play_atmosphere(atmosphereHandle);
                 }
 
-                auto searchResults = g_audio_directory->get_audio_handles_by_query(g_ui->edit.audioSearch.previousQuery);
+                auto searchResults = get_audio_directory()->get_audio_handles_by_query(g_ui->edit.audioSearch.previousQuery);
                 update_ui_edit_trackSearch(searchResults);
             });
         }
@@ -200,7 +199,7 @@ namespace tabletopify
             {
                 worker(Worker_Background).enqueue([=]() -> void
                 {
-                    g_playback_manager->stop_atmosphere(atmosphereHandle);
+                    get_playback_manager()->stop_atmosphere(atmosphereHandle);
                 });
             }
             atmospheres.erase(atmospheres.begin() + index);
@@ -212,12 +211,12 @@ namespace tabletopify
     {
         worker(Worker_Background).enqueue([=]() -> void
         {
-            auto& atmosphereEntry = g_atmosphere_directory->get_entry(atmosphereHandle);
+            auto& atmosphereEntry = get_atmosphere_directory()->get_entry(atmosphereHandle);
             for(auto trackHandle : atmosphereEntry.tracks)
             {
-                auto& currentTrack = g_track_directory->get_entry(trackHandle);
+                auto& currentTrack = get_track_directory()->get_entry(trackHandle);
                 currentTrack.atmosphereVolume = volume;
-                g_playback_manager->sync_track(trackHandle);
+                get_playback_manager()->sync_track(trackHandle);
             }
         });
     }
@@ -226,12 +225,12 @@ namespace tabletopify
     {
         worker(Worker_Background).enqueue([=]() -> void
         {
-            auto& atmosphereEntry = g_atmosphere_directory->get_entry(atmosphereHandle);
+            auto& atmosphereEntry = get_atmosphere_directory()->get_entry(atmosphereHandle);
             for(auto trackHandle : atmosphereEntry.tracks)
             {
-                auto& currentTrack = g_track_directory->get_entry(trackHandle);
+                auto& currentTrack = get_track_directory()->get_entry(trackHandle);
                 currentTrack.atmosphereMuted = muted;
-                g_playback_manager->sync_track(trackHandle);
+                get_playback_manager()->sync_track(trackHandle);
             }
         });
     }
@@ -242,11 +241,11 @@ namespace tabletopify
         {
             if(playing)
             {
-                g_playback_manager->play_atmosphere(atmosphereHandle);
+                get_playback_manager()->play_atmosphere(atmosphereHandle);
             }
             else
             {
-                g_playback_manager->stop_atmosphere(atmosphereHandle);
+                get_playback_manager()->stop_atmosphere(atmosphereHandle);
             }
         });
     }
@@ -255,7 +254,7 @@ namespace tabletopify
     {
         worker(Worker_Background).enqueue([=]() -> void
         {
-            auto searchResults = g_atmosphere_directory->get_atmosphere_handles_by_query(query);
+            auto searchResults = get_atmosphere_directory()->get_atmosphere_handles_by_query(query);
             update_ui_playback_atmosphereSearch(searchResults);
         });
     }
@@ -264,7 +263,7 @@ namespace tabletopify
     {
         worker(Worker_Background).enqueue([=]() -> void
         {
-            auto& atmosphereEntry = g_atmosphere_directory->get_entry(atmosphereHandle);
+            auto& atmosphereEntry = get_atmosphere_directory()->get_entry(atmosphereHandle);
 
             worker(Worker_UI).enqueue([=]() -> void
             {
@@ -294,8 +293,8 @@ namespace tabletopify
                 {
                     // populate the atmosphereEdit list based on the atmosphereHandle
                     update_ui_edit_atmosphereEdit(atmosphereHandle);
-                    g_playback_manager->stop_all_tracks();
-                    g_playback_manager->play_atmosphere(atmosphereHandle);
+                    get_playback_manager()->stop_all_tracks();
+                    get_playback_manager()->play_atmosphere(atmosphereHandle);
                 });
             });
         }
@@ -312,8 +311,8 @@ namespace tabletopify
                 "New Atmosphere",
                 {}
             };
-            auto newAtmosphereHandle = g_atmosphere_directory->add_entry(std::move(atmosphereEntry));
-            auto atmosphereHandles = g_atmosphere_directory->get_atmosphere_handles();
+            auto newAtmosphereHandle = get_atmosphere_directory()->add_entry(std::move(atmosphereEntry));
+            auto atmosphereHandles = get_atmosphere_directory()->get_atmosphere_handles();
             update_ui_edit_atmosphereList(atmosphereHandles);
             update_ui_edit_atmosphereEdit(newAtmosphereHandle);
             worker(Worker_UI).enqueue([]() -> void
@@ -330,15 +329,15 @@ namespace tabletopify
         {
             worker(Worker_Background).enqueue([=]() -> void
             {
-                g_playback_manager->stop_atmosphere(atmosphereHandle);
+                get_playback_manager()->stop_atmosphere(atmosphereHandle);
 
-                auto& deadAtmosphere = g_atmosphere_directory->get_entry(atmosphereHandle);
+                auto& deadAtmosphere = get_atmosphere_directory()->get_entry(atmosphereHandle);
                 for(auto trackHandle : deadAtmosphere.tracks)
                 {
-                    g_track_directory->remove_entry(trackHandle);
+                    get_track_directory()->remove_entry(trackHandle);
                 }
-                g_atmosphere_directory->remove_entry(atmosphereHandle);
-                auto atmosphereHandles = g_atmosphere_directory->get_atmosphere_handles();
+                get_atmosphere_directory()->remove_entry(atmosphereHandle);
+                auto atmosphereHandles = get_atmosphere_directory()->get_atmosphere_handles();
                 update_ui_edit_atmosphereList(atmosphereHandles);
                 update_ui_edit_atmosphereEdit(MX_INVALID_HANDLE);
 
@@ -382,7 +381,7 @@ namespace tabletopify
 
         worker(Worker_Background).enqueue([=]() -> void
         {
-            g_atmosphere_directory->rename_entry(atmosphereEdit.handle, atmosphereEdit.title);
+            get_atmosphere_directory()->rename_entry(atmosphereEdit.handle, atmosphereEdit.title);
         });
     }
 
@@ -391,16 +390,16 @@ namespace tabletopify
         worker(Worker_Background).enqueue([=]() -> void
         {
             // stop it from playing
-            g_playback_manager->stop_track(trackHandle);
+            get_playback_manager()->stop_track(trackHandle);
 
             // remove track from atmosphere
-            auto& atmosphereEntry = g_atmosphere_directory->get_entry(atmosphereHandle);
+            auto& atmosphereEntry = get_atmosphere_directory()->get_entry(atmosphereHandle);
             auto it = find(atmosphereEntry.tracks.begin(), atmosphereEntry.tracks.end(), trackHandle);
             MX_ASSERT(it != atmosphereEntry.tracks.end());
             atmosphereEntry.tracks.erase(it);
 
             // remove track
-            g_track_directory->remove_entry(trackHandle);
+            get_track_directory()->remove_entry(trackHandle);
 
             update_ui_edit_atmosphereEdit(atmosphereHandle);
         });
@@ -410,9 +409,9 @@ namespace tabletopify
     {
         worker(Worker_Background).enqueue([=]() -> void
         {
-            auto& trackEntry = g_track_directory->get_entry(trackHandle);
+            auto& trackEntry = get_track_directory()->get_entry(trackHandle);
             trackEntry.volume = volume;
-            g_playback_manager->sync_track(trackHandle);
+            get_playback_manager()->sync_track(trackHandle);
         });
     }
 
@@ -420,9 +419,9 @@ namespace tabletopify
     {
         worker(Worker_Background).enqueue([=]() -> void
         {
-            auto& trackEntry = g_track_directory->get_entry(trackHandle);
+            auto& trackEntry = get_track_directory()->get_entry(trackHandle);
             trackEntry.muted = muted;
-            g_playback_manager->sync_track(trackHandle);
+            get_playback_manager()->sync_track(trackHandle);
         });
     }
 
@@ -430,10 +429,10 @@ namespace tabletopify
     {
         worker(Worker_Background).enqueue([=]() -> void
         {
-            auto& trackEntry = g_track_directory->get_entry(trackHandle);
+            auto& trackEntry = get_track_directory()->get_entry(trackHandle);
             trackEntry.repeat.min = repeatMin;
             trackEntry.repeat.max = repeatMax;
-            g_playback_manager->sync_track(trackHandle);
+            get_playback_manager()->sync_track(trackHandle);
         });
     }
 
@@ -441,9 +440,9 @@ namespace tabletopify
     {
         worker(Worker_Background).enqueue([=]() -> void
         {
-            auto& trackEntry = g_track_directory->get_entry(trackHandle);
+            auto& trackEntry = get_track_directory()->get_entry(trackHandle);
             trackEntry.position.enabled = positionEnabled;
-            g_playback_manager->sync_track(trackHandle);
+            get_playback_manager()->sync_track(trackHandle);
         });
     }
 
@@ -451,9 +450,9 @@ namespace tabletopify
     {
         worker(Worker_Background).enqueue([=]() -> void
         {
-            auto& trackEntry = g_track_directory->get_entry(trackHandle);
+            auto& trackEntry = get_track_directory()->get_entry(trackHandle);
             trackEntry.position.raw[component] = value;
-            g_playback_manager->sync_track(trackHandle);
+            get_playback_manager()->sync_track(trackHandle);
         });
     }
 
@@ -461,7 +460,7 @@ namespace tabletopify
     {
         worker(Worker_Background).enqueue([=]() -> void
         {
-            auto searchResults = g_audio_directory->get_audio_handles_by_query(query);
+            auto searchResults = get_audio_directory()->get_audio_handles_by_query(query);
             update_ui_edit_trackSearch(searchResults);
         });
     }
@@ -472,7 +471,7 @@ namespace tabletopify
         {
             track_entry trackEntry;
             {
-                auto& audioEntry = g_audio_directory->get_entry(audioHandle);
+                auto& audioEntry = get_audio_directory()->get_entry(audioHandle);
 
                 trackEntry.audioTitle = audioEntry.title;
                 trackEntry.audioId = audioEntry.id;
@@ -499,12 +498,12 @@ namespace tabletopify
             }
 
             // add data to directories
-            track_handle_t trackHandle = g_track_directory->add_entry(std::move(trackEntry));
-            auto& currentAtmosphere = g_atmosphere_directory->get_entry(atmosphereHandle);
+            track_handle_t trackHandle = get_track_directory()->add_entry(std::move(trackEntry));
+            auto& currentAtmosphere = get_atmosphere_directory()->get_entry(atmosphereHandle);
             currentAtmosphere.tracks.push_back(trackHandle);
 
             // begin playing
-            g_playback_manager->play_track(trackHandle);
+            get_playback_manager()->play_track(trackHandle);
 
             // updates the ui
             update_ui_edit_atmosphereEdit(atmosphereHandle);

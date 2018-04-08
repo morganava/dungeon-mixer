@@ -161,46 +161,6 @@ namespace tabletopify
         return tabletopify;
     }
 
-    // ensures object is only accessed from a single thread
-    template<typename T>
-    class single_threaded
-    {
-    public:
-        single_threaded() {}
-
-        single_threaded(std::thread::id id)
-        : _id(id)
-        , _val(new T())
-        {}
-
-        single_threaded(std::thread::id id, T* val)
-        : _id(id)
-        , _val(val)
-        {}
-
-        void free()
-        {
-            delete _val;
-            _val = nullptr;
-        }
-
-        T* operator->()
-        {
-            assert(std::this_thread::get_id() == _id);
-            return _val;
-        }
-
-        single_threaded& operator=(T&& newVal)
-        {
-            *_val = std::move(newVal);
-            return *this;
-        }
-
-    private:
-        std::thread::id _id;
-        T* _val = nullptr;
-    };
-
     struct text_buffer
     {
     public:

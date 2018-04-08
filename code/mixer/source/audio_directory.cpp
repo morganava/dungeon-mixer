@@ -1,17 +1,30 @@
- #include "precomp.hpp"
+#include "precomp.hpp"
 
 // tabletopify
 #include "uuid.hpp"
 #include "utilities.hpp"
 #include "work_queue.hpp"
 #include "logger.hpp"
-#include "tag_map.hpp"
 #include "audio.hpp"
-
 
 namespace tabletopify
 {
-    single_threaded<audio_directory> g_audio_directory;
+    audio_directory* g_audio_directory = nullptr;
+    audio_directory* get_audio_directory()
+    {
+        MX_ASSERT(worker(Worker_Background).getThreadId() == std::this_thread::get_id());
+        return g_audio_directory;
+    }
+    void init_audio_directory()
+    {
+        MX_ASSERT(g_audio_directory == nullptr);
+        g_audio_directory = new audio_directory();
+    }
+    void free_audio_directory()
+    {
+        delete g_audio_directory;
+        g_audio_directory = nullptr;
+    }
 
     /// Audio Directory
 

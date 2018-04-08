@@ -3,14 +3,31 @@
 // tabletopify
 #include "uuid.hpp"
 #include "utilities.hpp"
-#include "tag_map.hpp"
 #include "audio.hpp"
 #include "work_queue.hpp"
 #include "logger.hpp"
 
 namespace tabletopify
 {
-    single_threaded<playback_manager> g_playback_manager;
+    playback_manager* g_playback_manager = nullptr;
+    playback_manager* get_playback_manager()
+    {
+        MX_ASSERT(worker(Worker_Background).getThreadId() == std::this_thread::get_id());
+        return g_playback_manager;
+    }
+    void init_playback_manager()
+    {
+        MX_ASSERT(g_playback_manager == nullptr);
+        g_playback_manager = new playback_manager();
+    }
+    void free_playback_manager()
+    {
+        delete g_playback_manager;
+        g_playback_manager = nullptr;
+    }
+
+    extern track_directory* g_track_directory;
+    extern atmosphere_directory* g_atmosphere_directory;
 
     void playback_manager::update(float dt)
     {

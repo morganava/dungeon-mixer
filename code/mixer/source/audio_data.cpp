@@ -5,7 +5,6 @@
 #include "utilities.hpp"
 #include "work_queue.hpp"
 #include "logger.hpp"
-#include "tag_map.hpp"
 #include "audio.hpp"
 
 namespace tabletopify

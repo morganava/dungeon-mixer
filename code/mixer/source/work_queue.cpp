@@ -62,6 +62,11 @@ namespace tabletopify
 
     // Worker
 
+    std::thread::id worker::getThreadId() const
+    {
+        return g_worker_manager->_thread_ids[_index];
+    }
+
     void worker::enqueue(std::function<void(void)>&& work)
     {
         this->enqueue(std::forward<std::function<void(void)>>(work), nullptr);

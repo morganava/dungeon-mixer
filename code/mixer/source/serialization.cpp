@@ -4,7 +4,6 @@
 #include "utilities.hpp"
 #include "work_queue.hpp"
 #include "logger.hpp"
-#include "tag_map.hpp"
 #include "audio.hpp"
 #include "draw.hpp"
 
@@ -59,7 +58,7 @@ namespace tabletopify
                             audioData = std::make_shared<loop_data>(std::move(files.front()));
                         }
 
-                        g_audio_directory->add_entry(
+                        get_audio_directory()->add_entry(
                             std::move(audioId),
                             std::move(title),
                             std::move(tags),
@@ -122,11 +121,11 @@ namespace tabletopify
                         auto& jRepeat = jTrack["Repeat"];
                         MX_ASSERT(jRepeat.is_array() || jRepeat.is_null());
 
-                        auto audioHandle = g_audio_directory->get_audio_handle_by_id(jAudioId);
+                        auto audioHandle = get_audio_directory()->get_audio_handle_by_id(jAudioId);
 
                         track_entry trackEntry;
                         {
-                            auto& audioEntry = g_audio_directory->get_entry(audioHandle);
+                            auto& audioEntry = get_audio_directory()->get_entry(audioHandle);
 
                             trackEntry.audioTitle = audioEntry.title;
                             trackEntry.audioId = audioEntry.id;
@@ -212,9 +211,9 @@ namespace tabletopify
                     favoritesList.push_back(std::move(favorite));
                 }
 
-                g_playback_manager->stop_all_tracks();
-                g_track_directory = std::move(trackDirectory);
-                g_atmosphere_directory = std::move(atmosphereDirectory);
+                get_playback_manager()->stop_all_tracks();
+                init_track_directory(std::move(trackDirectory));
+                init_atmosphere_directory(std::move(atmosphereDirectory));
 
                 worker(Worker_UI).enqueue([mixPath=mixPath, editList=std::move(editList), favoritesList=std::move(favoritesList)]() -> void
                 {
@@ -254,9 +253,9 @@ namespace tabletopify
                 jObj["Favorites"] = jFavoriteList;
                 auto jAtmosphereList = nl::json::array();
                 // serialize each atmosphere
-                for(auto atmosphereHandle :  g_atmosphere_directory->get_atmosphere_handles())
+                for(auto atmosphereHandle :  get_atmosphere_directory()->get_atmosphere_handles())
                 {
-                    auto& atmosphereEntry = g_atmosphere_directory->get_entry(atmosphereHandle);
+                    auto& atmosphereEntry = get_atmosphere_directory()->get_entry(atmosphereHandle);
                     nl::json jAtmosphere;
                     jAtmosphere["Title"] = atmosphereEntry.title;
                     jAtmosphere["AtmosphereId"] = atmosphereEntry.id;
@@ -265,7 +264,7 @@ namespace tabletopify
                     // serialize each track
                     for(auto trackHandle : atmosphereEntry.tracks)
                     {
-                        auto& trackEntry = g_track_directory->get_entry(trackHandle);
+                        auto& trackEntry = get_track_directory()->get_entry(trackHandle);
                         nl::json jTrack;
                         jTrack["AudioId"] = trackEntry.audioId;
                         jTrack["Volume"] = trackEntry.volume;

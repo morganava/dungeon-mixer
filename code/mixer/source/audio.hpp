@@ -1,15 +1,18 @@
 #pragma once
 
+#include "tag_map.hpp"
+#include "uuid.hpp"
+
 namespace tabletopify
 {
     // maps to audio data
-    typedef size_t audio_handle_t;
+    typedef handle_t audio_handle_t;
     // instantiated possibly playing audio tracks
-    typedef size_t track_handle_t;
+    typedef handle_t track_handle_t;
     // collection of tracks
-    typedef size_t atmosphere_handle_t;
+    typedef handle_t atmosphere_handle_t;
 
-    constexpr size_t MX_INVALID_HANDLE = ~size_t(0);
+    constexpr handle_t MX_INVALID_HANDLE = ~handle_t(0);
 
     typedef enum
     {
@@ -108,14 +111,13 @@ namespace tabletopify
 
     private:
         std::vector<audio_entry> _entries;
-        tag_map<audio_handle_t> _tag_map;
+        tag_map _tag_map;
         // map track id to track handle
         std::unordered_map<uuid, audio_handle_t> _id_map;
 
         // amount of time an unreferenced track waits before unloading data and freeing memory
         constexpr static float unload_age = 10.0f;
     };
-    extern single_threaded<audio_directory> g_audio_directory;
 
     // description for how audio is to played in an atmosphere
     struct track_entry
@@ -159,7 +161,6 @@ namespace tabletopify
         static track_handle_t _next_handle;
         std::unordered_map<track_handle_t, track_entry> _entries;
     };
-    extern single_threaded<track_directory> g_track_directory;
 
     struct atmosphere_entry
     {
@@ -174,8 +175,6 @@ namespace tabletopify
     class atmosphere_directory
     {
     public:
-        void update(float dt);
-
         std::vector<atmosphere_handle_t> get_atmosphere_handles() const;
         std::vector<atmosphere_handle_t> get_atmosphere_handles_by_query(const std::string& query) const;
 
@@ -187,11 +186,10 @@ namespace tabletopify
     private:
         static atmosphere_handle_t _next_handle;
         std::map<atmosphere_handle_t, atmosphere_entry> _entries;
-        tag_map<atmosphere_handle_t> _tag_map;
+        tag_map _tag_map;
         // map track id to atmosphere handle
         std::unordered_map<uuid, atmosphere_handle_t> _id_map;
     };
-    extern single_threaded<atmosphere_directory> g_atmosphere_directory;
 
     struct playback_entry
     {
@@ -228,5 +226,21 @@ namespace tabletopify
     private:
         std::unordered_map<track_handle_t, playback_entry> _entries;
     };
-    extern single_threaded<playback_manager> g_playback_manager;
+
+    /// getters
+
+    audio_directory* get_audio_directory();
+    track_directory* get_track_directory();
+    atmosphere_directory* get_atmosphere_directory();
+    playback_manager* get_playback_manager();
+
+    void init_audio_directory();
+    void init_track_directory(track_directory&&);
+    void init_atmosphere_directory(atmosphere_directory&&);
+    void init_playback_manager();
+
+    void free_audio_directory();
+    void free_track_directory();
+    void free_atmosphere_directory();
+    void free_playback_manager();
 }
