@@ -40,7 +40,6 @@ namespace tabletopify
         friend class worker;
         friend void worker_thread(size_t);
     };
-    extern worker_manager* g_worker_manager;
 
     class worker
     {
@@ -56,4 +55,7 @@ namespace tabletopify
         size_t nextIndex(size_t count);
         uuid nextUUID();
     };
+
+    void init_work_manager();
+    void free_work_manager();
 }

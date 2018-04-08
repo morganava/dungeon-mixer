@@ -1,8 +1,6 @@
 #include "precomp.hpp"
 
 // tabletopify
-// #include "utilities.hpp"
-#include "globals.hpp"
 #include "audio.hpp"
 #include "work_queue.hpp"
 #include "logger.hpp"
@@ -15,8 +13,7 @@ namespace tabletopify
     void init_globals()
     {
         // work queue
-        g_worker_manager = new worker_manager();
-        g_worker_manager->initialize();
+        init_work_manager();
 
         // init logger with desired log verbosity
         init_logger(LogLevel_Info);
@@ -34,10 +31,9 @@ namespace tabletopify
     void free_globals()
     {
         // close queues off to new work
-        g_worker_manager->finish();
+        free_work_manager();
 
-        delete g_worker_manager; g_worker_manager = nullptr;
-
+        // free audio managers
         free_playback_manager();
         free_atmosphere_directory();
         free_track_directory();

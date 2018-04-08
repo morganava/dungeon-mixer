@@ -9,7 +9,18 @@ namespace tabletopify
 {
     // WorkerManager
 
-    worker_manager* g_worker_manager = nullptr;
+    static worker_manager* g_worker_manager = nullptr;
+    void init_work_manager()
+    {
+        g_worker_manager = new worker_manager();
+        g_worker_manager->initialize();
+    }
+    void free_work_manager()
+    {
+        g_worker_manager->finish();
+        delete g_worker_manager;
+        g_worker_manager = nullptr;
+    }
 
     void worker_thread(size_t idx)
     {
