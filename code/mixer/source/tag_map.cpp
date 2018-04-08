@@ -1,5 +1,3 @@
-#include "precomp.hpp"
-
 #include "utilities.hpp"
 #include "tag_map.hpp"
 

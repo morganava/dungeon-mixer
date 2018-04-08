@@ -1,5 +1,3 @@
-#include "precomp.hpp"
-
 #include "uuid.hpp"
 #include "utilities.hpp"
 

@@ -12,6 +12,7 @@ add_compile_options(-g)
 add_compile_options(-std=c++17)
 
 add_executable(tabletop_mixer
+    precomp.cpp
     globals.cpp
     mixer.cpp
     audio_data.cpp
@@ -28,6 +29,8 @@ add_executable(tabletop_mixer
     uuid.cpp
     tag_map.cpp
     text_buffer.cpp)
+
+add_precompiled_header(tabletop_mixer precomp.hpp SOURCE_CXX precomp.cpp FORCEINCLUDE)
 
 target_link_libraries(tabletop_mixer nuklear)
 target_link_libraries(tabletop_mixer glfw)

@@ -1,5 +1,3 @@
-#include "precomp.hpp"
-
 #include "text_buffer.hpp"
 #include "nuklear_extensions.hpp"
 

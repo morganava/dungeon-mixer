@@ -1,6 +1,3 @@
-#include "precomp.hpp"
-
-// tabletopify
 #include "work_queue.hpp"
 #include "logger.hpp"
 #include "audio.hpp"

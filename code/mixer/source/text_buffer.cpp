@@ -1,5 +1,3 @@
-#include "precomp.hpp"
-
 #include "text_buffer.hpp"
 
 namespace tabletopify
@@ -24,8 +22,6 @@ namespace tabletopify
             _capacity = newCapacity;
             _buffer = std::move(newBuffer);
         }
-
-
     }
 
     text_buffer& text_buffer::operator=(const std::string& str)

@@ -1,5 +1,3 @@
-#include "precomp.hpp"
-
 #include "globals.hpp"
 #include "audio.hpp"
 #include "draw.hpp"
