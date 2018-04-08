@@ -156,7 +156,10 @@ namespace tabletopify
                                 trackEntry.position.y = jPosition[1];
                                 trackEntry.position.z = jPosition[2];
                             }
-                            trackEntry.position.enabled = false;
+                            else
+                            {
+                                trackEntry.position.enabled = false;
+                            }
                         }
 
                         auto trackHandle = g_track_directory->add_entry(std::move(trackEntry));
