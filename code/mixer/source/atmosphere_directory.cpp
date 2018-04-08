@@ -1,6 +1,7 @@
  #include "precomp.hpp"
 
 // tabletopify
+#include "uuid.hpp"
 #include "utilities.hpp"
 #include "work_queue.hpp"
 #include "logger.hpp"
@@ -11,6 +12,7 @@
 namespace tabletopify
 {
     single_threaded<atmosphere_directory> g_atmosphere_directory;
+    atmosphere_handle_t atmosphere_directory::_next_handle = 0;
 
     /// Atmosphere Directory
 
@@ -30,7 +32,7 @@ namespace tabletopify
         return _tag_map.get_keys_by_string_query(query);
     }
 
-    atmosphere_handle_t atmosphere_directory::get_atmosphere_handle_by_id(const std::string& id) const
+    atmosphere_handle_t atmosphere_directory::get_atmosphere_handle_by_id(const uuid& id) const
     {
         auto it = _id_map.find(id);
         if(it == _id_map.end())
@@ -84,12 +86,5 @@ namespace tabletopify
         _tag_map.remove_key(handle);
         std::vector<std::string> tags = split(to_lower(newName), " ");
         _tag_map.add_key(handle, tags);
-    }
-
-    void atmosphere_directory::remove_all()
-    {
-        _entries.clear();
-        _tag_map.clear();
-        _id_map.clear();
     }
 }

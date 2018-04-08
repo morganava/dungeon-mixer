@@ -1,6 +1,7 @@
 #include "precomp.hpp"
 
 // tabletopify
+#include "uuid.hpp"
 #include "utilities.hpp"
 #include "tag_map.hpp"
 #include "globals.hpp"

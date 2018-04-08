@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <cinttypes>
 #include <functional>
 #include <iostream>
 #include <memory>
@@ -12,6 +13,7 @@
 #include <sstream>
 using ss = std::stringstream;
 #include <string>
+#include <string_view>
 #include <map>
 #include <unordered_map>
 #include <unordered_set>

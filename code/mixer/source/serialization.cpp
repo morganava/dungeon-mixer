@@ -1,5 +1,6 @@
 #include "precomp.hpp"
 
+#include "uuid.hpp"
 #include "utilities.hpp"
 #include "work_queue.hpp"
 #include "logger.hpp"
@@ -38,7 +39,7 @@ namespace tabletopify
                     for(auto track : trackList)
                     {
                         std::string title = track["Title"];
-                        std::string audioId = track["AudioId"];
+                        uuid audioId = track["AudioId"];
                         std::string type = track["Type"];
                         std::vector<std::string> tags = track["Tags"];
                         std::vector<std::string> files = track["Files"];
@@ -84,9 +85,8 @@ namespace tabletopify
 
             worker(Worker_Background).enqueue([mixPath=mixPath, mixData=std::move(mixData)]() -> void
             {
-                g_playback_manager->stop_all_tracks();
-                g_track_directory->remove_all();
-                g_atmosphere_directory->remove_all();
+                track_directory trackDirectory;
+                atmosphere_directory atmosphereDirectory;
 
                 auto jObj = nl::json::parse(mixData);
 
@@ -104,7 +104,7 @@ namespace tabletopify
                 for(auto& jAtmosphere : jAtmosphereList)
                 {
                     std::string title = jAtmosphere["Title"];
-                    std::string atmosphereId = jAtmosphere["AtmosphereId"];
+                    uuid atmosphereId = jAtmosphere["AtmosphereId"];
                     std::vector<track_handle_t> tracks;
                     auto& jTrackList = jAtmosphere["Tracks"];
                     for(auto& jTrack : jTrackList)
@@ -166,7 +166,7 @@ namespace tabletopify
                             }
                         }
 
-                        auto trackHandle = g_track_directory->add_entry(std::move(trackEntry));
+                        auto trackHandle = trackDirectory.add_entry(std::move(trackEntry));
                         tracks.push_back(trackHandle);
                     }
                     atmosphere_entry atmosphereEntry =
@@ -175,7 +175,7 @@ namespace tabletopify
                         title,
                         std::move(tracks),
                     };
-                    auto atmosphereHandle = g_atmosphere_directory->add_entry(std::move(atmosphereEntry));
+                    auto atmosphereHandle = atmosphereDirectory.add_entry(std::move(atmosphereEntry));
 
                     editList.push_back({title, atmosphereHandle, false});
                 }
@@ -195,9 +195,9 @@ namespace tabletopify
                     auto& jMuted = jFavorite["Muted"];
                     MX_ASSERT(jMuted.is_boolean());
 
-                    auto atmosphereHandle = g_atmosphere_directory->get_atmosphere_handle_by_id(jAtmosphereId);
+                    auto atmosphereHandle = atmosphereDirectory.get_atmosphere_handle_by_id(jAtmosphereId);
                     MX_ASSERT(atmosphereHandle != MX_INVALID_HANDLE);
-                    auto& atmosphereEntry = g_atmosphere_directory->get_entry(atmosphereHandle);
+                    auto& atmosphereEntry = atmosphereDirectory.get_entry(atmosphereHandle);
 
                     favorites_list_t::value_type favorite;
                     {
@@ -211,6 +211,10 @@ namespace tabletopify
 
                     favoritesList.push_back(std::move(favorite));
                 }
+
+                g_playback_manager->stop_all_tracks();
+                g_track_directory = std::move(trackDirectory);
+                g_atmosphere_directory = std::move(atmosphereDirectory);
 
                 worker(Worker_UI).enqueue([mixPath=mixPath, editList=std::move(editList), favoritesList=std::move(favoritesList)]() -> void
                 {

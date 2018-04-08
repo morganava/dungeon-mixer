@@ -83,11 +83,9 @@ namespace tabletopify
     struct audio_entry
     {
         // track unique id
-        std::string id;
+        uuid id;
         // display title
         std::string title;
-        // query title
-        std::string lower_title;
         // query tags
         std::vector<std::string> tags;
         // backing SoundBuffers
@@ -100,19 +98,19 @@ namespace tabletopify
     {
     public:
         void update(float dt);
-        audio_handle_t get_audio_handle_by_id(const std::string& id) const;
+        audio_handle_t get_audio_handle_by_id(const uuid& id) const;
         std::vector<audio_handle_t> get_audio_handles() const;
         std::vector<audio_handle_t> get_audio_handles_by_query(const std::string& query) const;
 
         audio_entry& get_entry(audio_handle_t handle);
         // audio_handle_t add_entry(audio_entry&& entry);
-        void add_entry(std::string&& id, std::string&& title, std::vector<std::string>&& tags, std::shared_ptr<audio_data>&& data);
+        void add_entry(uuid&& id, std::string&& title, std::vector<std::string>&& tags, std::shared_ptr<audio_data>&& data);
 
     private:
         std::vector<audio_entry> _entries;
         tag_map<audio_handle_t> _tag_map;
         // map track id to track handle
-        std::unordered_map<std::string, audio_handle_t> _id_map;
+        std::unordered_map<uuid, audio_handle_t> _id_map;
 
         // amount of time an unreferenced track waits before unloading data and freeing memory
         constexpr static float unload_age = 10.0f;
@@ -123,7 +121,7 @@ namespace tabletopify
     struct track_entry
     {
         std::string audioTitle;
-        std::string audioId;
+        uuid audioId;
         std::shared_ptr<audio_data> audioData;
         audio_type_t audioType;
         float volume;
@@ -157,9 +155,8 @@ namespace tabletopify
         track_entry& get_entry(track_handle_t handle);
         track_handle_t add_entry(track_entry&& entry);
         void remove_entry(track_handle_t handle);
-        void remove_all();
     private:
-        track_handle_t _next_handle = 0;
+        static track_handle_t _next_handle;
         std::unordered_map<track_handle_t, track_entry> _entries;
     };
     extern single_threaded<track_directory> g_track_directory;
@@ -167,7 +164,7 @@ namespace tabletopify
     struct atmosphere_entry
     {
         // unique id
-        std::string id;
+        uuid id;
         // title
         std::string title;
         // tracks
@@ -182,18 +179,17 @@ namespace tabletopify
         std::vector<atmosphere_handle_t> get_atmosphere_handles() const;
         std::vector<atmosphere_handle_t> get_atmosphere_handles_by_query(const std::string& query) const;
 
-        atmosphere_handle_t get_atmosphere_handle_by_id(const std::string& id) const;
+        atmosphere_handle_t get_atmosphere_handle_by_id(const uuid& id) const;
         atmosphere_entry& get_entry(atmosphere_handle_t handle);
         atmosphere_handle_t add_entry(atmosphere_entry&& entry);
         void remove_entry(atmosphere_handle_t handle);
         void rename_entry(atmosphere_handle_t handle, const std::string& newName);
-        void remove_all();
     private:
-        atmosphere_handle_t _next_handle = 0;
+        static atmosphere_handle_t _next_handle;
         std::map<atmosphere_handle_t, atmosphere_entry> _entries;
         tag_map<atmosphere_handle_t> _tag_map;
         // map track id to atmosphere handle
-        std::unordered_map<std::string, atmosphere_handle_t> _id_map;
+        std::unordered_map<uuid, atmosphere_handle_t> _id_map;
     };
     extern single_threaded<atmosphere_directory> g_atmosphere_directory;
 

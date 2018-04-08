@@ -1,5 +1,6 @@
 #include "precomp.hpp"
 
+#include "uuid.hpp"
 #include "utilities.hpp"
 #include "work_queue.hpp"
 #include "logger.hpp"

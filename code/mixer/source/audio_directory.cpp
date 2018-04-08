@@ -1,6 +1,7 @@
  #include "precomp.hpp"
 
 // tabletopify
+#include "uuid.hpp"
 #include "utilities.hpp"
 #include "work_queue.hpp"
 #include "logger.hpp"
@@ -74,7 +75,7 @@ namespace tabletopify
     }
 
     void audio_directory::add_entry(
-        std::string&& id,
+        uuid&& id,
         std::string&& title,
         std::vector<std::string>&& tags,
         std::shared_ptr<audio_data>&& data)
@@ -98,7 +99,7 @@ namespace tabletopify
         }
 
         // construct audio_entry
-        audio_entry entry = {id, title, to_lower(title), tags, data, 0.0f};
+        audio_entry entry = {id, title, tags, data, 0.0f};
         // get key
         audio_handle_t key = _entries.size();
         // update tag map
@@ -112,7 +113,7 @@ namespace tabletopify
         _entries.push_back(std::move(entry));
     }
 
-    audio_handle_t audio_directory::get_audio_handle_by_id(const std::string& id) const
+    audio_handle_t audio_directory::get_audio_handle_by_id(const uuid& id) const
     {
         auto it = _id_map.find(id);
         if(it == _id_map.end())

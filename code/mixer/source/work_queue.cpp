@@ -1,5 +1,6 @@
 #include "precomp.hpp"
 
+#include "uuid.hpp"
 #include "utilities.hpp"
 #include "work_queue.hpp"
 #include "logger.hpp"
@@ -113,17 +114,15 @@ namespace tabletopify
         MX_ASSERT(g_worker_manager->_thread_ids[_index] == std::this_thread::get_id());
 
         uuid result;
-        std::uniform_int_distribution<uint8_t> uniform(uint8_t(0), ~uint8_t(0));
+        std::uniform_int_distribution<uint64_t> uniform(uint64_t(0), ~uint64_t(0));
         auto& rand = g_worker_manager->_rand[_index];
-        for(auto& val : result.raw)
-        {
-            val = uniform(rand);
-        }
+        result.qwords[0] = uniform(rand);
+        result.qwords[1] = uniform(rand);
 
         // set version to 4
-        result.raw[6] = (result.raw[6] & 0x0F) | 0x40;
+        result.bytes[6] = (result.bytes[6] & 0x0F) | 0x40;
         // set variant to 1
-        result.raw[8] = (result.raw[8] & 0x3F) | 0x80;
+        result.bytes[8] = (result.bytes[8] & 0x3F) | 0x80;
 
         return result;
     }

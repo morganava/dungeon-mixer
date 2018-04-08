@@ -1,6 +1,7 @@
   #include "precomp.hpp"
 
 // tabletopify
+#include "uuid.hpp"
 #include "utilities.hpp"
 #include "work_queue.hpp"
 #include "logger.hpp"
@@ -10,6 +11,7 @@
 namespace tabletopify
 {
     single_threaded<track_directory> g_track_directory;
+    track_handle_t track_directory::_next_handle = 0;
 
     /// Track Directory
 
@@ -39,10 +41,5 @@ namespace tabletopify
         MX_ASSERT(it != _entries.end());
 
         _entries.erase(it);
-    }
-
-    void track_directory::remove_all()
-    {
-        _entries.clear();
     }
 }

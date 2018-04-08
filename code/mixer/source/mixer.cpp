@@ -1,6 +1,7 @@
 #include "precomp.hpp"
 
 #include "globals.hpp"
+#include "uuid.hpp"
 #include "utilities.hpp"
 #include "tag_map.hpp"
 #include "audio.hpp"
