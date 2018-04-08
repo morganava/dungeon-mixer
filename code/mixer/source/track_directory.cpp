@@ -40,4 +40,9 @@ namespace tabletopify
 
         _entries.erase(it);
     }
+
+    void track_directory::remove_all()
+    {
+        _entries.clear();
+    }
 }

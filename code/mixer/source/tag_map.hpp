@@ -59,6 +59,13 @@ namespace tabletopify
             _keys.insert(key);
         }
 
+        void clear()
+        {
+            _tag_to_keys.clear();
+            _key_to_tags.clear();
+            _keys.clear();
+        }
+
     private:
         std::vector<KEY> get_keys_by_tag_query(const std::vector<std::string>& query_tags) const
         {

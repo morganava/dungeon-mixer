@@ -85,4 +85,11 @@ namespace tabletopify
         std::vector<std::string> tags = split(to_lower(newName), " ");
         _tag_map.add_key(handle, tags);
     }
+
+    void atmosphere_directory::remove_all()
+    {
+        _entries.clear();
+        _tag_map.clear();
+        _id_map.clear();
+    }
 }

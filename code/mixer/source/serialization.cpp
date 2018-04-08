@@ -84,6 +84,10 @@ namespace tabletopify
 
             worker(Worker_Background).enqueue([mixPath=mixPath, mixData=std::move(mixData)]() -> void
             {
+                g_playback_manager->stop_all_tracks();
+                g_track_directory->remove_all();
+                g_atmosphere_directory->remove_all();
+
                 auto jObj = nl::json::parse(mixData);
 
                 std::string version = jObj["Version"];
@@ -212,6 +216,8 @@ namespace tabletopify
                 {
                     g_ui->edit.atmosphereList.atmospheres = std::move(editList);
                     g_ui->playback.atmosphereList.atmospheres = std::move(favoritesList);
+                    g_ui->edit.atmosphereList.selectedIndex = MX_INVALID_INDEX;
+                    g_ui->edit.atmosphereEdit.tracks.clear();
 
                     log(LogLevel_Info, ss() << "Finish open user mix: " << mixPath);
                 });

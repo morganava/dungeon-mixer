@@ -157,6 +157,7 @@ namespace tabletopify
         track_entry& get_entry(track_handle_t handle);
         track_handle_t add_entry(track_entry&& entry);
         void remove_entry(track_handle_t handle);
+        void remove_all();
     private:
         track_handle_t _next_handle = 0;
         std::unordered_map<track_handle_t, track_entry> _entries;
@@ -186,6 +187,7 @@ namespace tabletopify
         atmosphere_handle_t add_entry(atmosphere_entry&& entry);
         void remove_entry(atmosphere_handle_t handle);
         void rename_entry(atmosphere_handle_t handle, const std::string& newName);
+        void remove_all();
     private:
         atmosphere_handle_t _next_handle = 0;
         std::map<atmosphere_handle_t, atmosphere_entry> _entries;
