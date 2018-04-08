@@ -61,7 +61,7 @@ namespace tabletopify
     // atmosphere create/delete
     constexpr int MX_ATMOSPHERE_BUTTON = 24;
 
-    constexpr size_t INVALID_INDEX = ~size_t(0);
+    constexpr size_t MX_INVALID_INDEX = ~size_t(0);
 
     /*
     Mode
@@ -82,7 +82,7 @@ namespace tabletopify
             {
                 struct atmosphere_playback
                 {
-                    atmosphere_id_t atmosphereId;
+                    atmosphere_handle_t handle;
                     std::string title;
                     std::string uuid;
                     float volume;
@@ -97,7 +97,7 @@ namespace tabletopify
             {
                 struct atmosphere_search_result
                 {
-                    atmosphere_id_t atmosphereId;
+                    atmosphere_handle_t handle;
                     std::string title;
                 };
 
@@ -114,23 +114,23 @@ namespace tabletopify
                 struct atmosphere_edit
                 {
                     std::string title;
-                    atmosphere_id_t atmosphereId;
+                    atmosphere_handle_t handle;
                     bool renaming;
                 };
 
                 std::vector<atmosphere_edit> atmospheres;
-                size_t selectedIndex = INVALID_INDEX;
+                size_t selectedIndex = MX_INVALID_INDEX;
                 text_buffer renameBuffer;
 
-                atmosphere_id_t selectedAtmosphereId() const
+                atmosphere_handle_t selectedAtmosphereHandle() const
                 {
-                    if(selectedIndex != INVALID_INDEX)
+                    if(selectedIndex != MX_INVALID_INDEX)
                     {
-                        return atmospheres[selectedIndex].atmosphereId;
+                        return atmospheres[selectedIndex].handle;
                     }
                     else
                     {
-                        return INVALID_ATMOSPHERE_ID;
+                        return MX_INVALID_HANDLE;
                     }
                 }
             } atmosphereList;
@@ -139,7 +139,7 @@ namespace tabletopify
             {
                 struct track_edit
                 {
-                    track_id_t trackId;
+                    track_handle_t handle;
                     std::string title;
                     audio_type_t audioType;
                     float volume;
@@ -172,7 +172,7 @@ namespace tabletopify
                 struct audio_result
                 {
                     std::string title;
-                    audio_id_t audioId;
+                    audio_handle_t handle;
                 };
 
                 std::string previousQuery;

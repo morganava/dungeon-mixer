@@ -71,53 +71,53 @@ namespace tabletopify
 
     // atmosphere methods
 
-    void playback_manager::play_atmosphere(atmosphere_id_t atmosphereId)
+    void playback_manager::play_atmosphere(atmosphere_handle_t atmosphereHandle)
     {
-        auto& atmosphereEntry = g_atmosphere_directory->get_entry(atmosphereId);
-        for(auto trackId : atmosphereEntry.tracks)
+        auto& atmosphereEntry = g_atmosphere_directory->get_entry(atmosphereHandle);
+        for(auto trackHandle : atmosphereEntry.tracks)
         {
-            this->play_track(trackId);
+            this->play_track(trackHandle);
         }
     }
 
-    void playback_manager::stop_atmosphere(atmosphere_id_t atmosphereId)
+    void playback_manager::stop_atmosphere(atmosphere_handle_t atmosphereHandle)
     {
-        auto& atmosphereEntry = g_atmosphere_directory->get_entry(atmosphereId);
-        for(auto trackId : atmosphereEntry.tracks)
+        auto& atmosphereEntry = g_atmosphere_directory->get_entry(atmosphereHandle);
+        for(auto trackHandle : atmosphereEntry.tracks)
         {
-            this->stop_track(trackId);
+            this->stop_track(trackHandle);
         }
     }
 
     // track methods
 
-    void playback_manager::play_track(track_id_t trackId)
+    void playback_manager::play_track(track_handle_t trackHandle)
     {
-        log(LogLevel_Info, "playing trackid %lu", trackId);
+        log(LogLevel_Info, "playing track handle %lu", trackHandle);
 
-        MX_ASSERT(_entries.find(trackId) == _entries.end());
+        MX_ASSERT(_entries.find(trackHandle) == _entries.end());
 
-        auto& trackEntry = g_track_directory->get_entry(trackId);
+        auto& trackEntry = g_track_directory->get_entry(trackHandle);
 
         playback_entry playbackEntry;
         playbackEntry.audioData = trackEntry.audioData;
-        _entries.emplace(trackId, std::move(playbackEntry));
+        _entries.emplace(trackHandle, std::move(playbackEntry));
 
-        this->sync_track(trackId);
+        this->sync_track(trackHandle);
     }
 
-    void playback_manager::stop_track(track_id_t trackId)
+    void playback_manager::stop_track(track_handle_t trackHandle)
     {
-        auto it = _entries.find(trackId);
+        auto it = _entries.find(trackHandle);
         MX_ASSERT(it != _entries.end());
         it->second.sound.stop();
         _entries.erase(it);
     }
 
-    void playback_manager::sync_track(track_id_t trackId)
+    void playback_manager::sync_track(track_handle_t trackHandle)
     {
-        auto& trackEntry = g_track_directory->get_entry(trackId);
-        auto it = _entries.find(trackId);
+        auto& trackEntry = g_track_directory->get_entry(trackHandle);
+        auto it = _entries.find(trackHandle);
         // if this track isn't playing nothing to do
         if(it != _entries.end())
         {

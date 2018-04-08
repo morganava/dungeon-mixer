@@ -13,29 +13,29 @@ namespace tabletopify
 
     /// Track Directory
 
-    track_entry& track_directory::get_entry(track_id_t id)
+    track_entry& track_directory::get_entry(track_handle_t handle)
     {
-        auto it = _entries.find(id);
+        auto it = _entries.find(handle);
         MX_ASSERT(it != _entries.end());
 
         return it->second;
     }
 
-    track_id_t track_directory::add_entry(track_entry&& entry)
+    track_handle_t track_directory::add_entry(track_entry&& entry)
     {
-        auto id = ++_next_id;
+        auto handle = ++_next_handle;
 
-        auto it = _entries.find(id);
+        auto it = _entries.find(handle);
         MX_ASSERT(it == _entries.end());
 
-        _entries.emplace(id, entry);
+        _entries.emplace(handle, entry);
 
-        return id;
+        return handle;
     }
 
-    void track_directory::remove_entry(track_id_t id)
+    void track_directory::remove_entry(track_handle_t handle)
     {
-        auto it = _entries.find(id);
+        auto it = _entries.find(handle);
         MX_ASSERT(it != _entries.end());
 
         _entries.erase(it);

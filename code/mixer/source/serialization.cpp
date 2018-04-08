@@ -101,7 +101,7 @@ namespace tabletopify
                 {
                     std::string title = jAtmosphere["Title"];
                     std::string atmosphereUUID = jAtmosphere["AtmosphereID"];
-                    std::vector<track_id_t> tracks;
+                    std::vector<track_handle_t> tracks;
                     auto& jTrackList = jAtmosphere["Tracks"];
                     for(auto& jTrack : jTrackList)
                     {
@@ -118,11 +118,11 @@ namespace tabletopify
                         auto& jRepeat = jTrack["Repeat"];
                         MX_ASSERT(jRepeat.is_array() || jRepeat.is_null());
 
-                        auto audioId = g_audio_directory->get_audio_id_by_uuid(jAudioUUID);
+                        auto audioHandle = g_audio_directory->get_audio_handle_by_uuid(jAudioUUID);
 
                         track_entry trackEntry;
                         {
-                            auto& audioEntry = g_audio_directory->get_entry(audioId);
+                            auto& audioEntry = g_audio_directory->get_entry(audioHandle);
 
                             trackEntry.audioTitle = audioEntry.title;
                             trackEntry.audioUuid = audioEntry.uuid;
@@ -159,8 +159,8 @@ namespace tabletopify
                             trackEntry.position.enabled = false;
                         }
 
-                        auto trackId = g_track_directory->add_entry(std::move(trackEntry));
-                        tracks.push_back(trackId);
+                        auto trackHandle = g_track_directory->add_entry(std::move(trackEntry));
+                        tracks.push_back(trackHandle);
                     }
                     atmosphere_entry atmosphereEntry =
                     {
@@ -168,9 +168,9 @@ namespace tabletopify
                         title,
                         std::move(tracks),
                     };
-                    auto atmosphereId = g_atmosphere_directory->add_entry(std::move(atmosphereEntry));
+                    auto atmosphereHandle = g_atmosphere_directory->add_entry(std::move(atmosphereEntry));
 
-                    editList.push_back({title, atmosphereId, false});
+                    editList.push_back({title, atmosphereHandle, false});
                 }
 
                 auto& jFavoritesList = jObj["Favorites"];
@@ -188,13 +188,13 @@ namespace tabletopify
                     auto& jMuted = jFavorite["Muted"];
                     MX_ASSERT(jMuted.is_boolean());
 
-                    auto atmosphereId = g_atmosphere_directory->get_atmosphere_id_by_uuid(jUUID);
-                    MX_ASSERT(atmosphereId != INVALID_ATMOSPHERE_ID);
-                    auto& atmosphereEntry = g_atmosphere_directory->get_entry(atmosphereId);
+                    auto atmosphereHandle = g_atmosphere_directory->get_atmosphere_handle_by_uuid(jUUID);
+                    MX_ASSERT(atmosphereHandle != MX_INVALID_HANDLE);
+                    auto& atmosphereEntry = g_atmosphere_directory->get_entry(atmosphereHandle);
 
                     favorites_list_t::value_type favorite;
                     {
-                        favorite.atmosphereId = atmosphereId;
+                        favorite.handle = atmosphereHandle;
                         favorite.title = atmosphereEntry.title;
                         favorite.uuid = atmosphereEntry.uuid;
                         favorite.volume = jVolume;
@@ -241,18 +241,18 @@ namespace tabletopify
                 jObj["Favorites"] = jFavoriteList;
                 auto jAtmosphereList = nl::json::array();
                 // serialize each atmosphere
-                for(auto atmosphereId :  g_atmosphere_directory->get_atmosphere_ids())
+                for(auto atmosphereHandle :  g_atmosphere_directory->get_atmosphere_handles())
                 {
-                    auto& atmosphereEntry = g_atmosphere_directory->get_entry(atmosphereId);
+                    auto& atmosphereEntry = g_atmosphere_directory->get_entry(atmosphereHandle);
                     nl::json jAtmosphere;
                     jAtmosphere["Title"] = atmosphereEntry.title;
                     jAtmosphere["AtmosphereID"] = atmosphereEntry.uuid;
 
                     auto jTrackList = nl::json::array();
                     // serialize each track
-                    for(auto trackId : atmosphereEntry.tracks)
+                    for(auto trackHandle : atmosphereEntry.tracks)
                     {
-                        auto& trackEntry = g_track_directory->get_entry(trackId);
+                        auto& trackEntry = g_track_directory->get_entry(trackHandle);
                         nl::json jTrack;
                         jTrack["AudioID"] = trackEntry.audioUuid;
                         jTrack["Volume"] = trackEntry.volume;

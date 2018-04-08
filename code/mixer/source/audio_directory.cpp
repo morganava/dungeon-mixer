@@ -67,10 +67,10 @@ namespace tabletopify
         }
     }
 
-    audio_entry& audio_directory::get_entry(audio_id_t id)
+    audio_entry& audio_directory::get_entry(audio_handle_t handle)
     {
-        MX_ASSERT(id != INVALID_AUDIO_ID && id < _entries.size());
-        return _entries[id];
+        MX_ASSERT(handle != MX_INVALID_HANDLE && handle < _entries.size());
+        return _entries[handle];
     }
 
     void audio_directory::add_entry(
@@ -100,7 +100,7 @@ namespace tabletopify
         // construct audio_entry
         audio_entry entry = {uuid, title, to_lower(title), tags, data, 0.0f};
         // get key
-        audio_id_t key = _entries.size();
+        audio_handle_t key = _entries.size();
         // update tag map
         _tag_map.add_key(key, entry.tags);
         // update our uuid map (checking for collisions)
@@ -112,43 +112,28 @@ namespace tabletopify
         _entries.push_back(std::move(entry));
     }
 
-    audio_id_t audio_directory::get_audio_id_by_uuid(const std::string& uuid) const
+    audio_handle_t audio_directory::get_audio_handle_by_uuid(const std::string& uuid) const
     {
         auto it = _uuid_map.find(uuid);
         if(it == _uuid_map.end())
         {
-            return INVALID_AUDIO_ID;
+            return MX_INVALID_HANDLE;
         }
         return it->second;
     }
 
-    std::string audio_directory::get_title_by_audio_id(audio_id_t id) const
+    std::vector<audio_handle_t> audio_directory::get_audio_handles() const
     {
-        return _entries[id].title;
-    }
-
-    std::vector<std::string> audio_directory::get_tags_by_audio_id(audio_id_t id) const
-    {
-        return _entries[id].tags;
-    }
-
-    std::shared_ptr<audio_data> audio_directory::get_audio_data_by_audio_id(audio_id_t id) const
-    {
-        return _entries[id].data;
-    }
-
-    std::vector<audio_id_t> audio_directory::get_audio_ids() const
-    {
-        std::vector<audio_id_t> result;
+        std::vector<audio_handle_t> result;
         const auto count = _entries.size();
-        for(audio_id_t k = 0; k < count; ++k)
+        for(audio_handle_t k = 0; k < count; ++k)
         {
             result.push_back(k);
         }
         return result;
     }
 
-    std::vector<audio_id_t> audio_directory::get_audio_ids_by_query(const std::string& query_string) const
+    std::vector<audio_handle_t> audio_directory::get_audio_handles_by_query(const std::string& query_string) const
     {
         return _tag_map.get_keys_by_string_query(query_string);
     }
