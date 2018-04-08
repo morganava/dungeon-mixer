@@ -38,7 +38,7 @@ namespace tabletopify
                     for(auto track : trackList)
                     {
                         std::string title = track["Title"];
-                        std::string audioUUID = track["AudioID"];
+                        std::string audioId = track["AudioId"];
                         std::string type = track["Type"];
                         std::vector<std::string> tags = track["Tags"];
                         std::vector<std::string> files = track["Files"];
@@ -59,7 +59,7 @@ namespace tabletopify
                         }
 
                         g_audio_directory->add_entry(
-                            std::move(audioUUID),
+                            std::move(audioId),
                             std::move(title),
                             std::move(tags),
                             std::move(audioData));
@@ -100,13 +100,13 @@ namespace tabletopify
                 for(auto& jAtmosphere : jAtmosphereList)
                 {
                     std::string title = jAtmosphere["Title"];
-                    std::string atmosphereUUID = jAtmosphere["AtmosphereID"];
+                    std::string atmosphereId = jAtmosphere["AtmosphereId"];
                     std::vector<track_handle_t> tracks;
                     auto& jTrackList = jAtmosphere["Tracks"];
                     for(auto& jTrack : jTrackList)
                     {
-                        auto& jAudioUUID = jTrack["AudioID"];
-                        MX_ASSERT(jAudioUUID.is_string());
+                        auto& jAudioId = jTrack["AudioId"];
+                        MX_ASSERT(jAudioId.is_string());
                         auto& jVolume = jTrack["Volume"];
                         MX_ASSERT(jVolume.is_number());
                         auto& jMuted = jTrack["Muted"];
@@ -118,14 +118,14 @@ namespace tabletopify
                         auto& jRepeat = jTrack["Repeat"];
                         MX_ASSERT(jRepeat.is_array() || jRepeat.is_null());
 
-                        auto audioHandle = g_audio_directory->get_audio_handle_by_uuid(jAudioUUID);
+                        auto audioHandle = g_audio_directory->get_audio_handle_by_id(jAudioId);
 
                         track_entry trackEntry;
                         {
                             auto& audioEntry = g_audio_directory->get_entry(audioHandle);
 
                             trackEntry.audioTitle = audioEntry.title;
-                            trackEntry.audioUuid = audioEntry.uuid;
+                            trackEntry.audioId = audioEntry.id;
                             trackEntry.audioData = audioEntry.data;
                             trackEntry.audioType = audioEntry.data->get_type();
                             trackEntry.volume = jVolume;
@@ -164,7 +164,7 @@ namespace tabletopify
                     }
                     atmosphere_entry atmosphereEntry =
                     {
-                        atmosphereUUID,
+                        atmosphereId,
                         title,
                         std::move(tracks),
                     };
@@ -181,14 +181,14 @@ namespace tabletopify
 
                 for(auto& jFavorite : jFavoritesList)
                 {
-                    auto& jUUID = jFavorite["AtmosphereID"];
-                    MX_ASSERT(jUUID.is_string());
+                    auto& jAtmosphereId = jFavorite["AtmosphereId"];
+                    MX_ASSERT(jAtmosphereId.is_string());
                     auto& jVolume = jFavorite["Volume"];
                     MX_ASSERT(jVolume.is_number());
                     auto& jMuted = jFavorite["Muted"];
                     MX_ASSERT(jMuted.is_boolean());
 
-                    auto atmosphereHandle = g_atmosphere_directory->get_atmosphere_handle_by_uuid(jUUID);
+                    auto atmosphereHandle = g_atmosphere_directory->get_atmosphere_handle_by_id(jAtmosphereId);
                     MX_ASSERT(atmosphereHandle != MX_INVALID_HANDLE);
                     auto& atmosphereEntry = g_atmosphere_directory->get_entry(atmosphereHandle);
 
@@ -196,7 +196,7 @@ namespace tabletopify
                     {
                         favorite.handle = atmosphereHandle;
                         favorite.title = atmosphereEntry.title;
-                        favorite.uuid = atmosphereEntry.uuid;
+                        favorite.id = atmosphereEntry.id;
                         favorite.volume = jVolume;
                         favorite.muted = jMuted;
                         favorite.playing = false;
@@ -227,7 +227,7 @@ namespace tabletopify
             for(auto& atmospherePlayback : g_ui->playback.atmosphereList.atmospheres)
             {
                 nl::json jFavorite;
-                jFavorite["AtmosphereID"] = atmospherePlayback.uuid;
+                jFavorite["AtmosphereId"] = atmospherePlayback.id;
                 jFavorite["Volume"] = atmospherePlayback.volume;
                 jFavorite["Muted"] = atmospherePlayback.muted;
                 jFavoriteList.push_back(jFavorite);
@@ -246,7 +246,7 @@ namespace tabletopify
                     auto& atmosphereEntry = g_atmosphere_directory->get_entry(atmosphereHandle);
                     nl::json jAtmosphere;
                     jAtmosphere["Title"] = atmosphereEntry.title;
-                    jAtmosphere["AtmosphereID"] = atmosphereEntry.uuid;
+                    jAtmosphere["AtmosphereId"] = atmosphereEntry.id;
 
                     auto jTrackList = nl::json::array();
                     // serialize each track
@@ -254,7 +254,7 @@ namespace tabletopify
                     {
                         auto& trackEntry = g_track_directory->get_entry(trackHandle);
                         nl::json jTrack;
-                        jTrack["AudioID"] = trackEntry.audioUuid;
+                        jTrack["AudioId"] = trackEntry.audioId;
                         jTrack["Volume"] = trackEntry.volume;
                         jTrack["Muted"] = trackEntry.muted;
                         switch(trackEntry.audioType)

@@ -3,19 +3,19 @@
 namespace tabletopify
 {
     // maps to audio data
-	typedef size_t audio_handle_t;
+    typedef size_t audio_handle_t;
     // instantiated possibly playing audio tracks
     typedef size_t track_handle_t;
     // collection of tracks
-	typedef size_t atmosphere_handle_t;
+    typedef size_t atmosphere_handle_t;
 
     constexpr size_t MX_INVALID_HANDLE = ~size_t(0);
 
-	typedef enum
-	{
-		ONE_SHOT,
-		LOOP,
-	} audio_type_t;
+    typedef enum
+    {
+        ONE_SHOT,
+        LOOP,
+    } audio_type_t;
 
     typedef enum
     {
@@ -26,25 +26,25 @@ namespace tabletopify
         PENDING_UNLOADED,
     } audio_data_state_t;
 
-	class audio_data
-	{
-	public:
-	    virtual ~audio_data() {}
+    class audio_data
+    {
+    public:
+        virtual ~audio_data() {}
 
         virtual audio_type_t get_type() = 0;
         virtual sf::SoundBuffer& get_sound_buffer(bool positionable) = 0;
         static void load(std::shared_ptr<audio_data> audio);
         static void unload(std::shared_ptr<audio_data> audio);
         audio_data_state_t state() const {return _state;}
-	protected:
-	    // loading data from disk
-	    virtual void load_impl() = 0;
-	    // freeing audio data
-	    virtual void unload_impl() = 0;
-	    volatile audio_data_state_t _state = UNLOADED;
+    protected:
+        // loading data from disk
+        virtual void load_impl() = 0;
+        // freeing audio data
+        virtual void unload_impl() = 0;
+        volatile audio_data_state_t _state = UNLOADED;
 
-	    friend class audio_directory;
-	};
+        friend class audio_directory;
+    };
 
     class one_shot_data : public audio_data
     {
@@ -80,50 +80,50 @@ namespace tabletopify
         sf::SoundBuffer _mono_loop_buffer;
     };
 
-	struct audio_entry
-	{
-		// track unique id
-		std::string uuid;
-		// display title
-		std::string title;
-		// query title
-		std::string lower_title;
-		// query tags
-		std::vector<std::string> tags;
-		// backing SoundBuffers
-		std::shared_ptr<audio_data> data;
-		// time since able to unload data in seconds
-		float age = 0.0f;
-	};
+    struct audio_entry
+    {
+        // track unique id
+        std::string id;
+        // display title
+        std::string title;
+        // query title
+        std::string lower_title;
+        // query tags
+        std::vector<std::string> tags;
+        // backing SoundBuffers
+        std::shared_ptr<audio_data> data;
+        // time since able to unload data in seconds
+        float age = 0.0f;
+    };
 
-	class audio_directory
-	{
-	public:
-		void update(float dt);
-		audio_handle_t get_audio_handle_by_uuid(const std::string& uuid) const;
-		std::vector<audio_handle_t> get_audio_handles() const;
-        std::vector<audio_handle_t> get_audio_handles_by_query(const std::string& query_string) const;
+    class audio_directory
+    {
+    public:
+        void update(float dt);
+        audio_handle_t get_audio_handle_by_id(const std::string& id) const;
+        std::vector<audio_handle_t> get_audio_handles() const;
+        std::vector<audio_handle_t> get_audio_handles_by_query(const std::string& query) const;
 
         audio_entry& get_entry(audio_handle_t handle);
-		// audio_handle_t add_entry(audio_entry&& entry);
-        void add_entry(std::string&& uuid,std::string&& title, std::vector<std::string>&& tags, std::shared_ptr<audio_data>&& data);
+        // audio_handle_t add_entry(audio_entry&& entry);
+        void add_entry(std::string&& id, std::string&& title, std::vector<std::string>&& tags, std::shared_ptr<audio_data>&& data);
 
-	private:
-		std::vector<audio_entry> _entries;
-		tag_map<audio_handle_t> _tag_map;
-		// map track uuid to track id
-		std::unordered_map<std::string, audio_handle_t> _uuid_map;
+    private:
+        std::vector<audio_entry> _entries;
+        tag_map<audio_handle_t> _tag_map;
+        // map track id to track handle
+        std::unordered_map<std::string, audio_handle_t> _id_map;
 
-		// amount of time an unreferenced track waits before unloading data and freeing memory
-		constexpr static float unload_age = 10.0f;
-	};
-	extern single_threaded<audio_directory> g_audio_directory;
+        // amount of time an unreferenced track waits before unloading data and freeing memory
+        constexpr static float unload_age = 10.0f;
+    };
+    extern single_threaded<audio_directory> g_audio_directory;
 
     // description for how audio is to played in an atmosphere
     struct track_entry
     {
         std::string audioTitle;
-        std::string audioUuid;
+        std::string audioId;
         std::shared_ptr<audio_data> audioData;
         audio_type_t audioType;
         float volume;
@@ -165,32 +165,33 @@ namespace tabletopify
 
     struct atmosphere_entry
     {
-        std::string uuid;
-    	// query title
-    	std::string title;
-    	// tracks
-    	std::vector<track_handle_t> tracks;
+        // unique id
+        std::string id;
+        // title
+        std::string title;
+        // tracks
+        std::vector<track_handle_t> tracks;
     };
 
     class atmosphere_directory
     {
     public:
-    	void update(float dt);
+        void update(float dt);
 
-    	std::vector<atmosphere_handle_t> get_atmosphere_handles() const;
-    	std::vector<atmosphere_handle_t> get_atmosphere_handles_by_query(const std::string& query_string) const;
+        std::vector<atmosphere_handle_t> get_atmosphere_handles() const;
+        std::vector<atmosphere_handle_t> get_atmosphere_handles_by_query(const std::string& query) const;
 
-        atmosphere_handle_t get_atmosphere_handle_by_uuid(const std::string& uuid) const;
-    	atmosphere_entry& get_entry(atmosphere_handle_t handle);
-    	atmosphere_handle_t add_entry(atmosphere_entry&& entry);
-    	void remove_entry(atmosphere_handle_t handle);
+        atmosphere_handle_t get_atmosphere_handle_by_id(const std::string& id) const;
+        atmosphere_entry& get_entry(atmosphere_handle_t handle);
+        atmosphere_handle_t add_entry(atmosphere_entry&& entry);
+        void remove_entry(atmosphere_handle_t handle);
         void rename_entry(atmosphere_handle_t handle, const std::string& newName);
     private:
         atmosphere_handle_t _next_handle = 0;
         std::map<atmosphere_handle_t, atmosphere_entry> _entries;
         tag_map<atmosphere_handle_t> _tag_map;
-        // map track uuid to atmosphere id
-        std::unordered_map<std::string, atmosphere_handle_t> _uuid_map;
+        // map track id to atmosphere handle
+        std::unordered_map<std::string, atmosphere_handle_t> _id_map;
     };
     extern single_threaded<atmosphere_directory> g_atmosphere_directory;
 

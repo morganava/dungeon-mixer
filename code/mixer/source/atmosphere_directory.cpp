@@ -25,15 +25,15 @@ namespace tabletopify
         return result;
     }
 
-    std::vector<atmosphere_handle_t> atmosphere_directory::get_atmosphere_handles_by_query(const std::string& query_string) const
+    std::vector<atmosphere_handle_t> atmosphere_directory::get_atmosphere_handles_by_query(const std::string& query) const
     {
-        return _tag_map.get_keys_by_string_query(query_string);
+        return _tag_map.get_keys_by_string_query(query);
     }
 
-    atmosphere_handle_t atmosphere_directory::get_atmosphere_handle_by_uuid(const std::string& uuid) const
+    atmosphere_handle_t atmosphere_directory::get_atmosphere_handle_by_id(const std::string& id) const
     {
-        auto it = _uuid_map.find(uuid);
-        if(it == _uuid_map.end())
+        auto it = _id_map.find(id);
+        if(it == _id_map.end())
         {
             return MX_INVALID_HANDLE;
         }
@@ -55,7 +55,7 @@ namespace tabletopify
         std::vector<std::string> tags = split(to_lower(entry.title), " ");
         _tag_map.add_key(key, tags);
 
-        _uuid_map.insert({entry.uuid, key});
+        _id_map.insert({entry.id, key});
         _entries.insert({key, std::move(entry)});
 
         return key;
@@ -66,7 +66,7 @@ namespace tabletopify
         auto it = _entries.find(handle);
         MX_ASSERT(it != _entries.end());
 
-        _uuid_map.erase(_uuid_map.find(it->second.uuid));
+        _id_map.erase(_id_map.find(it->second.id));
         _entries.erase(it);
 
         _tag_map.remove_key(handle);

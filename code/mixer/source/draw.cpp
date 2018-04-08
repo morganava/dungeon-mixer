@@ -271,7 +271,7 @@ namespace tabletopify
                 {
                     atmosphereHandle,
                     atmosphereEntry.title,
-                    atmosphereEntry.uuid,
+                    atmosphereEntry.id,
                     1.0f,
                     false,
                     false,
@@ -474,7 +474,7 @@ namespace tabletopify
                 auto& audioEntry = g_audio_directory->get_entry(audioHandle);
 
                 trackEntry.audioTitle = audioEntry.title;
-                trackEntry.audioUuid = audioEntry.uuid;
+                trackEntry.audioId = audioEntry.id;
                 trackEntry.audioData = audioEntry.data;
                 trackEntry.audioType = audioEntry.data->get_type();
                 trackEntry.volume = 1.0f;

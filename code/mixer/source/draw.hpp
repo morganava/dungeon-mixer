@@ -84,7 +84,7 @@ namespace tabletopify
                 {
                     atmosphere_handle_t handle;
                     std::string title;
-                    std::string uuid;
+                    std::string id;
                     float volume;
                     bool muted;
                     bool playing;

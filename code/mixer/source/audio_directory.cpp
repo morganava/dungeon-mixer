@@ -74,7 +74,7 @@ namespace tabletopify
     }
 
     void audio_directory::add_entry(
-        std::string&& uuid,
+        std::string&& id,
         std::string&& title,
         std::vector<std::string>&& tags,
         std::shared_ptr<audio_data>&& data)
@@ -98,24 +98,24 @@ namespace tabletopify
         }
 
         // construct audio_entry
-        audio_entry entry = {uuid, title, to_lower(title), tags, data, 0.0f};
+        audio_entry entry = {id, title, to_lower(title), tags, data, 0.0f};
         // get key
         audio_handle_t key = _entries.size();
         // update tag map
         _tag_map.add_key(key, entry.tags);
-        // update our uuid map (checking for collisions)
-        auto uuidIt = _uuid_map.find(uuid);
-        MX_ASSERT(uuidIt == _uuid_map.end());
-        _uuid_map[uuid] = key;
+        // update our id map (checking for collisions)
+        auto idIt = _id_map.find(id);
+        MX_ASSERT(idIt == _id_map.end());
+        _id_map[id] = key;
 
         // push entry
         _entries.push_back(std::move(entry));
     }
 
-    audio_handle_t audio_directory::get_audio_handle_by_uuid(const std::string& uuid) const
+    audio_handle_t audio_directory::get_audio_handle_by_id(const std::string& id) const
     {
-        auto it = _uuid_map.find(uuid);
-        if(it == _uuid_map.end())
+        auto it = _id_map.find(id);
+        if(it == _id_map.end())
         {
             return MX_INVALID_HANDLE;
         }
@@ -133,8 +133,8 @@ namespace tabletopify
         return result;
     }
 
-    std::vector<audio_handle_t> audio_directory::get_audio_handles_by_query(const std::string& query_string) const
+    std::vector<audio_handle_t> audio_directory::get_audio_handles_by_query(const std::string& query) const
     {
-        return _tag_map.get_keys_by_string_query(query_string);
+        return _tag_map.get_keys_by_string_query(query);
     }
 }
