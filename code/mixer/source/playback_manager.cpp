@@ -39,7 +39,7 @@ namespace tabletopify
 
             if(playbackEntry.dirtyProperties == true)
             {
-                playbackEntry.sound.setAttenuation(0.0f);
+                playbackEntry.sound.setAttenuation(1.0f);
                 playbackEntry.sound.setVolume(100.0f * playbackEntry.volume);
                 if(playbackEntry.positional == true)
                 {

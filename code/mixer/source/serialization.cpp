@@ -18,16 +18,22 @@ namespace tabletopify
 
     static fs::path get_tabletopify_path()
     {
-        static fs::path tabletopify = get_home_path() / ".tabletopify";
-        return tabletopify;
+        static fs::path tabletopify_path = get_home_path() / ".tabletopify";
+        return tabletopify_path;
+    }
+
+    static fs::path get_library_path()
+    {
+        static fs::path library_path = get_tabletopify_path() / "libraries";
+        return library_path;
     }
 
     void load_audio_manifests()
     {
         worker(Worker_FileIO).enqueue([]() -> void
         {
-            // iterate over each subdirectory in the tabletopify directory
-            for(auto& it : fs::directory_iterator(get_tabletopify_path()))
+            // iterate over each subdirectory in the lilbrary directory
+            for(auto& it : fs::directory_iterator(get_library_path()))
             {
                 auto manifestPath = it.path() / "manifest.json";
                 auto manifestSize = fs::file_size(manifestPath);
