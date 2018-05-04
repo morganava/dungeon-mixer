@@ -5,6 +5,9 @@ namespace tabletopify
 {
     constexpr auto uuid_format_string =
         "%02hhx%02hhx%02hhx%02hhx-%02hhx%02hhx-%02hhx%02hhx-%02hhx%02hhx-%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx";
+
+    const uuid uuid::null = {0};
+
     std::string uuid::str() const
     {
         std::string result(36, 0);
@@ -23,7 +26,7 @@ namespace tabletopify
         return str();
     }
 
-    bool uuid::is_nil() const
+    bool uuid::is_null() const
     {
         return qwords[0] == 0 && qwords[1] == 0;
     }

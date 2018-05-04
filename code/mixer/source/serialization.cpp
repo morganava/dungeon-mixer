@@ -28,6 +28,7 @@ namespace tabletopify
         return library_path;
     }
 
+
     void load_audio_manifests()
     {
         worker(Worker_FileIO).enqueue([]() -> void
@@ -89,6 +90,7 @@ namespace tabletopify
 
     void open_user_mix(const fs::path& mixPath)
     {
+#if 0
         log(LogLevel_Info, ss() << "Begin open user mix: " << mixPath);
 
         worker(Worker_FileIO).enqueue([=]() -> void
@@ -244,10 +246,12 @@ namespace tabletopify
                 });
             });
         });
+#endif
     }
 
     void save_user_mix(const fs::path& path)
     {
+#if 0
         log(LogLevel_Info, ss() << "Begin save user mix: " << path);
 
         worker(Worker_UI).enqueue([=]() -> void
@@ -320,5 +324,6 @@ namespace tabletopify
                 });
             });
         });
+#endif
     }
 }

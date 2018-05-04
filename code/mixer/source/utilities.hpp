@@ -7,6 +7,7 @@
 #define __STR_LINE__ STRINGIFY(__LINE__)
 
 #define MX_ASSERT(X) do {bool result = (X); if(!result) { tabletopify::assertion_log("Assertion Failure: " __FILE__ ":" __STR_LINE__ " " #X); MX_DEBUGBREAK();} } while(false);
+#define MX_STATIC_ASSERT(X) static_assert(X, STRINGIFY(X))
 
 namespace tabletopify
 {
