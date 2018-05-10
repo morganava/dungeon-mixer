@@ -1,5 +1,7 @@
 #pragma once
 
+#include "hash.hpp"
+
 namespace tabletopify
 {
     typedef size_t handle_t;
@@ -13,7 +15,7 @@ namespace tabletopify
     private:
         std::vector<handle_t> get_keys_by_tag_query(const std::vector<std::string>& query_tags) const;
 
-        std::unordered_multimap<std::string, handle_t> _tag_to_keys;
+        std::unordered_multimap<std::string, handle_t, string_hash> _tag_to_keys;
         std::unordered_multimap<handle_t, std::string> _key_to_tags;
         std::unordered_set<handle_t> _keys;
     };

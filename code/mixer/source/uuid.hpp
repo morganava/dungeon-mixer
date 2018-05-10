@@ -24,12 +24,8 @@ namespace tabletopify
 
     void to_json(nl::json& j, const struct uuid& id);
     void from_json(const nl::json& j, struct uuid& id);
-}
 
-namespace std
-{
-    template<>
-    struct hash<tabletopify::uuid>
+    struct uuid_hash
     {
         size_t operator()(const tabletopify::uuid& id) const
         {

@@ -113,7 +113,7 @@ namespace tabletopify
         std::vector<audio_entry> _entries;
         tag_map _tag_map;
         // map track id to track handle
-        std::unordered_map<uuid, audio_handle_t> _id_map;
+        std::unordered_map<uuid, audio_handle_t, uuid_hash> _id_map;
 
         // amount of time an unreferenced track waits before unloading data and freeing memory
         constexpr static float unload_age = 10.0f;
@@ -188,7 +188,7 @@ namespace tabletopify
         std::map<atmosphere_handle_t, atmosphere_entry> _entries;
         tag_map _tag_map;
         // map track id to atmosphere handle
-        std::unordered_map<uuid, atmosphere_handle_t> _id_map;
+        std::unordered_map<uuid, atmosphere_handle_t, uuid_hash> _id_map;
     };
 
     struct playback_entry
