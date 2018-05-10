@@ -42,6 +42,9 @@ namespace nl = nlohmann;
 // nativefiledialog : https://github.com/mlabbe/nativefiledialog
 #include <nfd.h>
 
+// xxhash : https://github.com/Cyan4973/xxHash
+#include <xxhash.h>
+
 // countof(X)
 template<typename T, size_t N>
 constexpr size_t countof(const T (&)[N]) { return N; }

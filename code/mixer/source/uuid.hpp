@@ -1,5 +1,7 @@
 #pragma once
 
+#include "hash.hpp"
+
 namespace tabletopify
 {
     struct uuid
@@ -31,8 +33,7 @@ namespace std
     {
         size_t operator()(const tabletopify::uuid& id) const
         {
-            std::string_view uuidView(reinterpret_cast<const char*>(id.bytes), sizeof(id.bytes));
-            return hash<std::string_view>()(uuidView);
+            return tabletopify::calc_hash(id.bytes, sizeof(id.bytes));
         }
     };
 }

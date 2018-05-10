@@ -28,10 +28,12 @@ add_executable(tabletop_mixer
     nuklear_extensions.cpp
     uuid.cpp
     tag_map.cpp
-    text_buffer.cpp)
+    text_buffer.cpp
+    hash.cpp)
 
 add_precompiled_header(tabletop_mixer precomp.hpp SOURCE_CXX precomp.cpp FORCEINCLUDE)
 
+target_link_libraries(tabletop_mixer xxhash)
 target_link_libraries(tabletop_mixer nuklear)
 target_link_libraries(tabletop_mixer glfw)
 target_link_libraries(tabletop_mixer ${OPENGL_gl_LIBRARY})
@@ -43,7 +45,8 @@ target_link_libraries(tabletop_mixer ${GTK3_LIBRARIES})
 target_link_libraries(tabletop_mixer pthread)
 target_link_libraries(tabletop_mixer stdc++fs)
 
+include_directories(../../xxhash/include)
+include_directories(../../json/include)
 include_directories(../../nuklear/include)
 include_directories(${SFML_INCLUDE_DIR})
-include_directories(../../json/include)
 include_directories(../../nativefiledialog/include)
