@@ -24,4 +24,9 @@ namespace tabletopify
     {
         return calc_hash(buffer, len, 0);
     }
+
+    size_t calc_hash(const std::string& str)
+    {
+        return calc_hash(str.data(), str.size());
+    }
 }

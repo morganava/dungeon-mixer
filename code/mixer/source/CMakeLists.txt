@@ -29,7 +29,8 @@ add_executable(tabletop_mixer
     uuid.cpp
     tag_map.cpp
     text_buffer.cpp
-    hash.cpp)
+    hash.cpp
+    font_stash.cpp)
 
 add_precompiled_header(tabletop_mixer precomp.hpp SOURCE_CXX precomp.cpp FORCEINCLUDE)
 

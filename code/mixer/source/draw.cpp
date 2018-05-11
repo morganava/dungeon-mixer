@@ -22,6 +22,7 @@ namespace tabletopify
         STR_PLAYLIST,
         STR_NEW_ATMOSPHERE,
         STR_SEARCH,
+        STR_SETTINGS,
 
         STR_COUNT,
     } mixer_string_t;
@@ -38,6 +39,7 @@ namespace tabletopify
             "PLAYLIST",
             "NEW ATMOSPHERE",
             "SEARCH",
+            "SETTINGS",
         };
 
         MX_STATIC_ASSERT(countof(english_strings) == STR_COUNT);
@@ -45,23 +47,33 @@ namespace tabletopify
         return english_strings[str];
     }
 
-    void load_style()
+    void load_style(nk_context* ctx)
     {
+        auto skinPath = get_skins_path();
+
+        // this would be part of style json loading
+        style.font_atlas = std::make_unique<font_stash>();
+        auto& font_atlas = style.font_atlas;
+        font_atlas->begin();
+
         style.sidebar.width = 196;
         style.sidebar.indent = 16;
+        style.sidebar.font = font_atlas->add(skinPath / "DejaVuSans.ttf", 16.0f);
+        nk_style_set_font(ctx, style.sidebar.font);
 
         style.edit.new_atmosphere_button_width = 64;
 
         style.viewport.search.pane_width = 256;
         style.viewport.search.button_width = 32;
+
+        font_atlas->end();
     }
 
     void draw_init(nk_context* ctx)
     {
         // load user stye
-        load_style();
+        load_style(ctx);
 
-        // load fonts
 
          // set nk style
         ctx->style.window.border = 0.0f;
@@ -78,6 +90,7 @@ namespace tabletopify
         ctx->style.scrollh.padding = nk_vec2(0, 0);
         ctx->style.scrollh.border = 0.0f;
 
+        // dummy 'All' playlislt
         ui.sidebar.playlists.push_back({
             get_string(STR_ALL_PLAYLIST),
             uuid::null
@@ -114,7 +127,12 @@ namespace tabletopify
             nk_layout_row_push(ctx, 1.0f);
             nk_label(ctx, get_string(STR_EDIT_ATMOSPHERE), NK_TEXT_LEFT);
 
-            // about button
+            // settings button
+            nk_layout_row_begin(ctx, NK_DYNAMIC, 0, 1);
+            nk_layout_row_push(ctx, 1.0f);
+            nk_label(ctx, get_string(STR_SETTINGS), NK_TEXT_LEFT);
+
+           // about button
             nk_layout_row_begin(ctx, NK_DYNAMIC, 0, 1);
             nk_layout_row_push(ctx, 1.0f);
             nk_label(ctx, get_string(STR_ABOUT), NK_TEXT_LEFT);

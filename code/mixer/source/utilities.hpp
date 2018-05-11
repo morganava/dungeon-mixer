@@ -8,6 +8,7 @@
 
 #define MX_ASSERT(X) do {bool result = (X); if(!result) { tabletopify::assertion_log("Assertion Failure: " __FILE__ ":" __STR_LINE__ " " #X); MX_DEBUGBREAK();} } while(false);
 #define MX_STATIC_ASSERT(X) static_assert(X, STRINGIFY(X))
+#define MX_THROW_IF_FALSE(X) do {bool result = (X); if(!result) {throw std::runtime_error("Runtime Failure: " __FILE__ ":" __STR_LINE__ " " #X);} } while(0);
 
 namespace tabletopify
 {
@@ -35,6 +36,4 @@ namespace tabletopify
 
     fs::path open_dialog(const char* filterList);
     fs::path save_dialog(const char* filterList);
-
-
 }

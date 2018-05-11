@@ -1,10 +1,10 @@
 #pragma once
 
 #include "text_buffer.hpp"
+#include "font_stash.hpp"
 
 namespace tabletopify
 {
-
     typedef enum
     {
         MX_MODE_VIEW_PLAYLIST,
@@ -19,6 +19,7 @@ namespace tabletopify
         {
             int width;
             int indent;
+            nk_user_font* font;
         }
         sidebar;
 
@@ -39,6 +40,8 @@ namespace tabletopify
             search;
         }
         viewport;
+
+        std::unique_ptr<font_stash> font_atlas;
     };
 
     struct ui_data

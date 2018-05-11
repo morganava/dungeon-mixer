@@ -30,6 +30,8 @@ using ss = std::stringstream;
 namespace fs = std::experimental::filesystem;
 
 // nuklear : https://github.com/vurtun/nuklear
+#define NK_INCLUDE_FONT_BAKING
+#define NK_INCLUDE_STANDARD_IO
 #include <nuklear.h>
 
 // SFML

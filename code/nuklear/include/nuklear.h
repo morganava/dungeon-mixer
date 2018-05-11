@@ -568,6 +568,7 @@ typedef void(*nk_close_callback)(struct nk_context*);
 NK_API void
 nk_main(const char* window_title, int width, int height, nk_init_callback, nk_gui_callback callback, nk_close_callback);
 
+
 /* =============================================================================
  *
  *                                  CONTEXT
@@ -2796,6 +2797,8 @@ NK_API struct nk_font* nk_font_atlas_add_default(struct nk_font_atlas*, float he
 NK_API struct nk_font* nk_font_atlas_add_from_memory(struct nk_font_atlas *atlas, void *memory, nk_size size, float height, const struct nk_font_config *config);
 #ifdef NK_INCLUDE_STANDARD_IO
 NK_API struct nk_font* nk_font_atlas_add_from_file(struct nk_font_atlas *atlas, const char *file_path, float height, const struct nk_font_config*);
+NK_API void nk_font_stash_begin(struct nk_font_atlas **atlas);
+NK_API void nk_font_stash_end(void);
 #endif
 NK_API struct nk_font *nk_font_atlas_add_compressed(struct nk_font_atlas*, void *memory, nk_size size, float height, const struct nk_font_config*);
 NK_API struct nk_font* nk_font_atlas_add_compressed_base85(struct nk_font_atlas*, const char *data, float height, const struct nk_font_config *config);
@@ -15122,11 +15125,11 @@ nk_do_slider(nk_flags *state,
  * ===============================================================*/
 
 NK_INTERN void
-nk_minmax_slider_behavior(nk_flags *state, 
+nk_minmax_slider_behavior(nk_flags *state,
     struct nk_rect *logical_min_cursor, struct nk_rect *logical_max_cursor,
     struct nk_rect *visual_min_cursor, struct nk_rect *visual_max_cursor,
-    struct nk_input *in, struct nk_rect bounds, 
-    float slider_min, float slider_max, 
+    struct nk_input *in, struct nk_rect bounds,
+    float slider_min, float slider_max,
     float* slider_min_value, float* slider_max_value,
     float slider_step, float slider_steps)
 {
@@ -15152,7 +15155,7 @@ nk_minmax_slider_behavior(nk_flags *state,
 
             /* only update value if the next slider step is reached */
             *state = NK_WIDGET_STATE_ACTIVE;
-            if (NK_ABS(d) >= pxstep) 
+            if (NK_ABS(d) >= pxstep)
             {
                 float slider_value = *slider_min_value;
                 const float steps = (float)((int)(NK_ABS(d) / pxstep));
@@ -15162,7 +15165,7 @@ nk_minmax_slider_behavior(nk_flags *state,
                 logical_min_cursor->x = bounds.x + (logical_min_cursor->w * ratio);
                 in->mouse.buttons[NK_BUTTON_LEFT].clicked_pos.x = logical_min_cursor->x - visual_min_cursor->w / 2.0f;
                 *slider_min_value = slider_value;
-            }         
+            }
         }
         else if(left_mouse_click_in_max_cursor)
         {
@@ -15170,7 +15173,7 @@ nk_minmax_slider_behavior(nk_flags *state,
 
             /* only update value if the next slider step is reached */
             *state = NK_WIDGET_STATE_ACTIVE;
-            if (NK_ABS(d) >= pxstep) 
+            if (NK_ABS(d) >= pxstep)
             {
                 float slider_value = *slider_max_value;
                 const float steps = (float)((int)(NK_ABS(d) / pxstep));
@@ -15180,7 +15183,7 @@ nk_minmax_slider_behavior(nk_flags *state,
                 logical_max_cursor->x = bounds.x + (logical_max_cursor->w * ratio);
                 in->mouse.buttons[NK_BUTTON_LEFT].clicked_pos.x = logical_max_cursor->x + visual_min_cursor->w / 2.0f;
                 *slider_max_value = slider_value;
-            }         
+            }
         }
     }
 
@@ -15252,7 +15255,7 @@ nk_draw_minmax_slider(struct nk_command_buffer *out, nk_flags state,
     /* draw slider bar */
     nk_fill_rect(out, bar, style->rounding, bar_color);
     nk_fill_rect(out, fill, style->rounding, style->bar_filled);
-    
+
     /* draw cursor */
     if (cursor->type == NK_STYLE_ITEM_IMAGE)
     {
@@ -15353,11 +15356,11 @@ nk_do_minmax_slider(nk_flags *state,
     visual_max_cursor.x = logical_max_cursor.x;
 
     nk_minmax_slider_behavior(
-        state, 
+        state,
         &logical_min_cursor, &logical_max_cursor,
         &visual_min_cursor, &visual_max_cursor,
-        in, bounds, 
-        slider_min, slider_max, 
+        in, bounds,
+        slider_min, slider_max,
         &slider_min_value, &slider_max_value,
         step_size, slider_steps);
 
@@ -15368,7 +15371,7 @@ nk_do_minmax_slider(nk_flags *state,
     if (style->draw_begin) style->draw_begin(out, style->userdata);
     nk_draw_minmax_slider(out, *state, style, &bounds, &visual_min_cursor, &visual_max_cursor, slider_min, slider_min_value, slider_max, slider_max_value);
     if (style->draw_end) style->draw_end(out, style->userdata);
-    
+
     *min_val = slider_min_value;
     *max_val = slider_max_value;
 }
@@ -19771,7 +19774,7 @@ nk_layout_ratio_from_pixel(struct nk_context *ctx, float pixel_width)
     return NK_CLAMP(0.0f, pixel_width/win->bounds.x, 1.0f);
 }
 
-NK_API float 
+NK_API float
 nk_layout_pixel_from_ratio(struct nk_context *ctx, float ratio)
 {
     struct nk_window *win;
@@ -21648,7 +21651,7 @@ nk_slider_int(struct nk_context *ctx, int min, int *val, int max, int step)
  *                          MINMAX SLIDER
  *
  * --------------------------------------------------------------*/
-NK_API int 
+NK_API int
 nk_minmax_slider_float(struct nk_context *ctx, float min, float *min_value, float max, float* max_value, float value_step)
 {
     struct nk_window *win;

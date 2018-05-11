@@ -28,6 +28,11 @@ namespace tabletopify
         return library_path;
     }
 
+    fs::path get_skins_path()
+    {
+        static fs::path skins_path = get_tabletopify_path() / "skins";
+        return skins_path;
+    }
 
     void load_audio_manifests()
     {

@@ -46,13 +46,24 @@ static int64_t get_time()
     return (int64_t)tv.tv_sec * (int64_t)1000000 + (int64_t)tv.tv_usec;
 }
 
+void nk_font_stash_begin(
+    struct nk_font_atlas **atlas)
+{
+    return nk_glfw3_font_stash_begin(atlas);
+}
+
+void nk_font_stash_end(void)
+{
+    return nk_glfw3_font_stash_end();
+}
+
 void
 nk_main(
-    const char* window_title, 
-    int width, 
-    int height, 
-    nk_init_callback init_callback, 
-    nk_gui_callback gui_callback, 
+    const char* window_title,
+    int width,
+    int height,
+    nk_init_callback init_callback,
+    nk_gui_callback gui_callback,
     nk_close_callback close_callback)
 {
     const int WINDOW_WIDTH = width;
@@ -89,33 +100,13 @@ nk_main(
     }
 
     ctx = nk_glfw3_init(win, NK_GLFW3_INSTALL_CALLBACKS);
-    /* Load Fonts: if none of these are loaded a default font will be used  */
-    /* Load Cursor: if you uncomment cursor loading please hide the cursor */
-    {
-        struct nk_font_atlas *atlas;
-        nk_glfw3_font_stash_begin(&atlas);
-        /*struct nk_font *droid = nk_font_atlas_add_from_file(atlas, "../../../extra_font/DroidSans.ttf", 20, 0);*/
-        /*struct nk_font *roboto = nk_font_atlas_add_from_file(atlas, "../../../extra_font/Roboto-Regular.ttf", 14, 0);*/
-        /*struct nk_font *future = nk_font_atlas_add_from_file(atlas, "../../../extra_font/kenvector_future_thin.ttf", 13, 0);*/
-        /*struct nk_font *clean = nk_font_atlas_add_from_file(atlas, "../../../extra_font/ProggyClean.ttf", 12, 0);*/
-        /*struct nk_font *tiny = nk_font_atlas_add_from_file(atlas, "../../../extra_font/ProggyTiny.ttf", 10, 0);*/
-        /*struct nk_font *cousine = nk_font_atlas_add_from_file(atlas, "../../../extra_font/Cousine-Regular.ttf", 13, 0);*/
-        nk_glfw3_font_stash_end();
-        /*nk_style_load_all_cursors(ctx, atlas->cursors);*/
-        /*nk_style_set_font(ctx, &droid->handle);*/
-    }
-
-    /* style.c */
-    /*set_style(ctx, THEME_WHITE);*/
-    /*set_style(ctx, THEME_RED);*/
-    /*set_style(ctx, THEME_BLUE);*/
-    /*set_style(ctx, THEME_DARK);*/
 
     /* Init */
     if(init_callback) init_callback(ctx);
 
     int64_t prev_time = get_time();
 
+    /* Magenta */
     background = nk_rgb(255,0,255);
     while (!glfwWindowShouldClose(win))
     {
