@@ -32,6 +32,10 @@ namespace tabletopify
 
         struct
         {
+            nk_user_font* title_font;
+            float title_height;
+            nk_user_font* heading_font;
+
             struct
             {
                 int pane_width;
@@ -69,6 +73,7 @@ namespace tabletopify
     };
     extern ui_data* g_ui;
 
-    void draw_init(nk_context* ctx);
-	void draw_update(nk_context* ctx, int width, int height);
+    void init_draw(nk_context* ctx);
+    void free_draw();
+	void update_draw(nk_context* ctx, int width, int height);
 }

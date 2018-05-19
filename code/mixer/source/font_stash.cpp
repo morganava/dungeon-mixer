@@ -21,11 +21,6 @@ namespace tabletopify
         return hash;
     }
 
-    font_stash::~font_stash()
-    {
-        nk_font_atlas_clear(_font_atlas);
-    }
-
     void font_stash::begin()
     {
         nk_font_stash_begin(&_font_atlas);
@@ -33,6 +28,8 @@ namespace tabletopify
 
     nk_user_font* font_stash::add(const fs::path& fontFile, float fontSize)
     {
+        MX_THROW_IF_FALSE(fs::exists(fontFile));
+
         std::string fontName = fontFile.filename();
 
         auto it = _font_map.find({fontName, fontSize});
@@ -45,7 +42,7 @@ namespace tabletopify
                                 nullptr);
             auto fontHandle = &(font->handle);
             _font_map.insert({{fontName, fontSize}, fontHandle});
-            log(LogLevel_Info, ss() << "Baked font: " << fontName << " " << fontSize << "px");
+            log(LogLevel_Info, ss() << "Baked font: " << fontName << ", " << fontSize << "px");
             return fontHandle;
         }
         return it->second;
@@ -54,6 +51,5 @@ namespace tabletopify
     void font_stash::end()
     {
         nk_font_stash_end();
-        nk_font_atlas_cleanup(_font_atlas);
     }
 }

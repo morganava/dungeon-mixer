@@ -19,7 +19,6 @@ namespace tabletopify
     class font_stash
     {
     public:
-        ~font_stash();
         void begin();
         nk_user_font* add(const fs::path& fontFile, float fontSize);
         void end();

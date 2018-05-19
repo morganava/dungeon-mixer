@@ -33,7 +33,7 @@ namespace tabletopify
         {
             "PLAYLISTS",
             "+CREATE",
-            "All",
+            "Long Playlist Name HAHHA",
             "EDIT",
             "ABOUT",
             "PLAYLIST",
@@ -63,17 +63,20 @@ namespace tabletopify
 
         style.edit.new_atmosphere_button_width = 64;
 
+        style.viewport.title_font = font_atlas->add(skinPath / "DejaVuSans.ttf", 96.0f);
+        style.viewport.heading_font = font_atlas->add(skinPath / "DejaVuSans.ttf", 16.0f);
+        style.viewport.title_height = 96.0f;
+
         style.viewport.search.pane_width = 256;
         style.viewport.search.button_width = 32;
 
         font_atlas->end();
     }
 
-    void draw_init(nk_context* ctx)
+    void init_draw(nk_context* ctx)
     {
         // load user stye
         load_style(ctx);
-
 
          // set nk style
         ctx->style.window.border = 0.0f;
@@ -97,15 +100,21 @@ namespace tabletopify
         });
     }
 
+    void free_draw()
+    {
+        style.font_atlas.reset(nullptr);
+    }
+
     static void draw_sidebar(nk_context* ctx)
     {
         if(nk_group_begin(ctx, "sidebar", 0))
         {
+            nk_style_set_font(ctx, style.sidebar.font);
+
             // playlist button
             nk_layout_row_begin(ctx, NK_DYNAMIC, 0, 1);
             nk_layout_row_push(ctx, 1.0f);
             nk_label(ctx, get_string(STR_PLAYLISTS), NK_TEXT_LEFT);
-
 
             // create playlist button
             nk_layout_row_template_begin(ctx, 0);
@@ -168,6 +177,8 @@ namespace tabletopify
 
     static void draw_playlist(nk_context* ctx)
     {
+        nk_style_set_font(ctx, style.viewport.heading_font);
+
         // Playlist label
         nk_layout_row_begin(ctx, NK_DYNAMIC, 0, 1);
         nk_layout_row_push(ctx, 1.0f);
@@ -175,8 +186,17 @@ namespace tabletopify
 
         // Playlist title, and search bar
         auto& playlist = ui.sidebar.get_selected_playlist();
-        nk_layout_row_template_begin(ctx, 0);
+
+        nk_layout_row_template_begin(ctx, style.viewport.title_height);
         nk_layout_row_template_push_dynamic(ctx);
+        const auto not_title_width =
+            style.edit.new_atmosphere_button_width +
+            style.viewport.search.pane_width +
+            style.viewport.search.button_width;
+        nk_layout_row_template_push_static(ctx, not_title_width);
+        nk_layout_row_template_end(ctx);
+
+#if 0
         nk_layout_row_template_push_static(ctx,
             style.edit.new_atmosphere_button_width);
         nk_layout_row_template_push_static(ctx,
@@ -184,18 +204,22 @@ namespace tabletopify
         nk_layout_row_template_push_static(ctx,
             style.viewport.search.button_width);
         nk_layout_row_template_end(ctx);
+#endif        
         {
+            nk_style_set_font(ctx, style.viewport.title_font);
+
             // Playlist title
             nk_label(ctx, playlist.title.data(), NK_TEXT_LEFT);
-            // New Atmosphere button
-            nk_button_label(ctx, get_string(STR_NEW_ATMOSPHERE));
 
-            nk_spacing(ctx, 1);
+            nk_style_set_font(ctx, style.viewport.heading_font);
+
+            // New Atmosphere button
+            // nk_button_label(ctx, get_string(STR_NEW_ATMOSPHERE));
+
+            // nk_spacing(ctx, 1);
 
             nk_button_label(ctx, get_string(STR_SEARCH));
         }
-
-        (void)playlist;
     }
 
     static void draw_edit(nk_context* ctx)
@@ -208,7 +232,7 @@ namespace tabletopify
 
     }
 
-    void draw_update(nk_context* ctx, int window_width, int window_height)
+    void update_draw(nk_context* ctx, int window_width, int window_height)
     {
         if(nk_begin(ctx, "main", nk_rect(0, 0, window_width, window_height), NK_WINDOW_NO_SCROLLBAR))
         {

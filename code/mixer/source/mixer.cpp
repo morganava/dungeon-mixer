@@ -8,9 +8,7 @@ namespace tabletopify
 {
     void init_callback(nk_context* ctx)
     {
-        init_globals();
-
-        draw_init(ctx);
+        init_globals(ctx);
     }
 
     void gui_callback(float dt, nk_context* ctx, int width, int height)
@@ -28,7 +26,7 @@ namespace tabletopify
         }
 
         // draw widgets
-        draw_update(ctx, width, height);
+        update_draw(ctx, width, height);
 
         volatile bool finished = false;
         worker(Worker_Background).enqueue([dt]()

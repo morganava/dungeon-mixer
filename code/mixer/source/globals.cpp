@@ -2,12 +2,13 @@
 #include "logger.hpp"
 #include "audio.hpp"
 #include "serialization.hpp"
+#include "draw.hpp"
 
 namespace tabletopify
 {
     // globals
 
-    void init_globals()
+    void init_globals(nk_context* ctx)
     {
         // work queue
         init_work_manager();
@@ -23,10 +24,14 @@ namespace tabletopify
 
         // load our audio manifests
         load_audio_manifests();
+
+        init_draw(ctx);
     }
 
     void free_globals()
     {
+        free_draw();
+
         // close queues off to new work
         free_work_manager();
 
