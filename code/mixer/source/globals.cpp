@@ -25,12 +25,13 @@ namespace tabletopify
         // load our audio manifests
         load_audio_manifests();
 
-        init_draw(ctx);
+        init_renderer(ctx);
+
     }
 
     void free_globals()
     {
-        free_draw();
+        free_renderer();
 
         // close queues off to new work
         free_work_manager();

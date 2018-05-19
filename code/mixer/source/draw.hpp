@@ -12,78 +12,82 @@ namespace tabletopify
         MX_MODE_ABOUT
     } mode_t;
 
-
-    struct style_data
+    class renderer
     {
-        struct
-        {
-            int width;
-            int indent;
-            nk_user_font* font;
-        }
-        sidebar;
+    public:
+        renderer(nk_context* ctx);
+        void load_style();
+        void update(float dt, int32_t width, int32_t height);
+        void draw(int32_t width, int32_t height);
+        void draw_sidebar();
+        void draw_viewport();
+        void draw_playlist();
+        void draw_edit();
+        void draw_about();
 
-        struct
-        {
-            int new_atmosphere_button_width;
+    private:
+        nk_context* _ctx;
 
-        }
-        edit;
-
-        struct
+        struct style_data
         {
-            nk_user_font* title_font;
-            float title_height;
-            nk_user_font* heading_font;
+            struct
+            {
+                int width;
+                int indent;
+                nk_user_font* font;
+            }
+            sidebar;
 
             struct
             {
-                int pane_width;
-                int button_width;
+                int new_atmosphere_button_width;
+
             }
-            search;
-        }
-        viewport;
+            edit;
 
-        std::unique_ptr<font_stash> font_atlas;
-    };
+            struct
+            {
+                nk_user_font* title_font;
+                float title_height;
+                nk_user_font* heading_font;
 
-    struct ui_data
-    {
+                struct
+                {
+                    int pane_width;
+                    int button_width;
+                }
+                search;
+            }
+            viewport;
+
+            font_stash font_atlas;
+        } _style;
+
         struct
         {
-            struct playlist
+            struct
             {
-                std::string title;
-                uuid id;
-                text_buffer searchQuery;
-            };
-            std::vector<playlist> playlists;
-            size_t selectedPlaylist = 0;
-            const playlist& get_selected_playlist() const
-            {
-                return playlists[selectedPlaylist];
+                struct playlist
+                {
+                    std::string title;
+                    uuid id;
+                    text_buffer searchQuery;
+                };
+                std::vector<playlist> playlists;
+                size_t selectedPlaylist = 0;
+                const playlist& get_selected_playlist() const
+                {
+                    return playlists[selectedPlaylist];
+                }
             }
-        }
-        sidebar;
+            sidebar;
 
-
-        mode_t mode = MX_MODE_VIEW_PLAYLIST;
-
-    };
-    extern ui_data* g_ui;
-
-    void init_draw(nk_context* ctx);
-    void free_draw();
-	void update_draw(nk_context* ctx, int width, int height);
-
-    class renderer
-    {
-
+            mode_t mode = MX_MODE_VIEW_PLAYLIST;
+        } _data;
     };
 
     // renderer functions
     renderer* get_renderer();
-    void init_renderer();
+    void init_renderer(nk_context* ctx);
     void free_renderer();
 }

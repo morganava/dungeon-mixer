@@ -26,7 +26,8 @@ namespace tabletopify
         }
 
         // draw widgets
-        update_draw(ctx, width, height);
+        // update_draw(ctx, width, height);
+        get_renderer()->update(dt, width, height);
 
         volatile bool finished = false;
         worker(Worker_Background).enqueue([dt]()
