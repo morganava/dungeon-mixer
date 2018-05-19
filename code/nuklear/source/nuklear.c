@@ -119,6 +119,9 @@ nk_main(
         glfwPollEvents();
         nk_glfw3_new_frame();
 
+        /* Get Window Size prior to drawing widgets */
+        glfwGetWindowSize(win, &width, &height);
+
         /* GUI */
         if(gui_callback) gui_callback(dt, ctx, width, height);
 
@@ -126,7 +129,6 @@ nk_main(
         {
             float bg[4];
             nk_color_fv(bg, background);
-            glfwGetWindowSize(win, &width, &height);
             glViewport(0, 0, width, height);
             glClear(GL_COLOR_BUFFER_BIT);
             glClearColor(bg[0], bg[1], bg[2], bg[3]);
