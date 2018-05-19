@@ -76,4 +76,14 @@ namespace tabletopify
     void init_draw(nk_context* ctx);
     void free_draw();
 	void update_draw(nk_context* ctx, int width, int height);
+
+    class renderer
+    {
+
+    };
+
+    // renderer functions
+    renderer* get_renderer();
+    void init_renderer();
+    void free_renderer();
 }

@@ -8,6 +8,23 @@
 
 namespace tabletopify
 {
+    static renderer* g_renderer = nullptr;
+    renderer* get_renderer()
+    {
+        MX_ASSERT(worker(Worker_UI).getThreadId() == std::this_thread::get_id());
+        return g_renderer;
+    }
+    void init_renderer()
+    {
+        MX_ASSERT(g_renderer == nullptr);
+        g_renderer = new renderer();
+    }
+    void free_renderer()
+    {
+        delete g_renderer;
+        g_renderer = nullptr;
+    }
+
     static style_data style;
     static ui_data ui;
     ui_data* g_ui = &ui;
