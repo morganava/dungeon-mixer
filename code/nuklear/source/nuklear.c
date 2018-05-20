@@ -57,6 +57,12 @@ void nk_font_stash_end(void)
     return nk_glfw3_font_stash_end();
 }
 
+struct nk_image
+nk_load_image_from_memory(int width, int height, const void* data)
+{
+    return nk_glfw3_load_image_from_memory(width, height, data);
+}
+
 void
 nk_main(
     const char* window_title,

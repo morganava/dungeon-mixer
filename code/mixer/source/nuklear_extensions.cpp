@@ -1,5 +1,7 @@
 #include "text_buffer.hpp"
 #include "nuklear_extensions.hpp"
+#include "utilities.hpp"
+#include "logger.hpp"
 
 namespace tabletopify
 {
@@ -25,6 +27,27 @@ namespace tabletopify
     {
         nk_flags result = nk_edit_string_zero_terminated(ctx, flags, textBuffer.buffer(), textBuffer.capacity(), filter);
         textBuffer.update();
+        return result;
+    }
+
+    struct nk_image
+    nk_load_image(const fs::path& imageFile)
+    {
+        MX_THROW_IF_FALSE(fs::exists(imageFile));
+
+        int width, height, channels;
+        std::unique_ptr<uint8_t, decltype(&stbi_image_free)> raw(
+            (uint8_t*)stbi_load(imageFile.c_str(), &width, &height, &channels, STBI_rgb_alpha), 
+            stbi_image_free);
+
+        if(raw == nullptr)
+        {
+            MX_LOG_ERROR("Failed to load image \"%s\", \"%s\"", imageFile.c_str(), stbi_failure_reason());
+            return nk_image_id(0);
+        }
+
+        auto result = nk_load_image_from_memory(width, height, raw.get());        
+        MX_LOG_INFO("Loaded image: %s", imageFile.c_str());
         return result;
     }
 }

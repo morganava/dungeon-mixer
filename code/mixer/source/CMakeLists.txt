@@ -36,6 +36,7 @@ add_precompiled_header(tabletop_mixer precomp.hpp SOURCE_CXX precomp.cpp FORCEIN
 
 target_link_libraries(tabletop_mixer xxhash)
 target_link_libraries(tabletop_mixer nuklear)
+target_link_libraries(tabletop_mixer stb_image)
 target_link_libraries(tabletop_mixer glfw)
 target_link_libraries(tabletop_mixer ${OPENGL_gl_LIBRARY})
 target_link_libraries(tabletop_mixer ${OPENGL_glu_LIBRARY})
@@ -48,6 +49,7 @@ target_link_libraries(tabletop_mixer stdc++fs)
 
 include_directories(../../xxhash/include)
 include_directories(../../json/include)
+include_directories(../../stb_image/include)
 include_directories(../../nuklear/include)
 include_directories(${SFML_INCLUDE_DIR})
 include_directories(../../nativefiledialog/include)
