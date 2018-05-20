@@ -12,6 +12,12 @@ namespace tabletopify
         MX_MODE_ABOUT
     } mode_t;
 
+    typedef enum
+    {
+        MX_UNMUTED,
+        MX_MUTED,
+    } muted_t;
+
     class renderer
     {
     public:
@@ -40,7 +46,8 @@ namespace tabletopify
             {
                 int32_t width;
                 int32_t indent;
-                nk_user_font* font;
+                nk_user_font* section_font;
+                float section_height;
             }
             sidebar;
 
@@ -64,13 +71,29 @@ namespace tabletopify
 
                 struct
                 {
+                    nk_user_font* new_atmosphere_font;
+
                     float new_atmosphere_button_width;
+
+                    nk_user_font* section_font;
+                    float section_height;
+
+                    nk_user_font* column_font;
+                    float column_height;
+                    float column_indent;
+
+                    float volume_width;
+                    float mute_width;
+                    struct nk_image muted_button_icon;
+                    struct nk_image unmuted_button_icon;
+                    float play_stop_width;
+                    struct nk_image stop_button_icon;
+                    struct nk_image play_button_icon;
                 } playlist;
 
                 struct
                 {
-                    nk_user_font* new_atmosphere_font;
-                    int new_atmosphere_button_width;
+                    
 
                 } edit;
             }
@@ -79,7 +102,7 @@ namespace tabletopify
             font_stash font_atlas;
         } _style;
 
-        struct
+        struct draw_data
         {
             struct
             {
@@ -89,17 +112,11 @@ namespace tabletopify
 
             struct
             {
-                struct atmosphere_data
-                {
-
-                };
-
                 struct playlist_data
                 {
                     std::string title;
                     uuid id;
                     text_buffer searchQuery;
-
                 };
                 std::vector<playlist_data> playlists;
                 size_t selectedPlaylist = 0;
@@ -112,7 +129,19 @@ namespace tabletopify
 
             struct
             {
+                struct
+                {
+                    struct atmosphere_data
+                    {
+                        std::string title;
+                        uuid id;
+                        float volume;
+                        muted_t muted;
+                    };
 
+                    std::vector<atmosphere_data> playing_atmospheres;
+                    std::vector<atmosphere_data> stopped_atmospheres;
+                } playlist;
             } viewport;
 
             mode_t mode = MX_MODE_VIEW_PLAYLIST;

@@ -8,17 +8,39 @@ namespace tabletopify
     void
     nk_debug_fill(struct nk_context* ctx)
     {
+        nk_debug_fill(ctx, 1);
+    }
+
+    void
+    nk_debug_fill(struct nk_context* ctx, int count)
+    {
         auto canvas = nk_window_get_canvas(ctx);
 
-        struct nk_rect space;
-        if(!nk_widget(&space, ctx)) return;
+        while(count--)
+        {
+            struct nk_rect space;
+            if(!nk_widget(&space, ctx)) return;
 
-        nk_fill_rect(canvas, space, 0, nk_rgb(128, 255, 0));
-        space.x += 1.0f;
-        space.y += 1.0f;
-        space.w -= 2.0f;
-        space.h -= 2.0f;
-        nk_fill_rect(canvas, space, 0, nk_rgb(255, 0, 255));
+            nk_fill_rect(canvas, space, 0, nk_rgb(128, 255, 0));
+            space.x += 1.0f;
+            space.y += 1.0f;
+            space.w -= 2.0f;
+            space.h -= 2.0f;
+            nk_fill_rect(canvas, space, 0, nk_rgb(255, 0, 255));
+        }
+    }
+
+    void
+    nk_empty_fill(struct nk_context* ctx)
+    {
+        nk_empty_fill(ctx, 1);
+    }
+
+    void
+    nk_empty_fill(struct nk_context* ctx, int count)
+    {
+        struct nk_rect space;
+        while(count--) nk_widget(&space, ctx);
     }
 
     nk_flags
