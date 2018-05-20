@@ -1,5 +1,8 @@
 #pragma once
 
+#define MX_LOG_ERROR(...) tabletopify::log(tabletopify::LogLevel_Error, __VA_ARGS__)
+#define MX_LOG_INFO(...) tabletopify::log(tabletopify::LogLevel_Info, __VA_ARGS__)
+
 namespace tabletopify
 {
     typedef enum

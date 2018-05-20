@@ -17,6 +17,7 @@ namespace tabletopify
 
     void init_logger(log_level_t lvl)
     {
+        // Windows go to : GetTempPath()
         log_file = fopen("/tmp/tabletopify.log", "wb");
         MX_ASSERT(log_file != nullptr);
 
