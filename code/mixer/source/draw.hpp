@@ -18,7 +18,7 @@ namespace tabletopify
         renderer(nk_context* ctx);
         void load_style();
         void update(float dt, int32_t width, int32_t height);
-        void draw(int32_t width, int32_t height);
+        void draw();
         void draw_sidebar();
         void draw_viewport();
         void draw_playlist();
@@ -32,31 +32,47 @@ namespace tabletopify
         {
             struct
             {
-                int width;
-                int indent;
+                nk_user_font* edit_string_font;
+            }
+            shared;
+
+            struct
+            {
+                int32_t width;
+                int32_t indent;
                 nk_user_font* font;
             }
             sidebar;
 
             struct
             {
-                int new_atmosphere_button_width;
+                struct
+                {
+                    nk_user_font* title_font;
+                    float title_height;
 
-            }
-            edit;
+                    nk_user_font* heading_font;
+                    float heading_height;
 
-            struct
-            {
-                nk_user_font* title_font;
-                float title_height;
-                nk_user_font* heading_font;
+                    float search_height;
+                    float search_field_width;
+                    float search_button_width;
+                    struct nk_image search_button_icon;
+
+                    float topbar_padding;
+                } shared;
 
                 struct
                 {
-                    int pane_width;
-                    int button_width;
-                }
-                search;
+                    float new_atmosphere_button_width;
+                } playlist;
+
+                struct
+                {
+                    nk_user_font* new_atmosphere_font;
+                    int new_atmosphere_button_width;
+
+                } edit;
             }
             viewport;
 
@@ -67,20 +83,37 @@ namespace tabletopify
         {
             struct
             {
-                struct playlist
+                int32_t width;
+                int32_t height;
+            } window;
+
+            struct
+            {
+                struct atmosphere_data
+                {
+
+                };
+
+                struct playlist_data
                 {
                     std::string title;
                     uuid id;
                     text_buffer searchQuery;
+
                 };
-                std::vector<playlist> playlists;
+                std::vector<playlist_data> playlists;
                 size_t selectedPlaylist = 0;
-                const playlist& get_selected_playlist() const
+                playlist_data& get_selected_playlist()
                 {
                     return playlists[selectedPlaylist];
                 }
             }
             sidebar;
+
+            struct
+            {
+
+            } viewport;
 
             mode_t mode = MX_MODE_VIEW_PLAYLIST;
         } _data;
