@@ -62,6 +62,8 @@ namespace tabletopify
                 playbackEntry.sound.setBuffer(soundBuffer);
                 playbackEntry.sound.setPlayingOffset(currentTimeOffset);
                 playbackEntry.sound.play();
+
+                playbackEntry.dirtyBuffer = false;
             }
 
             if(playbackEntry.sound.getStatus() == sf::SoundSource::Stopped)
