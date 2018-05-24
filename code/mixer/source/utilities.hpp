@@ -15,8 +15,8 @@ namespace tabletopify
     void assertion_log(const char* msg);
 
     // print operator for some nuklear types
-    std::ostream& operator<<(std::ostream& out, struct nk_rect& rect);
-    std::ostream& operator<<(std::ostream& out, struct nk_vec2& vec);
+    std::ostream& operator<<(std::ostream& out, const struct nk_rect& rect);
+    std::ostream& operator<<(std::ostream& out, const struct nk_vec2& vec);
     std::ostream& operator<<(std::ostream& out, const sf::Vector3f& vec);
 
     std::string string_format(const char* format, ...);

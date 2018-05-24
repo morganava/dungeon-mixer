@@ -18,6 +18,12 @@ namespace tabletopify
         MX_MUTED,
     } muted_t;
 
+    typedef enum
+    {
+        MX_STOPPED,
+        MX_PLAYING,
+    } playstate_t;
+
     class renderer
     {
     public:
@@ -67,20 +73,22 @@ namespace tabletopify
                     struct nk_image search_button_icon;
 
                     float topbar_padding;
+
+                    nk_user_font* context_menu_font;
+                    float context_menu_height;
+                    float context_menu_height;
                 } shared;
 
                 struct
                 {
                     nk_user_font* new_atmosphere_font;
-
                     float new_atmosphere_button_width;
 
-                    nk_user_font* section_font;
-                    float section_height;
+                    nk_user_font* header_font;
+                    float header_height;
 
-                    nk_user_font* column_font;
-                    float column_height;
-                    float column_indent;
+                    nk_user_font* row_font;
+                    float row_height;
 
                     float volume_width;
                     float mute_width;
@@ -137,10 +145,10 @@ namespace tabletopify
                         uuid id;
                         float volume;
                         muted_t muted;
+                        playstate_t playing;
                     };
 
-                    std::vector<atmosphere_data> playing_atmospheres;
-                    std::vector<atmosphere_data> stopped_atmospheres;
+                    std::vector<atmosphere_data> atmospheres;
                 } playlist;
             } viewport;
 

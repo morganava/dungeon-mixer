@@ -7,12 +7,12 @@ namespace tabletopify
 {
     // stream operator for various nk and sfml types
 
-    std::ostream& operator<<(std::ostream& out, struct nk_rect& rect)
+    std::ostream& operator<<(std::ostream& out, const struct nk_rect& rect)
     {
         return out << "{ x: " << rect.x << ", y: " << rect.y << ", w: " << rect.w << ", h: " << rect.h << " }";
     }
 
-    std::ostream& operator<<(std::ostream& out, struct nk_vec2& vec)
+    std::ostream& operator<<(std::ostream& out, const struct nk_vec2& vec)
     {
         return out << "{ x: " << vec.x << ", y: " << vec.y << " }";
     }

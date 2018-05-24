@@ -104,25 +104,28 @@ namespace tabletopify
             worker(Worker_UI).nextUUID()
         });
 
-        _data.viewport.playlist.playing_atmospheres.push_back({
-            "Lightning Storm",
-            worker(Worker_UI).nextUUID(),
-            0.8f,
-            MX_UNMUTED,
-        });
-
-        _data.viewport.playlist.playing_atmospheres.push_back({
-            "Raging Battle",
-            worker(Worker_UI).nextUUID(),
-            0.9f,
-            MX_MUTED,
-        });
-        
-        _data.viewport.playlist.stopped_atmospheres.push_back({
+        _data.viewport.playlist.atmospheres.push_back({
             "Farmland",
             worker(Worker_UI).nextUUID(),
             1.0f,
             MX_UNMUTED,
+            MX_STOPPED,
+        });
+
+        _data.viewport.playlist.atmospheres.push_back({
+            "Lightning Storm",
+            worker(Worker_UI).nextUUID(),
+            0.8f,
+            MX_UNMUTED,
+            MX_PLAYING,
+        });
+
+        _data.viewport.playlist.atmospheres.push_back({
+            "Raging Battle",
+            worker(Worker_UI).nextUUID(),
+            0.9f,
+            MX_MUTED,
+            MX_PLAYING,
         });
     }    
 
@@ -141,8 +144,8 @@ namespace tabletopify
         _style.sidebar.section_font = font_atlas.add(skinPath / "DejaVuSans.ttf", 18.0f);
         _style.sidebar.section_height = 22.0f;
 
-        _style.viewport.shared.title_font = font_atlas.add(skinPath / "DejaVuSans.ttf", 42.0f);
-        _style.viewport.shared.title_height = 58.0f;
+        _style.viewport.shared.title_font = font_atlas.add(skinPath / "DejaVuSans.ttf", 56.0f);
+        _style.viewport.shared.title_height = 64.0f;
         _style.viewport.shared.heading_font = font_atlas.add(skinPath / "DejaVuSans.ttf", 18.0f);
         _style.viewport.shared.heading_height = 18.0f;
         _style.viewport.shared.search_height = 24.0f;
@@ -150,14 +153,16 @@ namespace tabletopify
         _style.viewport.shared.search_button_width = 24.0f;
         _style.viewport.shared.search_button_icon = nk_load_image(skinPath / "magnifying-glass.png");
         _style.viewport.shared.topbar_padding = 4.0f;
+        _style.viewport.shared.context_menu_font = font_atlas.add(skinPath / "DejaVuSans.ttf", 18.0f);
+        _style.viewport.shared.context_menu_height = 22.0f;
+        _style.viewport.shared.context_menu_width = 300.0f;
 
         _style.viewport.playlist.new_atmosphere_font = font_atlas.add(skinPath / "DejaVuSans.ttf", 14.0f);
         _style.viewport.playlist.new_atmosphere_button_width = 132.0f;
-        _style.viewport.playlist.section_font = font_atlas.add(skinPath / "DejaVuSans.ttf", 18.0f);
-        _style.viewport.playlist.section_height = 20.0f;
-        _style.viewport.playlist.column_font = font_atlas.add(skinPath / "DejaVuSans.ttf", 16.0f);
-        _style.viewport.playlist.column_height = 32.0f;
-        _style.viewport.playlist.column_indent = 30.0f;
+        _style.viewport.playlist.header_font = font_atlas.add(skinPath / "DejaVuSans.ttf", 22.0f);
+        _style.viewport.playlist.header_height = 30.0f;
+        _style.viewport.playlist.row_font = font_atlas.add(skinPath / "DejaVuSans.ttf", 16.0f);
+        _style.viewport.playlist.row_height = 30.0f;
         _style.viewport.playlist.volume_width = 240.0f;
         _style.viewport.playlist.mute_width = 32.0f;
         _style.viewport.playlist.muted_button_icon = nk_load_image(skinPath / "mute.png");
@@ -327,93 +332,74 @@ namespace tabletopify
         nk_layout_row_dynamic(_ctx, playlistHeight, 1);
         if(nk_group_begin(_ctx, "main>viewport>playlist", 0))
         {
-            // Playing Atmospheres
+            // Header
 
-            nk_layout_row_dynamic(_ctx, _style.viewport.playlist.section_height, 1);
-            nk_style_set_font(_ctx, _style.viewport.playlist.section_font);
-            nk_label(_ctx, get_string(MX_STR_PLAYING), NK_TEXT_LEFT);
- 
-            nk_layout_row_template_begin(_ctx, _style.viewport.playlist.column_height);
-            nk_layout_row_template_push_static(_ctx, _style.viewport.playlist.column_indent);
+            nk_layout_row_template_begin(_ctx, _style.viewport.playlist.header_height);
             nk_layout_row_template_push_dynamic(_ctx);
-            nk_layout_row_template_push_static(_ctx, _style.viewport.playlist.volume_width);
-            nk_layout_row_template_push_static(_ctx, _style.viewport.playlist.mute_width);
-            nk_layout_row_template_push_static(_ctx, _style.viewport.playlist.play_stop_width);
+            nk_layout_row_template_push_static(_ctx, _style.viewport.playlist.volume_width + 
+                                                     _style.viewport.playlist.mute_width +
+                                                     _style.viewport.playlist.play_stop_width);
             nk_layout_row_template_end(_ctx);
 
-            nk_style_set_font(_ctx, _style.viewport.playlist.column_font);
-            nk_empty_fill(_ctx, 1);
+            nk_style_set_font(_ctx, _style.viewport.playlist.header_font);
             nk_label(_ctx, get_string(MX_STR_TITLE), NK_TEXT_LEFT);
             nk_label(_ctx, get_string(MX_STR_VOLUME), NK_TEXT_LEFT);
-            nk_empty_fill(_ctx, 2);
 
-            for(auto& atmosphere : _data.viewport.playlist.playing_atmospheres)
+            // Atmospheres
+
+            nk_style_set_font(_ctx, _style.viewport.playlist.row_font);
+            for(size_t idx = 0; idx < _data.viewport.playlist.atmospheres.size(); ++idx)
             {
-                nk_empty_fill(_ctx, 1);
-                // Title
-                nk_label(_ctx, atmosphere.title.c_str(), NK_TEXT_LEFT);
+                nk_layout_row_dynamic(_ctx, _style.viewport.playlist.row_height, 1);
+                auto rowBounds = nk_widget_bounds(_ctx);
 
-                // Volume Slider
-                if(nk_slider_float(_ctx, 0.0f, &atmosphere.volume, 1.0f, 0.01f))
+                // Row
+                if(nk_group_begin(_ctx, string_format("main>viewport>playlist>%u", (uint32_t)idx).c_str(), NK_WINDOW_NO_SCROLLBAR))
                 {
+                    auto& atmosphere = _data.viewport.playlist.atmospheres[idx];
 
+                    nk_layout_row_template_begin(_ctx, _style.viewport.playlist.row_height);
+                    nk_layout_row_template_push_dynamic(_ctx);
+                    nk_layout_row_template_push_static(_ctx, _style.viewport.playlist.volume_width);
+                    nk_layout_row_template_push_static(_ctx, _style.viewport.playlist.mute_width);
+                    nk_layout_row_template_push_static(_ctx, _style.viewport.playlist.play_stop_width);
+                    nk_layout_row_template_end(_ctx);
+
+                    // Title
+                    nk_label(_ctx, atmosphere.title.c_str(), NK_TEXT_LEFT);
+
+                    // Volume Slider
+                    if(nk_slider_float(_ctx, 0.0f, &atmosphere.volume, 1.0f, 0.01f))
+                    {
+
+                    }
+
+                    if(nk_button_image(_ctx, atmosphere.muted ? 
+                                             _style.viewport.playlist.muted_button_icon : 
+                                             _style.viewport.playlist.unmuted_button_icon))
+                    {
+
+                    }
+
+                    if(nk_button_image(_ctx, atmosphere.playing ? 
+                                             _style.viewport.playlist.play_button_icon : 
+                                             _style.viewport.playlist.stop_button_icon))
+                    {
+
+                    }
+
+                    nk_group_end(_ctx);
                 }
 
-                if(nk_button_image(_ctx, atmosphere.muted ? 
-                                         _style.viewport.playlist.muted_button_icon : 
-                                         _style.viewport.playlist.unmuted_button_icon))
+                // Context Menu
+                nk_vec2 contextMenuSize = {
+                    _style.viewport.shared.context_menu_width,
+                    _style.viewport.shared.context_menu_height * 4;
+                };
+                if(nk_contextual_begin(_ctx, NK_WINDOW_NO_SCROLLBAR, contextMenuSize, rowBounds))
                 {
-
-                }
-
-                if(nk_button_image(_ctx, _style.viewport.playlist.stop_button_icon))
-                {
-
-                }
-            }
-
-            // Stopped Atmosphere
-
-            nk_layout_row_dynamic(_ctx, _style.viewport.playlist.section_height, 1);
-            nk_style_set_font(_ctx, _style.viewport.playlist.section_font);
-            nk_label(_ctx, get_string(MX_STR_STOPPED), NK_TEXT_LEFT);
-
-            nk_layout_row_template_begin(_ctx, _style.viewport.playlist.column_height);
-            nk_layout_row_template_push_static(_ctx, _style.viewport.playlist.column_indent);
-            nk_layout_row_template_push_dynamic(_ctx);
-            nk_layout_row_template_push_static(_ctx, _style.viewport.playlist.volume_width);
-            nk_layout_row_template_push_static(_ctx, _style.viewport.playlist.mute_width);
-            nk_layout_row_template_push_static(_ctx, _style.viewport.playlist.play_stop_width);
-            nk_layout_row_template_end(_ctx);
-
-            nk_style_set_font(_ctx, _style.viewport.playlist.column_font);
-            nk_empty_fill(_ctx, 1);
-            nk_label(_ctx, get_string(MX_STR_TITLE), NK_TEXT_LEFT);
-            nk_label(_ctx, get_string(MX_STR_VOLUME), NK_TEXT_LEFT);
-            nk_empty_fill(_ctx, 2);
-
-            for(auto& atmosphere : _data.viewport.playlist.stopped_atmospheres)
-            {
-                nk_empty_fill(_ctx, 1);
-                // Title
-                nk_label(_ctx, atmosphere.title.c_str(), NK_TEXT_LEFT);
-
-                // Volume Slider
-                if(nk_slider_float(_ctx, 0.0f, &atmosphere.volume, 1.0f, 0.01f))
-                {
-
-                }
-
-                if(nk_button_image(_ctx, atmosphere.muted ? 
-                                         _style.viewport.playlist.muted_button_icon : 
-                                         _style.viewport.playlist.unmuted_button_icon))
-                {
-
-                }
-
-                if(nk_button_image(_ctx, _style.viewport.playlist.play_button_icon))
-                {
-
+                    nk_layout_row_dynamic(_ctx, contextMenuSize.y, 1);
+                    nk_contextual_end(_ctx);
                 }
             }
 
