@@ -5,6 +5,7 @@
 #include "draw.hpp"
 #include "nuklear_extensions.hpp"
 #include "serialization.hpp"
+#include "string_manager.hpp"
 
 namespace tabletopify
 {
@@ -392,10 +393,10 @@ namespace tabletopify
                 }
 
                 // Context Menu
-                nk_vec2 contextMenuSize = {
+                auto contextMenuSize = nk_vec2(
                     _style.viewport.shared.context_menu_width,
-                    _style.viewport.shared.context_menu_height * 4;
-                };
+                    _style.viewport.shared.context_menu_height * 4
+                );
                 if(nk_contextual_begin(_ctx, NK_WINDOW_NO_SCROLLBAR, contextMenuSize, rowBounds))
                 {
                     nk_layout_row_dynamic(_ctx, contextMenuSize.y, 1);

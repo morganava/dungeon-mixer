@@ -76,7 +76,7 @@ namespace tabletopify
 
                     nk_user_font* context_menu_font;
                     float context_menu_height;
-                    float context_menu_height;
+                    float context_menu_width;
                 } shared;
 
                 struct
