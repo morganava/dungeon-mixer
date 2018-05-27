@@ -3,6 +3,7 @@
 #include "audio.hpp"
 #include "serialization.hpp"
 #include "draw.hpp"
+#include "string_manager.hpp"
 
 namespace tabletopify
 {
@@ -25,6 +26,10 @@ namespace tabletopify
         // load our audio manifests
         load_audio_manifests();
 
+        // init strings
+        init_string_manager(get_strings_path() / "en-us.json");
+
+        // init renderer
         init_renderer(ctx);
 
     }
@@ -32,6 +37,8 @@ namespace tabletopify
     void free_globals()
     {
         free_renderer();
+
+        free_string_manager();
 
         // close queues off to new work
         free_work_manager();
@@ -41,5 +48,7 @@ namespace tabletopify
         free_atmosphere_directory();
         free_track_directory();
         free_audio_directory();
+
+        
     }
 }

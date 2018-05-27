@@ -9,49 +9,6 @@
 
 namespace tabletopify
 {
-    typedef enum
-    {
-        MX_STR_PLAYLISTS,
-        MX_STR_CREATE_PLAYLIST,
-        MX_STR_ALL_PLAYLIST,
-        MX_STR_EDIT_ATMOSPHERE,
-        MX_STR_ABOUT,
-        MX_STR_PLAYLIST,
-        MX_STR_NEW_ATMOSPHERE,
-        MX_STR_SEARCH,
-        MX_STR_SETTINGS,
-        MX_STR_PLAYING,
-        MX_STR_STOPPED,
-        MX_STR_TITLE,
-        MX_STR_VOLUME,
-
-        MX_STR_COUNT,
-    } mixer_string_t;
-
-    const char* get_string(mixer_string_t str)
-    {
-        const char* english_strings[] =
-        {
-            "PLAYLISTS",
-            "+CREATE",
-            "All",
-            "EDIT",
-            "ABOUT",
-            "PLAYLIST",
-            "NEW ATMOSPHERE",
-            "SEARCH",
-            "SETTINGS",
-            "PLAYING",
-            "STOPPED",
-            "TITLE",
-            "VOLUME",
-        };
-
-        MX_STATIC_ASSERT(countof(english_strings) == MX_STR_COUNT);
-
-        return english_strings[str];
-    }
-
     static renderer* g_renderer = nullptr;
     renderer* get_renderer()
     {
@@ -95,7 +52,7 @@ namespace tabletopify
         // dummy 'All' playlislt
 
         _data.sidebar.playlists.push_back({
-            get_string(MX_STR_ALL_PLAYLIST),
+            MX_GET_CSTRING(MX_STR_ALL_PLAYLIST),
             uuid::null
         });
 
@@ -209,7 +166,7 @@ namespace tabletopify
 
             // playlist button
             nk_layout_row_dynamic(_ctx, _style.sidebar.section_height, 1);
-            nk_label(_ctx, get_string(MX_STR_PLAYLISTS), NK_TEXT_LEFT);
+            nk_label(_ctx, MX_GET_CSTRING(MX_STR_PLAYLISTS), NK_TEXT_LEFT);
 
             // create playlist button
             nk_layout_row_template_begin(_ctx, _style.sidebar.section_height);
@@ -218,7 +175,7 @@ namespace tabletopify
             nk_layout_row_template_end(_ctx);
 
             nk_empty_fill(_ctx, 1);
-            nk_label(_ctx, get_string(MX_STR_CREATE_PLAYLIST), NK_TEXT_LEFT);
+            nk_label(_ctx, MX_GET_CSTRING(MX_STR_CREATE_PLAYLIST), NK_TEXT_LEFT);
 
             for(const auto& pl : _data.sidebar.playlists)
             {
@@ -228,15 +185,15 @@ namespace tabletopify
 
             // edit button
             nk_layout_row_dynamic(_ctx, _style.sidebar.section_height, 1);
-            nk_label(_ctx, get_string(MX_STR_EDIT_ATMOSPHERE), NK_TEXT_LEFT);
+            nk_label(_ctx, MX_GET_CSTRING(MX_STR_EDIT_ATMOSPHERE), NK_TEXT_LEFT);
 
             // settings button
             nk_layout_row_dynamic(_ctx, _style.sidebar.section_height, 1);
-            nk_label(_ctx, get_string(MX_STR_SETTINGS), NK_TEXT_LEFT);
+            nk_label(_ctx, MX_GET_CSTRING(MX_STR_SETTINGS), NK_TEXT_LEFT);
 
            // about button
             nk_layout_row_dynamic(_ctx, _style.sidebar.section_height, 1);
-            nk_label(_ctx, get_string(MX_STR_ABOUT), NK_TEXT_LEFT);
+            nk_label(_ctx, MX_GET_CSTRING(MX_STR_ABOUT), NK_TEXT_LEFT);
 
             nk_group_end(_ctx);
         }
@@ -281,7 +238,7 @@ namespace tabletopify
 
             nk_style_set_font(_ctx, _style.viewport.shared.heading_font);
             nk_layout_row_dynamic(_ctx, _style.viewport.shared.heading_height, 1);
-            nk_label(_ctx, get_string(MX_STR_PLAYLIST), NK_TEXT_LEFT);
+            nk_label(_ctx, MX_GET_CSTRING(MX_STR_PLAYLIST), NK_TEXT_LEFT);
 
             // Playlist title
 
@@ -304,7 +261,7 @@ namespace tabletopify
                 
                 // New Atmosphere Button
                 nk_style_set_font(_ctx, _style.viewport.playlist.new_atmosphere_font);
-                if(nk_button_label(_ctx, get_string(MX_STR_NEW_ATMOSPHERE)))
+                if(nk_button_label(_ctx, MX_GET_CSTRING(MX_STR_NEW_ATMOSPHERE)))
                 {
 
                 }
@@ -343,8 +300,8 @@ namespace tabletopify
             nk_layout_row_template_end(_ctx);
 
             nk_style_set_font(_ctx, _style.viewport.playlist.header_font);
-            nk_label(_ctx, get_string(MX_STR_TITLE), NK_TEXT_LEFT);
-            nk_label(_ctx, get_string(MX_STR_VOLUME), NK_TEXT_LEFT);
+            nk_label(_ctx, MX_GET_CSTRING(MX_STR_TITLE), NK_TEXT_LEFT);
+            nk_label(_ctx, MX_GET_CSTRING(MX_STR_VOLUME), NK_TEXT_LEFT);
 
             // Atmospheres
 

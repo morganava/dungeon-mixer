@@ -16,7 +16,7 @@ namespace tabletopify
         return home;
     }
 
-    static fs::path get_tabletopify_path()
+    fs::path get_tabletopify_path()
     {
         static fs::path tabletopify_path = get_home_path() / ".tabletopify";
         return tabletopify_path;
@@ -32,6 +32,12 @@ namespace tabletopify
     {
         static fs::path skins_path = get_tabletopify_path() / "skins";
         return skins_path;
+    }
+
+    fs::path get_strings_path()
+    {
+        static fs::path strings_path = get_tabletopify_path() / "strings";
+        return strings_path;
     }
 
     void load_audio_manifests()
