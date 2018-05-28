@@ -50,7 +50,14 @@ namespace tabletopify
 
 int main() try
 {
-    nk_main("Tabletop Mixer", 800, 600, &tabletopify::init_callback, &tabletopify::gui_callback, &tabletopify::close_callback);
+    struct nk_callbacks callbacks = 
+    {
+        &tabletopify::init_callback,
+        &tabletopify::gui_callback,
+        &tabletopify::close_callback
+    };
+
+    nk_main("Tabletop Mixer", 800, 600, callbacks);
 }
 catch(const std::exception& ex)
 {

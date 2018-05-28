@@ -68,9 +68,7 @@ nk_main(
     const char* window_title,
     int width,
     int height,
-    nk_init_callback init_callback,
-    nk_gui_callback gui_callback,
-    nk_close_callback close_callback)
+    struct nk_callbacks callbacks)
 {
     const int WINDOW_WIDTH = width;
     const int WINDOW_HEIGHT = height;
@@ -108,7 +106,7 @@ nk_main(
     ctx = nk_glfw3_init(win, NK_GLFW3_INSTALL_CALLBACKS);
 
     /* Init */
-    if(init_callback) init_callback(ctx);
+    if(callbacks.init) callbacks.init(ctx);
 
     int64_t prev_time = get_time();
 
@@ -129,7 +127,7 @@ nk_main(
         glfwGetWindowSize(win, &width, &height);
 
         /* GUI */
-        if(gui_callback) gui_callback(dt, ctx, width, height);
+        if(callbacks.update) callbacks.update(dt, ctx, width, height);
 
         /* Draw */
         {
@@ -147,7 +145,7 @@ nk_main(
             glfwSwapBuffers(win);
         }
     }
-    if(close_callback) close_callback(ctx);
+    if(callbacks.close) callbacks.close(ctx);
 
     nk_glfw3_shutdown();
     glfwTerminate();
