@@ -46,6 +46,11 @@ namespace tabletopify
     {
         free_globals();
     }
+
+    void error_callback(const char* msg)
+    {
+        MX_LOG_ERROR(std::string(msg));
+    }
 }
 
 using namespace tabletopify;
@@ -58,7 +63,8 @@ int main() try
     {
         &tabletopify::init_callback,
         &tabletopify::gui_callback,
-        &tabletopify::close_callback
+        &tabletopify::close_callback,
+        &error_callback,
     };
 
     nk_main("Tabletop Mixer", 800, 600, callbacks);

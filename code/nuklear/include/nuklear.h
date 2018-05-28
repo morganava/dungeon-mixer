@@ -564,12 +564,14 @@ enum nk_symbol_type {
 typedef void(*nk_init_callback)(struct nk_context*);
 typedef void(*nk_update_callback)(float dt, struct nk_context*, int width, int height);
 typedef void(*nk_close_callback)(struct nk_context*);
+typedef void(*nk_error_callback)(const char* msg);
 
 struct nk_callbacks
 {
     nk_init_callback init;
     nk_update_callback update;
     nk_close_callback close;
+    nk_error_callback error;
 };
 
 NK_API void

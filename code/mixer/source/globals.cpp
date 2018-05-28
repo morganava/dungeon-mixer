@@ -36,15 +36,13 @@ namespace tabletopify
 
         free_string_manager();
 
-        // close queues off to new work
-        free_work_manager();
-
         // free audio managers
         free_playback_manager();
         free_atmosphere_directory();
         free_track_directory();
         free_audio_directory();
 
-        
+        // close queues off to new work
+        free_work_manager();        
     }
 }

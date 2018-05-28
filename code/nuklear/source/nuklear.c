@@ -32,8 +32,15 @@
 #define MAX(a,b) ((a) < (b) ? (b) : (a))
 #define LEN(a) (sizeof(a)/sizeof(a)[0])
 
-static void error_callback(int e, const char *d)
-{fprintf(stderr, "Error %d: %s\n", e, d);}
+static struct nk_callbacks callbacks;
+
+static void nk_glfw3_error_callback(int e, const char *d)
+{
+    if(callbacks.error)
+    {
+        callbacks.error(d);
+    }
+}
 
 #include <sys/time.h>
 
@@ -68,10 +75,11 @@ nk_main(
     const char* window_title,
     int width,
     int height,
-    struct nk_callbacks callbacks)
+    struct nk_callbacks callbackFunctions)
 {
     const int WINDOW_WIDTH = width;
     const int WINDOW_HEIGHT = height;
+    callbacks = callbackFunctions;
 
     /* Platform */
     static GLFWwindow *win;
@@ -79,10 +87,12 @@ nk_main(
     struct nk_color background;
 
     /* GLFW */
-    glfwSetErrorCallback(error_callback);
-    if (!glfwInit()) {
-        fprintf(stdout, "[GFLW] failed to init!\n");
-        exit(1);
+    glfwSetErrorCallback(nk_glfw3_error_callback);
+    if (!glfwInit()) 
+    {
+        if(callbacks.error) callbacks.error("GLFW failed to init");
+        if(callbacks.close) callbacks.close(NULL);
+        return;
     }
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -98,15 +108,20 @@ nk_main(
     /* OpenGL */
     glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
     glewExperimental = 1;
-    if (glewInit() != GLEW_OK) {
-        fprintf(stderr, "Failed to setup GLEW\n");
-        exit(1);
+    if (glewInit() != GLEW_OK) 
+    {
+        if(callbacks.error) callbacks.error("GLEW failed to init");
+        if(callbacks.close) callbacks.close(NULL);
+        return;
     }
 
     ctx = nk_glfw3_init(win, NK_GLFW3_INSTALL_CALLBACKS);
 
     /* Init */
-    if(callbacks.init) callbacks.init(ctx);
+    if(callbacks.init)
+    {
+        callbacks.init(ctx);
+    }
 
     int64_t prev_time = get_time();
 
@@ -127,7 +142,10 @@ nk_main(
         glfwGetWindowSize(win, &width, &height);
 
         /* GUI */
-        if(callbacks.update) callbacks.update(dt, ctx, width, height);
+        if(callbacks.update)
+        {
+            callbacks.update(dt, ctx, width, height);
+        }
 
         /* Draw */
         {
@@ -145,7 +163,10 @@ nk_main(
             glfwSwapBuffers(win);
         }
     }
-    if(callbacks.close) callbacks.close(ctx);
+    if(callbacks.close) 
+    {
+        callbacks.close(ctx);
+    }
 
     nk_glfw3_shutdown();
     glfwTerminate();
