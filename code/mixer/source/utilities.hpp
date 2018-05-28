@@ -1,24 +1,24 @@
 #pragma once
 
+#include "logger.hpp"
+
 #define MX_DEBUGBREAK(...) __builtin_trap()
 
 #define STRINGIFY2(X) #X
 #define STRINGIFY(X) STRINGIFY2(X)
 #define __STR_LINE__ STRINGIFY(__LINE__)
 
-#define MX_ASSERT(X) do {bool result = (X); if(!result) { tabletopify::assertion_log("Assertion Failure: " __FILE__ ":" __STR_LINE__ " " #X); MX_DEBUGBREAK();} } while(false);
+#define MX_ASSERT(X) do {bool result = (X); if(!result) { tabletopify::get_logger()->blocking_log(LogLevel_Error, "Assertion Failure: " __FILE__ ":" __STR_LINE__ " " #X); MX_DEBUGBREAK();} } while(false);
 #define MX_STATIC_ASSERT(X) static_assert(X, STRINGIFY(X))
 #define MX_THROW_IF_FALSE(X) do {bool result = (X); if(!result) {throw std::runtime_error("Runtime Failure: " __FILE__ ":" __STR_LINE__ " " #X);} } while(0);
 
+// print operator for some nuklear types
+std::ostream& operator<<(std::ostream& out, const struct nk_rect& rect);
+std::ostream& operator<<(std::ostream& out, const struct nk_vec2& vec);
+std::ostream& operator<<(std::ostream& out, const sf::Vector3f& vec);
+
 namespace tabletopify
 {
-    void assertion_log(const char* msg);
-
-    // print operator for some nuklear types
-    std::ostream& operator<<(std::ostream& out, const struct nk_rect& rect);
-    std::ostream& operator<<(std::ostream& out, const struct nk_vec2& vec);
-    std::ostream& operator<<(std::ostream& out, const sf::Vector3f& vec);
-
     std::string string_format(const char* format, ...);
     std::string vstring_format(const char* format, va_list argsSrc);
 

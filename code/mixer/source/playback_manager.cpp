@@ -111,7 +111,7 @@ namespace tabletopify
 
     void playback_manager::play_track(track_handle_t trackHandle)
     {
-        log(LogLevel_Info, "playing track handle %lu", trackHandle);
+        MX_LOG_INFO("playing track handle {0}", trackHandle);
 
         MX_ASSERT(_entries.find(trackHandle) == _entries.end());
 

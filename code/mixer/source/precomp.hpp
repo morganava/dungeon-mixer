@@ -50,6 +50,10 @@ namespace nl = nlohmann;
 // stb_image : https://raw.githubusercontent.com/nothings/stb/master/stb_image.h
 #include <stb_image.h>
 
+// fmt : https://github.com/fmtlib/fmt
+#include <fmt/format.h>
+#include <fmt/ostream.h>
+
 // countof(X)
 template<typename T, size_t N>
 constexpr size_t countof(const T (&)[N]) { return N; }

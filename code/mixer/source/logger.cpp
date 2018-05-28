@@ -2,89 +2,55 @@
 #include "work_queue.hpp"
 #include "logger.hpp"
 
+class date {
+  int year_, month_, day_;
+public:
+  date(int year, int month, int day): year_(year), month_(month), day_(day) {}
+
+  friend std::ostream&operator<<(std::ostream&os, const date &d) {
+    return os << d.year_ << '-' << d.month_ << '-' << d.day_;
+  }
+};
+
+
 namespace tabletopify
 {
-    static log_level_t log_level = LogLevel_Info;
-    const static std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
-    FILE* log_file = nullptr;
-    constexpr auto log_format_string = "[%f]%s %s\n";
+    const std::chrono::system_clock::time_point logger::_start = std::chrono::system_clock::now();
+    static logger* g_logger = nullptr;
 
-    const char* log_level_names[] =
+    logger* get_logger()
     {
-        "[ERROR]",
-        "[INFO]",
-    };
+        return g_logger;
+    }
 
     void init_logger(log_level_t lvl)
     {
-        // Windows go to : GetTempPath()
-        log_file = fopen("/tmp/tabletopify.log", "wb");
-        MX_ASSERT(log_file != nullptr);
-
-        log_level = lvl;
+        MX_ASSERT(g_logger == nullptr);
+        g_logger = new logger(lvl);
     }
 
     void free_logger()
     {
+        delete g_logger;
+        g_logger = nullptr;
+    }
+
+    logger::logger(log_level_t lvl)
+    : _log_level(lvl)
+    , _log_file(nullptr)
+    {
+        _log_file = fopen("/tmp/tabletopify.log", "wb");
+        MX_ASSERT(_log_file != nullptr);
+    }
+
+    void logger::write_message(log_level_t lvl, double duration, const char* msg)
+    {
+        std::string fullMsg = fmt::format(_log_format_strings[lvl], duration, msg);
+
+        std::fwrite(fullMsg.c_str(), sizeof(char), fullMsg.size(), stdout);
+        std::fwrite(fullMsg.c_str(), sizeof(char), fullMsg.size(), _log_file);
+
         std::fflush(stdout);
-        std::fclose(log_file);
-    }
-
-    static void log_message(log_level_t lvl,
-                            std::string&& msg,
-                            volatile bool* finished=nullptr)
-    {
-        auto now = std::chrono::system_clock::now();
-        std::chrono::duration<double> duration(now - start);
-
-        worker(Worker_Logging).enqueue([lvl=lvl, count=duration.count(), msg=std::move(msg)]() -> void
-        {
-            std::fprintf(stdout, log_format_string, count, log_level_names[lvl], msg.data());
-            std::fprintf(log_file, log_format_string, count, log_level_names[lvl], msg.data());
-
-            std::fflush(stdout);
-            std::fflush(log_file);
-        }, finished);
-    }
-
-    void log(log_level_t lvl, std::string&& msg)
-    {
-        MX_ASSERT(lvl < LogLevel_Count);
-        if(lvl <= log_level)
-        {
-            log_message(lvl, std::move(msg));
-        }
-    }
-
-    void log(log_level_t lvl, const char* format, ...)
-    {
-        MX_ASSERT(lvl < LogLevel_Count);
-        if(lvl <= log_level)
-        {
-            va_list args;
-            va_start(args, format);
-            std::string msg = vstring_format(format, args);
-            va_end(args);
-
-            log_message(lvl, std::move(msg));
-        }
-    }
-
-    void log(log_level_t lvl, const std::ostream& strm)
-    {
-        MX_ASSERT(lvl < LogLevel_Count);
-        if(lvl <= log_level)
-        {
-            std::string msg = dynamic_cast<const std::stringstream&>(strm).str();
-
-            log_message(lvl, std::move(msg));
-        }
-    }
-
-    void assertion_log(const char* msg)
-    {
-        volatile bool finished = false;
-        log_message(LogLevel_Error, msg, &finished);
-        while(!finished) std::this_thread::yield();
+        std::fflush(_log_file);
     }
 }

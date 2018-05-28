@@ -3,25 +3,26 @@
 #include "work_queue.hpp"
 #include "logger.hpp"
 
+
+// stream operator for various nk and sfml types
+
+std::ostream& operator<<(std::ostream& out, const struct nk_rect& rect)
+{
+    return out << "{ x: " << rect.x << ", y: " << rect.y << ", w: " << rect.w << ", h: " << rect.h << " }";
+}
+
+std::ostream& operator<<(std::ostream& out, const struct nk_vec2& vec)
+{
+    return out << "{ x: " << vec.x << ", y: " << vec.y << " }";
+}
+
+std::ostream& operator<<(std::ostream& out, const sf::Vector3f& vec)
+{
+    return out << "{ x: " << vec.x << ", y: " << vec.y << ", z: " << vec.z << " }";
+}
+
 namespace tabletopify
 {
-    // stream operator for various nk and sfml types
-
-    std::ostream& operator<<(std::ostream& out, const struct nk_rect& rect)
-    {
-        return out << "{ x: " << rect.x << ", y: " << rect.y << ", w: " << rect.w << ", h: " << rect.h << " }";
-    }
-
-    std::ostream& operator<<(std::ostream& out, const struct nk_vec2& vec)
-    {
-        return out << "{ x: " << vec.x << ", y: " << vec.y << " }";
-    }
-
-    std::ostream& operator<<(std::ostream& out, const sf::Vector3f& vec)
-    {
-        return out << "{ x: " << vec.x << ", y: " << vec.y << ", z: " << vec.z << " }";
-    }
-
     // string operations
 
     std::string vstring_format(const char* format, va_list argsSrc)
@@ -107,7 +108,7 @@ namespace tabletopify
         switch(NFD_OpenDialog(filterList, nullptr, &path))
         {
             case NFD_ERROR:
-                log(LogLevel_Error, "%s", NFD_GetError());
+                MX_LOG_ERROR("{0}", std::string(NFD_GetError()));
                 return {};
             case NFD_OKAY:
             {
@@ -127,7 +128,7 @@ namespace tabletopify
         switch(NFD_SaveDialog(filterList, nullptr, &path))
         {
             case NFD_ERROR:
-                log(LogLevel_Error, "%s", NFD_GetError());
+                MX_LOG_ERROR("{0}", std::string(NFD_GetError()));
                 return {};
             case NFD_OKAY:
             {

@@ -64,12 +64,12 @@ namespace tabletopify
 
         if(raw == nullptr)
         {
-            MX_LOG_ERROR("Failed to load image \"%s\", \"%s\"", imageFile.c_str(), stbi_failure_reason());
+            MX_LOG_ERROR("Failed to load image \"{}\", \"{}\"", imageFile.filename().native(), std::string(stbi_failure_reason()));
             return nk_image_id(0);
         }
 
         auto result = nk_load_image_from_memory(width, height, raw.get());        
-        MX_LOG_INFO("Loaded image: %s", imageFile.c_str());
+        MX_LOG_INFO("Loaded image: {}", imageFile.filename().native());
         return result;
     }
 }

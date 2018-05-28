@@ -42,7 +42,7 @@ namespace tabletopify
                                 nullptr);
             auto fontHandle = &(font->handle);
             _font_map.insert({{fontName, fontSize}, fontHandle});
-            log(LogLevel_Info, ss() << "Baked font: " << fontName << ", " << fontSize << "px");
+            MX_LOG_INFO("Baked font: {}, {}px", fontName, fontSize);
             return fontHandle;
         }
         return it->second;

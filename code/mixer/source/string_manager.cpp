@@ -37,7 +37,7 @@ namespace tabletopify
                     g_string_manager->_strings[idx] = stringList[idx];
                 }
                 g_string_manager->_strings_loaded = true;
-                MX_LOG_INFO(ss() << "Loaded strings: " << stringsPath);
+                MX_LOG_INFO("Loaded strings: {}", stringsPath.filename().native());
             });
         });
     }
