@@ -23,34 +23,6 @@ std::ostream& operator<<(std::ostream& out, const sf::Vector3f& vec)
 
 namespace tabletopify
 {
-    // string operations
-
-    std::string vstring_format(const char* format, va_list argsSrc)
-    {
-        va_list args1, args2;
-        va_copy(args1, argsSrc);
-        va_copy(args2, argsSrc);
-
-        auto len = vsnprintf(nullptr, 0, format, args1);
-        va_end(args1);
-
-        std::string result(len, 0);
-        vsnprintf(const_cast<char*>(result.data()), len+1, format, args2);
-        va_end(args2);
-
-        return result;
-    };
-
-    std::string string_format(const char* format, ...)
-    {
-        va_list args;
-        va_start(args, format);
-        std::string result = vstring_format(format, args);
-        va_end(args);
-
-        return result;
-    }
-
     std::vector<std::string> split(const std::string& str, const std::string& delim)
     {
         std::vector<std::string> result;
@@ -108,7 +80,7 @@ namespace tabletopify
         switch(NFD_OpenDialog(filterList, nullptr, &path))
         {
             case NFD_ERROR:
-                MX_LOG_ERROR("{0}", std::string(NFD_GetError()));
+                MX_LOG_ERROR("{}", std::string(NFD_GetError()));
                 return {};
             case NFD_OKAY:
             {
@@ -128,7 +100,7 @@ namespace tabletopify
         switch(NFD_SaveDialog(filterList, nullptr, &path))
         {
             case NFD_ERROR:
-                MX_LOG_ERROR("{0}", std::string(NFD_GetError()));
+                MX_LOG_ERROR("{}", std::string(NFD_GetError()));
                 return {};
             case NFD_OKAY:
             {

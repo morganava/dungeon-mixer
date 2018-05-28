@@ -9,7 +9,7 @@ namespace tabletopify
 {
     // globals
 
-    void init_globals(nk_context* ctx)
+    void init_globals()
     {
         // work queue
         init_work_manager();
@@ -28,10 +28,6 @@ namespace tabletopify
 
         // init strings
         init_string_manager(get_strings_path() / "en-us.json");
-
-        // init renderer
-        init_renderer(ctx);
-
     }
 
     void free_globals()

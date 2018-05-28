@@ -21,6 +21,17 @@ namespace tabletopify
     public:
         logger(log_level_t logLevel);
 
+        void log(log_level_t lvl, const std::string& msg)
+        {
+            auto now = std::chrono::system_clock::now();
+
+            worker(Worker_Logging).enqueue([=]() -> void
+            {
+                std::chrono::duration<double> duration(now - _start);
+                write_message(lvl, duration.count(), msg.c_str());
+            });            
+        }
+
         template<size_t N>
         void log(log_level_t lvl, const char (&msg)[N])
         {
@@ -30,7 +41,7 @@ namespace tabletopify
             {
                 std::chrono::duration<double> duration(now - _start);
                 write_message(lvl, duration.count(), msg);
-            });            
+            });
         }
         
         template<size_t N, typename... Args>
@@ -45,6 +56,19 @@ namespace tabletopify
                 auto msg = fmt::format(format, args...);
                 write_message(lvl, duration.count(), msg.c_str());
             });
+        }
+
+        void blocking_log(log_level_t lvl, const std::string& msg)
+        {
+            auto now = std::chrono::system_clock::now();
+
+            volatile bool finished = false;
+            worker(Worker_Logging).enqueue([=]() -> void
+            {
+                std::chrono::duration<double> duration(now - _start);
+                write_message(lvl, duration.count(), msg.c_str());
+            }, &finished);
+            while(!finished) std::this_thread::yield();
         }
 
         template<size_t N>

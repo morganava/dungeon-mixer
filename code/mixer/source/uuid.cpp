@@ -10,8 +10,7 @@ namespace tabletopify
 
     std::string uuid::str() const
     {
-        std::string result(36, 0);
-        snprintf(result.data(), result.size() + 1,
+        std::string result = fmt::sprintf(
             uuid_format_string,
             bytes[0], bytes[1], bytes[2], bytes[3],
             bytes[4], bytes[5], bytes[6], bytes[7],
@@ -37,11 +36,6 @@ namespace tabletopify
                this->qwords[1] == that.qwords[1];
     }
 
-    std::ostream& operator<<(std::ostream& out, const struct uuid& id)
-    {
-        return out << id.str();
-    }
-
     void to_json(nl::json& j, const struct uuid& id)
     {
         j = id.str();
@@ -59,4 +53,9 @@ namespace tabletopify
             &id.bytes[8], &id.bytes[9], &id.bytes[10], &id.bytes[11],
             &id.bytes[12], &id.bytes[13], &id.bytes[14], &id.bytes[15]));
     }
+}
+
+std::ostream& operator<<(std::ostream& out, const struct tabletopify::uuid& id)
+{
+    return out << id.str();
 }

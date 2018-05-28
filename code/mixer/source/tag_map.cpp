@@ -39,12 +39,6 @@ namespace tabletopify
 
     void tag_map::add_key(handle_t key, const std::vector<std::string>& tags)
     {
-        printf("Adding key: %lu\n", key);
-        for(const auto& str : tags)
-        {
-            printf(" %s\n", str.c_str());
-        }
-
         MX_ASSERT(_key_to_tags.find(key) == _key_to_tags.end());
 
         for(auto tag : tags)
@@ -59,12 +53,9 @@ namespace tabletopify
 
     std::vector<handle_t> tag_map::get_keys_by_tag_query(const std::vector<std::string>& query_tags) const
     {
-        printf("Querying!\n");
         std::unordered_set<handle_t> result(_keys.begin(), _keys.end());
         for(auto tag : query_tags)
         {
-            printf("Querying tag: \"%s\"\n", tag.c_str());
-
             // get all keys which have the current tag
             std::unordered_set<handle_t> intermediates;
             auto range = _tag_to_keys.equal_range(tag);

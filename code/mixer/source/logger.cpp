@@ -2,17 +2,6 @@
 #include "work_queue.hpp"
 #include "logger.hpp"
 
-class date {
-  int year_, month_, day_;
-public:
-  date(int year, int month, int day): year_(year), month_(month), day_(day) {}
-
-  friend std::ostream&operator<<(std::ostream&os, const date &d) {
-    return os << d.year_ << '-' << d.month_ << '-' << d.day_;
-  }
-};
-
-
 namespace tabletopify
 {
     const std::chrono::system_clock::time_point logger::_start = std::chrono::system_clock::now();

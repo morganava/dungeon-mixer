@@ -57,11 +57,8 @@ namespace tabletopify
 
     void worker_manager::finish()
     {
-        std::cout << "Finishing Work Queues" << std::endl;
-
         _accepting_work = false;
 
-        std::cout << "Waiting for workers" << std::endl;
         for(size_t k = 1; k < Worker_Count; k++)
         {
             _threads[k].join();

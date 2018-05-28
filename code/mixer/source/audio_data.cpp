@@ -48,16 +48,12 @@ namespace tabletopify
 
         const uint32_t sample_rate = sourceSound.getSampleRate();
 
-        printf("Sample Count: %lu Channels: %i Sample Rate: %u\n", sample_count, channels, sample_rate);
-
         destSound.loadFromSamples(dest_samples.release(), sample_count, 1, sample_rate);
     }
 
     // Base Audio Data
     void audio_data::load(std::shared_ptr<audio_data> audio)
     {
-        printf("Loading Audio!\n");
-
         MX_ASSERT(audio->_state == UNLOADED);
         audio->_state = LOADING;
 
@@ -70,7 +66,6 @@ namespace tabletopify
 
     void audio_data::unload(std::shared_ptr<audio_data> audio)
     {
-        printf("Unloading Audio!\n");
         MX_ASSERT(audio->_state == LOADED);
         audio->_state = UNLOADING;
 
@@ -115,7 +110,6 @@ namespace tabletopify
 
     void one_shot_data::load_impl()
     {
-        printf("Load Impl!\n");
         for(size_t k = 0; k < _paths.size(); k++)
         {
             const auto& currentPath = _paths[k];

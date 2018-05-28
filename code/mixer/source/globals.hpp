@@ -2,6 +2,6 @@
 
 namespace tabletopify
 {
-	void init_globals(nk_context* ctx);
+	void init_globals();
 	void free_globals();
 }

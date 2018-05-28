@@ -312,7 +312,7 @@ namespace tabletopify
                 auto rowBounds = nk_widget_bounds(_ctx);
 
                 // Row
-                if(nk_group_begin(_ctx, string_format("main>viewport>playlist>%u", (uint32_t)idx).c_str(), NK_WINDOW_NO_SCROLLBAR))
+                if(nk_group_begin(_ctx, fmt::format("main>viewport>playlist>{}", idx).c_str(), NK_WINDOW_NO_SCROLLBAR))
                 {
                     auto& atmosphere = _data.viewport.playlist.atmospheres[idx];
 

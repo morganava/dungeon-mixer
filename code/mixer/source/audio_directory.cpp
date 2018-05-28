@@ -56,7 +56,6 @@ namespace tabletopify
                         {
                             audio_data::unload(current_entry.data);
                         }
-                        printf("audio title: \"%s\" age: %f\n", current_entry.title.c_str(), current_entry.age);
                     }
                     else
                     {

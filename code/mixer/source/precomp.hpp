@@ -53,6 +53,7 @@ namespace nl = nlohmann;
 // fmt : https://github.com/fmtlib/fmt
 #include <fmt/format.h>
 #include <fmt/ostream.h>
+#include <fmt/printf.h>
 
 // countof(X)
 template<typename T, size_t N>

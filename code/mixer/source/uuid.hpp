@@ -20,8 +20,6 @@ namespace tabletopify
         const static uuid null;
     };
 
-    std::ostream& operator<<(std::ostream& out, const struct uuid& id);
-
     void to_json(nl::json& j, const struct uuid& id);
     void from_json(const nl::json& j, struct uuid& id);
 
@@ -33,3 +31,5 @@ namespace tabletopify
         }
     };
 }
+
+std::ostream& operator<<(std::ostream& out, const struct tabletopify::uuid& id);

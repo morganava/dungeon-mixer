@@ -8,7 +8,8 @@ namespace tabletopify
 {
     void init_callback(nk_context* ctx)
     {
-        init_globals(ctx);
+        // init renderer
+        init_renderer(ctx);
     }
 
     void gui_callback(float dt, nk_context* ctx, int width, int height)
@@ -47,9 +48,12 @@ namespace tabletopify
     }
 }
 
+using namespace tabletopify;
 
 int main() try
 {
+    tabletopify::init_globals();
+
     struct nk_callbacks callbacks = 
     {
         &tabletopify::init_callback,
@@ -61,5 +65,5 @@ int main() try
 }
 catch(const std::exception& ex)
 {
-    std::fprintf(stderr, "Error: %s\n", ex.what());
+    get_logger()->blocking_log(LogLevel_Error, ex.what());
 }

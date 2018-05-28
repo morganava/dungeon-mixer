@@ -49,15 +49,11 @@ namespace tabletopify
             {
                 auto manifestPath = it.path() / "manifest.json";
                 auto manifestSize = fs::file_size(manifestPath);
-                std::cout << " manifest: " << manifestPath << std::endl;
-                std::cout << " size: " << manifestSize << std::endl;
 
                 std::ifstream manifestFile(manifestPath.native(), std::ios_base::in | std::ios_base::binary);
                 std::string manifestData(manifestSize, 0);
                 manifestFile.read(manifestData.data(), manifestSize);
                 manifestFile.close();
-
-                std::cout << manifestData << std::endl;
 
                 // create audio entries for listings in manifest
                 worker(Worker_Background).enqueue([basePath=it.path(), manifestData=std::move(manifestData)]() -> void

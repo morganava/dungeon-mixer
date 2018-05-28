@@ -19,9 +19,6 @@ std::ostream& operator<<(std::ostream& out, const sf::Vector3f& vec);
 
 namespace tabletopify
 {
-    std::string string_format(const char* format, ...);
-    std::string vstring_format(const char* format, va_list argsSrc);
-
     // split string into list of strings delimited by the given token
     std::vector<std::string> split(const std::string& str, const std::string& token);
 
