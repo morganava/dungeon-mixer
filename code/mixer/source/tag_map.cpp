@@ -1,11 +1,12 @@
 #include "utilities.hpp"
 #include "tag_map.hpp"
+#include "string_manager.hpp"
 
 namespace tabletopify
 {
     std::vector<handle_t> tag_map::get_keys_by_string_query(const std::string& query_string) const
     {
-        auto lower_query = to_lower(query_string);
+        auto lower_query = string_manager::to_upper(query_string);
         auto query_tags = split(lower_query, " ");
 
         return get_keys_by_tag_query(query_tags);

@@ -23,10 +23,7 @@ namespace tabletopify
     std::vector<std::string> split(const std::string& str, const std::string& token);
 
     // does a string contain the given string pattern
-    bool contains(const std::string& str, const std::string& pattern);
-
-    // convert string to lower-case (not a general utf-8 solution)
-    std::string to_lower(const std::string& str);
+    // bool contains(const std::string& str, const std::string& pattern);
 
     // remove whitespace from head and tail of string
     std::string trim(const std::string& str);

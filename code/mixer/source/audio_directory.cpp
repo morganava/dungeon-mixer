@@ -3,6 +3,7 @@
 #include "work_queue.hpp"
 #include "logger.hpp"
 #include "audio.hpp"
+#include "string_manager.hpp"
 
 namespace tabletopify
 {
@@ -91,7 +92,7 @@ namespace tabletopify
     {
         // update tags
         // add split title
-        auto title_tags = split(to_lower(title), " ");
+        auto title_tags = split(string_manager::to_upper(title), " ");
         for(auto& str : title_tags)
         {
             tags.emplace_back(std::move(str));

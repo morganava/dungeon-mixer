@@ -48,6 +48,14 @@ namespace tabletopify
         g_string_manager = nullptr;
     }
 
+    string_manager::string_manager()
+    {
+        // create our locale for boost
+        boost::locale::generator gen;
+        std::locale loc = gen("");
+        std::locale::global(loc);        
+    }
+
     const char* string_manager::get_cstring(mixer_string_t str) const
     {
         MX_ASSERT(str > MX_STR_INVALID && str < MX_STR_COUNT);
@@ -56,5 +64,17 @@ namespace tabletopify
             return this->_strings[str].c_str();
         }
         return "";
+    }
+
+    /* static */
+    std::string string_manager::to_normalized(const std::string& str)
+    {
+        return boost::locale::normalize(str, boost::locale::norm_type::norm_default);
+    }
+
+    /* static */
+    std::string string_manager::to_upper(const std::string& str)
+    {
+        return boost::locale::to_upper(str);
     }
 }

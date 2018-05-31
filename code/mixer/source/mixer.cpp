@@ -3,6 +3,9 @@
 #include "draw.hpp"
 #include "work_queue.hpp"
 #include "logger.hpp"
+#include "string_manager.hpp"
+
+#include <boost/algorithm/string/trim_all.hpp>
 
 namespace tabletopify
 {
@@ -58,6 +61,32 @@ using namespace tabletopify;
 int main() try
 {
     tabletopify::init_globals();
+
+    const std::string french_words[] =
+    {
+        "cote",
+        "coté",
+        "côte",
+        "côté",
+        "grüßen",
+        "ὈΔΥΣΣΕΎΣ",
+        "[一-龠々〆ヵヶ]",
+        "大変、　 よ　ろし　くお願い申し上げます。",
+    };
+
+    for(const auto& word : french_words)
+    {
+        auto normalized = string_manager::to_normalized(word);
+        auto upper = string_manager::to_upper(normalized);
+        MX_LOG_INFO("{} -> {} -> {}", word, normalized, upper);
+
+        std::stringstream ss(upper);
+        std::string token;
+        while(ss >> token)
+        {
+            MX_LOG_INFO(" token: {}", token);
+        }
+    }
 
     struct nk_callbacks callbacks = 
     {

@@ -29,6 +29,9 @@ using ss = std::stringstream;
 #include <experimental/filesystem>
 namespace fs = std::experimental::filesystem;
 
+// boost
+#include <boost/locale.hpp>
+
 // nuklear : https://github.com/vurtun/nuklear
 #define NK_INCLUDE_FONT_BAKING
 #define NK_INCLUDE_STANDARD_IO
