@@ -27,7 +27,6 @@ namespace tabletopify
     class string_manager
     {
     public:
-        string_manager();
         const char* get_cstring(mixer_string_t str) const;
 
         static std::string to_normalized(const std::string& str);
