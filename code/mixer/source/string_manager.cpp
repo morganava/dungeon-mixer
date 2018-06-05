@@ -57,18 +57,4 @@ namespace tabletopify
         }
         return "";
     }
-
-    /* static */
-    std::string string_manager::to_normalized(const std::string& str)
-    {
-        return str;
-        // return boost::locale::normalize(str, boost::locale::norm_type::norm_default);
-    }
-
-    /* static */
-    std::string string_manager::to_upper(const std::string& str)
-    {
-        return str;
-        // return boost::locale::to_upper(str);
-    }
 }

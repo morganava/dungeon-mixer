@@ -2,6 +2,8 @@
 
 #define MX_GET_CSTRING(X) get_string_manager()->get_cstring(X)
 
+#include "utf8_string.hpp"
+
 namespace tabletopify
 {
     typedef enum
@@ -28,9 +30,6 @@ namespace tabletopify
     {
     public:
         const char* get_cstring(mixer_string_t str) const;
-
-        static std::string to_normalized(const std::string& str);
-        static std::string to_upper(const std::string& str);
     private:
         std::string _strings[MX_STR_COUNT];
         bool _strings_loaded = false;

@@ -92,7 +92,7 @@ namespace tabletopify
     {
         // update tags
         // add split title
-        auto title_tags = split(string_manager::to_upper(title), " ");
+        auto title_tags = split(title, " ");
         for(auto& str : title_tags)
         {
             tags.emplace_back(std::move(str));

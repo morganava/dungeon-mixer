@@ -31,7 +31,8 @@ add_executable(tabletop_mixer
     text_buffer.cpp
     hash.cpp
     font_stash.cpp
-    string_manager.cpp)
+    string_manager.cpp
+    utf8_string.cpp)
 
 add_precompiled_header(tabletop_mixer precomp.hpp SOURCE_CXX precomp.cpp FORCEINCLUDE)
 

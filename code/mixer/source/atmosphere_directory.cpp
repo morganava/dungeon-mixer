@@ -73,7 +73,7 @@ namespace tabletopify
     {
         const auto key = _next_handle++;
 
-        std::vector<std::string> tags = split(string_manager::to_upper(entry.title), " ");
+        std::vector<std::string> tags = split(entry.title, " ");
         _tag_map.add_key(key, tags);
 
         _id_map.insert({entry.id, key});
@@ -103,7 +103,7 @@ namespace tabletopify
         it->second.title = newName;
 
         _tag_map.remove_key(handle);
-        std::vector<std::string> tags = split(string_manager::to_upper(newName), " ");
+        std::vector<std::string> tags = split(newName, " ");
         _tag_map.add_key(handle, tags);
     }
 }

@@ -5,8 +5,6 @@
 #include "logger.hpp"
 #include "string_manager.hpp"
 
-#include <boost/algorithm/string/trim_all.hpp>
-
 namespace tabletopify
 {
     void init_callback(nk_context* ctx)
@@ -62,30 +60,24 @@ int main() try
 {
     tabletopify::init_globals();
 
-    const std::string french_words[] =
+    const char* funny_words[] =
     {
         "cote",
-        "coté",
+        "coté",
         "côte",
         "côté",
         "grüßen",
         "ὈΔΥΣΣΕΎΣ",
         "[一-龠々〆ヵヶ]",
-        "大変、　 よ　ろし　くお願い申し上げます。",
+        "大変、　 よ　ろし　くお願い申し上げます。",
     };
 
-    for(const auto& word : french_words)
+    for(const auto& str : funny_words)
     {
-        auto normalized = string_manager::to_normalized(word);
-        auto upper = string_manager::to_upper(normalized);
-        MX_LOG_INFO("{} -> {} -> {}", word, normalized, upper);
+        tabletopify::utf8_string utf8(str);
+        tabletopify::utf8_string norm = utf8.normalized();
 
-        std::stringstream ss(upper);
-        std::string token;
-        while(ss >> token)
-        {
-            MX_LOG_INFO(" token: {}", token);
-        }
+        MX_LOG_INFO("\n str  {}, {}\n utf8 {}, {}\n norm {}, {}", str, std::strlen(str),utf8, utf8.size(), norm, norm.size());
     }
 
     struct nk_callbacks callbacks = 
