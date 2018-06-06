@@ -10,7 +10,7 @@ namespace tabletopify
     {
         size_t operator()(const std::string& str) const
         {
-            return tabletopify::calc_hash(str.data(), str.size());
+            return calc_hash(str);
         }
     };
 }

@@ -1,4 +1,5 @@
 #include "uuid.hpp"
+#include "hash.hpp"
 #include "utilities.hpp"
 
 namespace tabletopify
@@ -52,6 +53,11 @@ namespace tabletopify
             &id.bytes[4], &id.bytes[5], &id.bytes[6], &id.bytes[7],
             &id.bytes[8], &id.bytes[9], &id.bytes[10], &id.bytes[11],
             &id.bytes[12], &id.bytes[13], &id.bytes[14], &id.bytes[15]));
+    }
+
+    size_t uuid_hash::operator()(const tabletopify::uuid& id) const
+    {
+        return tabletopify::calc_hash(id.bytes, sizeof(id.bytes));
     }
 }
 

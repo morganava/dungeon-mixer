@@ -62,6 +62,8 @@ int main() try
 
     const char* funny_words[] =
     {
+        "",
+        "Hello World",
         "cote",
         "coté",
         "côte",
@@ -69,7 +71,7 @@ int main() try
         "grüßen",
         "ὈΔΥΣΣΕΎΣ",
         "[一-龠々〆ヵヶ]",
-        "大変、　 よ　ろし　くお願い申し上げます。",
+        "大変、　よ　ろし　くお願い申し上げます。",
     };
 
     for(const auto& str : funny_words)
@@ -77,7 +79,8 @@ int main() try
         tabletopify::utf8_string utf8(str);
         tabletopify::utf8_string norm = utf8.normalized();
 
-        MX_LOG_INFO("\n str  {}, {}\n utf8 {}, {}\n norm {}, {}", str, std::strlen(str),utf8, utf8.size(), norm, norm.size());
+        MX_LOG_INFO("\n str  '{}', {}\n utf8 '{}', {}\n norm '{}', {}", str, std::strlen(str),utf8, utf8.size(), norm, norm.size());
+        MX_LOG_INFO("'{}' == '{}' => {}", utf8, norm, utf8 == norm);
     }
 
     struct nk_callbacks callbacks = 

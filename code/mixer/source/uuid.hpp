@@ -1,7 +1,5 @@
 #pragma once
 
-#include "hash.hpp"
-
 namespace tabletopify
 {
     struct uuid
@@ -25,10 +23,7 @@ namespace tabletopify
 
     struct uuid_hash
     {
-        size_t operator()(const tabletopify::uuid& id) const
-        {
-            return tabletopify::calc_hash(id.bytes, sizeof(id.bytes));
-        }
+        size_t operator()(const tabletopify::uuid& id) const;
     };
 }
 

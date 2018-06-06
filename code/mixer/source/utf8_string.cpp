@@ -1,5 +1,6 @@
 #include "utf8_string.hpp"
 #include "utilities.hpp"
+#include "hash.hpp"
 
 
 namespace tabletopify
@@ -14,42 +15,29 @@ namespace tabletopify
     { }
 
     utf8_string::utf8_string(const utf8_string& that)
-    : _size(that._size)
+    : _size(0)
     , _data(nullptr, std::free)
     {
-        if(_size > 0)
-        {
-            const auto n = this->_size + 1;
-            this->_data.reset(reinterpret_cast<utf8proc_uint8_t*>(std::calloc(n, sizeof(utf8proc_uint8_t))));
-            std::memcpy(this->_data.get(), that._data.get(), n);
-        }
+        *this = that;
     }
 
     utf8_string::utf8_string(utf8_string&& that)
-    : _size(that._size)
-    , _data(std::move(that._data))
+    : _size(0)
+    , _data(nullptr, std::free)
     {
-        const_cast<size_t&>(that._size) = 0;
+        *this = that;
     }
 
     utf8_string::utf8_string(const char* cstr)
     : _size(0)
     , _data(nullptr, std::free)
     {
-        if(cstr != nullptr)
-        {
-            utf8proc_uint8_t* data = nullptr;
-            utf8proc_option_t options = static_cast<utf8proc_option_t>(UTF8PROC_NULLTERM | UTF8PROC_STABLE | UTF8PROC_COMPOSE | UTF8PROC_IGNORE);
-            auto size = utf8proc_map(reinterpret_cast<const utf8proc_uint8_t*>(cstr), 0, &data, options);
-            if(size < 0)
-            {
-                MX_THROW_MSG(utf8proc_errmsg(size));
-            }
-
-            const_cast<size_t&>(this->_size) = size;
-            this->_data.reset(data);
-        }
+        *this = cstr;
     }
+
+    utf8_string::utf8_string(const std::string& str)
+     : utf8_string(str.c_str())
+    { }
 
     utf8_string::utf8_string(size_t size, utf8proc_uint8_t* data)
     : _size(size)
@@ -60,10 +48,18 @@ namespace tabletopify
 
     utf8_string& utf8_string::operator=(const utf8_string& that)
     {
+        if(that._size == 0)
+        {
+            this->_size = 0;
+            this->_data.reset(nullptr);
+            return *this;
+        }
+
+        // copy buffer from that
         const auto n = that._size + 1;
         if(this->_size != that._size)
         {
-            const_cast<size_t&>(this->_size) = that._size;
+            this->_size = that._size;
             this->_data.reset(reinterpret_cast<utf8proc_uint8_t*>(std::calloc(n, sizeof(utf8proc_uint8_t))));
         }
         std::memcpy(this->_data.get(), that._data.get(), n);
@@ -73,17 +69,47 @@ namespace tabletopify
 
     utf8_string& utf8_string::operator=(utf8_string&& that)
     {
-        const_cast<size_t&>(this->_size) = that._size;
+        this->_size = that._size;
         this->_data = std::move(that._data);
-        const_cast<size_t&>(that._size) = 0;
+        that._size = 0;
 
         return *this;
     }
 
+    utf8_string& utf8_string::operator=(const char* cstr)
+    {
+        MX_THROW_IF_NULL(cstr);
+        if(*cstr == 0)
+        {
+            this->_size = 0;
+            this->_data.reset(nullptr);
+            return *this;
+        }
+
+        // compose codepoints and what-not
+        utf8proc_uint8_t* data = nullptr;
+        utf8proc_option_t options = static_cast<utf8proc_option_t>(UTF8PROC_NULLTERM | UTF8PROC_STABLE | UTF8PROC_COMPOSE | UTF8PROC_IGNORE);
+        auto size = utf8proc_map(reinterpret_cast<const utf8proc_uint8_t*>(cstr), 0, &data, options);
+        if(size < 0)
+        {
+            MX_THROW_MSG(utf8proc_errmsg(size));
+        }
+
+        this->_size = size;
+        this->_data.reset(data);
+
+        return *this;
+    }
+
+    utf8_string& utf8_string::operator=(const std::string& str)
+    {
+        return *this = str.c_str();
+    }
+
+    // Methods
+
     utf8_string utf8_string::normalized() const
     {
-        MX_ASSERT(this->_data.get() != nullptr);
-        
         if(this->_size > 0)
         {
             MX_ASSERT(this->_data.get() != nullptr);
@@ -102,6 +128,34 @@ namespace tabletopify
         return utf8_string();
     }
 
+    bool utf8_string::operator==(const utf8_string& that) const
+    {
+        if(this == &that)
+        {
+            return true;
+        }
+        
+        if(this->_size != that._size)
+        {
+            return false;
+        }
+
+        for(size_t k = 0; k < this->_size; k++)
+        {
+            if(this->_data[k] != that._data[k])
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    std::string utf8_string::str() const
+    {
+        return std::string(this->c_str());
+    }
+
     const char* utf8_string::c_str() const
     {
         if(this->_size == 0)
@@ -114,7 +168,25 @@ namespace tabletopify
     size_t utf8_string::size() const
     {
         return this->_size;
-    }   
+    }
+
+    // Helper Functions
+
+    void to_json(nl::json& js, const utf8_string& str)
+    {
+        js = str.str();
+    }
+
+    void from_json(const nl::json& js, utf8_string& str)
+    {
+        MX_ASSERT(js.is_string());
+        str = (std::string)js;
+    }
+
+    size_t utf8_string_hash::operator()(const utf8_string& str) const
+    {
+        return calc_hash(str.c_str(), str.size());
+    }
 }
 
 std::ostream& operator<<(std::ostream& out, const tabletopify::utf8_string& str)
