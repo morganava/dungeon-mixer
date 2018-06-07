@@ -2,6 +2,8 @@
 
 namespace tabletopify
 {
+
+    class utf8_string_iterator;    
     class utf8_string
     {
     public:
@@ -15,14 +17,17 @@ namespace tabletopify
         utf8_string& operator=(const char*);
         utf8_string& operator=(const std::string&);
 
-        utf8_string normalized() const;
-
         bool operator==(const utf8_string&) const;
+        bool operator!=(const utf8_string&) const;
 
+        utf8_string normalized() const;
         std::string str() const;
         const char* c_str() const;
         // number of bytes used to encode this string (not counting null terminator)
         size_t size() const;
+
+        utf8_string_iterator begin() const;
+        utf8_string_iterator end() const;
 
     private:
         // private constructor, takes ownership of pointer
@@ -35,6 +40,7 @@ namespace tabletopify
         friend struct uf8_string_hash;
         friend void to_json(nl::json&, const utf8_string&);
         friend void from_json(const nl::json&, utf8_string&);
+        friend class utf8_string_iterator;
     };
 
     void to_json(nl::json&, const utf8_string&);
@@ -45,11 +51,32 @@ namespace tabletopify
         size_t operator()(const utf8_string&) const;
     };
 
+    class utf8_string_iterator : public std::iterator<
+                                            std::forward_iterator_tag,
+                                            utf8proc_int32_t,
+                                            std::ptrdiff_t,
+                                            const utf8proc_int32_t*,
+                                            utf8proc_int32_t>
+    {
+    private:
+        const utf8_string& _str;
+        size_t _index;
+    public:
+        explicit utf8_string_iterator(const utf8_string& str, size_t index);
+        utf8_string_iterator& operator++();
+        utf8_string_iterator operator++(int);
+        bool operator==(utf8_string_iterator that) const;
+        bool operator!=(utf8_string_iterator that) const;
+        reference operator*() const;
+    };
+
     class utf8_string_buffer
     {
-        utf8_string_buffer& add(utf8proc_int32_t);
-        utf8_string_buffer& add(const utf8_string&);
-        utf8_string_buffer& add(const char*);
+        utf8_string_buffer& put(utf8proc_int32_t);
+        utf8_string_buffer& put(const utf8_string&);
+
+        void reset();
+        utf8_string str() const;
     };  
 }
 

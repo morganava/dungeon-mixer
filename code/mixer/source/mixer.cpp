@@ -78,9 +78,17 @@ int main() try
     {
         tabletopify::utf8_string utf8(str);
         tabletopify::utf8_string norm = utf8.normalized();
+        utf8_string_iterator it(norm, 0);
 
         MX_LOG_INFO("\n str  '{}', {}\n utf8 '{}', {}\n norm '{}', {}", str, std::strlen(str),utf8, utf8.size(), norm, norm.size());
         MX_LOG_INFO("'{}' == '{}' => {}", utf8, norm, utf8 == norm);
+
+        for(auto cp : norm)
+        {
+            char buffer[5] = {0};
+            utf8proc_encode_char(cp, (utf8proc_uint8_t*)buffer);
+            MX_LOG_INFO("0x{:x} : '{}'", cp, buffer);
+        }
     }
 
     struct nk_callbacks callbacks = 

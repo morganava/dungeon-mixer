@@ -28,6 +28,7 @@ using ss = std::stringstream;
 #include <fstream>
 #include <experimental/filesystem>
 namespace fs = std::experimental::filesystem;
+#include <iterator>
 
 // utf8proc : 
 #define UTF8PROC_STATIC

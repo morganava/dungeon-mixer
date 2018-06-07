@@ -106,27 +106,7 @@ namespace tabletopify
         return *this = str.c_str();
     }
 
-    // Methods
-
-    utf8_string utf8_string::normalized() const
-    {
-        if(this->_size > 0)
-        {
-            MX_ASSERT(this->_data.get() != nullptr);
-
-            utf8proc_uint8_t* data = nullptr;
-            utf8proc_option_t options = static_cast<utf8proc_option_t>(UTF8PROC_NULLTERM | UTF8PROC_CASEFOLD);
-            auto size = utf8proc_map(this->_data.get(), 0, &data, options);
-            if(size < 0)
-            {
-                MX_THROW_MSG(utf8proc_errmsg(size));
-            }
-
-            return utf8_string(size, data);
-        }
-
-        return utf8_string();
-    }
+    // Equality Operators
 
     bool utf8_string::operator==(const utf8_string& that) const
     {
@@ -151,6 +131,33 @@ namespace tabletopify
         return true;
     }
 
+    bool utf8_string::operator!=(const utf8_string& that) const
+    {
+        return !this->operator==(that);
+    }
+
+    // Methods
+
+    utf8_string utf8_string::normalized() const
+    {
+        if(this->_size > 0)
+        {
+            MX_ASSERT(this->_data.get() != nullptr);
+
+            utf8proc_uint8_t* data = nullptr;
+            utf8proc_option_t options = static_cast<utf8proc_option_t>(UTF8PROC_NULLTERM | UTF8PROC_CASEFOLD);
+            auto size = utf8proc_map(this->_data.get(), 0, &data, options);
+            if(size < 0)
+            {
+                MX_THROW_MSG(utf8proc_errmsg(size));
+            }
+
+            return utf8_string(size, data);
+        }
+
+        return utf8_string();
+    }
+
     std::string utf8_string::str() const
     {
         return std::string(this->c_str());
@@ -170,6 +177,17 @@ namespace tabletopify
         return this->_size;
     }
 
+    // Iterator Getters
+    utf8_string_iterator utf8_string::begin() const
+    {
+        return utf8_string_iterator(*this, 0);
+    }
+
+    utf8_string_iterator utf8_string::end() const
+    {
+        return utf8_string_iterator(*this, this->_size);
+    }
+
     // Helper Functions
 
     void to_json(nl::json& js, const utf8_string& str)
@@ -186,6 +204,60 @@ namespace tabletopify
     size_t utf8_string_hash::operator()(const utf8_string& str) const
     {
         return calc_hash(str.c_str(), str.size());
+    }
+
+    // UTF8 String Iterator
+
+    utf8_string_iterator::utf8_string_iterator(const utf8_string& str, size_t index)
+    : _str(str)
+    , _index(index)
+    { }
+
+    utf8_string_iterator& utf8_string_iterator::operator++()
+    {
+        utf8proc_int32_t codepoint = 0;
+        const size_t strSize = _str.size();
+        const utf8proc_uint8_t* head = _str._data.get() + _index;
+
+        auto codepointSize = utf8proc_iterate(head, strSize - _index, &codepoint);        
+        if(codepointSize < 0)
+        {
+            MX_THROW_MSG(utf8proc_errmsg(codepointSize));
+        }
+        _index += codepointSize;
+
+        return *this;
+    }
+
+    utf8_string_iterator utf8_string_iterator::operator++(int)
+    {
+        utf8_string_iterator retval = *this;
+        ++(*this);
+        return retval;
+    }
+
+    bool utf8_string_iterator::operator==(utf8_string_iterator that) const
+    {
+        return this->_index == that._index && this->_str == that._str;
+    }
+
+    bool utf8_string_iterator::operator!=(utf8_string_iterator that) const
+    {
+        return this->_index != that._index || this->_str != that._str;
+    }
+
+    utf8proc_int32_t utf8_string_iterator::operator*() const
+    {
+        utf8proc_int32_t codepoint = 0;
+        const size_t strSize = _str.size();
+        const utf8proc_uint8_t* head = _str._data.get() + _index;
+
+        auto codepointSize = utf8proc_iterate(head, strSize - _index, &codepoint);
+        if(codepointSize < 0)
+        {
+            MX_THROW_MSG(utf8proc_errmsg(codepointSize));
+        }
+        return codepoint;
     }
 }
 
