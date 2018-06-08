@@ -59,15 +59,20 @@ namespace tabletopify
                                             utf8proc_int32_t>
     {
     private:
-        const utf8_string& _str;
-        size_t _index;
+        const utf8proc_uint8_t* _nextCodepoint;
+        const utf8proc_uint8_t* _tail;
+        utf8proc_int32_t _codepoint;
+
+        void iterate();
+        explicit utf8_string_iterator(utf8proc_uint8_t* head, utf8proc_uint8_t* tail);        
     public:
-        explicit utf8_string_iterator(const utf8_string& str, size_t index);
         utf8_string_iterator& operator++();
         utf8_string_iterator operator++(int);
         bool operator==(utf8_string_iterator that) const;
         bool operator!=(utf8_string_iterator that) const;
-        reference operator*() const;
+        utf8proc_int32_t operator*() const;
+
+        friend class utf8_string;
     };
 
     class utf8_string_buffer

@@ -180,12 +180,16 @@ namespace tabletopify
     // Iterator Getters
     utf8_string_iterator utf8_string::begin() const
     {
-        return utf8_string_iterator(*this, 0);
+        utf8proc_uint8_t* head = this->_data.get();
+        auto tail = head + this->_size;
+        return utf8_string_iterator(head, tail);
     }
 
     utf8_string_iterator utf8_string::end() const
     {
-        return utf8_string_iterator(*this, this->_size);
+        utf8proc_uint8_t* head = this->_data.get();
+        auto tail = head + this->_size;
+        return utf8_string_iterator(tail, tail);
     }
 
     // Helper Functions
@@ -208,56 +212,66 @@ namespace tabletopify
 
     // UTF8 String Iterator
 
-    utf8_string_iterator::utf8_string_iterator(const utf8_string& str, size_t index)
-    : _str(str)
-    , _index(index)
-    { }
+    // utf8_string_iterator::utf8_string_iterator(const utf8_string& str, size_t index)
+    // : _nextCodepoint(str._data.get() + index)
+    // , _tail(_nextCodepoint + str.size())
+    // { 
+    //     iterate();
+    // }
+
+    utf8_string_iterator::utf8_string_iterator(utf8proc_uint8_t* head, utf8proc_uint8_t* tail)
+    : _nextCodepoint(head)
+    , _tail(tail)
+    , _codepoint(0)
+    {
+        iterate();
+    }
+
+    void utf8_string_iterator::iterate()
+    {
+        if(_nextCodepoint < _tail)
+        {
+            auto codepointSize = utf8proc_iterate(_nextCodepoint, _tail - _nextCodepoint, &_codepoint);
+            if(codepointSize < 0)
+            {
+                MX_THROW_MSG(utf8proc_errmsg(codepointSize));
+            }
+            _nextCodepoint += codepointSize;
+        }
+        else
+        {
+            _codepoint = 0;
+        }
+    }
 
     utf8_string_iterator& utf8_string_iterator::operator++()
     {
-        utf8proc_int32_t codepoint = 0;
-        const size_t strSize = _str.size();
-        const utf8proc_uint8_t* head = _str._data.get() + _index;
-
-        auto codepointSize = utf8proc_iterate(head, strSize - _index, &codepoint);        
-        if(codepointSize < 0)
-        {
-            MX_THROW_MSG(utf8proc_errmsg(codepointSize));
-        }
-        _index += codepointSize;
-
+        iterate();
         return *this;
     }
 
     utf8_string_iterator utf8_string_iterator::operator++(int)
     {
         utf8_string_iterator retval = *this;
-        ++(*this);
+        iterate();
         return retval;
     }
 
     bool utf8_string_iterator::operator==(utf8_string_iterator that) const
     {
-        return this->_index == that._index && this->_str == that._str;
+        return this->_nextCodepoint == that._nextCodepoint &&
+               this->_tail == that._tail &&
+               this->_codepoint == that._codepoint;
     }
 
     bool utf8_string_iterator::operator!=(utf8_string_iterator that) const
     {
-        return this->_index != that._index || this->_str != that._str;
+        return !this->operator==(that);
     }
 
     utf8proc_int32_t utf8_string_iterator::operator*() const
     {
-        utf8proc_int32_t codepoint = 0;
-        const size_t strSize = _str.size();
-        const utf8proc_uint8_t* head = _str._data.get() + _index;
-
-        auto codepointSize = utf8proc_iterate(head, strSize - _index, &codepoint);
-        if(codepointSize < 0)
-        {
-            MX_THROW_MSG(utf8proc_errmsg(codepointSize));
-        }
-        return codepoint;
+        return _codepoint;
     }
 }
 
