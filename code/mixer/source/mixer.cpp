@@ -60,6 +60,8 @@ int main() try
 {
     tabletopify::init_globals();
 
+    tabletopify::utf8_stringbuffer sb;
+
     const char* funny_words[] =
     {
         "",
@@ -85,10 +87,15 @@ int main() try
         for(auto cp : norm)
         {
             char buffer[5] = {0};
-            utf8proc_encode_char(cp, (utf8proc_uint8_t*)buffer);
-            MX_LOG_INFO("0x{:x} : '{}'", cp, buffer);
+            utf8proc_encode_char(cp.raw, (utf8proc_uint8_t*)buffer);
+            MX_LOG_INFO("0x{:x} : '{}'", cp.raw, buffer);
+            sb.push_back(cp);
         }
     }
+
+    MX_LOG_INFO("FULL STRING : '{}'", sb.str());
+    sb.clear();
+    MX_LOG_INFO("FULL STRING : '{}'", sb.str());
 
     struct nk_callbacks callbacks = 
     {

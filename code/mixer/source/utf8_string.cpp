@@ -7,6 +7,10 @@ namespace tabletopify
 {
     const char* utf8_string::_emptyString = "";
 
+    utf8_codepoint::utf8_codepoint(utf8proc_int32_t codepoint)
+    : raw(codepoint)
+    { }
+
     // Constructors
 
     utf8_string::utf8_string()
@@ -212,19 +216,12 @@ namespace tabletopify
 
     // UTF8 String Iterator
 
-    // utf8_string_iterator::utf8_string_iterator(const utf8_string& str, size_t index)
-    // : _nextCodepoint(str._data.get() + index)
-    // , _tail(_nextCodepoint + str.size())
-    // { 
-    //     iterate();
-    // }
-
     utf8_string_iterator::utf8_string_iterator(utf8proc_uint8_t* head, utf8proc_uint8_t* tail)
     : _nextCodepoint(head)
     , _tail(tail)
     , _codepoint(0)
     {
-        iterate();
+        this->iterate();
     }
 
     void utf8_string_iterator::iterate()
@@ -246,14 +243,14 @@ namespace tabletopify
 
     utf8_string_iterator& utf8_string_iterator::operator++()
     {
-        iterate();
+        this->iterate();
         return *this;
     }
 
     utf8_string_iterator utf8_string_iterator::operator++(int)
     {
         utf8_string_iterator retval = *this;
-        iterate();
+        this->iterate();
         return retval;
     }
 
@@ -269,9 +266,65 @@ namespace tabletopify
         return !this->operator==(that);
     }
 
-    utf8proc_int32_t utf8_string_iterator::operator*() const
+    utf8_codepoint utf8_string_iterator::operator*() const
     {
-        return _codepoint;
+        return utf8_codepoint(_codepoint);
+    }
+
+    // UTF8 Stringbuffer
+
+    utf8_stringbuffer::utf8_stringbuffer()
+    {
+        
+    }
+
+    utf8_stringbuffer::utf8_stringbuffer(size_t initialSize)
+    : _data(initialSize)
+    {
+
+    }
+
+    void utf8_stringbuffer::push_back(utf8_codepoint codepoint)
+    {
+        char buffer[4] = {0};
+        auto codepointSize = utf8proc_encode_char(codepoint.raw, (utf8proc_uint8_t*)buffer);
+        if(codepointSize < 0)
+        {
+            MX_THROW_MSG(utf8proc_errmsg(codepointSize));
+        }
+        
+        for(decltype(codepointSize) k = 0; k < codepointSize; ++k)
+        {
+            _data.push_back(buffer[k]);
+        }
+    }
+
+    void utf8_stringbuffer::push_back(const utf8_string& str)
+    {
+        auto raw = str.c_str();
+        this->push_back(raw);
+    }
+
+    void utf8_stringbuffer::push_back(const char* cstr)
+    {
+        while(*cstr)
+        {
+            _data.push_back(*cstr);
+            ++cstr;
+        }
+    }
+
+    utf8_string utf8_stringbuffer::str() const
+    {
+        this->_data.push_back(0);
+        utf8_string result(reinterpret_cast<const char*>(this->_data.data()));
+        this->_data.pop_back();
+        return result;
+    }
+
+    void utf8_stringbuffer::clear()
+    {
+        this->_data.clear();
     }
 }
 
