@@ -21,12 +21,6 @@ std::ostream& operator<<(std::ostream& out, const sf::Vector3f& vec);
 
 namespace tabletopify
 {
-    // split string into list of strings delimited by the given token
-    std::vector<std::string> split(const std::string& str, const std::string& token);
-
-    // does a string contain the given string pattern
-    // bool contains(const std::string& str, const std::string& pattern);
-
     // remove whitespace from head and tail of string
     std::string trim(const std::string& str);
 
