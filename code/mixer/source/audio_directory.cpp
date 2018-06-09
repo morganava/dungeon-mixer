@@ -146,6 +146,9 @@ namespace tabletopify
 
     std::vector<audio_handle_t> audio_directory::get_audio_handles_by_query(const utf8_string& query) const
     {
-        return _tag_map.get_keys_by_string_query(query);
+        auto norm = query.normalized();
+        auto query_tags = norm.split();
+
+        return _tag_map.get_keys_by_tag_query(query_tags);
     }
 }

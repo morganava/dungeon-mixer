@@ -48,7 +48,10 @@ namespace tabletopify
 
     std::vector<atmosphere_handle_t> atmosphere_directory::get_atmosphere_handles_by_query(const utf8_string& query) const
     {
-        return _tag_map.get_keys_by_string_query(query);
+        auto norm = query.normalized();
+        auto query_tags = norm.split();
+                
+        return _tag_map.get_keys_by_tag_query(query_tags);
     }
 
     atmosphere_handle_t atmosphere_directory::get_atmosphere_handle_by_id(const uuid& id) const

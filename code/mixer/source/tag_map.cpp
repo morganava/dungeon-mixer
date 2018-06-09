@@ -4,12 +4,35 @@
 
 namespace tabletopify
 {
-    std::vector<handle_t> tag_map::get_keys_by_string_query(const utf8_string& query_string) const
+    std::vector<handle_t> tag_map::get_keys_by_tag_query(const std::vector<utf8_string>& query_tags) const
     {
-        auto query_case_folded = query_string.normalized();
-        auto query_tags = query_case_folded.split();
+        // initially fill with all our keys in case the query list is empty
+        std::unordered_set<handle_t> result(_keys.begin(), _keys.end());
+        for(auto tag : query_tags)
+        {
+            // get all keys which have the current tag
+            std::unordered_set<handle_t> intermediates;
+            auto range = _tag_to_keys.equal_range(tag);
+            for(auto it = range.first; it != range.second; ++it)
+            {
+                intermediates.insert(it->second);
+            }
 
-        return get_keys_by_tag_query(query_tags);
+            // only include keys in updated result in both the aggregate
+            // results and this tag's result
+            std::unordered_set<handle_t> newResult;
+            for(auto currentKey : result)
+            {
+                if(intermediates.find(currentKey) != intermediates.end())
+                {
+                    newResult.insert(currentKey);
+                }
+            }
+
+            result = std::move(newResult);
+        }
+
+        return std::vector<handle_t>(result.begin(), result.end());
     }
 
     void tag_map::remove_key(handle_t key)
@@ -49,36 +72,5 @@ namespace tabletopify
         }
 
         _keys.insert(key);
-    }
-
-
-    std::vector<handle_t> tag_map::get_keys_by_tag_query(const std::vector<utf8_string>& query_tags) const
-    {
-        std::unordered_set<handle_t> result(_keys.begin(), _keys.end());
-        for(auto tag : query_tags)
-        {
-            // get all keys which have the current tag
-            std::unordered_set<handle_t> intermediates;
-            auto range = _tag_to_keys.equal_range(tag);
-            for(auto it = range.first; it != range.second; ++it)
-            {
-                intermediates.insert(it->second);
-            }
-
-            // only include keys in updated result in both the aggregate
-            // results and this tag's result
-            std::unordered_set<handle_t> newResult;
-            for(auto currentKey : result)
-            {
-                if(intermediates.find(currentKey) != intermediates.end())
-                {
-                    newResult.insert(currentKey);
-                }
-            }
-
-            result = std::move(newResult);
-        }
-
-        return std::vector<handle_t>(result.begin(), result.end());
     }
 }
