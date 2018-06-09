@@ -1,12 +1,13 @@
 #pragma once
 
 #include "hash.hpp"
+#include "utf8_string.hpp"
 
 namespace tabletopify
 {
     struct font_key
     {
-        std::string filename;
+        utf8_string filename;
         float size;
         bool operator==(const font_key&) const;
     };

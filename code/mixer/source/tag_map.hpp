@@ -1,6 +1,6 @@
 #pragma once
 
-#include "hash.hpp"
+#include "utf8_string.hpp"
 
 namespace tabletopify
 {
@@ -9,14 +9,14 @@ namespace tabletopify
     class tag_map
     {
     public:
-        std::vector<handle_t> get_keys_by_string_query(const std::string& query_string) const;
+        std::vector<handle_t> get_keys_by_string_query(const utf8_string& query_string) const;
         void remove_key(handle_t key);
-        void add_key(handle_t key, const std::vector<std::string>& tags);
+        void add_key(handle_t key, const std::vector<utf8_string>& tags);
     private:
-        std::vector<handle_t> get_keys_by_tag_query(const std::vector<std::string>& query_tags) const;
+        std::vector<handle_t> get_keys_by_tag_query(const std::vector<utf8_string>& query_tags) const;
 
-        std::unordered_multimap<std::string, handle_t, string_hash> _tag_to_keys;
-        std::unordered_multimap<handle_t, std::string> _key_to_tags;
+        std::unordered_multimap<utf8_string, handle_t, utf8_string_hash> _tag_to_keys;
+        std::unordered_multimap<handle_t, utf8_string> _key_to_tags;
         std::unordered_set<handle_t> _keys;
     };
 }

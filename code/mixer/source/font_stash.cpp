@@ -13,7 +13,7 @@ namespace tabletopify
     size_t font_key_hash::operator()(const font_key& fk) const
     {
         size_t hash = tabletopify::calc_hash(
-            fk.filename);
+            fk.filename.c_str(), fk.filename.size());
         hash = tabletopify::calc_hash(
             &fk.size,
             sizeof(fk.size),
@@ -30,7 +30,7 @@ namespace tabletopify
     {
         MX_THROW_IF_FALSE(fs::exists(fontFile));
 
-        std::string fontName = fontFile.filename();
+        utf8_string fontName = fontFile.filename().native().data();
 
         auto it = _font_map.find({fontName, fontSize});
         if(it == _font_map.end())

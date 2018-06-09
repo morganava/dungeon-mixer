@@ -88,9 +88,9 @@ namespace tabletopify
         // track unique id
         uuid id;
         // display title
-        std::string title;
+        utf8_string title;
         // query tags
-        std::vector<std::string> tags;
+        std::vector<utf8_string> tags;
         // backing SoundBuffers
         std::shared_ptr<audio_data> data;
         // time since able to unload data in seconds
@@ -103,11 +103,11 @@ namespace tabletopify
         void update(float dt);
         audio_handle_t get_audio_handle_by_id(const uuid& id) const;
         std::vector<audio_handle_t> get_audio_handles() const;
-        std::vector<audio_handle_t> get_audio_handles_by_query(const std::string& query) const;
+        std::vector<audio_handle_t> get_audio_handles_by_query(const utf8_string& query) const;
 
         audio_entry& get_entry(audio_handle_t handle);
         // audio_handle_t add_entry(audio_entry&& entry);
-        void add_entry(uuid&& id, std::string&& title, std::vector<std::string>&& tags, std::shared_ptr<audio_data>&& data);
+        void add_entry(uuid&& id, utf8_string&& title, std::vector<utf8_string>&& tags, std::shared_ptr<audio_data>&& data);
 
     private:
         std::vector<audio_entry> _entries;
@@ -122,7 +122,7 @@ namespace tabletopify
     // description for how audio is to played in an atmosphere
     struct track_entry
     {
-        std::string audioTitle;
+        utf8_string audioTitle;
         uuid audioId;
         std::shared_ptr<audio_data> audioData;
         audio_type_t audioType;
@@ -167,7 +167,7 @@ namespace tabletopify
         // unique id
         uuid id;
         // title
-        std::string title;
+        utf8_string title;
         // tracks
         std::vector<track_handle_t> tracks;
     };
@@ -176,13 +176,13 @@ namespace tabletopify
     {
     public:
         std::vector<atmosphere_handle_t> get_atmosphere_handles() const;
-        std::vector<atmosphere_handle_t> get_atmosphere_handles_by_query(const std::string& query) const;
+        std::vector<atmosphere_handle_t> get_atmosphere_handles_by_query(const utf8_string& query) const;
 
         atmosphere_handle_t get_atmosphere_handle_by_id(const uuid& id) const;
         atmosphere_entry& get_entry(atmosphere_handle_t handle);
         atmosphere_handle_t add_entry(atmosphere_entry&& entry);
         void remove_entry(atmosphere_handle_t handle);
-        void rename_entry(atmosphere_handle_t handle, const std::string& newName);
+        void rename_entry(atmosphere_handle_t handle, const utf8_string& newName);
     private:
         static atmosphere_handle_t _next_handle;
         std::map<atmosphere_handle_t, atmosphere_entry> _entries;

@@ -46,7 +46,7 @@ namespace tabletopify
         return result;
     }
 
-    std::vector<atmosphere_handle_t> atmosphere_directory::get_atmosphere_handles_by_query(const std::string& query) const
+    std::vector<atmosphere_handle_t> atmosphere_directory::get_atmosphere_handles_by_query(const utf8_string& query) const
     {
         return _tag_map.get_keys_by_string_query(query);
     }
@@ -73,7 +73,7 @@ namespace tabletopify
     {
         const auto key = _next_handle++;
 
-        std::vector<std::string> tags = split(entry.title, " ");
+        std::vector<utf8_string> tags = entry.title.split();
         _tag_map.add_key(key, tags);
 
         _id_map.insert({entry.id, key});
@@ -93,7 +93,7 @@ namespace tabletopify
         _tag_map.remove_key(handle);
     }
 
-    void atmosphere_directory::rename_entry(atmosphere_handle_t handle, const std::string& newName)
+    void atmosphere_directory::rename_entry(atmosphere_handle_t handle, const utf8_string& newName)
     {
         auto it = _entries.find(handle);
         MX_ASSERT(it != _entries.end());
@@ -103,7 +103,7 @@ namespace tabletopify
         it->second.title = newName;
 
         _tag_map.remove_key(handle);
-        std::vector<std::string> tags = split(newName, " ");
+        std::vector<utf8_string> tags = newName.split();
         _tag_map.add_key(handle, tags);
     }
 }

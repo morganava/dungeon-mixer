@@ -86,13 +86,13 @@ namespace tabletopify
 
     void audio_directory::add_entry(
         uuid&& id,
-        std::string&& title,
-        std::vector<std::string>&& tags,
+        utf8_string&& title,
+        std::vector<utf8_string>&& tags,
         std::shared_ptr<audio_data>&& data)
     {
         // update tags
         // add split title
-        auto title_tags = split(title, " ");
+        auto title_tags = title.split();
         for(auto& str : title_tags)
         {
             tags.emplace_back(std::move(str));
@@ -144,7 +144,7 @@ namespace tabletopify
         return result;
     }
 
-    std::vector<audio_handle_t> audio_directory::get_audio_handles_by_query(const std::string& query) const
+    std::vector<audio_handle_t> audio_directory::get_audio_handles_by_query(const utf8_string& query) const
     {
         return _tag_map.get_keys_by_string_query(query);
     }

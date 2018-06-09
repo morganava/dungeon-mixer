@@ -2,7 +2,6 @@
 
 namespace tabletopify
 {
-
     class utf8_codepoint
     {
     public:

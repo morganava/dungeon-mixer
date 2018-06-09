@@ -1,13 +1,13 @@
 #include "utilities.hpp"
 #include "tag_map.hpp"
-#include "string_manager.hpp"
+#include "utf8_string.hpp"
 
 namespace tabletopify
 {
-    std::vector<handle_t> tag_map::get_keys_by_string_query(const std::string& query_string) const
+    std::vector<handle_t> tag_map::get_keys_by_string_query(const utf8_string& query_string) const
     {
-        auto lower_query = query_string;
-        auto query_tags = split(lower_query, " ");
+        auto query_case_folded = query_string.normalized();
+        auto query_tags = query_case_folded.split();
 
         return get_keys_by_tag_query(query_tags);
     }
@@ -38,7 +38,7 @@ namespace tabletopify
         _keys.erase(key);
     }
 
-    void tag_map::add_key(handle_t key, const std::vector<std::string>& tags)
+    void tag_map::add_key(handle_t key, const std::vector<utf8_string>& tags)
     {
         MX_ASSERT(_key_to_tags.find(key) == _key_to_tags.end());
 
@@ -52,7 +52,7 @@ namespace tabletopify
     }
 
 
-    std::vector<handle_t> tag_map::get_keys_by_tag_query(const std::vector<std::string>& query_tags) const
+    std::vector<handle_t> tag_map::get_keys_by_tag_query(const std::vector<utf8_string>& query_tags) const
     {
         std::unordered_set<handle_t> result(_keys.begin(), _keys.end());
         for(auto tag : query_tags)

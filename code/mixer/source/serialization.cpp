@@ -62,15 +62,15 @@ namespace tabletopify
                     auto trackList = json["Tracks"];
                     for(auto track : trackList)
                     {
-                        std::string title = track["Title"];
+                        utf8_string title = track["Title"];
                         uuid audioId = track["AudioId"];
-                        std::string type = track["Type"];
-                        std::vector<std::string> tags = track["Tags"];
-                        std::vector<std::string> filenames = track["Files"];
+                        utf8_string type = track["Type"];
+                        std::vector<utf8_string> tags = track["Tags"];
+                        std::vector<utf8_string> filenames = track["Files"];
                         std::vector<fs::path> files;
                         for(auto& currentFilename : filenames)
                         {
-                            files.push_back(basePath / currentFilename);
+                            files.push_back(basePath / currentFilename.str());
                         }
 
                         std::shared_ptr<audio_data> audioData;
