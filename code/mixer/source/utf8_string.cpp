@@ -1,7 +1,7 @@
 #include "utf8_string.hpp"
 #include "utilities.hpp"
 #include "hash.hpp"
-
+#include "logger.hpp"
 
 namespace tabletopify
 {
@@ -10,6 +10,55 @@ namespace tabletopify
     utf8_codepoint::utf8_codepoint(utf8proc_int32_t codepoint)
     : raw(codepoint)
     { }
+
+
+    bool utf8_codepoint::operator==(const utf8_codepoint& that) const
+    {
+        return this->raw == that.raw;
+    }
+
+    bool utf8_codepoint::operator!=(const utf8_codepoint& that) const
+    {
+        return !this->operator==(that);
+    }    
+
+    bool utf8_codepoint::is_valid() const
+    {
+        return utf8proc_codepoint_valid(this->raw);
+    }
+
+    bool utf8_codepoint::is_whitespace() const
+    {
+        utf8_codepoint singles[] =
+        {
+            0x20,
+            0x85,
+            0xA0,
+            0x1680,
+            0x202F,
+            0x205F,
+            0x3000,
+        };
+
+        for(auto s : singles)
+        {
+            if(s.raw == raw) return true;
+        }
+
+        utf8_codepoint ranges[][2] = 
+        {
+            {0x09,0x0D},
+            {0x2000,0x200A},
+            {0x2028,0x2029},
+        };
+
+        for(auto r : ranges)
+        {
+            if(r[0].raw <= raw && raw <= r[1].raw) return true;
+        }
+
+        return false;
+    }
 
     // Constructors
 
@@ -142,6 +191,35 @@ namespace tabletopify
 
     // Methods
 
+    std::vector<utf8_string> utf8_string::split() const
+    {
+        std::vector<utf8_string> retval;
+        utf8_stringbuffer sb(this->_size + 1);
+
+        for(auto cp : *this)
+        {
+            if(cp.is_whitespace())
+            {
+                if(sb.size() > 0)
+                {
+                    retval.push_back(sb.str());
+                    sb.clear();
+                }
+            }
+            else
+            {
+                sb.push_back(cp);
+            }
+        }
+
+        if(sb.size() > 0)
+        {
+            retval.push_back(sb.str());
+        }
+
+        return retval;
+    }
+
     utf8_string utf8_string::normalized() const
     {
         if(this->_size > 0)
@@ -273,15 +351,11 @@ namespace tabletopify
 
     // UTF8 Stringbuffer
 
-    utf8_stringbuffer::utf8_stringbuffer()
-    {
-        
-    }
+    utf8_stringbuffer::utf8_stringbuffer() { }
 
     utf8_stringbuffer::utf8_stringbuffer(size_t initialSize)
-    : _data(initialSize)
     {
-
+        this->_data.reserve(initialSize);
     }
 
     void utf8_stringbuffer::push_back(utf8_codepoint codepoint)
@@ -312,6 +386,11 @@ namespace tabletopify
             _data.push_back(*cstr);
             ++cstr;
         }
+    }
+
+    size_t utf8_stringbuffer::size() const
+    {
+        return this->_data.size();
     }
 
     utf8_string utf8_stringbuffer::str() const

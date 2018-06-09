@@ -7,7 +7,12 @@ namespace tabletopify
     {
     public:
         const utf8proc_int32_t raw;
-        explicit utf8_codepoint(utf8proc_int32_t);
+        utf8_codepoint(utf8proc_int32_t);
+        bool operator==(const utf8_codepoint&) const;        
+        bool operator!=(const utf8_codepoint&) const;
+
+        bool is_valid() const;
+        bool is_whitespace() const;
     };
 
     class utf8_string_iterator;    
@@ -27,7 +32,10 @@ namespace tabletopify
         bool operator==(const utf8_string&) const;
         bool operator!=(const utf8_string&) const;
 
+        // splits on all whitespace codepoints
+        std::vector<utf8_string> split() const;
         utf8_string normalized() const;
+
         std::string str() const;
         const char* c_str() const;
         // number of bytes used to encode this string (not counting null terminator)
@@ -92,6 +100,8 @@ namespace tabletopify
         void push_back(const utf8_string&);
         void push_back(const char*);
 
+        // number of bytes (excluding null terminator)
+        size_t size() const;
         utf8_string str() const;
         void clear();
     private:

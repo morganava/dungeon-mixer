@@ -88,14 +88,24 @@ int main() try
         {
             char buffer[5] = {0};
             utf8proc_encode_char(cp.raw, (utf8proc_uint8_t*)buffer);
-            MX_LOG_INFO("0x{:x} : '{}'", cp.raw, buffer);
+            MX_LOG_INFO("0x{:x} : '{}' whitespace ? {}", cp.raw, buffer, cp.is_whitespace());
             sb.push_back(cp);
         }
     }
 
+    utf8_codepoint cp = {0x2007};
+
     MX_LOG_INFO("FULL STRING : '{}'", sb.str());
     sb.clear();
+    sb.push_back(cp);
     MX_LOG_INFO("FULL STRING : '{}'", sb.str());
+
+    utf8_string splitme = "hello this is a string all about how my life got twist　turned 大変、　よ　ろし　くお願い申し上げます。";
+
+    for(auto str : splitme.split())
+    {
+        MX_LOG_INFO("'{}'", str);
+    }
 
     struct nk_callbacks callbacks = 
     {
