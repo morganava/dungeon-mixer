@@ -6,3 +6,4 @@ add_compile_options(-g)
 
 add_library(nuklear STATIC
 	nuklear.c)
+
