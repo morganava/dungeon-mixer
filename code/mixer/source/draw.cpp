@@ -3,7 +3,6 @@
 #include "logger.hpp"
 #include "audio.hpp"
 #include "draw.hpp"
-#include "nuklear_extensions.hpp"
 #include "serialization.hpp"
 #include "string_manager.hpp"
 
@@ -29,6 +28,7 @@ namespace tabletopify
     renderer::renderer(nk_context* ctx)
     : _ctx(ctx)
     {
+#if 0        
         MX_ASSERT(_ctx != nullptr);
 
         // load user stye
@@ -48,7 +48,7 @@ namespace tabletopify
 
         _ctx->style.scrollh.padding = nk_vec2(0, 0);
         _ctx->style.scrollh.border = 0.0f;
-
+#endif
         // dummy 'All' playlislt
 
         _data.sidebar.playlists.push_back({
@@ -90,7 +90,7 @@ namespace tabletopify
     void renderer::load_style()
     {
         auto skinPath = get_skins_path();
-
+#if 0
         // this would be part of style json loading
         auto& font_atlas = _style.font_atlas;
         font_atlas.begin();
@@ -132,6 +132,7 @@ namespace tabletopify
         font_atlas.end();
 
         nk_style_set_font(_ctx, _style.sidebar.section_font);
+#endif        
     }
 
     void renderer::update(float dt, int32_t width, int32_t height)
@@ -144,6 +145,7 @@ namespace tabletopify
 
     void renderer::draw()
     {
+#if 0        
         if(nk_begin(_ctx, "main", nk_rect(0, 0, _data.window.width, _data.window.height), NK_WINDOW_NO_SCROLLBAR))
         {
             nk_layout_row_template_begin(_ctx, _data.window.height);
@@ -156,10 +158,12 @@ namespace tabletopify
 
             nk_end(_ctx);
         }        
+#endif        
     }
 
     void renderer::draw_sidebar()
     {
+#if 0        
         if(nk_group_begin(_ctx, "main>sidebar", 0))
         {
             nk_style_set_font(_ctx, _style.sidebar.section_font);
@@ -197,10 +201,12 @@ namespace tabletopify
 
             nk_group_end(_ctx);
         }
+#endif        
     }
 
     void renderer::draw_viewport()
     {
+#if 0        
         if(nk_group_begin(_ctx, "viewport", NK_WINDOW_NO_SCROLLBAR))
         {
             switch(_data.mode)
@@ -217,10 +223,12 @@ namespace tabletopify
             }
             nk_group_end(_ctx);
         }
+#endif        
     }
 
     void renderer::draw_playlist()
     {
+#if 0        
         auto& playlist = _data.sidebar.get_selected_playlist();
 
         // Top Bar
@@ -363,6 +371,7 @@ namespace tabletopify
 
             nk_group_end(_ctx);
         }
+#endif        
     }
 
     void renderer::draw_edit() {}

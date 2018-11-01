@@ -4,6 +4,7 @@
 #include "serialization.hpp"
 #include "draw.hpp"
 #include "string_manager.hpp"
+#include "ui.hpp"
 
 namespace tabletopify
 {
@@ -16,6 +17,9 @@ namespace tabletopify
 
         // init logger with desired log verbosity
         init_logger(LogLevel_Info);
+
+        // init ui
+        init_ui();
 
         // init audio managers
         init_audio_directory();
@@ -41,6 +45,9 @@ namespace tabletopify
         free_atmosphere_directory();
         free_track_directory();
         free_audio_directory();
+
+        // ui
+        free_ui();
 
         // close queues off to new work
         free_work_manager();        

@@ -70,7 +70,7 @@ namespace tabletopify
                     float search_height;
                     float search_field_width;
                     float search_button_width;
-                    struct nk_image search_button_icon;
+                    nk_image search_button_icon;
 
                     float topbar_padding;
 
@@ -92,11 +92,11 @@ namespace tabletopify
 
                     float volume_width;
                     float mute_width;
-                    struct nk_image muted_button_icon;
-                    struct nk_image unmuted_button_icon;
+                    nk_image muted_button_icon;
+                    nk_image unmuted_button_icon;
                     float play_stop_width;
-                    struct nk_image stop_button_icon;
-                    struct nk_image play_button_icon;
+                    nk_image stop_button_icon;
+                    nk_image play_button_icon;
                 } playlist;
 
                 struct

@@ -23,7 +23,9 @@ namespace tabletopify
 
     void font_stash::begin()
     {
+#if 0        
         nk_font_stash_begin(&_font_atlas);
+#endif        
     }
 
     nk_user_font* font_stash::add(const fs::path& fontFile, float fontSize)
@@ -31,7 +33,7 @@ namespace tabletopify
         MX_THROW_IF_FALSE(fs::exists(fontFile));
 
         utf8_string fontName = fontFile.filename().native().data();
-
+#if 0
         auto it = _font_map.find({fontName, fontSize});
         if(it == _font_map.end())
         {
@@ -46,10 +48,14 @@ namespace tabletopify
             return fontHandle;
         }
         return it->second;
+#endif
+        return nullptr;        
     }
 
     void font_stash::end()
     {
+#if 0        
         nk_font_stash_end();
+#endif        
     }
 }

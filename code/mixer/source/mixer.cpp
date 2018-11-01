@@ -4,17 +4,21 @@
 #include "work_queue.hpp"
 #include "logger.hpp"
 #include "string_manager.hpp"
+#include "graphics.hpp"
+#include "ui.hpp"
 
 namespace tabletopify
 {
-    void init_callback(nk_context* ctx)
+    void init_callback(NVGcontext* ctx)
     {
+        MX_LOG_INFO("Init callback!");
         // init renderer
-        init_renderer(ctx);
+        // init_renderer(ctx);
     }
 
-    void gui_callback(float dt, nk_context* ctx, int width, int height)
+    void gui_callback(NVGcontext* ctx, float dt, int width, int height)
     {
+        // MX_LOG_INFO("dt: {}, width: {}, height: {}", dt, width, height);
         // do queued UI work
         work_item wi;
         while(worker(Worker_UI).try_dequeue(wi))
@@ -27,24 +31,27 @@ namespace tabletopify
             wi = {};
         }
 
-        // draw widgets
-        // update_draw(ctx, width, height);
-        get_renderer()->update(dt, width, height);
+        get_ui()->update(ctx, dt, width, height);
 
-        volatile bool finished = false;
-        worker(Worker_Background).enqueue([dt]()
-        {
-            get_audio_directory()->update(dt);
-            get_playback_manager()->update(dt);
-        }, &finished);
+        // // draw widgets
+        // // update_draw(ctx, width, height);
+        // get_renderer()->update(dt, width, height);
 
-        // busy wait
-        while(!finished) std::this_thread::yield();
+        // volatile bool finished = false;
+        // worker(Worker_Background).enqueue([dt]()
+        // {
+        //     get_audio_directory()->update(dt);
+        //     get_playback_manager()->update(dt);
+        // }, &finished);
+
+        // // busy wait
+        // while(!finished) std::this_thread::yield();
     }
 
     // on window exit
-    void close_callback(nk_context* ctx)
+    void close_callback(NVGcontext* ctx)
     {
+        MX_LOG_INFO("Closing!");
         free_globals();
     }
 
@@ -56,10 +63,8 @@ namespace tabletopify
 
 using namespace tabletopify;
 
-int main() try
+void test() 
 {
-    tabletopify::init_globals();
-
     tabletopify::utf8_stringbuffer sb;
 
     const char* funny_words[] =
@@ -105,8 +110,26 @@ int main() try
     for(auto str : splitme.split())
     {
         MX_LOG_INFO("'{}'", str);
-    }
+    }    
+}
 
+int main() try
+{
+    tabletopify::init_globals();
+
+    test();
+
+    graphics_callbacks callbacks = 
+    {
+        &init_callback,
+        &gui_callback,
+        &close_callback,
+    };
+
+    graphics_main(callbacks);
+
+    return 0;
+#if 0
     struct nk_callbacks callbacks = 
     {
         &tabletopify::init_callback,
@@ -116,6 +139,7 @@ int main() try
     };
 
     nk_main("Tabletop Mixer", 800, 600, callbacks);
+#endif    
 }
 catch(const std::exception& ex)
 {

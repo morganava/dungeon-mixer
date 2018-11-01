@@ -30,14 +30,24 @@ using ss = std::stringstream;
 namespace fs = std::experimental::filesystem;
 #include <iterator>
 
-// utf8proc : 
+// utf8proc : https://github.com/JuliaStrings/utf8proc
 #define UTF8PROC_STATIC
 #include <utf8proc.h>
 
-// nuklear : https://github.com/vurtun/nuklear
-#define NK_INCLUDE_FONT_BAKING
-#define NK_INCLUDE_STANDARD_IO
-#include <nuklear.h>
+// GLEW
+#include <GL/glew.h>
+
+// GLFW
+#ifdef __APPLE__
+#   define GLFW_INCLUDE_GLCOREARB
+#endif
+#define GLFW_INCLUDE_GLEXT
+#include <GLFW/glfw3.h>
+
+// nanovg : https://github.com/memononen/nanovg
+#define NANOVG_GL3
+#include <nanovg.h>
+#include <nanovg_gl.h>
 
 // SFML
 #include <SFML/Audio.hpp>
@@ -63,5 +73,10 @@ namespace nl = nlohmann;
 // countof(X)
 template<typename T, size_t N>
 constexpr size_t countof(const T (&)[N]) { return N; }
+
+typedef void* nk_context;
+typedef void* nk_user_font;
+typedef void* nk_font_atlas;
+typedef void* nk_image;
 
 #endif // TABLETOPIFY_PRECOMP_H

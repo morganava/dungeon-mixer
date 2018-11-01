@@ -13,38 +13,44 @@ add_compile_options(-std=c++17)
 
 add_executable(tabletop_mixer
     precomp.cpp
-    globals.cpp
+    # utilities
+    uuid.cpp
+    tag_map.cpp
+    text_buffer.cpp
+    hash.cpp
+    utf8_string.cpp
+    utilities.cpp
+    # main
     mixer.cpp
+    # systems
+    globals.cpp
+    work_queue.cpp
+    graphics.cpp    
+    logger.cpp
+    serialization.cpp
+    string_manager.cpp
+    # audio backend
     audio_data.cpp
     audio_directory.cpp
     track_directory.cpp
     atmosphere_directory.cpp
     playback_manager.cpp
+    # ui 
+    ui.cpp
     draw.cpp
-    work_queue.cpp
-    logger.cpp
-    utilities.cpp
-    serialization.cpp
-    nuklear_extensions.cpp
-    uuid.cpp
-    tag_map.cpp
-    text_buffer.cpp
-    hash.cpp
-    font_stash.cpp
-    string_manager.cpp
-    utf8_string.cpp)
+    font_stash.cpp)
 
 add_precompiled_header(tabletop_mixer precomp.hpp SOURCE_CXX precomp.cpp FORCEINCLUDE)
 
 target_link_libraries(tabletop_mixer xxhash)
 target_link_libraries(tabletop_mixer utf8proc)
-target_link_libraries(tabletop_mixer nuklear)
 target_link_libraries(tabletop_mixer stb)
 target_link_libraries(tabletop_mixer fmt)
 target_link_libraries(tabletop_mixer glfw)
 target_link_libraries(tabletop_mixer ${OPENGL_gl_LIBRARY})
 target_link_libraries(tabletop_mixer ${OPENGL_glu_LIBRARY})
 target_link_libraries(tabletop_mixer GLEW)
+target_link_libraries(tabletop_mixer nanovg)
 target_link_libraries(tabletop_mixer ${SFML_LIBRARIES})
 target_link_libraries(tabletop_mixer nativefiledialog)
 target_link_libraries(tabletop_mixer ${GTK3_LIBRARIES})
@@ -55,7 +61,7 @@ include_directories(../../utf8proc/include)
 include_directories(../../xxhash/include)
 include_directories(../../json/include)
 include_directories(../../stb/include)
-include_directories(../../nuklear/include)
 include_directories(../../nativefiledialog/include)
 include_directories(../../fmt/include)
+include_directories(../../nanovg/include)
 include_directories(${SFML_INCLUDE_DIR})

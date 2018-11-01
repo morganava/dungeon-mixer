@@ -4,17 +4,7 @@
 #include "logger.hpp"
 
 
-// stream operator for various nk and sfml types
-
-std::ostream& operator<<(std::ostream& out, const struct nk_rect& rect)
-{
-    return out << "{ x: " << rect.x << ", y: " << rect.y << ", w: " << rect.w << ", h: " << rect.h << " }";
-}
-
-std::ostream& operator<<(std::ostream& out, const struct nk_vec2& vec)
-{
-    return out << "{ x: " << vec.x << ", y: " << vec.y << " }";
-}
+// stream operator for various types
 
 std::ostream& operator<<(std::ostream& out, const sf::Vector3f& vec)
 {
