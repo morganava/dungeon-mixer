@@ -36,8 +36,6 @@ namespace tabletopify
 
     void free_globals()
     {
-        free_renderer();
-
         free_string_manager();
 
         // free audio managers

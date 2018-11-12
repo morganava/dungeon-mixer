@@ -29,6 +29,7 @@ using ss = std::stringstream;
 #include <experimental/filesystem>
 namespace fs = std::experimental::filesystem;
 #include <iterator>
+#include <algorithm>
 
 // utf8proc : https://github.com/JuliaStrings/utf8proc
 #define UTF8PROC_STATIC

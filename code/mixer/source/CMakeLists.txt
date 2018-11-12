@@ -37,7 +37,6 @@ add_executable(tabletop_mixer
     playback_manager.cpp
     # ui 
     ui.cpp
-    draw.cpp
     font_stash.cpp)
 
 add_precompiled_header(tabletop_mixer precomp.hpp SOURCE_CXX precomp.cpp FORCEINCLUDE)
