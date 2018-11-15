@@ -253,11 +253,22 @@ namespace tabletopify
 #endif
 
 #if 0
-        body(width, height, )
-        div(0, 0, width, height, {"root"})
-        div(position = {0,0}; size = {width, height};)
+        mxGroup(style.position = {0,0}; style.size = {width, height}; style.fill = 0xFFFFFF;);
         {
-            
+            mxColumn(style.position = {0,0}; style.size = {width, height};)
+            {
+                mxStaticRow(style.size = {width, 100}; style.layout = {50, 100, 100};)
+                {
+                    mxLabel("Hello!");
+                    mxSpacer();
+                    mxLabel("World!");
+                }
+                mxDynamicRow(style.size = {width, 100} style.children = 2;)
+                {
+                    mxLabel("Left");
+                    mxLabel("Right");
+                }
+            }
         }
 #endif        
     }
