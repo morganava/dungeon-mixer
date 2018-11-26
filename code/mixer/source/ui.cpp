@@ -239,6 +239,37 @@ namespace tabletopify
 
         /// layout elements
 
+        // callbacks
+        template<typename T>
+        void pre_render(const T& elem) {};
+        template<typename T>
+        void render(const T& elem, NVGcontext* nvgctx, const rect& bounds) {}
+        template<typename T>
+        void post_render(const T& elem) {};
+
+        // base element
+
+        template<typename T>
+        struct element
+        {
+            element() = delete;
+            ~element()
+            {
+                _ctx.pop_bounds();
+            }
+
+            element(context& ctx, auto&& func)
+            : _ctx(ctx)
+            {
+                auto& self = static_cast<T&>(*this);
+                func(self);
+                render(self, _ctx.nvgcontext(), _ctx.peek_bounds());
+            }
+
+        protected:
+            context& _ctx;
+        };
+
         struct elem_group
         {
             elem_group() = delete;
@@ -311,35 +342,24 @@ namespace tabletopify
 
         /// draw elements
 
-        struct elem_debug
+        struct elem_debug : public element<elem_debug>
         {
-            elem_debug() = delete;
-            ~elem_debug()
-            {
-                _ctx.pop_bounds();
-            }
-            elem_debug(context& ctx, auto&& func)
-            : _ctx(ctx)
-            {
-                func(*this);
-                render(_ctx.nvgcontext(), _ctx.peek_bounds());
-            }
-
-            void render(NVGcontext* ctx, const rect& bounds)
-            {
-                nvgBeginPath(ctx);
-                nvgRect(ctx, bounds.position.x, bounds.position.y, bounds.size.x, bounds.size.y);
-                nvgFillColor(ctx, nvgRGB(0, 0, 0));
-                nvgFill(ctx);
-
-                nvgBeginPath(ctx);
-                nvgRect(ctx, bounds.position.x + 1.0f, bounds.position.y + 1.0f, bounds.size.x - 2.0f, bounds.size.y - 2.0f);
-                nvgFillColor(ctx, nvgRGB(0, 0xff, 0xff));
-                nvgFill(ctx);                
-            }
-        private:
-            context& _ctx;
+            using element::element;
         };
+
+        template<>
+        void render<elem_debug>(const elem_debug& elem, NVGcontext* ctx, const rect& bounds)
+        {
+            nvgBeginPath(ctx);
+            nvgRect(ctx, bounds.position.x, bounds.position.y, bounds.size.x, bounds.size.y);
+            nvgFillColor(ctx, nvgRGB(0, 0, 0));
+            nvgFill(ctx);
+
+            nvgBeginPath(ctx);
+            nvgRect(ctx, bounds.position.x + 1.0f, bounds.position.y + 1.0f, bounds.size.x - 2.0f, bounds.size.y - 2.0f);
+            nvgFillColor(ctx, nvgRGB(0, 0xff, 0xff));
+            nvgFill(ctx);     
+        }
 
 
     } // imgui namespace
