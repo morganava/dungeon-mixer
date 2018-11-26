@@ -13,7 +13,9 @@
 #define MX_THROW_IF_FALSE(X) do {bool result = (X); if(!result) {throw std::runtime_error("Runtime Failure: " __FILE__ ":" __STR_LINE__ " " #X);} } while(0);
 #define MX_THROW_IF_NULL(X) MX_THROW_IF_FALSE((X) != nullptr)
 #define MX_THROW_IF_NOT_NULL(X) MX_THROW_IF_FALSE((X) == nullptr)
-#define MX_THROW_MSG(X) throw std::runtime_error(fmt::format("Runtime Failure: " __FILE__ ":" __STR_LINE__ " {}", X));
+#define MX_THROW_MSG(X) throw std::runtime_error(fmt::format("Runtime Failure: " __FILE__ ":" __STR_LINE__ " {", X));
+
+#define MX_DEBUG_TRACE(...) fprintf(stderr, __FILE__"(" __STR_LINE__ "): " __VA_ARGS__); fputs("\n", stderr);
 
 // extra print operators
 std::ostream& operator<<(std::ostream& out, const sf::Vector3f& vec);

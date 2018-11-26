@@ -26,12 +26,6 @@ namespace tabletopify
 
     void ui::initialize()
     {
-        style_t rootStyle;
-        rootStyle.x = 0.0f;
-        rootStyle.y = 0.0f;
-        rootStyle.width = 0.0f;
-        rootStyle.height = 0.0f;
-        _style_stack.push_back(rootStyle);
     }
 
     void ui::finish()
@@ -39,23 +33,7 @@ namespace tabletopify
 
     }
 
-    // imgui methods
-
-    void ui::push_style(const style_t& s)
-    {
-        _style_stack.push_back(s);
-    }
-
-    void ui::pop_style()
-    {
-        _style_stack.pop_back();
-    }
-
-    style_t& ui::peek_style()
-    {
-        return _style_stack.back();
-    }
-
+    // immmediate mode gui
     namespace imgui
     {
         // low cost calbacks for use with immediate mode ui
@@ -154,29 +132,45 @@ namespace tabletopify
             return make_callback_impl(func);
         }
 
-        template<typename T>
-        struct base_element
+        struct vec2
         {
-            base_element() = delete;
+            float x = 0.0f;
+            float y = 0.0f;
 
-            template<typename Func>
-            base_element(Func&& func)
+            constexpr vec2() = default;
+            constexpr vec2(const vec2&) = default;
+            constexpr vec2(vec2&&) = default;
+            
+            constexpr vec2(float x, float y)
+            : x(x)
+            , y(y)
+            { }
+            
+            vec2& operator=(const vec2&) = default;
+
+            constexpr vec2 operator+(const vec2& that) const
             {
-                style_t style = func(*this);
-                g_ui->push_style(func());
+                return vec2(this->x + that.x, this->y + that.y);
             }
 
-            ~base_element()
+            constexpr vec2 operator-(const vec2& that) const
             {
-                g_ui->pop_style();
+                return vec2(this->x - that.x, this->y - that.y);
             }
 
-            void render()
+            constexpr vec2 operator*(float f) const
             {
-                T::render_impl(g_ui->peek_style());
-            };
+                return vec2(this->x * f, this->y * f);
+            }
         };
 
+        struct rect
+        {
+            vec2 position;
+            vec2 size;
+        };
+
+#if 0
         struct circle_element
         {
             circle_element() = delete;
@@ -199,6 +193,155 @@ namespace tabletopify
                 nvgFill(ctx);
             }
         };
+#endif    
+
+        class context
+        {
+        public:
+            context(NVGcontext* nvgContext)
+            : _nvgContext(nvgContext)
+            { }
+
+            ~context()
+            {
+                // MX_LOG_INFO("bounds.size(): {}", _bounds_stack.size());   
+                MX_ASSERT(_bounds_stack.size() == 0);
+            }
+
+            void push_bounds(const rect& bounds)
+            {
+                // MX_DEBUG_TRACE("push_bounds");
+                _bounds_stack.push_back(bounds);
+            }
+
+            rect peek_bounds() const
+            {
+                // MX_DEBUG_TRACE("peek_bounds");
+                rect retval = _bounds_stack.back();
+                return retval;
+            }
+
+            void pop_bounds()
+            {
+                // MX_DEBUG_TRACE("pop_bounds");
+                _bounds_stack.pop_back();
+            }
+
+            NVGcontext* nvgcontext()
+            {
+                return _nvgContext;
+            }
+
+        private:
+            std::vector<rect> _bounds_stack;
+            NVGcontext* _nvgContext = nullptr;
+        };
+
+        /// layout elements
+
+        struct elem_group
+        {
+            elem_group() = delete;
+            ~elem_group()
+            {
+                _ctx.pop_bounds();
+            }
+            elem_group(context& ctx, auto&& func)
+            : _ctx(ctx)
+            {
+                func(*this);
+                render(_ctx.nvgcontext(), _ctx.peek_bounds());
+            }
+
+            void render(NVGcontext* ctx, const rect& bounds)
+            {
+
+            }
+        private:
+            context& _ctx;
+        };
+
+        struct elem_static_row
+        {
+            elem_static_row() = delete;
+            ~elem_static_row()
+            {
+                _ctx.pop_bounds();
+
+                auto bound = _ctx.peek_bounds();
+                bound.position.y += _height;
+                bound.size.y -= _height;
+                _ctx.pop_bounds();
+                _ctx.push_bounds(bound);
+            }            
+            elem_static_row(context& ctx, auto&& func)
+            : _ctx(ctx)
+            {
+                func(*this);
+                auto bound = ctx.peek_bounds();
+                render(ctx.nvgcontext(), bound);
+                
+                rect child_bounds[_widths.size()];
+                float x_offset = 0.0f;
+                for(size_t i = 0; i < _widths.size(); ++i)
+                {
+                    float w = _widths[i];
+                    child_bounds[i] = {{bound.position.x + x_offset, bound.position.y},{w, _height}};
+                    x_offset += w;
+                }
+
+                ctx.push_bounds({bound.position, {x_offset, _height}});
+
+                for(size_t i = 0; i < _widths.size(); ++i)
+                {
+                    ctx.push_bounds(child_bounds[_widths.size() - 1 - i]);
+                }
+            }
+
+            void render(NVGcontext* ctx, const rect& bounds)
+            {
+
+            }
+
+            std::vector<float> _widths;
+            float _height;
+        private:
+            context& _ctx;
+        };
+
+        /// draw elements
+
+        struct elem_debug
+        {
+            elem_debug() = delete;
+            ~elem_debug()
+            {
+                _ctx.pop_bounds();
+            }
+            elem_debug(context& ctx, auto&& func)
+            : _ctx(ctx)
+            {
+                func(*this);
+                render(_ctx.nvgcontext(), _ctx.peek_bounds());
+            }
+
+            void render(NVGcontext* ctx, const rect& bounds)
+            {
+                nvgBeginPath(ctx);
+                nvgRect(ctx, bounds.position.x, bounds.position.y, bounds.size.x, bounds.size.y);
+                nvgFillColor(ctx, nvgRGB(0, 0, 0));
+                nvgFill(ctx);
+
+                nvgBeginPath(ctx);
+                nvgRect(ctx, bounds.position.x + 1.0f, bounds.position.y + 1.0f, bounds.size.x - 2.0f, bounds.size.y - 2.0f);
+                nvgFillColor(ctx, nvgRGB(0, 0xff, 0xff));
+                nvgFill(ctx);                
+            }
+        private:
+            context& _ctx;
+        };
+
+
     } // imgui namespace
 
     #define mxCircle(...)\
@@ -211,12 +354,6 @@ namespace tabletopify
 
     void ui::update(NVGcontext* ctx, float dt, int32_t width, int32_t height)
     {
-        {
-            auto& rootStyle =_style_stack.front();
-            rootStyle.width = (float)width;
-            rootStyle.height = (float)height;
-        }
-
         // imgui::circle_element ce([=](auto& self)
         // {
         //     style_t style = g_ui->peek_style();
@@ -229,6 +366,7 @@ namespace tabletopify
         //     return style;
         // });
 
+#if 0
         mxCircle(
             style.x = width/2.0f; 
             style.y = height/2.0f; 
@@ -242,33 +380,58 @@ namespace tabletopify
             style.height = height/4.0f;
             style.fill_color = nvgRGB(16,16, 16);
         );
-#if 0        
-        MX_LOG_INFO("location: {}, dt: {}, width: {}, height: {}", __PRETTY_FUNCTION__, dt, width, height);
-        // NVGcontext
 
-        nvgBeginPath(ctx);
-        nvgCircle(ctx, width / 2.0f, height / 2.0f, std::min(width, height) / 3.0f);
-        nvgFillColor(ctx, nvgRGBA(255, 196, 0, 255));
-        nvgFill(ctx);
-#endif
+#endif        
+        imgui::context imgui_ctx(ctx);
+        imgui_ctx.push_bounds({{0.0f, 0.0f},{float(width), float(height)}});
+
+        if(imgui::elem_group root_group(imgui_ctx, [&](auto& self)
+        {
+        }); true)
+        {
+            if(imgui::elem_static_row dyn_row(imgui_ctx, [&](auto& self)
+            {
+                auto& width = self._widths;
+                auto& height = self._height;
+                width = {20.0f, 50.0f};
+                height = 100;
+            }); true)
+            {
+                imgui::elem_debug(imgui_ctx, [](auto& self){});
+                imgui::elem_debug(imgui_ctx, [](auto& self){});
+            }
+            if(imgui::elem_static_row dyn_row(imgui_ctx, [&](auto& self)
+            {
+                auto& width = self._widths;
+                auto& height = self._height;
+                width = {25.0f, 20.0f, 50.0f, 100.0f};
+                height = 100;
+            }); true)
+            {
+                imgui::elem_debug(imgui_ctx, [](auto& self){});
+                imgui::elem_debug(imgui_ctx, [](auto& self){});
+                imgui::elem_debug(imgui_ctx, [](auto& self){});
+                imgui::elem_debug(imgui_ctx, [](auto& self){});
+            }            
+        }
+
+        // imgui::elem_dynamic_row row;
 
 #if 0
         mxGroup(style.position = {0,0}; style.size = {width, height}; style.fill = 0xFFFFFF;);
         {
-            mxColumn(style.position = {0,0}; style.size = {width, height};)
+            mxStaticRow(style.size = {width, 100}; style.layout = {50, 100, 100};)
             {
-                mxStaticRow(style.size = {width, 100}; style.layout = {50, 100, 100};)
-                {
-                    mxLabel("Hello!");
-                    mxSpacer();
-                    mxLabel("World!");
-                }
-                mxDynamicRow(style.size = {width, 100} style.children = 2;)
-                {
-                    mxLabel("Left");
-                    mxLabel("Right");
-                }
+                mxLabel("Hello!");
+                mxSpacer();
+                mxLabel("World!");
             }
+            mxDynamicRow(style.size = {width, 100} style.children = 2;)
+            {
+                mxLabel("Left");
+                mxLabel("Right");
+            }
+        }
         }
 #endif        
     }
