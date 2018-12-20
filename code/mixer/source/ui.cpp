@@ -36,87 +36,87 @@ namespace tabletopify
     // immmediate mode gui
     namespace imgui
     {
-        // low cost calbacks for use with immediate mode ui
-        template<typename Return, typename... Args>
+        template<typename TYPE>
+        class singleton
+        {
+        public:
+            static constexpr TYPE* addr()
+            {
+                return &data.value;
+            }
+
+            static constexpr TYPE& get()
+            {
+                return data.value;
+            }
+
+            static void assign(TYPE&& that)
+            {
+                new (addr()) TYPE(std::move(that));
+            }
+
+            static constexpr void free()
+            {
+                data.value.~TYPE();
+            }
+
+        private:
+            union singleton_data
+            {
+                TYPE value;
+                uint8_t raw[sizeof(TYPE)] = {};
+            };
+            static singleton_data data;
+        };
+        template<typename TYPE>
+        typename singleton<TYPE>::singleton_data singleton<TYPE>::singleton::data = {};
+
+        template<typename RETVAL, typename... ARGS>
         class callback
         {
-            typedef Return(*function_t)(void*, Args...) ;        
-            typedef void(*destroy_t)(void*);    
         public:
-            callback() = default;
-            callback(const callback&) = delete;
-            callback(callback&& that)
-            : _function(that._function)
-            , _destroy(that._destroy)
-            , _data(that._data)
-            {
-                that._function = nullptr;
-                that._destroy = nullptr;
-                that._data = nullptr;
-            }
-
             ~callback()
             {
-                if(_destroy)
-                {
-                    _destroy(_data);
-                }
+                delete_func();
             }
 
-            callback& operator=(callback&& that)
+            constexpr callback& operator=(RETVAL(*function)(ARGS...))
             {
-                _function = that._function;
-                _destroy = that._destroy;
-                _data = that._data;
-
-                that._function = nullptr;
-                that._destroy = nullptr;
-                that._data = nullptr;
-            }
-
-            template<typename T>
-            callback& operator=(T&& lam)
-            {
-                if (_destroy != nullptr)
-                {
-                    _destroy(_data);
-                }
-
-                const function_t function = [](void* plam, Args... args) -> Return 
-                {
-                    return (*reinterpret_cast<T*>(plam))(args...);
-                };
-                const destroy_t destroy = [](void* plam)
-                {
-                    reinterpret_cast<T*>(plam)->~T();
-                };
-
-                static uint8_t slam[sizeof(T)];
-                new (slam) T(std::forward<T>(lam));
-                void* data = slam;
-
-                this->_function = function;
-                this->_destroy = destroy;
-                this->_data = data;
-
+                exec_func = function;
+                delete_func = [](){};
                 return *this;
             }
 
-            Return operator()(Args... args) const
+            template<typename FUNCTOR>
+            callback& operator=(FUNCTOR&& functor)
             {
-                if(_function) {
-                    _function(_data, args...);
-                }
+                singleton<FUNCTOR>::assign(std::move(functor));
+                set_callbacks<FUNCTOR>();
+                return *this;
             }
 
-            operator bool() const
+            constexpr RETVAL operator()(ARGS... args)
             {
-                return _function != nullptr;
+                return exec_func(std::forward<ARGS>(args)...);
             }
         private:
-            function_t _function = nullptr;
-            destroy_t _destroy = nullptr;
-            void* _data =  nullptr; 
+
+            template<typename FUNCTOR>
+            constexpr void set_callbacks()
+            {
+                delete_func = []() -> void
+                {
+                    singleton<FUNCTOR>::free();
+                };
+
+                exec_func = [](ARGS... args) -> RETVAL
+                {
+                    return singleton<FUNCTOR>::get()(args...);
+                };
+            }
+
+            void(*delete_func)() = nullptr;
+            RETVAL(*exec_func)(ARGS...) = nullptr;
         };
 
         template<typename Return, typename... Args>
@@ -146,7 +146,7 @@ namespace tabletopify
             , y(y)
             { }
             
-            vec2& operator=(const vec2&) = default;
+            constexpr vec2& operator=(const vec2&) = default;
 
             constexpr vec2 operator+(const vec2& that) const
             {
@@ -170,30 +170,46 @@ namespace tabletopify
             vec2 size;
         };
 
-#if 0
-        struct circle_element
+        template<typename T, size_t LEN>
+        struct fixed_stack
         {
-            circle_element() = delete;
-            circle_element(auto&& func)
+            constexpr void push(T val)
             {
-                style_t s = func(*this);
-                g_ui->push_style(s);
+                _buffer[_idx++] = val;
             }
 
-            ~circle_element()
+            constexpr T peek() const
             {
-                g_ui->pop_style();
+                assert(_idx > 0);
+                return _buffer[_idx - 1];
             }
 
-            void render(NVGcontext* ctx, const style_t& style)
+            constexpr void pop()
             {
-                nvgBeginPath(ctx);
-                nvgCircle(ctx, style.x, style.y, std::min(style.width, style.height));
-                nvgFillColor(ctx, style.fill_color);
-                nvgFill(ctx);
+                assert(_idx > 0);
+                --_idx;
             }
+
+            constexpr size_t size() const
+            {
+                return _idx;
+            }
+
+        private:
+            size_t _idx = 0;
+            T _buffer[LEN] = {};
         };
-#endif    
+
+        struct bounds_callback
+        {
+            constexpr rect eval(const rect& desired) const
+            {
+                return callback(element, desired);
+            }
+
+            rect (*callback)(void*, const rect&) = nullptr;
+            void* element = nullptr;
+        };
 
         class context
         {
@@ -204,27 +220,30 @@ namespace tabletopify
 
             ~context()
             {
-                // MX_LOG_INFO("bounds.size(): {}", _bounds_stack.size());   
+                if (_bounds_stack.size() != 0) 
+                {
+                       MX_LOG_INFO("bounds.size(): {}", _bounds_stack.size());
+                }
                 MX_ASSERT(_bounds_stack.size() == 0);
             }
 
-            void push_bounds(const rect& bounds)
+            void push_bounds(const bounds_callback& bounds)
             {
                 // MX_DEBUG_TRACE("push_bounds");
-                _bounds_stack.push_back(bounds);
+                _bounds_stack.push(bounds);
             }
 
-            rect peek_bounds() const
+            bounds_callback peek_bounds() const
             {
                 // MX_DEBUG_TRACE("peek_bounds");
-                rect retval = _bounds_stack.back();
+                auto retval = _bounds_stack.peek();
                 return retval;
             }
 
             void pop_bounds()
             {
                 // MX_DEBUG_TRACE("pop_bounds");
-                _bounds_stack.pop_back();
+                _bounds_stack.pop();
             }
 
             NVGcontext* nvgcontext()
@@ -233,7 +252,7 @@ namespace tabletopify
             }
 
         private:
-            std::vector<rect> _bounds_stack;
+            fixed_stack<bounds_callback, 16> _bounds_stack;
             NVGcontext* _nvgContext = nullptr;
         };
 
@@ -241,11 +260,40 @@ namespace tabletopify
 
         // callbacks
         template<typename T>
-        void pre_render(const T& elem) {};
+        void construct(T& self, auto&& func)
+        {
+            MX_LOG_INFO("Construct : {}", typeid(T()).name());
+            func(self);
+            pre_render(self);
+            rect desired = desired_bounds(self);
+            rect bounds = self._ctx.peek_bounds().eval(desired);
+            self._bounds = bounds;
+            MX_LOG_INFO("render bounds: {},{} {},{}", bounds.position.x, bounds.position.y, bounds.size.x, bounds.size.y);
+            render(self, self._ctx.nvgcontext(), bounds);
+            post_render(self);
+        }
+
+        template<typename T>
+        void destroy(T& elem) {}
+        template<typename T>
+        void pre_render(T& elem) {}
+        template<typename T>
+        rect desired_bounds(const T& elem) {return {};};
         template<typename T>
         void render(const T& elem, NVGcontext* nvgctx, const rect& bounds) {}
         template<typename T>
-        void post_render(const T& elem) {};
+        void post_render(T& elem)
+        {
+            elem._ctx.push_bounds(
+            {
+                [](void*, const rect&) -> rect
+                {
+                    MX_ASSERT(!"should not be called");
+                    return {};
+                },
+                nullptr
+            });
+        }
 
         // base element
 
@@ -253,98 +301,110 @@ namespace tabletopify
         struct element
         {
             element() = delete;
+            element(const element&) = delete;
+            element(element&&) = delete;
+            element(context& ctx)
+            : _ctx(ctx)
+            { }
+
             ~element()
             {
                 _ctx.pop_bounds();
+
+                destroy(static_cast<T&>(*this));
             }
 
-            element(context& ctx, auto&& func)
-            : _ctx(ctx)
-            {
-                auto& self = static_cast<T&>(*this);
-                func(self);
-                render(self, _ctx.nvgcontext(), _ctx.peek_bounds());
-            }
-
-        protected:
             context& _ctx;
+            rect _bounds;
         };
 
-        struct elem_group
+        struct elem_group : public element<elem_group>
         {
-            elem_group() = delete;
-            ~elem_group()
-            {
-                _ctx.pop_bounds();
-            }
             elem_group(context& ctx, auto&& func)
-            : _ctx(ctx)
-            {
-                func(*this);
-                render(_ctx.nvgcontext(), _ctx.peek_bounds());
+            : element(ctx)
+            { 
+                construct(*this, std::forward<decltype(func)>(func));
             }
-
-            void render(NVGcontext* ctx, const rect& bounds)
-            {
-
-            }
-        private:
-            context& _ctx;
+            size_t _vertical_offset = 0;
         };
 
-        struct elem_static_row
+        template<>
+        void post_render<elem_group>(elem_group& self)
         {
-            elem_static_row() = delete;
-            ~elem_static_row()
+            self._ctx.push_bounds(
             {
-                _ctx.pop_bounds();
+                [](void* ptr, const rect& desired) -> rect
+                {
+                    elem_group* eg = reinterpret_cast<elem_group*>(ptr);
+                    rect retval = 
+                    {
+                        {eg->_bounds.position.x, eg->_bounds.position.y + eg->_vertical_offset},
+                        {eg->_bounds.size.x, desired.size.y}
+                    };
+                    eg->_vertical_offset += desired.size.y;
+                    return retval;
+                },
+                &self
+            });
+        }
 
-                auto bound = _ctx.peek_bounds();
-                bound.position.y += _height;
-                bound.size.y -= _height;
-                _ctx.pop_bounds();
-                _ctx.push_bounds(bound);
-            }            
+        struct elem_static_row : public element<elem_static_row>
+        {
             elem_static_row(context& ctx, auto&& func)
-            : _ctx(ctx)
-            {
-                func(*this);
-                auto bound = ctx.peek_bounds();
-                render(ctx.nvgcontext(), bound);
-                
-                rect child_bounds[_widths.size()];
-                float x_offset = 0.0f;
-                for(size_t i = 0; i < _widths.size(); ++i)
-                {
-                    float w = _widths[i];
-                    child_bounds[i] = {{bound.position.x + x_offset, bound.position.y},{w, _height}};
-                    x_offset += w;
-                }
-
-                ctx.push_bounds({bound.position, {x_offset, _height}});
-
-                for(size_t i = 0; i < _widths.size(); ++i)
-                {
-                    ctx.push_bounds(child_bounds[_widths.size() - 1 - i]);
-                }
-            }
-
-            void render(NVGcontext* ctx, const rect& bounds)
-            {
-
+            : element(ctx)
+            { 
+                construct(*this, std::forward<decltype(func)>(func));
             }
 
             std::vector<float> _widths;
-            float _height;
-        private:
-            context& _ctx;
+            float _height = 0.0f;
+            float _horizontal_offset = 0.0f;
+
+            friend void post_render<elem_static_row>(elem_static_row&);
         };
+
+        template<>
+        rect desired_bounds<elem_static_row>(const elem_static_row& self)
+        {
+            rect retval = {};
+            retval.size.y  = self._height;
+            return retval;
+        }
+
+        template<>
+        void post_render<elem_static_row>(elem_static_row& self)
+        {
+            self._ctx.push_bounds(
+            {
+                [](void* ptr, const rect&) -> rect
+                {
+                    elem_static_row* esr = reinterpret_cast<elem_static_row*>(ptr);
+                    float w = esr->_widths.front();
+                    esr->_widths.erase(esr->_widths.begin());
+
+                    rect retval = 
+                    {
+                        {esr->_bounds.position.x + esr->_horizontal_offset, esr->_bounds.position.y},
+                        {w, esr->_bounds.size.y}
+                    };
+
+                    esr->_horizontal_offset += w;
+
+                    return retval;
+                },
+                &self
+            });                
+        }
 
         /// draw elements
 
         struct elem_debug : public element<elem_debug>
         {
-            using element::element;
+            elem_debug(context& ctx, auto&& func)
+            : element(ctx)
+            { 
+                construct(*this, std::forward<decltype(func)>(func));
+            }
         };
 
         template<>
@@ -374,36 +434,18 @@ namespace tabletopify
 
     void ui::update(NVGcontext* ctx, float dt, int32_t width, int32_t height)
     {
-        // imgui::circle_element ce([=](auto& self)
-        // {
-        //     style_t style = g_ui->peek_style();
-        //     style.x = width / 2.0f;
-        //     style.y = height / 2.0f;
-        //     style.width = width;
-        //     style.height = height;
-        //     style.fill_color = nvgRGB(255, 128, 0);
-        //     self.render(ctx, style);
-        //     return style;
-        // });
+        MX_LOG_INFO("--Begin Update--");
 
-#if 0
-        mxCircle(
-            style.x = width/2.0f; 
-            style.y = height/2.0f; 
-            style.width = width/3.0f;
-            style.height = height/3.0f;
-            style.fill_color = nvgRGB(255, 255, 0););
-        mxCircle(
-            style.x = width/2.0f;
-            style.y = height/2.0f;
-            style.width = width/4.0f;
-            style.height = height/4.0f;
-            style.fill_color = nvgRGB(16,16, 16);
-        );
-
-#endif        
         imgui::context imgui_ctx(ctx);
-        imgui_ctx.push_bounds({{0.0f, 0.0f},{float(width), float(height)}});
+        imgui::rect bounds = {{0, 0}, {(float)width, (float)height}};
+        imgui_ctx.push_bounds(
+        {
+            [](void* bounds, const imgui::rect&) -> imgui::rect 
+            {
+                return *reinterpret_cast<imgui::rect*>(bounds);
+            },
+            &bounds
+        });
 
         if(imgui::elem_group root_group(imgui_ctx, [&](auto& self)
         {
@@ -420,39 +462,25 @@ namespace tabletopify
                 imgui::elem_debug(imgui_ctx, [](auto& self){});
                 imgui::elem_debug(imgui_ctx, [](auto& self){});
             }
+#if 1
             if(imgui::elem_static_row dyn_row(imgui_ctx, [&](auto& self)
             {
                 auto& width = self._widths;
                 auto& height = self._height;
                 width = {25.0f, 20.0f, 50.0f, 100.0f};
-                height = 100;
+                height = 200;
             }); true)
             {
                 imgui::elem_debug(imgui_ctx, [](auto& self){});
                 imgui::elem_debug(imgui_ctx, [](auto& self){});
                 imgui::elem_debug(imgui_ctx, [](auto& self){});
                 imgui::elem_debug(imgui_ctx, [](auto& self){});
-            }            
+            }
+#endif
         }
 
-        // imgui::elem_dynamic_row row;
+        imgui_ctx.pop_bounds();
 
-#if 0
-        mxGroup(style.position = {0,0}; style.size = {width, height}; style.fill = 0xFFFFFF;);
-        {
-            mxStaticRow(style.size = {width, 100}; style.layout = {50, 100, 100};)
-            {
-                mxLabel("Hello!");
-                mxSpacer();
-                mxLabel("World!");
-            }
-            mxDynamicRow(style.size = {width, 100} style.children = 2;)
-            {
-                mxLabel("Left");
-                mxLabel("Right");
-            }
-        }
-        }
-#endif        
+        MX_LOG_INFO("--End Update--");
     }
 }
