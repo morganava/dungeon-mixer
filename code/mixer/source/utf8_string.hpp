@@ -23,10 +23,21 @@ namespace tabletopify
         utf8_string(utf8_string&&);
         utf8_string(const char*);
         utf8_string(const std::string&);
+        template<size_t N>
+        utf8_string(const char(&str)[N]) 
+        {
+            normalize_and_assign(str, N);
+        }
         utf8_string& operator=(const utf8_string&);
         utf8_string& operator=(utf8_string&&);
         utf8_string& operator=(const char*);
         utf8_string& operator=(const std::string&);
+        template<size_t N>
+        utf8_string& operator=(const char(&str)[N])
+        {
+            normalize_and_assign(str, N);
+            return *this;
+        }
 
         bool operator==(const utf8_string&) const;
         bool operator!=(const utf8_string&) const;
@@ -46,6 +57,9 @@ namespace tabletopify
     private:
         // private constructor, takes ownership of pointer
         utf8_string(size_t size, utf8proc_uint8_t*);
+        // normalizes and assigns a new string
+        void normalize_and_assign(const char* cstr, size_t len);
+
         // size in bytes excluding null terminator
         size_t _size;
         // data buffer
@@ -97,7 +111,16 @@ namespace tabletopify
 
         void push_back(utf8_codepoint);
         void push_back(const utf8_string&);
+        void push_back(const std::string&);
         void push_back(const char*);
+
+        template<size_t N>
+        void push_back(const char(&str)[N])
+        {
+            for(size_t i = 0; i < N; ++i) {
+                _data.push_back(str[N]);
+            }
+        }
 
         // number of bytes (excluding null terminator)
         size_t size() const;

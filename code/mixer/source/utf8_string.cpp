@@ -131,32 +131,38 @@ namespace tabletopify
 
     utf8_string& utf8_string::operator=(const char* cstr)
     {
-        MX_THROW_IF_NULL(cstr);
-        if(*cstr == 0)
-        {
-            this->_size = 0;
-            this->_data.reset(nullptr);
-            return *this;
-        }
-
-        // compose codepoints and what-not
-        utf8proc_uint8_t* data = nullptr;
-        utf8proc_option_t options = static_cast<utf8proc_option_t>(UTF8PROC_NULLTERM | UTF8PROC_STABLE | UTF8PROC_COMPOSE | UTF8PROC_IGNORE);
-        auto size = utf8proc_map(reinterpret_cast<const utf8proc_uint8_t*>(cstr), 0, &data, options);
-        if(size < 0)
-        {
-            MX_THROW_MSG(utf8proc_errmsg(size));
-        }
-
-        this->_size = size;
-        this->_data.reset(data);
+        normalize_and_assign(cstr, std::strlen(cstr));
 
         return *this;
     }
 
     utf8_string& utf8_string::operator=(const std::string& str)
     {
-        return *this = str.c_str();
+        normalize_and_assign(str.c_str(), str.size());
+        return *this;
+    }
+
+    void utf8_string::normalize_and_assign(const char* cstr, size_t len)
+    {
+        MX_THROW_IF_NULL(cstr);
+        if(*cstr == 0)
+        {
+            this->_size = 0;
+            this->_data.reset(nullptr);
+            return;
+        }
+
+        // compose codepoints and what-not
+        utf8proc_uint8_t* data = nullptr;
+        utf8proc_option_t options = static_cast<utf8proc_option_t>(UTF8PROC_STABLE | UTF8PROC_COMPOSE | UTF8PROC_IGNORE);
+        auto size = utf8proc_map(reinterpret_cast<const utf8proc_uint8_t*>(cstr), len, &data, options);
+        if(size < 0)
+        {
+            MX_THROW_MSG(utf8proc_errmsg(size));
+        }
+
+        this->_size = size;
+        this->_data.reset(data);        
     }
 
     // Equality Operators
@@ -375,8 +381,12 @@ namespace tabletopify
 
     void utf8_stringbuffer::push_back(const utf8_string& str)
     {
-        auto raw = str.c_str();
-        this->push_back(raw);
+        this->push_back(str.c_str());
+    }
+
+    void utf8_stringbuffer::push_back(const std::string& str)
+    {
+        this->push_back(str.c_str());
     }
 
     void utf8_stringbuffer::push_back(const char* cstr)
