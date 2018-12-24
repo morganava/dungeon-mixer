@@ -123,9 +123,6 @@ namespace tabletopify
         utf8_string str() const;
         void clear();
     private:
-        void push_cstr(const char* str);
-
-
         mutable std::vector<utf8proc_uint8_t> _data;
     };
 }

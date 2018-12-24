@@ -388,37 +388,28 @@ namespace tabletopify
 
     void utf8_stringbuffer::push_back(const utf8_string& str)
     {
-        push_cstr(str.c_str());
+        _data.insert(_data.end(), str.c_str(), str.c_str() + str.size());
     }
 
     void utf8_stringbuffer::push_back(const std::string& str)
     {
-        push_cstr(str.c_str());
-    }
-
-    void utf8_stringbuffer::push_cstr(const char* cstr)
-    {
-        while(*cstr)
-        {
-            _data.push_back(*cstr);
-            ++cstr;
-        }
+        _data.insert(_data.end(), str.c_str(), str.c_str() + str.size());
     }
 
     size_t utf8_stringbuffer::size() const
     {
-        return this->_data.size();
+        return _data.size();
     }
 
     utf8_string utf8_stringbuffer::str() const
     {
-        utf8_string result(reinterpret_cast<const char*>(this->_data.data()), this->_data.size());
+        utf8_string result(reinterpret_cast<const char*>(_data.data()), _data.size());
         return result;
     }
 
     void utf8_stringbuffer::clear()
     {
-        this->_data.clear();
+        _data.clear();
     }
 }
 
