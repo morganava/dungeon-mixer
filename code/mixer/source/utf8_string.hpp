@@ -22,12 +22,10 @@ namespace tabletopify
         utf8_string(const utf8_string&);
         utf8_string(utf8_string&&);
         utf8_string(const char*);
+        utf8_string(const char*, size_t len);
         utf8_string(const std::string&);
         template<size_t N>
-        utf8_string(const char(&str)[N]) 
-        {
-            normalize_and_assign(str, N);
-        }
+        utf8_string(const char(&str)[N]) : utf8_string(str, N) {}
         utf8_string& operator=(const utf8_string&);
         utf8_string& operator=(utf8_string&&);
         utf8_string& operator=(const char*);
@@ -112,13 +110,11 @@ namespace tabletopify
         void push_back(utf8_codepoint);
         void push_back(const utf8_string&);
         void push_back(const std::string&);
-        void push_back(const char*);
-
         template<size_t N>
         void push_back(const char(&str)[N])
         {
-            for(size_t i = 0; i < N; ++i) {
-                _data.push_back(str[N]);
+            for(size_t i = 0; i < N - 1; ++i) {
+                _data.push_back(str[i]);
             }
         }
 
@@ -127,6 +123,9 @@ namespace tabletopify
         utf8_string str() const;
         void clear();
     private:
+        void push_cstr(const char* str);
+
+
         mutable std::vector<utf8proc_uint8_t> _data;
     };
 }

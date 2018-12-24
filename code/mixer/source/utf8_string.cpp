@@ -88,6 +88,13 @@ namespace tabletopify
         *this = cstr;
     }
 
+    utf8_string::utf8_string(const char* cstr, size_t len)
+    : _size(0)
+    , _data(nullptr, std::free)
+    {
+        normalize_and_assign(cstr, len);
+    }
+
     utf8_string::utf8_string(const std::string& str)
      : utf8_string(str.c_str())
     { }
@@ -381,15 +388,15 @@ namespace tabletopify
 
     void utf8_stringbuffer::push_back(const utf8_string& str)
     {
-        this->push_back(str.c_str());
+        push_cstr(str.c_str());
     }
 
     void utf8_stringbuffer::push_back(const std::string& str)
     {
-        this->push_back(str.c_str());
+        push_cstr(str.c_str());
     }
 
-    void utf8_stringbuffer::push_back(const char* cstr)
+    void utf8_stringbuffer::push_cstr(const char* cstr)
     {
         while(*cstr)
         {
@@ -405,9 +412,7 @@ namespace tabletopify
 
     utf8_string utf8_stringbuffer::str() const
     {
-        this->_data.push_back(0);
-        utf8_string result(reinterpret_cast<const char*>(this->_data.data()));
-        this->_data.pop_back();
+        utf8_string result(reinterpret_cast<const char*>(this->_data.data()), this->_data.size());
         return result;
     }
 
