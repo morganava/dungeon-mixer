@@ -101,44 +101,6 @@ namespace tabletopify
             return make_callback_impl(func);
         }
 
-        struct vec2
-        {
-            float x = 0.0f;
-            float y = 0.0f;
-
-            constexpr vec2() = default;
-            constexpr vec2(const vec2&) = default;
-            constexpr vec2(vec2&&) = default;
-            
-            constexpr vec2(float x, float y)
-            : x(x)
-            , y(y)
-            { }
-            
-            constexpr vec2& operator=(const vec2&) = default;
-
-            constexpr vec2 operator+(const vec2& that) const
-            {
-                return vec2(this->x + that.x, this->y + that.y);
-            }
-
-            constexpr vec2 operator-(const vec2& that) const
-            {
-                return vec2(this->x - that.x, this->y - that.y);
-            }
-
-            constexpr vec2 operator*(float f) const
-            {
-                return vec2(this->x * f, this->y * f);
-            }
-        };
-
-        struct rect
-        {
-            vec2 position;
-            vec2 size;
-        };
-
         template<typename T, size_t LEN>
         struct fixed_stack
         {
@@ -305,7 +267,7 @@ namespace tabletopify
 
             void render(NVGcontext* ctx, const rect& bounds)
             {
-                MX_LOG_INFO("RENDERING STATIC_ROW : position {},{} size {},{}", bounds.position.x, bounds.position.y, bounds.size.x, bounds.size.y);
+                // MX_LOG_INFO("RENDERING STATIC_ROW : position {},{} size {},{}", bounds.position.x, bounds.position.y, bounds.size.x, bounds.size.y);
             }
 
             void post_render()
@@ -349,7 +311,7 @@ namespace tabletopify
 
             void render(NVGcontext* ctx, const rect& bounds)
             {
-                MX_LOG_INFO("RENDERING DEBUG : position {},{} size {},{}", bounds.position.x, bounds.position.y, bounds.size.x, bounds.size.y);
+                // MX_LOG_INFO("RENDERING DEBUG : position {},{} size {},{}", bounds.position.x, bounds.position.y, bounds.size.x, bounds.size.y);
 
                 nvgBeginPath(ctx);
                 nvgRect(ctx, bounds.position.x, bounds.position.y, bounds.size.x, bounds.size.y);

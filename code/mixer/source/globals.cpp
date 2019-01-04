@@ -5,6 +5,8 @@
 #include "draw.hpp"
 #include "string_manager.hpp"
 #include "ui.hpp"
+#include "geometry.hpp"
+#include "input.hpp"
 
 namespace tabletopify
 {
@@ -20,6 +22,9 @@ namespace tabletopify
 
         // init ui
         init_ui();
+
+        // init input
+        init_input();
 
         // init audio managers
         init_audio_directory();
@@ -43,6 +48,9 @@ namespace tabletopify
         free_atmosphere_directory();
         free_track_directory();
         free_audio_directory();
+
+        // input
+        free_input();
 
         // ui
         free_ui();

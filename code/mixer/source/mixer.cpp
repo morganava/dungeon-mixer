@@ -6,12 +6,16 @@
 #include "string_manager.hpp"
 #include "graphics.hpp"
 #include "ui.hpp"
+#include "geometry.hpp"
+#include "input.hpp"
 
 namespace tabletopify
 {
     void init_callback(NVGcontext* ctx)
     {
         MX_LOG_INFO("Init callback!");
+        // builds map from keycodes to character name
+        get_input()->build_key_map();
         // init renderer
         // init_renderer(ctx);
     }
@@ -31,6 +35,7 @@ namespace tabletopify
             wi = {};
         }
 
+        get_input()->update(dt);
         get_ui()->update(ctx, dt, width, height);
 
         // // draw widgets
@@ -92,8 +97,8 @@ void test()
         for(auto cp : norm)
         {
             char buffer[5] = {0};
-            utf8proc_encode_char(cp.raw, (utf8proc_uint8_t*)buffer);
-            MX_LOG_INFO("0x{:x} : '{}' whitespace ? {}", cp.raw, buffer, cp.is_whitespace());
+            utf8proc_encode_char(cp, (utf8proc_uint8_t*)buffer);
+            MX_LOG_INFO("0x{:x} : '{}' whitespace ? {}", cp, buffer, cp.is_whitespace());
             sb.push_back(cp);
         }
     }
@@ -129,17 +134,6 @@ int main() try
     graphics_main(callbacks);
 
     return 0;
-#if 0
-    struct nk_callbacks callbacks = 
-    {
-        &tabletopify::init_callback,
-        &tabletopify::gui_callback,
-        &tabletopify::close_callback,
-        &error_callback,
-    };
-
-    nk_main("Tabletop Mixer", 800, 600, callbacks);
-#endif    
 }
 catch(const std::exception& ex)
 {

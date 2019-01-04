@@ -1,5 +1,6 @@
 #include "ui.hpp"
 #include "utilities.hpp"
+#include "geometry.hpp"
 #include "imgui.hpp"
 
 namespace tabletopify
@@ -36,15 +37,13 @@ namespace tabletopify
 
     void ui::update(NVGcontext* ctx, float dt, int32_t width, int32_t height)
     {
-        MX_LOG_INFO("--Begin Update--");
-
         imgui::context imgui_ctx(ctx);
-        imgui::rect bounds = {{0, 0}, {(float)width, (float)height}};
+        rect bounds = {{0, 0}, {(double)width, (double)height}};
         imgui_ctx.push_bounds(
         {
-            [](void* bounds, const imgui::rect&) -> imgui::rect 
+            [](void* bounds, const rect&) -> rect 
             {
-                return *reinterpret_cast<imgui::rect*>(bounds);
+                return *reinterpret_cast<rect*>(bounds);
             },
             &bounds
         });
@@ -62,7 +61,5 @@ namespace tabletopify
         }
 
         imgui_ctx.pop_bounds();
-
-        MX_LOG_INFO("--End Update--");
     }
 }

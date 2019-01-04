@@ -1,6 +1,9 @@
 #include "graphics.hpp"
 #include "utilities.hpp"
 #include "logger.hpp"
+#include "utf8_string.hpp"
+#include "geometry.hpp"
+#include "input.hpp"
 
 namespace tabletopify
 {
@@ -13,14 +16,99 @@ namespace tabletopify
         MX_LOG_ERROR("GLFW Error {:08x} : {}", error, description);
     }
 
+    static void graphics_key_func(GLFWwindow*, int32_t key, int32_t scancode, int32_t action, int32_t mods)
+    {
+        switch(action)
+        {
+            case GLFW_PRESS:
+                get_input()->push_keydown(key);
+                break;
+            case GLFW_REPEAT:
+                break;
+            case GLFW_RELEASE:
+                get_input()->push_keyup(key);
+                break;
+        }
+#if 0        
+        input_event evt;
+        switch(action)
+        {
+            case GLFW_PRESS:
+                evt.type = input_event_type::keydown;
+                evt.keydown.key = key;
+                evt.keydown.mods.shift   = (mods & GLFW_MOD_SHIFT);
+                evt.keydown.mods.control = (mods & GLFW_MOD_CONTROL);
+                evt.keydown.mods.alt     = (mods & GLFW_MOD_ALT);
+                evt.keydown.mods.super   = (mods & GLFW_MOD_SUPER);
+                get_input()->push_event(evt);
+                break;
+            case GLFW_REPEAT:
+                break;
+            case GLFW_RELEASE:
+                evt.type = input_event_type::keyup;
+                evt.keyup.key = key;
+                evt.keyup.mods.shift   = (mods & GLFW_MOD_SHIFT);
+                evt.keyup.mods.control = (mods & GLFW_MOD_CONTROL);
+                evt.keyup.mods.alt     = (mods & GLFW_MOD_ALT);
+                evt.keyup.mods.super   = (mods & GLFW_MOD_SUPER);
+                get_input()->push_event(evt);
+                break;
+        }
+#endif        
+    }
+
+    static void graphics_charmods_func(GLFWwindow*, uint32_t codepoint, int32_t mods)
+    {
+        get_input()->push_keypress(codepoint);
+#if 0        
+        input_event evt;
+        evt.type = input_event_type::keypress;
+        evt.keypress.codepoint = codepoint;
+        evt.keypress.mods.shift   = (mods & GLFW_MOD_SHIFT);
+        evt.keypress.mods.control = (mods & GLFW_MOD_CONTROL);
+        evt.keypress.mods.alt     = (mods & GLFW_MOD_ALT);
+        evt.keypress.mods.super   = (mods & GLFW_MOD_SUPER);
+
+        get_input()->push_event(evt);
+#endif        
+    }
+
+    static void graphics_cursor_pos_func(GLFWwindow* window, double xpos, double ypos)
+    {
+        get_input()->push_mousemove({xpos, ypos});
+#if 0        
+        input_event evt;
+        evt.type = input_event_type::mousemove;
+        evt.mousemove.pos.x = xpos;
+        evt.mousemove.pos.y = ypos;
+        evt.mousemove.buttons.left = (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS);
+        evt.mousemove.buttons.right = (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS);
+        evt.mousemove.buttons.middle = (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS);
+
+        get_input()->push_event(evt);
+#endif        
+    }
+
+    static void graphics_mouse_buttons_func(GLFWwindow* window, int button, int action, int mods)
+    {
+        switch(action)
+        {
+            case GLFW_PRESS:
+                get_input()->push_mousedown(static_cast<mouse_button_t>(button));
+                break;
+            case GLFW_RELEASE:
+                get_input()->push_mouseup(static_cast<mouse_button_t>(button));
+                break;
+        }
+    }
+
     void graphics_main(const graphics_callbacks& callbacks) 
     {
         try
         {
             g_callbacks = callbacks;
 
-            (void)g_window;
-            // init glfw
+            // init glfw and set error callback
             MX_THROW_IF_FALSE(glfwInit());
             MX_THROW_IF_NOT_NULL(glfwSetErrorCallback(&graphics_error_func));
         }
@@ -44,6 +132,12 @@ namespace tabletopify
             glfwMakeContextCurrent(g_window);
             glfwSwapInterval(0);
 
+            // set input callbacks
+            MX_THROW_IF_NOT_NULL(glfwSetKeyCallback(g_window, &graphics_key_func));
+            MX_THROW_IF_NOT_NULL(glfwSetCharModsCallback(g_window, &graphics_charmods_func));
+            MX_THROW_IF_NOT_NULL(glfwSetCursorPosCallback(g_window, &graphics_cursor_pos_func));
+            MX_THROW_IF_NOT_NULL(glfwSetMouseButtonCallback(g_window, &graphics_mouse_buttons_func));
+
             // init glew
             glewExperimental = GL_TRUE;
             MX_THROW_IF_FALSE(glewInit() == GLEW_OK);
@@ -63,6 +157,8 @@ namespace tabletopify
             double prev_t = glfwGetTime();            
             while (!glfwWindowShouldClose(g_window))
             {
+                // get input events
+                glfwPollEvents();
                 // calculate frame delta
                 double t = glfwGetTime();
                 double dt = t - prev_t;
@@ -86,7 +182,6 @@ namespace tabletopify
                 nvgEndFrame(g_context);
 
                 glfwSwapBuffers(g_window);
-                glfwPollEvents();
             }
 
             glfwTerminate();

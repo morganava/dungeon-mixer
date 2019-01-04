@@ -1,15 +1,6 @@
 #pragma once
 namespace tabletopify
 {
-    typedef struct
-    {
-        float x;
-        float y;
-        float width;
-        float height;
-        NVGcolor fill_color;
-    } style_t;
-
     class ui
     {
     public:

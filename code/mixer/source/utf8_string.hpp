@@ -5,13 +5,16 @@ namespace tabletopify
     class utf8_codepoint
     {
     public:
-        const utf8proc_int32_t raw;
         utf8_codepoint(utf8proc_int32_t);
         bool operator==(const utf8_codepoint&) const;        
         bool operator!=(const utf8_codepoint&) const;
 
         bool is_valid() const;
         bool is_whitespace() const;
+
+        operator utf8proc_int32_t() const {return _codepoint;}
+    private:
+        utf8proc_int32_t _codepoint = 0;
     };
 
     class utf8_string_iterator;    

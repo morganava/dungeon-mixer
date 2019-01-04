@@ -8,13 +8,13 @@ namespace tabletopify
     const char* utf8_string::_emptyString = "";
 
     utf8_codepoint::utf8_codepoint(utf8proc_int32_t codepoint)
-    : raw(codepoint)
+    : _codepoint(codepoint)
     { }
 
 
     bool utf8_codepoint::operator==(const utf8_codepoint& that) const
     {
-        return this->raw == that.raw;
+        return this->_codepoint == that._codepoint;
     }
 
     bool utf8_codepoint::operator!=(const utf8_codepoint& that) const
@@ -24,12 +24,12 @@ namespace tabletopify
 
     bool utf8_codepoint::is_valid() const
     {
-        return utf8proc_codepoint_valid(this->raw);
+        return utf8proc_codepoint_valid(*this);
     }
 
     bool utf8_codepoint::is_whitespace() const
     {
-        utf8_codepoint singles[] =
+        utf8proc_int32_t singles[] =
         {
             0x20,
             0x85,
@@ -42,10 +42,10 @@ namespace tabletopify
 
         for(auto s : singles)
         {
-            if(s.raw == raw) return true;
+            if(s == _codepoint) return true;
         }
 
-        utf8_codepoint ranges[][2] = 
+        utf8proc_int32_t ranges[][2] = 
         {
             {0x09,0x0D},
             {0x2000,0x200A},
@@ -54,7 +54,7 @@ namespace tabletopify
 
         for(auto r : ranges)
         {
-            if(r[0].raw <= raw && raw <= r[1].raw) return true;
+            if(r[0] <= _codepoint && _codepoint <= r[1]) return true;
         }
 
         return false;
@@ -374,7 +374,7 @@ namespace tabletopify
     void utf8_stringbuffer::push_back(utf8_codepoint codepoint)
     {
         char buffer[4] = {0};
-        auto codepointSize = utf8proc_encode_char(codepoint.raw, (utf8proc_uint8_t*)buffer);
+        auto codepointSize = utf8proc_encode_char(codepoint, (utf8proc_uint8_t*)buffer);
         if(codepointSize < 0)
         {
             MX_THROW_MSG(utf8proc_errmsg(codepointSize));

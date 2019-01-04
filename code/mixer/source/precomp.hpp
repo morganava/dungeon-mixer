@@ -42,7 +42,7 @@ namespace fs = std::experimental::filesystem;
 #ifdef __APPLE__
 #   define GLFW_INCLUDE_GLCOREARB
 #endif
-#define GLFW_INCLUDE_GLEXT
+// #define GLFW_INCLUDE_GLEXT
 #include <GLFW/glfw3.h>
 
 // nanovg : https://github.com/memononen/nanovg

@@ -25,10 +25,12 @@ add_executable(tabletop_mixer
     # systems
     globals.cpp
     work_queue.cpp
-    graphics.cpp    
+    graphics.cpp
+    input.cpp
     logger.cpp
     serialization.cpp
     string_manager.cpp
+    geometry.cpp
     # audio backend
     audio_data.cpp
     audio_directory.cpp
