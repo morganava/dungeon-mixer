@@ -32,13 +32,38 @@ namespace tabletopify
         {
             return vec2(this->x * d, this->y * d);
         }
+
+        constexpr static double dot_product(const vec2& a, const vec2& b)
+        {
+            return a.x*b.x + a.y*b.y;
+        }
+
+        constexpr double squared_magnitude() const
+        {
+            return x*x + y*y;
+        }
+    };
+
+    struct point
+    {
+        vec2 position;
     };
 
     struct rect
     {
         vec2 position;
         vec2 size;
-    };    
+    };
+
+    struct circle
+    {
+        vec2 position;
+        double radius;
+    };
+
+    bool point_inside_circle(const point&, const circle&);
+    bool point_inside_rect(const point&, const rect&);
+
 }
 
 std::ostream& operator<<(std::ostream&, const tabletopify::vec2&);
