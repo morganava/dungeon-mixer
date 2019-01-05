@@ -54,6 +54,14 @@ namespace tabletopify
         }
     }
 
+    static void graphics_mouse_enter_func(GLFWwindow* window, int entered)
+    {
+        if (!entered) 
+        {
+            graphics_cursor_pos_func(window, -1.0, -1.0);
+        }
+    }
+
     void graphics_main(const graphics_callbacks& callbacks) 
     {
         try
@@ -89,6 +97,7 @@ namespace tabletopify
             MX_THROW_IF_NOT_NULL(glfwSetCharModsCallback(g_window, &graphics_charmods_func));
             MX_THROW_IF_NOT_NULL(glfwSetCursorPosCallback(g_window, &graphics_cursor_pos_func));
             MX_THROW_IF_NOT_NULL(glfwSetMouseButtonCallback(g_window, &graphics_mouse_buttons_func));
+            MX_THROW_IF_NOT_NULL(glfwSetCursorEnterCallback(g_window, &graphics_mouse_enter_func));
 
             // init glew
             glewExperimental = GL_TRUE;

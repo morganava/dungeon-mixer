@@ -75,7 +75,6 @@ namespace tabletopify
         void push_mousedown(mouse_button_t btn);
         void push_mouseup(mouse_button_t btn);
 
-
         vec2 get_mouse_position(bool prev) const;
 
     private:
@@ -97,7 +96,7 @@ namespace tabletopify
         {            
             struct
             {
-                vec2 position;
+                vec2 position = {-1.0, -1.0};
                 struct
                 {
                     bool left    : 1;
