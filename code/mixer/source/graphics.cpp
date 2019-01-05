@@ -90,7 +90,7 @@ namespace tabletopify
             g_window = glfwCreateWindow(800, 600, "Tabletopify", NULL, NULL);
             MX_THROW_IF_NULL(g_window);
             glfwMakeContextCurrent(g_window);
-            glfwSwapInterval(0);
+            glfwSwapInterval(1);
 
             // set input callbacks
             MX_THROW_IF_NOT_NULL(glfwSetKeyCallback(g_window, &graphics_key_func));
