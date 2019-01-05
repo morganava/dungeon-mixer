@@ -84,8 +84,8 @@ namespace tabletopify
                 };
             }
 
-            void(*delete_func)() = nullptr;
-            RETVAL(*exec_func)(ARGS...) = nullptr;
+            void(*delete_func)() = [](){};
+            RETVAL(*exec_func)(ARGS...) = [](ARGS...) -> RETVAL {return RETVAL();};
         };
 
         template<typename Return, typename... Args>
@@ -306,13 +306,22 @@ namespace tabletopify
 
             void pre_render()
             {
+                auto* input = get_input();
+                auto current_position = input->get_mouse_position(false);
+                auto previous_position = input->get_mouse_position(true);
+                if (point_inside_rect(current_position, _bounds))
+                {
+                    on_mouse_over(current_position);
 
+                    if (current_position != previous_position) 
+                    {
+                        on_mouse_move(current_position);
+                    }
+                }
             }
 
             void render(NVGcontext* ctx, const rect& bounds)
             {
-                // MX_LOG_INFO("RENDERING DEBUG : position {},{} size {},{}", bounds.position.x, bounds.position.y, bounds.size.x, bounds.size.y);
-
                 nvgBeginPath(ctx);
                 nvgRect(ctx, bounds.position.x, bounds.position.y, bounds.size.x, bounds.size.y);
                 nvgFillColor(ctx, nvgRGB(0, 0, 0));
@@ -320,7 +329,7 @@ namespace tabletopify
 
                 nvgBeginPath(ctx);
                 nvgRect(ctx, bounds.position.x + 1.0f, bounds.position.y + 1.0f, bounds.size.x - 2.0f, bounds.size.y - 2.0f);
-                nvgFillColor(ctx, nvgRGB(0, 0xff, 0xff));
+                nvgFillColor(ctx, bg_color);
                 nvgFill(ctx);   
             }
 
@@ -328,6 +337,10 @@ namespace tabletopify
             {
                 _ctx.push_bounds({});
             }
+
+            callback<void, vec2> on_mouse_move;
+            callback<void, vec2> on_mouse_over;
+            NVGcolor bg_color = nvgRGB(0, 0xff, 0xff);
         };
     } // imgui namespace
 

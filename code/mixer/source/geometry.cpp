@@ -22,9 +22,9 @@ namespace tabletopify
 
     bool point_inside_rect(const point& p, const rect& r)
     {
-        return (p.position.x >= r.position.x &&
-            p.position.x <= (r.position.x + r.size.x) &&
-            p.position.y >= r.position.y &&
-            p.position.y <= (r.position.y + r.size.y));
+        return (p.position.x > r.position.x &&
+                p.position.x < (r.position.x + r.size.x) &&
+                p.position.y > r.position.y &&
+                p.position.y < (r.position.y + r.size.y));
     }
 }

@@ -181,12 +181,14 @@ namespace tabletopify
     void input::update(float dt)
     {
         _mouse_state.previous = _mouse_state.current;
+        _keypresses.clear();
 
         for(const auto& ie : _raw_events)
         {
             switch(ie.type) 
             {
                 case keypress_event:
+                    _keypresses.push_back(ie.keypress.codepoint);
                     break;
                 case keydown_event:
                     break;

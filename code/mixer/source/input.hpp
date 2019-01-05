@@ -30,7 +30,6 @@ namespace tabletopify
         union
         {
             struct {
-
             } invalid;
             struct {
                 utf8_codepoint codepoint;

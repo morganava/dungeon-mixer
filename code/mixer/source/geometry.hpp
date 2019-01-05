@@ -33,6 +33,16 @@ namespace tabletopify
             return vec2(this->x * d, this->y * d);
         }
 
+        constexpr bool operator==(const vec2& that) const
+        {
+            return x == that.x && y == that.y;
+        }
+
+        constexpr bool operator!=(const vec2& that) const
+        {
+            return x != that.x || y != that.y;
+        }
+
         constexpr static double dot_product(const vec2& a, const vec2& b)
         {
             return a.x*b.x + a.y*b.y;
@@ -47,6 +57,9 @@ namespace tabletopify
     struct point
     {
         vec2 position;
+        point(const vec2& p)
+        : position(p) 
+        { }
     };
 
     struct rect
