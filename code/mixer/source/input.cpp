@@ -230,8 +230,6 @@ namespace tabletopify
             }
         }
 
-        MX_LOG_INFO("mouse position : {}", _mouse_state.current.position);
-
         _raw_events.clear();
     }
 

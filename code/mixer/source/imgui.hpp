@@ -5,41 +5,6 @@ namespace tabletopify
     // immmediate mode gui
     namespace imgui
     {
-        template<typename TYPE>
-        class singleton
-        {
-        public:
-            static constexpr TYPE* addr()
-            {
-                return &data.value;
-            }
-
-            static constexpr TYPE& get()
-            {
-                return data.value;
-            }
-
-            static void assign(TYPE&& that)
-            {
-                new (addr()) TYPE(std::move(that));
-            }
-
-            static constexpr void free()
-            {
-                data.value.~TYPE();
-            }
-
-        private:
-            union singleton_data
-            {
-                TYPE value;
-                uint8_t raw[sizeof(TYPE)] = {};
-            };
-            static singleton_data data;
-        };
-        template<typename TYPE>
-        typename singleton<TYPE>::singleton_data singleton<TYPE>::singleton::data = {};
-
         template<typename RETVAL, typename... ARGS>
         class callback
         {
@@ -59,7 +24,7 @@ namespace tabletopify
             template<typename FUNCTOR>
             callback& operator=(FUNCTOR&& functor)
             {
-                singleton<FUNCTOR>::assign(std::move(functor));
+                singleton<FUNCTOR>::construct(std::move(functor));
                 set_callbacks<FUNCTOR>();
                 return *this;
             }

@@ -3,6 +3,7 @@
 #include "utilities.hpp"
 #include "geometry.hpp"
 #include "input.hpp"
+#include "singleton.hpp"
 #include "imgui.hpp"
 
 namespace tabletopify
@@ -59,7 +60,7 @@ namespace tabletopify
                         mxDebug(
                             self.on_mouse_over = [&](const vec2&) 
                             { 
-                                self.bg_color = nvgRGB(255, 128, 0); MX_LOG_INFO("MOUSE OVER"); 
+                                self.bg_color = nvgRGB(255, 128, 0); 
                             };);
                     }
                 };
@@ -68,7 +69,7 @@ namespace tabletopify
                     self.bg_color = nvgRGB(255, 32, 0);
                     self.on_mouse_over = [&](const vec2&)
                     {
-                        self.bg_color = nvgRGB(64, 128, 64); MX_LOG_INFO("MOUSE OVER");
+                        self.bg_color = nvgRGB(64, 128, 64);
                     };);
             }
         }
