@@ -63,6 +63,13 @@ namespace tabletopify
                             };);
                     }
                 };
+                mxDebug(
+                    self._bounds.size.y = 20.0f;
+                    self.bg_color = nvgRGB(255, 32, 0);
+                    self.on_mouse_over = [&](const vec2&)
+                    {
+                        self.bg_color = nvgRGB(64, 128, 64); MX_LOG_INFO("MOUSE OVER");
+                    };);
             }
         }
 
