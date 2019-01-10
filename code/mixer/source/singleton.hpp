@@ -40,12 +40,18 @@ namespace tabletopify
             union
             {
                 TYPE value;
-                uint8_t raw[sizeof(TYPE)] = {};
+                uint8_t raw[sizeof(TYPE)];
             };
-            bool assigned = false;
+            bool assigned;
+            singleton_data()
+            : raw()
+            , assigned(false)
+            { }
+
+            ~singleton_data() {}
         };
         static singleton_data data;
     };
     template<typename TYPE>
-    typename singleton<TYPE>::singleton_data singleton<TYPE>::singleton::data = {};
+    typename singleton<TYPE>::singleton_data singleton<TYPE>::singleton::data;
 }

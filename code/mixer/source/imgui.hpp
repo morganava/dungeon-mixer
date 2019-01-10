@@ -110,10 +110,6 @@ namespace tabletopify
         class context
         {
         public:
-            context(NVGcontext* nvgContext)
-            : _nvgContext(nvgContext)
-            { }
-
             ~context()
             {
                 if (_bounds_stack.size() != 0) 
@@ -125,31 +121,21 @@ namespace tabletopify
 
             constexpr void push_bounds(const bounds_callback& bounds)
             {
-                // MX_DEBUG_TRACE("push_bounds");
                 _bounds_stack.push(bounds);
             }
 
             constexpr bounds_callback peek_bounds() const
             {
-                // MX_DEBUG_TRACE("peek_bounds");
                 auto retval = _bounds_stack.peek();
                 return retval;
             }
 
             constexpr void pop_bounds()
             {
-                // MX_DEBUG_TRACE("pop_bounds");
                 _bounds_stack.pop();
             }
-
-            constexpr NVGcontext* nvgcontext()
-            {
-                return _nvgContext;
-            }
-
         private:
             fixed_stack<bounds_callback, 16> _bounds_stack;
-            NVGcontext* _nvgContext = nullptr;
         };
 
         // base element
@@ -176,7 +162,7 @@ namespace tabletopify
 
             void render()
             {
-                static_cast<T*>(this)->render(_ctx.nvgcontext(), _bounds);
+                static_cast<T*>(this)->render(_bounds);
             }
 
             context& _ctx;
@@ -193,7 +179,7 @@ namespace tabletopify
 
             }
 
-            void render(NVGcontext* ctx, const rect& bounds)
+            void render(const rect& bounds)
             {
 
             }
@@ -230,7 +216,7 @@ namespace tabletopify
 
             }
 
-            void render(NVGcontext* ctx, const rect& bounds)
+            void render(const rect& bounds)
             {
                 // MX_LOG_INFO("RENDERING STATIC_ROW : position {},{} size {},{}", bounds.position.x, bounds.position.y, bounds.size.x, bounds.size.y);
             }
@@ -285,17 +271,20 @@ namespace tabletopify
                 }
             }
 
-            void render(NVGcontext* ctx, const rect& bounds)
+            void render(const rect& bounds)
             {
-                nvgBeginPath(ctx);
-                nvgRect(ctx, bounds.position.x, bounds.position.y, bounds.size.x, bounds.size.y);
-                nvgFillColor(ctx, nvgRGB(0, 0, 0));
-                nvgFill(ctx);
+                // nvgBeginPath(ctx);
+                // nvgRect(ctx, bounds.position.x, bounds.position.y, bounds.size.x, bounds.size.y);
+                // nvgFillColor(ctx, nvgRGB(0, 0, 0));
+                // nvgFill(ctx);
 
-                nvgBeginPath(ctx);
-                nvgRect(ctx, bounds.position.x + 1.0f, bounds.position.y + 1.0f, bounds.size.x - 2.0f, bounds.size.y - 2.0f);
-                nvgFillColor(ctx, bg_color);
-                nvgFill(ctx);   
+                get_nanovg()->fill_rect(bounds, nvgRGB(0,0,0));
+                get_nanovg()->fill_rect(rect{bounds.position + vec2{1.0, 1.0}, {bounds.size - vec2{2.0, 2.0}}}, bg_color);
+
+                // nvgBeginPath(ctx);
+                // nvgRect(ctx, bounds.position.x + 1.0f, bounds.position.y + 1.0f, bounds.size.x - 2.0f, bounds.size.y - 2.0f);
+                // nvgFillColor(ctx, bg_color);
+                // nvgFill(ctx);
             }
 
             void post_render()

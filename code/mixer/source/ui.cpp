@@ -4,6 +4,8 @@
 #include "geometry.hpp"
 #include "input.hpp"
 #include "singleton.hpp"
+#include "hash.hpp"
+#include "nanovg.hpp"
 #include "imgui.hpp"
 
 namespace tabletopify
@@ -38,9 +40,9 @@ namespace tabletopify
 
     }
 
-    void ui::update(NVGcontext* ctx, float dt, int32_t width, int32_t height)
+    void ui::update(float dt, int32_t width, int32_t height)
     {
-        imgui::context imgui_ctx(ctx);
+        imgui::context imgui_ctx;
         rect bounds = {{0, 0}, {(double)width, (double)height}};
         imgui_ctx.push_bounds(
         {

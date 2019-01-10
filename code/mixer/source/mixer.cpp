@@ -1,4 +1,5 @@
 #include "globals.hpp"
+#include "utilities.hpp"
 #include "audio.hpp"
 #include "draw.hpp"
 #include "work_queue.hpp"
@@ -8,19 +9,22 @@
 #include "ui.hpp"
 #include "geometry.hpp"
 #include "input.hpp"
+#include "nanovg.hpp"
 
 namespace tabletopify
 {
-    void init_callback(NVGcontext* ctx)
+    void init_callback()
     {
         MX_LOG_INFO("Init callback!");
         // builds map from keycodes to character name
         get_input()->build_key_map();
+
+        get_nanovg()->create_context();
         // init renderer
         // init_renderer(ctx);
     }
 
-    void gui_callback(NVGcontext* ctx, float dt, int width, int height)
+    void gui_callback(float dt, int width, int height, double pixel_ratio)
     {
         // MX_LOG_INFO("dt: {}, width: {}, height: {}", dt, width, height);
         // do queued UI work
@@ -36,7 +40,8 @@ namespace tabletopify
         }
 
         get_input()->update(dt);
-        get_ui()->update(ctx, dt, width, height);
+        get_ui()->update(dt, width, height);
+        get_nanovg()->update(dt, width, height, pixel_ratio);
 
         // // draw widgets
         // // update_draw(ctx, width, height);
@@ -54,7 +59,7 @@ namespace tabletopify
     }
 
     // on window exit
-    void close_callback(NVGcontext* ctx)
+    void close_callback()
     {
         MX_LOG_INFO("Closing!");
         free_globals();

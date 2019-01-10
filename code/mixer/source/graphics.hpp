@@ -2,9 +2,9 @@
 
 namespace tabletopify
 {
-    typedef void(*graphics_init_callback)(NVGcontext*);
-    typedef void(*graphics_update_callback)(NVGcontext* ctx, float dt, int width, int height);
-    typedef void(*graphics_close_callback)(NVGcontext*);
+    typedef void(*graphics_init_callback)();
+    typedef void(*graphics_update_callback)(float dt, int width, int height, double pixel_ratio);
+    typedef void(*graphics_close_callback)();
 
     struct graphics_callbacks
     {

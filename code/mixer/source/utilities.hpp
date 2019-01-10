@@ -27,4 +27,25 @@ namespace tabletopify
 
     fs::path open_dialog(const char* filterList);
     fs::path save_dialog(const char* filterList);
+
+    template<size_t N>
+    struct framerate_calculator
+    {
+        void push_dt(double dt)
+        {
+            sum += dt - _dt_buffer[_idx];
+            _dt_buffer[_idx] = dt;
+
+            _idx = (_idx + 1) % N;
+        }
+
+        double framerate() const
+        {
+            return (double)N / sum;
+        }
+    private:
+        double sum = 0.0;
+        double _dt_buffer[N] = {};
+        size_t _idx = 0;
+    };
 }

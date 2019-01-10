@@ -4,12 +4,19 @@
 #include "utf8_string.hpp"
 #include "geometry.hpp"
 #include "input.hpp"
+#include "singleton.hpp"
+#include "hash.hpp"
+#include "nanovg.hpp"
 
 namespace tabletopify
 {
-    static GLFWwindow* g_window = nullptr;
-    static NVGcontext* g_context =  nullptr;
-    static graphics_callbacks g_callbacks = {0};    
+    GLFWwindow* g_window = nullptr;
+    graphics_callbacks g_callbacks = {};
+    int g_window_width = 0;
+    int g_window_height = 0;
+    int g_framebuffer_width = 0;
+    int g_framebuffer_height = 0;
+    double g_pixel_ratio = 0.0;
 
     static void graphics_error_func(int error, const char* description)
     {
@@ -41,7 +48,7 @@ namespace tabletopify
         get_input()->push_mousemove({xpos, ypos});
     }
 
-    static void graphics_mouse_buttons_func(GLFWwindow* window, int button, int action, int mods)
+    static void graphics_mouse_button_func(GLFWwindow* window, int button, int action, int mods)
     {
         switch(action)
         {
@@ -62,12 +69,26 @@ namespace tabletopify
         }
     }
 
+    static void graphics_window_size_func(GLFWwindow* window, int width, int height)
+    {
+        g_window_width = width;
+        g_window_height = height;
+    }
+
+    static void graphics_framebuffer_size_func(GLFWwindow* window, int width, int height)
+    {
+        g_framebuffer_width = width;
+        g_framebuffer_height = height;
+        g_pixel_ratio = (double)width / (double)g_window_width;
+
+        glViewport(0, 0, width, height);
+    }
+
     void graphics_main(const graphics_callbacks& callbacks) 
     {
         try
         {
             g_callbacks = callbacks;
-
             // init glfw and set error callback
             MX_THROW_IF_FALSE(glfwInit());
             MX_THROW_IF_NOT_NULL(glfwSetErrorCallback(&graphics_error_func));
@@ -92,12 +113,22 @@ namespace tabletopify
             glfwMakeContextCurrent(g_window);
             glfwSwapInterval(1);
 
+            // get initial window stats
+            glfwGetWindowSize(g_window, &g_window_width, &g_window_height);
+            glfwGetFramebufferSize(g_window, &g_framebuffer_width, &g_framebuffer_height);
+            g_pixel_ratio = (double)g_framebuffer_width / (double)g_window_width;
+            glViewport(0, 0, g_framebuffer_width, g_framebuffer_height);
+
             // set input callbacks
             MX_THROW_IF_NOT_NULL(glfwSetKeyCallback(g_window, &graphics_key_func));
             MX_THROW_IF_NOT_NULL(glfwSetCharModsCallback(g_window, &graphics_charmods_func));
             MX_THROW_IF_NOT_NULL(glfwSetCursorPosCallback(g_window, &graphics_cursor_pos_func));
-            MX_THROW_IF_NOT_NULL(glfwSetMouseButtonCallback(g_window, &graphics_mouse_buttons_func));
+            MX_THROW_IF_NOT_NULL(glfwSetMouseButtonCallback(g_window, &graphics_mouse_button_func));
             MX_THROW_IF_NOT_NULL(glfwSetCursorEnterCallback(g_window, &graphics_mouse_enter_func));
+
+            // graphics callbacks
+            MX_THROW_IF_NOT_NULL(glfwSetWindowSizeCallback(g_window, &graphics_window_size_func));
+            MX_THROW_IF_NOT_NULL(glfwSetFramebufferSizeCallback(g_window, &graphics_framebuffer_size_func));
 
             // init glew
             glewExperimental = GL_TRUE;
@@ -105,44 +136,42 @@ namespace tabletopify
             // GLEW generates GL error because it calls glGetString(GL_EXTENSIONS), we'll consume it here.
             glGetError();
 
-            // init nanovg
-            g_context = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
-            MX_THROW_IF_NULL(g_context);
-
             if (callbacks.init) {
-                callbacks.init(g_context);
+                callbacks.init();
             }
+
+            // set our clear color
+            glClearColor(1.0f, 0.0f, 1.0f, 0.0f);
 
             // update loop
             glfwSetTime(0);
-            double prev_t = glfwGetTime();            
+            double prev_t = glfwGetTime();
+
+            framerate_calculator<128> fc;
+            double time_since_framerate_print = 0.0;
+
             while (!glfwWindowShouldClose(g_window))
             {
-                // get input events
-                glfwPollEvents();
-                // calculate frame delta
+                 // calculate frame delta
                 double t = glfwGetTime();
                 double dt = t - prev_t;
                 prev_t = t;
 
-                // get window stats
-                int window_width, window_height;
-                int fb_width, fb_height;
-                glfwGetWindowSize(g_window, &window_width, &window_height);
-                glfwGetFramebufferSize(g_window, &fb_width, &fb_height);
-                float pixel_ratio = (float)fb_width / (float)window_width;
-
-                glViewport(0, 0, fb_width, fb_height);
-                glClearColor(1.0f, 0.0f, 1.0f, 0.0f);
-                glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
-
-                nvgBeginFrame(g_context, window_width, window_height, pixel_ratio);
-                if (callbacks.update) {
-                    callbacks.update(g_context, dt, window_width, window_height);
+                // calculate framerate
+                fc.push_dt(dt);
+                time_since_framerate_print += dt;
+                if(time_since_framerate_print > 1.0)
+                {
+                    MX_LOG_INFO("FPS : {}", fc.framerate());
+                    time_since_framerate_print = 0.0;
                 }
-                nvgEndFrame(g_context);
 
-                glfwSwapBuffers(g_window);
+                if (callbacks.update) {
+                    callbacks.update(dt, g_window_width, g_window_height, g_pixel_ratio);
+                }
+
+               // get input events
+                glfwPollEvents();
             }
 
             glfwTerminate();
@@ -156,7 +185,7 @@ namespace tabletopify
         
         // close
         if (callbacks.close) {
-            callbacks.close(g_context);
+            callbacks.close();
         }
     }
 }
