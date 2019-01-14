@@ -69,6 +69,11 @@ namespace tabletopify
         }
     }
 
+    static void graphics_scroll_func(GLFWwindow* window, double xoffset, double yoffset)
+    {
+        get_input()->push_scroll(xoffset, yoffset);
+    }
+
     static void graphics_window_size_func(GLFWwindow* window, int width, int height)
     {
         g_window_width = width;
@@ -125,6 +130,7 @@ namespace tabletopify
             MX_THROW_IF_NOT_NULL(glfwSetCursorPosCallback(g_window, &graphics_cursor_pos_func));
             MX_THROW_IF_NOT_NULL(glfwSetMouseButtonCallback(g_window, &graphics_mouse_button_func));
             MX_THROW_IF_NOT_NULL(glfwSetCursorEnterCallback(g_window, &graphics_mouse_enter_func));
+            MX_THROW_IF_NOT_NULL(glfwSetScrollCallback(g_window, &graphics_scroll_func));
 
             // graphics callbacks
             MX_THROW_IF_NOT_NULL(glfwSetWindowSizeCallback(g_window, &graphics_window_size_func));

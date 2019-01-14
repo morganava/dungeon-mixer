@@ -32,6 +32,7 @@ add_executable(tabletop_mixer
     string_manager.cpp
     geometry.cpp
     nanovg.cpp
+    imgui.cpp
     # audio backend
     audio_data.cpp
     audio_directory.cpp

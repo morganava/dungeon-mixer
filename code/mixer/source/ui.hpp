@@ -7,7 +7,7 @@ namespace tabletopify
         void update(float dt, int32_t width, int32_t height);
         void initialize();
         void finish();
-    private:        
+    private:
         NVGcontext* _context = nullptr;
     };
 

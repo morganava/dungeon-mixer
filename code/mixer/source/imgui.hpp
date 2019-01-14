@@ -157,51 +157,21 @@ namespace tabletopify
 
             void update_render_bounds()
             {
-                _bounds = _ctx.peek_bounds().eval(_bounds);
+                bounds = _ctx.peek_bounds().eval(bounds);
             }
 
-            void render()
-            {
-                static_cast<T*>(this)->render(_bounds);
-            }
-
+            rect bounds;
+        protected:
             context& _ctx;
-            rect _bounds;
         };
 
         struct elem_group : public element<elem_group>
         {
             using element::element;
-            using element::render;
 
-            void pre_render()
-            {
-
-            }
-
-            void render(const rect& bounds)
-            {
-
-            }
-
-            void post_render()
-            {
-                _ctx.push_bounds(
-                {
-                    [](void* ptr, const rect& desired) -> rect
-                    {
-                        elem_group* eg = reinterpret_cast<elem_group*>(ptr);
-                        rect retval = 
-                        {
-                            {eg->_bounds.position.x, eg->_bounds.position.y + eg->_vertical_offset},
-                            {eg->_bounds.size.x, desired.size.y}
-                        };
-                        eg->_vertical_offset += desired.size.y;
-                        return retval;
-                    },
-                    this
-                });
-            }
+            void pre_render();
+            void render() const;
+            void post_render();
 
             size_t _vertical_offset = 0;
         };
@@ -209,41 +179,10 @@ namespace tabletopify
         struct elem_static_row : public element<elem_static_row>
         {
             using element::element;
-            using element::render;
 
-            void pre_render()
-            {
-
-            }
-
-            void render(const rect& bounds)
-            {
-                // MX_LOG_INFO("RENDERING STATIC_ROW : position {},{} size {},{}", bounds.position.x, bounds.position.y, bounds.size.x, bounds.size.y);
-            }
-
-            void post_render()
-            {
-                _ctx.push_bounds(
-                {
-                    [](void* ptr, const rect&) -> rect
-                    {
-                        elem_static_row* esr = static_cast<elem_static_row*>(ptr);
-                        float w = esr->_widths.front();
-                        esr->_widths.erase(esr->_widths.begin());
-
-                        rect retval = 
-                        {
-                            {esr->_bounds.position.x + esr->_horizontal_offset, esr->_bounds.position.y},
-                            {w, esr->_bounds.size.y}
-                        };
-
-                        esr->_horizontal_offset += w;
-
-                        return retval;
-                    },
-                    this
-                });
-            }
+            void pre_render();
+            void render() const;
+            void post_render();
 
             std::vector<float> _widths;
             float _height = 0.0f;
@@ -253,44 +192,11 @@ namespace tabletopify
         struct elem_debug : public element<elem_debug>
         {
             using element::element;
-            using element::render;
 
-            void pre_render()
-            {
-                auto* input = get_input();
-                auto current_position = input->get_mouse_position(false);
-                auto previous_position = input->get_mouse_position(true);
-                if (point_inside_rect(current_position, _bounds))
-                {
-                    on_mouse_over(current_position);
+            void pre_render();
+            void render() const;
+            void post_render();
 
-                    if (current_position != previous_position) 
-                    {
-                        on_mouse_move(current_position);
-                    }
-                }
-            }
-
-            void render(const rect& bounds)
-            {
-                // nvgBeginPath(ctx);
-                // nvgRect(ctx, bounds.position.x, bounds.position.y, bounds.size.x, bounds.size.y);
-                // nvgFillColor(ctx, nvgRGB(0, 0, 0));
-                // nvgFill(ctx);
-
-                get_nanovg()->fill_rect(bounds, nvgRGB(0,0,0));
-                get_nanovg()->fill_rect(rect{bounds.position + vec2{1.0, 1.0}, {bounds.size - vec2{2.0, 2.0}}}, bg_color);
-
-                // nvgBeginPath(ctx);
-                // nvgRect(ctx, bounds.position.x + 1.0f, bounds.position.y + 1.0f, bounds.size.x - 2.0f, bounds.size.y - 2.0f);
-                // nvgFillColor(ctx, bg_color);
-                // nvgFill(ctx);
-            }
-
-            void post_render()
-            {
-                _ctx.push_bounds({});
-            }
 
             callback<void, vec2> on_mouse_move;
             callback<void, vec2> on_mouse_over;

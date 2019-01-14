@@ -53,10 +53,10 @@ namespace tabletopify
             &bounds
         });
 
-        mxGroup(self._bounds.size = {(double)width, (double)height};)
+        mxGroup(self.bounds.size = {(double)width, (double)height};)
         {
             for(int i = 0; i < 3; ++i) {            
-                mxStaticRow(self._widths = {100.0f, 200.0f, 300.0f}; self._bounds.size.y = 100.0f;)
+                mxStaticRow(self._widths = {100.0f, 200.0f, 300.0f}; self.bounds.size.y = 100.0f;)
                 {
                     for(int j = 0; j < 3; ++j) {
                         mxDebug(
@@ -67,7 +67,7 @@ namespace tabletopify
                     }
                 };
                 mxDebug(
-                    self._bounds.size.y = 20.0f;
+                    self.bounds.size.y = 20.0f;
                     self.bg_color = nvgRGB(255, 32, 0);
                     self.on_mouse_over = [&](const vec2&)
                     {
