@@ -9,6 +9,7 @@ namespace tabletopify
         void finish();
     private:
         NVGcontext* _context = nullptr;
+        imgui::group_data_t gd;
     };
 
     ui* get_ui();

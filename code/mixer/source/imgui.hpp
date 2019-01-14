@@ -166,16 +166,24 @@ namespace tabletopify
             context& _ctx;
         };
 
+        typedef struct
+        {
+            double vertical_scroll = 0.0;
+        } group_data_t;
+
         struct elem_group : public element<elem_group>
         {
             using element::element;
 
             void handle_input() {}
             void render() const {}
-            void update_child_bounds();
-            void second_render() const {}
+            void push_bounds_callback();
+            void second_render() const;
 
             size_t _vertical_offset = 0;
+            group_data_t* group_data = nullptr;
+        private:
+            constexpr static double scrollbar_width = 20.0;
         };
 
         struct elem_static_row : public element<elem_static_row>
@@ -184,11 +192,10 @@ namespace tabletopify
 
             void handle_input() {}
             void render() const {}
-            void update_child_bounds();
+            void push_bounds_callback();
             void second_render() const {}
 
             std::vector<float> _widths;
-            float _height = 0.0f;
             float _horizontal_offset = 0.0f;            
         };
 
@@ -198,7 +205,7 @@ namespace tabletopify
 
             void handle_input();
             void render() const;
-            void update_child_bounds();
+            void push_bounds_callback();
             void second_render() const {}
 
             callback<void, vec2> on_mouse_move;
@@ -215,7 +222,7 @@ namespace tabletopify
             self.update_render_bounds();\
             self.handle_input();\
             self.render();\
-            self.update_child_bounds();\
+            self.push_bounds_callback();\
             return true;\
         }(group##__LINE__))
 

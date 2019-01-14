@@ -1,5 +1,4 @@
 #include "utf8_string.hpp"
-#include "ui.hpp"
 #include "utilities.hpp"
 #include "geometry.hpp"
 #include "input.hpp"
@@ -7,6 +6,7 @@
 #include "hash.hpp"
 #include "nanovg.hpp"
 #include "imgui.hpp"
+#include "ui.hpp"
 
 namespace tabletopify
 {
@@ -53,9 +53,9 @@ namespace tabletopify
             &bounds
         });
 
-        mxGroup(self.bounds.size = {(double)width, (double)height};)
+        mxGroup(self.bounds.size = {(double)width, (double)height}; self.group_data = &gd;)
         {
-            for(int i = 0; i < 3; ++i) {            
+            for(int i = 0; i < 10; ++i) {            
                 mxStaticRow(self._widths = {100.0f, 200.0f, 300.0f}; self.bounds.size.y = 100.0f;)
                 {
                     for(int j = 0; j < 3; ++j) {
@@ -72,7 +72,12 @@ namespace tabletopify
                     self.on_mouse_over = [&](const vec2&)
                     {
                         self.bg_color = nvgRGB(64, 128, 64);
+                    };
+                    self.on_mouse_move = [](const vec2& pos)
+                    {
+                        MX_LOG_INFO("MOVE CALLBACK {}", pos);
                     };);
+
             }
         }
 

@@ -6,10 +6,12 @@
 #include "logger.hpp"
 #include "string_manager.hpp"
 #include "graphics.hpp"
-#include "ui.hpp"
 #include "geometry.hpp"
 #include "input.hpp"
 #include "nanovg.hpp"
+#include "singleton.hpp"
+#include "imgui.hpp"
+#include "ui.hpp"
 
 namespace tabletopify
 {

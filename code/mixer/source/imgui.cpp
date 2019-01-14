@@ -13,7 +13,7 @@ namespace tabletopify
     {
         // Group
 
-        void elem_group::update_child_bounds()
+        void elem_group::push_bounds_callback()
         {
             _ctx.push_bounds(
             {
@@ -23,7 +23,7 @@ namespace tabletopify
                     rect retval =
                     {
                         {self.bounds.position.x, self.bounds.position.y + self._vertical_offset},
-                        {self.bounds.size.x, desired.size.y}
+                        {self.bounds.size.x - scrollbar_width, desired.size.y}
                     };
                     self._vertical_offset += desired.size.y;
                     return retval;
@@ -32,9 +32,28 @@ namespace tabletopify
             });
         }
 
+        void elem_group::second_render() const
+        {
+            auto internal_height = _vertical_offset;
+
+            // scrollbar bg rect
+            rect scroll_bg_bounds = {{bounds.size.x - scrollbar_width, 0.0}, {scrollbar_width, bounds.size.y}};
+            get_nanovg()->fill_rect(scroll_bg_bounds, nvgRGB(96,96,96));
+
+            // scrollbar rect
+            double scrollbar_x = bounds.size.x - scrollbar_width;
+
+            double scrollbar_height  = std::min(std::max(bounds.size.y / internal_height * bounds.size.y, 150.0), bounds.size.y);
+
+            double scrollbar_y = (group_data->vertical_scroll / internal_height) * (bounds.size.y - scrollbar_height);
+
+            rect scrollbar_bounds = {{scrollbar_x + 2.0, scrollbar_y + 2.0},{scrollbar_width - 4.0, scrollbar_height - 4.0}};
+            get_nanovg()->fill_rect(scrollbar_bounds, nvgRGB(192,192,192));
+        }
+
         // Static Row
 
-        void elem_static_row::update_child_bounds()
+        void elem_static_row::push_bounds_callback()
         {
             _ctx.push_bounds(
             {
@@ -81,7 +100,7 @@ namespace tabletopify
             get_nanovg()->fill_rect(rect{bounds.position + vec2{1.0, 1.0}, {bounds.size - vec2{2.0, 2.0}}}, bg_color);
         }
 
-        void elem_debug::update_child_bounds()
+        void elem_debug::push_bounds_callback()
         {
             _ctx.push_bounds({});
         }
