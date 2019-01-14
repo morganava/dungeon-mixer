@@ -152,6 +152,7 @@ namespace tabletopify
 
             ~element()
             {
+                static_cast<T*>(this)->second_render();
                 _ctx.pop_bounds();
             }
 
@@ -169,9 +170,10 @@ namespace tabletopify
         {
             using element::element;
 
-            void pre_render();
-            void render() const;
-            void post_render();
+            void handle_input() {}
+            void render() const {}
+            void update_child_bounds();
+            void second_render() const {}
 
             size_t _vertical_offset = 0;
         };
@@ -180,9 +182,10 @@ namespace tabletopify
         {
             using element::element;
 
-            void pre_render();
-            void render() const;
-            void post_render();
+            void handle_input() {}
+            void render() const {}
+            void update_child_bounds();
+            void second_render() const {}
 
             std::vector<float> _widths;
             float _height = 0.0f;
@@ -193,10 +196,10 @@ namespace tabletopify
         {
             using element::element;
 
-            void pre_render();
+            void handle_input();
             void render() const;
-            void post_render();
-
+            void update_child_bounds();
+            void second_render() const {}
 
             callback<void, vec2> on_mouse_move;
             callback<void, vec2> on_mouse_over;
@@ -209,7 +212,10 @@ namespace tabletopify
     if (imgui::X group##__LINE__(imgui_ctx); \
         [&](auto& self) -> bool {\
             __VA_ARGS__\
-            self.update_render_bounds(); self.pre_render(); self.render(); self.post_render();\
+            self.update_render_bounds();\
+            self.handle_input();\
+            self.render();\
+            self.update_child_bounds();\
             return true;\
         }(group##__LINE__))
 

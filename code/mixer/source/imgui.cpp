@@ -13,29 +13,19 @@ namespace tabletopify
     {
         // Group
 
-        void elem_group::pre_render()
-        {
-
-        }
-
-        void elem_group::render() const
-        {
-
-        }
-
-        void elem_group::post_render()
+        void elem_group::update_child_bounds()
         {
             _ctx.push_bounds(
             {
                 [](void* ptr, const rect& desired) -> rect
                 {
-                    elem_group* eg = reinterpret_cast<elem_group*>(ptr);
+                    auto& self = *static_cast<elem_group*>(ptr);
                     rect retval =
                     {
-                        {eg->bounds.position.x, eg->bounds.position.y + eg->_vertical_offset},
-                        {eg->bounds.size.x, desired.size.y}
+                        {self.bounds.position.x, self.bounds.position.y + self._vertical_offset},
+                        {self.bounds.size.x, desired.size.y}
                     };
-                    eg->_vertical_offset += desired.size.y;
+                    self._vertical_offset += desired.size.y;
                     return retval;
                 },
                 this
@@ -44,33 +34,23 @@ namespace tabletopify
 
         // Static Row
 
-        void elem_static_row::pre_render()
-        {
-
-        }
-
-        void elem_static_row::render() const
-        {
-
-        }
-
-        void elem_static_row::post_render()
+        void elem_static_row::update_child_bounds()
         {
             _ctx.push_bounds(
             {
                 [](void* ptr, const rect&) -> rect
                 {
-                    elem_static_row* esr = static_cast<elem_static_row*>(ptr);
-                    float w = esr->_widths.front();
-                    esr->_widths.erase(esr->_widths.begin());
+                    auto& self = *static_cast<elem_static_row*>(ptr);
+                    float w = self._widths.front();
+                    self._widths.erase(self._widths.begin());
 
                     rect retval =
                     {
-                        {esr->bounds.position.x + esr->_horizontal_offset, esr->bounds.position.y},
-                        {w, esr->bounds.size.y}
+                        {self.bounds.position.x + self._horizontal_offset, self.bounds.position.y},
+                        {w, self.bounds.size.y}
                     };
 
-                    esr->_horizontal_offset += w;
+                    self._horizontal_offset += w;
 
                     return retval;
                 },
@@ -80,7 +60,7 @@ namespace tabletopify
 
         // Debug
 
-        void elem_debug::pre_render()
+        void elem_debug::handle_input()
         {
             auto* input = get_input();
             auto current_position = input->get_mouse_position(false);
@@ -101,7 +81,7 @@ namespace tabletopify
             get_nanovg()->fill_rect(rect{bounds.position + vec2{1.0, 1.0}, {bounds.size - vec2{2.0, 2.0}}}, bg_color);
         }
 
-        void elem_debug::post_render()
+        void elem_debug::update_child_bounds()
         {
             _ctx.push_bounds({});
         }
