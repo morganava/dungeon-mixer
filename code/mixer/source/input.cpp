@@ -292,6 +292,16 @@ namespace tabletopify
         _raw_events.push_back(ie);
     }
 
+    void input::push_scroll(double xoffset, double yoffset)
+    {
+        MX_LOG_INFO("scroll : {{ xoffset : {}, yoffset : {} }}", xoffset, yoffset);
+        input_event ie;
+        ie.type = scroll_event;
+        ie.scroll.xoffset = xoffset;
+        ie.scroll.yoffset = yoffset;
+        _raw_events.push_back(ie);
+    }
+
     vec2 input::get_mouse_position(bool prev) const
     {
         return prev ? _mouse_state.previous.position : _mouse_state.current.position;

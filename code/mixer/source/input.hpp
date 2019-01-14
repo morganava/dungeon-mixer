@@ -22,6 +22,7 @@ namespace tabletopify
         mousemove_event,
         mousedown_event,
         mouseup_event,
+        scroll_event,
     } input_event_type_t;
 
     struct input_event
@@ -49,6 +50,10 @@ namespace tabletopify
             struct {
                 mouse_button_t button;
             } mouseup;
+            struct {
+                double xoffset;
+                double yoffset;
+            } scroll;
         };
 
         input_event()
@@ -74,6 +79,7 @@ namespace tabletopify
         void push_mousemove(const vec2& pos);
         void push_mousedown(mouse_button_t btn);
         void push_mouseup(mouse_button_t btn);
+        void push_scroll(double xoffset, double yoffset);
 
         vec2 get_mouse_position(bool prev) const;
 
