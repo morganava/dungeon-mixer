@@ -33,10 +33,10 @@ namespace tabletopify
                     auto& self = *static_cast<elem_group*>(ptr);
                     rect retval =
                     {
-                        {self.bounds.position.x, self.bounds.position.y + self._vertical_offset - self.data->vertical_scroll},
+                        {self.bounds.position.x, self.bounds.position.y + self.internal_height - self.data->vertical_scroll},
                         {self.bounds.size.x - scrollbar_width, desired.size.y}
                     };
-                    self._vertical_offset += desired.size.y;
+                    self.internal_height += desired.size.y;
                     return retval;
                 },
                 this
@@ -46,11 +46,9 @@ namespace tabletopify
         void elem_group::second_render() const
         {
             // height of the group
-            auto height = bounds.size.y;
-            // height of all of the child widgets
-            auto internal_height = _vertical_offset;
+            const auto height = bounds.size.y;
             // valid scrollable range  (0 to scrollable_height)
-            auto scrollable_height = internal_height - bounds.size.y;
+            const auto scrollable_height = internal_height - height;
 
             // scrollbar bg rect
             rect scroll_bg_bounds = {{bounds.size.x - scrollbar_width, 0.0}, {scrollbar_width, height}};
@@ -59,7 +57,6 @@ namespace tabletopify
             // scrollbar rect
             double scrollbar_x = bounds.size.x - scrollbar_width;
 
-            constexpr double min_scrollbar_height = 150.0;
             double scrollbar_height = std::min(std::max(height*height / internal_height, min_scrollbar_height), height);
             double scrollbar_y = (height - scrollbar_height) * (data->vertical_scroll / scrollable_height);
 
@@ -70,11 +67,9 @@ namespace tabletopify
         void elem_group::finish()
         {
             // height of the group
-            auto height = bounds.size.y;
-            // height of all of the child widgets
-            auto internal_height = _vertical_offset;
+            const auto height = bounds.size.y;
             // valid scrollable range  (0 to scrollable_height)
-            auto scrollable_height = internal_height - bounds.size.y;
+            const  auto scrollable_height = internal_height - height;
 
             if (internal_height < height)
             {
@@ -82,8 +77,12 @@ namespace tabletopify
             } 
             else
             {
-                constexpr double scroll_step = 30.0;
-                data->vertical_scroll -= get_input()->get_mouse_scroll(false).y * scroll_step;
+                auto* input = get_input();
+                // if (data->grabbing_scrollbar == false) {
+                //     auto mouse_position = input->get_mouse_position(false)
+                // }                
+
+                data->vertical_scroll -= input->get_mouse_scroll(input_frame::current).y * scroll_step;
                 data->vertical_scroll = clamp<double>(0, data->vertical_scroll, scrollable_height);
             }            
         }
@@ -119,8 +118,8 @@ namespace tabletopify
         void elem_debug::begin()
         {
             auto* input = get_input();
-            auto current_position = input->get_mouse_position(false);
-            auto previous_position = input->get_mouse_position(true);
+            auto current_position = input->get_mouse_position(input_frame::current);
+            auto previous_position = input->get_mouse_position(input_frame::previous);
             if (point_inside_rect(current_position, bounds))
             {
                 on_mouse_over(current_position);

@@ -177,6 +177,7 @@ namespace tabletopify
         {
             widget_id_t id = next_widget_id();
             double vertical_scroll = 0.0;
+            bool grabbing_scrollbar = false;
         };
 
         struct elem_group : public element<elem_group>
@@ -189,10 +190,13 @@ namespace tabletopify
             void second_render() const;
             void finish();
 
-            double _vertical_offset = 0;
             group_data* data = nullptr;
         private:
+            // cumulative height of thee child elements
+            double internal_height = 0.0;
             constexpr static double scrollbar_width = 20.0;
+            constexpr static double min_scrollbar_height = 150.0;            
+            constexpr static double scroll_step = 30.0;
         };
 
         struct elem_static_row : public element<elem_static_row>

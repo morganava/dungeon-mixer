@@ -10,8 +10,16 @@ namespace tabletopify
         middle = GLFW_MOUSE_BUTTON_MIDDLE
     } mouse_button_t;
 
-    constexpr auto pressed = true;
-    constexpr auto released = false;
+    typedef enum class input_frame : int_fast8_t
+    {
+        current,
+        previous
+    } input_frame_t;
+
+    typedef bool button_state_t;
+
+    constexpr button_state_t pressed = true;
+    constexpr button_state_t released = false;
 
     typedef enum
     {
@@ -81,22 +89,21 @@ namespace tabletopify
         void push_mouseup(mouse_button_t btn);
         void push_scroll(double scroll_x, double scroll_y);
 
-        vec2 get_mouse_position(bool prev) const;
-        vec2 get_mouse_scroll(bool prev) const;
+        vec2 get_mouse_position(input_frame_t frame) const;
+        vec2 get_mouse_scroll(input_frame_t frame) const;
+        button_state_t get_mouse_button_state(mouse_button_t, input_frame_t frame) const;
 
     private:
         std::map<key_code_t, utf8_string> _key_names;
-
         std::vector<input_event> _raw_events;
-
         std::vector<utf8_codepoint> _keypresses;
 
         struct
         {
-            bool shift   : 1;
-            bool control : 1;
-            bool alt     : 1;
-            bool super   : 1;
+            button_state_t shift   : 1;
+            button_state_t control : 1;
+            button_state_t alt     : 1;
+            button_state_t super   : 1;
         } _modifier_keys;
 
         struct
@@ -107,9 +114,9 @@ namespace tabletopify
                 vec2 scroll = {0.0, 0.0};
                 struct
                 {
-                    bool left    : 1;
-                    bool right   : 1;
-                    bool middle  : 1;
+                    button_state_t left    : 1;
+                    button_state_t right   : 1;
+                    button_state_t middle  : 1;
                 };
             } current, previous;
         } _mouse_state;

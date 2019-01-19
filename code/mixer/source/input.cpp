@@ -307,13 +307,31 @@ namespace tabletopify
         _raw_events.push_back(ie);
     }
 
-    vec2 input::get_mouse_position(bool prev) const
+    vec2 input::get_mouse_position(input_frame_t frame) const
     {
-        return prev ? _mouse_state.previous.position : _mouse_state.current.position;
+        return frame == input_frame::previous ? _mouse_state.previous.position : _mouse_state.current.position;
     }
 
-    vec2 input::get_mouse_scroll(bool prev) const
+    vec2 input::get_mouse_scroll(input_frame_t frame) const
     {
-        return prev ? _mouse_state.previous.scroll : _mouse_state.current.scroll;
+        return frame == input_frame::previous ? _mouse_state.previous.scroll : _mouse_state.current.scroll;
+    }
+
+    button_state_t input::get_mouse_button_state(mouse_button_t btn, input_frame_t frame) const
+    {
+        auto& mouse_state = frame == input_frame::previous ? _mouse_state.previous : _mouse_state.current;
+        switch(btn)
+        {
+            case mouse_button::left:
+                return mouse_state.left;
+                break;
+            case mouse_button::right:
+                return mouse_state.right;
+                break;
+            case mouse_button::middle:
+                return mouse_state.middle;                
+                break;
+        }
+        return released;
     }
 }
