@@ -156,7 +156,10 @@ namespace tabletopify
 
             ~element()
             {
-                static_cast<T*>(this)->second_render();
+                auto& self = *static_cast<T*>(this);
+                self.second_render();
+                self.finish();
+
                 _ctx.pop_bounds();
             }
 
@@ -170,23 +173,24 @@ namespace tabletopify
             context& _ctx;
         };
 
-        typedef struct
+        struct group_data
         {
             widget_id_t id = next_widget_id();
             double vertical_scroll = 0.0;
-        } group_data_t;
+        };
 
         struct elem_group : public element<elem_group>
         {
             using element::element;
 
-            void initialize();
+            void begin();
             void first_render() const {}
             bounds_callback get_bounds_callback();
             void second_render() const;
+            void finish();
 
             double _vertical_offset = 0;
-            group_data_t* group_data = nullptr;
+            group_data* data = nullptr;
         private:
             constexpr static double scrollbar_width = 20.0;
         };
@@ -195,10 +199,11 @@ namespace tabletopify
         {
             using element::element;
 
-            void initialize() {}
+            void begin() {}
             void first_render() const {}
             bounds_callback get_bounds_callback();
             void second_render() const {}
+            void finish() {}
 
             std::vector<float> _widths;
             float _horizontal_offset = 0.0f;            
@@ -208,10 +213,11 @@ namespace tabletopify
         {
             using element::element;
 
-            void initialize();
+            void begin();
             void first_render() const;
             bounds_callback get_bounds_callback();
             void second_render() const {}
+            void finish() {}
 
             callback<void, vec2> on_mouse_move;
             callback<void, vec2> on_mouse_over;
@@ -225,7 +231,7 @@ namespace tabletopify
         [&](auto& self) -> bool {\
             __VA_ARGS__\
             self.update_first_render_bounds();\
-            self.initialize();\
+            self.begin();\
             self.first_render();\
             imgui_ctx.push_bounds_callback(self.get_bounds_callback());\
             return true;\

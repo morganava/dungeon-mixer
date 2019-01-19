@@ -15,15 +15,13 @@ namespace tabletopify
         {
             static widget_id_t nextId = 0;
             return nextId++;
-        }        
+        }
 
         // Group
 
-        void elem_group::initialize()
+        void elem_group::begin()
         {
-            // constexpr double scrollStep = 10.0;
-            // group_data->vertical_scroll += get_input()->get_mouse_scroll(false).y * scrollStep;
-            // // group_data->vertical_scroll = clamp<double>(0, group_data->vertical_scroll, _vertical_offset);
+
         }
 
         bounds_callback elem_group::get_bounds_callback()
@@ -35,7 +33,7 @@ namespace tabletopify
                     auto& self = *static_cast<elem_group*>(ptr);
                     rect retval =
                     {
-                        {self.bounds.position.x, self.bounds.position.y + self._vertical_offset - self.group_data->vertical_scroll},
+                        {self.bounds.position.x, self.bounds.position.y + self._vertical_offset - self.data->vertical_scroll},
                         {self.bounds.size.x - scrollbar_width, desired.size.y}
                     };
                     self._vertical_offset += desired.size.y;
@@ -63,20 +61,31 @@ namespace tabletopify
 
             constexpr double min_scrollbar_height = 150.0;
             double scrollbar_height = std::min(std::max(height*height / internal_height, min_scrollbar_height), height);
-            double scrollbar_y = (height - scrollbar_height) * (group_data->vertical_scroll / scrollable_height);
+            double scrollbar_y = (height - scrollbar_height) * (data->vertical_scroll / scrollable_height);
 
             rect scrollbar_bounds = {{scrollbar_x + 2.0, scrollbar_y + 2.0},{scrollbar_width - 4.0, scrollbar_height - 4.0}};
             get_nanovg()->fill_rect(scrollbar_bounds, nvgRGB(192,192,192));
+        }
+
+        void elem_group::finish()
+        {
+            // height of the group
+            auto height = bounds.size.y;
+            // height of all of the child widgets
+            auto internal_height = _vertical_offset;
+            // valid scrollable range  (0 to scrollable_height)
+            auto scrollable_height = internal_height - bounds.size.y;
 
             if (internal_height < height)
             {
-                group_data->vertical_scroll = 0.0;
-            } else
+                data->vertical_scroll = 0.0;
+            } 
+            else
             {
-                constexpr double scroll_step = 10.0;
-                group_data->vertical_scroll -= get_input()->get_mouse_scroll(false).y * scroll_step;
-                group_data->vertical_scroll = clamp<double>(0, group_data->vertical_scroll, scrollable_height);
-            }
+                constexpr double scroll_step = 30.0;
+                data->vertical_scroll -= get_input()->get_mouse_scroll(false).y * scroll_step;
+                data->vertical_scroll = clamp<double>(0, data->vertical_scroll, scrollable_height);
+            }            
         }
 
         // Static Row
@@ -107,7 +116,7 @@ namespace tabletopify
 
         // Debug
 
-        void elem_debug::initialize()
+        void elem_debug::begin()
         {
             auto* input = get_input();
             auto current_position = input->get_mouse_position(false);

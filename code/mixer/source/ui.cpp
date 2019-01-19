@@ -53,9 +53,9 @@ namespace tabletopify
             &bounds
         });
 
-        mxGroup(self.bounds.size = {(double)width, (double)height}; self.group_data = &gd;)
+        mxGroup(self.bounds.size = {(double)width, (double)height}; self.data = &gd;)
         {
-            for(int i = 0; i < 10; ++i) {            
+            for(int i = 0; i < 20; ++i) {
                 mxStaticRow(self._widths = {100.0f, 200.0f, 300.0f}; self.bounds.size.y = 100.0f;)
                 {
                     for(int j = 0; j < 3; ++j) {
@@ -77,7 +77,6 @@ namespace tabletopify
                     {
                         MX_LOG_INFO("MOVE CALLBACK {}", pos);
                     };);
-
             }
         }
 
