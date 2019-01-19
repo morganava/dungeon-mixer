@@ -181,6 +181,8 @@ namespace tabletopify
     void input::update(float dt)
     {
         _mouse_state.previous = _mouse_state.current;
+
+        _mouse_state.current.scroll = {0.0, 0.0};
         _keypresses.clear();
 
         for(const auto& ie : _raw_events)
@@ -224,6 +226,9 @@ namespace tabletopify
                             _mouse_state.current.middle = released;
                             break;
                     }
+                    break;
+                case scroll_event:
+                    _mouse_state.current.scroll = {ie.scroll.scroll_x, ie.scroll.scroll_y};
                     break;
                 default:
                     break;
@@ -292,18 +297,23 @@ namespace tabletopify
         _raw_events.push_back(ie);
     }
 
-    void input::push_scroll(double xoffset, double yoffset)
+    void input::push_scroll(double scroll_x, double scroll_y)
     {
-        MX_LOG_INFO("scroll : {{ xoffset : {}, yoffset : {} }}", xoffset, yoffset);
+        MX_LOG_INFO("scroll : {{ x : {}, y : {} }}", scroll_x, scroll_y);
         input_event ie;
         ie.type = scroll_event;
-        ie.scroll.xoffset = xoffset;
-        ie.scroll.yoffset = yoffset;
+        ie.scroll.scroll_x = scroll_x;
+        ie.scroll.scroll_y = scroll_y;
         _raw_events.push_back(ie);
     }
 
     vec2 input::get_mouse_position(bool prev) const
     {
         return prev ? _mouse_state.previous.position : _mouse_state.current.position;
+    }
+
+    vec2 input::get_mouse_scroll(bool prev) const
+    {
+        return prev ? _mouse_state.previous.scroll : _mouse_state.current.scroll;
     }
 }

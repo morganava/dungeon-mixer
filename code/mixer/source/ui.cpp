@@ -44,7 +44,7 @@ namespace tabletopify
     {
         imgui::context imgui_ctx;
         rect bounds = {{0, 0}, {(double)width, (double)height}};
-        imgui_ctx.push_bounds(
+        imgui_ctx.push_bounds_callback(
         {
             [](void* bounds, const rect&) -> rect 
             {

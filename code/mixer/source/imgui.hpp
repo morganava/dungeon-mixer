@@ -107,6 +107,9 @@ namespace tabletopify
             void* element = nullptr;
         };
 
+        typedef size_t widget_id_t;
+        widget_id_t next_widget_id();
+
         class context
         {
         public:
@@ -119,7 +122,7 @@ namespace tabletopify
                 MX_ASSERT(_bounds_stack.size() == 0);
             }
 
-            constexpr void push_bounds(const bounds_callback& bounds)
+            constexpr void push_bounds_callback(const bounds_callback& bounds)
             {
                 _bounds_stack.push(bounds);
             }
@@ -136,6 +139,7 @@ namespace tabletopify
             }
         private:
             fixed_stack<bounds_callback, 16> _bounds_stack;
+            widget_id_t _focused_widget = 0;
         };
 
         // base element
@@ -156,7 +160,7 @@ namespace tabletopify
                 _ctx.pop_bounds();
             }
 
-            void update_render_bounds()
+            void update_first_render_bounds()
             {
                 bounds = _ctx.peek_bounds().eval(bounds);
             }
@@ -168,6 +172,7 @@ namespace tabletopify
 
         typedef struct
         {
+            widget_id_t id = next_widget_id();
             double vertical_scroll = 0.0;
         } group_data_t;
 
@@ -175,12 +180,12 @@ namespace tabletopify
         {
             using element::element;
 
-            void handle_input() {}
-            void render() const {}
-            void push_bounds_callback();
+            void initialize();
+            void first_render() const {}
+            bounds_callback get_bounds_callback();
             void second_render() const;
 
-            size_t _vertical_offset = 0;
+            double _vertical_offset = 0;
             group_data_t* group_data = nullptr;
         private:
             constexpr static double scrollbar_width = 20.0;
@@ -190,9 +195,9 @@ namespace tabletopify
         {
             using element::element;
 
-            void handle_input() {}
-            void render() const {}
-            void push_bounds_callback();
+            void initialize() {}
+            void first_render() const {}
+            bounds_callback get_bounds_callback();
             void second_render() const {}
 
             std::vector<float> _widths;
@@ -203,9 +208,9 @@ namespace tabletopify
         {
             using element::element;
 
-            void handle_input();
-            void render() const;
-            void push_bounds_callback();
+            void initialize();
+            void first_render() const;
+            bounds_callback get_bounds_callback();
             void second_render() const {}
 
             callback<void, vec2> on_mouse_move;
@@ -219,10 +224,10 @@ namespace tabletopify
     if (imgui::X group##__LINE__(imgui_ctx); \
         [&](auto& self) -> bool {\
             __VA_ARGS__\
-            self.update_render_bounds();\
-            self.handle_input();\
-            self.render();\
-            self.push_bounds_callback();\
+            self.update_first_render_bounds();\
+            self.initialize();\
+            self.first_render();\
+            imgui_ctx.push_bounds_callback(self.get_bounds_callback());\
             return true;\
         }(group##__LINE__))
 

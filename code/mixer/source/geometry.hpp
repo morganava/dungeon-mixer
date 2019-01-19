@@ -2,6 +2,14 @@
 
 namespace tabletopify
 {
+    template<typename T>
+    constexpr T clamp(const T& min, const T& val, const T& max)
+    {
+        if (val <= min) return min;
+        if (val >= max) return max;
+        return val;
+    }
+
     struct vec2
     {
         double x = 0.0;

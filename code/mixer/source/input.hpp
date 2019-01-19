@@ -51,8 +51,8 @@ namespace tabletopify
                 mouse_button_t button;
             } mouseup;
             struct {
-                double xoffset;
-                double yoffset;
+                double scroll_x;
+                double scroll_y;
             } scroll;
         };
 
@@ -79,9 +79,10 @@ namespace tabletopify
         void push_mousemove(const vec2& pos);
         void push_mousedown(mouse_button_t btn);
         void push_mouseup(mouse_button_t btn);
-        void push_scroll(double xoffset, double yoffset);
+        void push_scroll(double scroll_x, double scroll_y);
 
         vec2 get_mouse_position(bool prev) const;
+        vec2 get_mouse_scroll(bool prev) const;
 
     private:
         std::map<key_code_t, utf8_string> _key_names;
@@ -103,6 +104,7 @@ namespace tabletopify
             struct
             {
                 vec2 position = {-1.0, -1.0};
+                vec2 scroll = {0.0, 0.0};
                 struct
                 {
                     bool left    : 1;
