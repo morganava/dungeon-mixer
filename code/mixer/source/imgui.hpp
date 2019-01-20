@@ -200,6 +200,8 @@ namespace tabletopify
         private:
             // cumulative height of thee child elements
             double internal_height = 0.0;
+            // area of whoel scrollbar widget
+            rect scrollbar_area = {};
             // grab area of scrollbar this frame
             rect scrollbar_grab_area = {};
             constexpr static double scrollbar_width = 20.0;

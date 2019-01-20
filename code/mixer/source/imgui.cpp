@@ -50,6 +50,9 @@ namespace tabletopify
             // valid scrollable range  (0 to scrollable_height)
             const auto scrollable_height = internal_height - height;
 
+            // scrollbar bg rect
+            scrollbar_area = {{bounds.size.x - scrollbar_width, 0.0}, {scrollbar_width, height}};
+
             // scrollbar rect
             double scrollbar_x = bounds.size.x - scrollbar_width;
 
@@ -61,12 +64,7 @@ namespace tabletopify
 
         void elem_group::second_render() const
         {
-            // height of the group
-            const auto height = bounds.size.y;
-
-            // scrollbar bg rect
-            rect scroll_bg_bounds = {{bounds.size.x - scrollbar_width, 0.0}, {scrollbar_width, height}};
-            get_nanovg()->fill_rect(scroll_bg_bounds, nvgRGB(96,96,96));
+            get_nanovg()->fill_rect(scrollbar_area, nvgRGB(96,96,96));
 
             if (data->grabbing_scrollbar)
             {
@@ -104,11 +102,19 @@ namespace tabletopify
                     // mouse clicked
                     if (!prev_mouse_down && current_mouse_down)
                     {
-                        // mouse in scrollbar area
+                        // mouse in scrollbar grab area
                         if (point_inside_rect(current_mouse_position, scrollbar_grab_area))
                         {
                             data->grabbing_scrollbar = true;
                             data->grab_offset_y = current_mouse_position.y - scrollbar_grab_area.position.y;
+                        }
+                        // mouse in scrollbar area
+                        else if(point_inside_rect(current_mouse_position, scrollbar_area))
+                        {
+                            data->grabbing_scrollbar = true;
+                            data->grab_offset_y = scrollbar_grab_area.size.y / 2.0;
+                            data->vertical_scroll = (current_mouse_position.y - bounds.position.y - data->grab_offset_y) / 
+                                                    (bounds.size.y - scrollbar_grab_area.size.y) * scrollable_height;
                         }
                     } 
                 }
