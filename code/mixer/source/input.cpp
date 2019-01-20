@@ -203,13 +203,13 @@ namespace tabletopify
                     switch(ie.mousedown.button)
                     {
                         case mouse_button::left:
-                            _mouse_state.current.left = pressed;
+                            _mouse_state.current.left = button_state::pressed;
                             break;
                         case mouse_button::right:
-                            _mouse_state.current.right = pressed;
+                            _mouse_state.current.right = button_state::pressed;
                             break;
                         case mouse_button::middle:
-                            _mouse_state.current.middle = pressed;
+                            _mouse_state.current.middle = button_state::pressed;
                             break;
                     }
                     break;
@@ -217,13 +217,13 @@ namespace tabletopify
                     switch(ie.mouseup.button)
                     {
                         case mouse_button::left:
-                            _mouse_state.current.left = released;
+                            _mouse_state.current.left = button_state::released;
                             break;
                         case mouse_button::right:
-                            _mouse_state.current.right = released;
+                            _mouse_state.current.right = button_state::released;
                             break;
                         case mouse_button::middle:
-                            _mouse_state.current.middle = released;
+                            _mouse_state.current.middle = button_state::released;
                             break;
                     }
                     break;
@@ -332,6 +332,6 @@ namespace tabletopify
                 return mouse_state.middle;                
                 break;
         }
-        return released;
+        return button_state::released;
     }
 }

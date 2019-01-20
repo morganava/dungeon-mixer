@@ -43,16 +43,12 @@ namespace tabletopify
             };
         }
 
-        void elem_group::second_render() const
+        void elem_group::middle()
         {
             // height of the group
             const auto height = bounds.size.y;
             // valid scrollable range  (0 to scrollable_height)
             const auto scrollable_height = internal_height - height;
-
-            // scrollbar bg rect
-            rect scroll_bg_bounds = {{bounds.size.x - scrollbar_width, 0.0}, {scrollbar_width, height}};
-            get_nanovg()->fill_rect(scroll_bg_bounds, nvgRGB(96,96,96));
 
             // scrollbar rect
             double scrollbar_x = bounds.size.x - scrollbar_width;
@@ -60,11 +56,30 @@ namespace tabletopify
             double scrollbar_height = std::min(std::max(height*height / internal_height, min_scrollbar_height), height);
             double scrollbar_y = (height - scrollbar_height) * (data->vertical_scroll / scrollable_height);
 
-            rect scrollbar_bounds = {{scrollbar_x + 2.0, scrollbar_y + 2.0},{scrollbar_width - 4.0, scrollbar_height - 4.0}};
-            get_nanovg()->fill_rect(scrollbar_bounds, nvgRGB(192,192,192));
+            scrollbar_grab_area = {{scrollbar_x + 2.0, scrollbar_y + 2.0},{scrollbar_width - 4.0, scrollbar_height - 4.0}};
         }
 
-        void elem_group::finish()
+        void elem_group::second_render() const
+        {
+            // height of the group
+            const auto height = bounds.size.y;
+
+            // scrollbar bg rect
+            rect scroll_bg_bounds = {{bounds.size.x - scrollbar_width, 0.0}, {scrollbar_width, height}};
+            get_nanovg()->fill_rect(scroll_bg_bounds, nvgRGB(96,96,96));
+
+            if (data->grabbing_scrollbar)
+            {
+                get_nanovg()->fill_rect(scrollbar_grab_area, nvgRGB(192,96,0));                
+            }
+            else
+            {
+                get_nanovg()->fill_rect(scrollbar_grab_area, nvgRGB(192,192,192));
+            }
+            
+        }
+
+        void elem_group::end()
         {
             // height of the group
             const auto height = bounds.size.y;
@@ -78,9 +93,30 @@ namespace tabletopify
             else
             {
                 auto* input = get_input();
-                // if (data->grabbing_scrollbar == false) {
-                //     auto mouse_position = input->get_mouse_position(false)
-                // }                
+
+                auto prev_mouse_down = input->get_mouse_button_state(mouse_button::left, input_frame::previous);
+                auto current_mouse_down = input->get_mouse_button_state(mouse_button::left, input_frame::current);
+
+                if (!data->grabbing_scrollbar) 
+                {
+                    // mouse clicked
+                    if (!prev_mouse_down && current_mouse_down)
+                    {
+                        // mouse in scrollbar area
+                        auto mouse_position = input->get_mouse_position(input_frame::current);
+                        if (point_inside_rect(mouse_position, scrollbar_grab_area))
+                        {
+                            data->grabbing_scrollbar = true;
+                        }
+                    } 
+                }
+                else
+                {
+                    if(!current_mouse_down)
+                    {
+                        data->grabbing_scrollbar = false;
+                    }
+                }
 
                 data->vertical_scroll -= input->get_mouse_scroll(input_frame::current).y * scroll_step;
                 data->vertical_scroll = clamp<double>(0, data->vertical_scroll, scrollable_height);

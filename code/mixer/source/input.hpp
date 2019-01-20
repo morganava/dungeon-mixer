@@ -17,9 +17,11 @@ namespace tabletopify
     } input_frame_t;
 
     typedef bool button_state_t;
-
-    constexpr button_state_t pressed = true;
-    constexpr button_state_t released = false;
+    namespace button_state
+    {
+        constexpr button_state_t pressed = true;
+        constexpr button_state_t released = false;;
+    }
 
     typedef enum
     {

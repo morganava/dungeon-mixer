@@ -157,8 +157,9 @@ namespace tabletopify
             ~element()
             {
                 auto& self = *static_cast<T*>(this);
+                self.middle();
                 self.second_render();
-                self.finish();
+                self.end();
 
                 _ctx.pop_bounds();
             }
@@ -187,13 +188,16 @@ namespace tabletopify
             void begin();
             void first_render() const {}
             bounds_callback get_bounds_callback();
+            void middle();
             void second_render() const;
-            void finish();
+            void end();
 
             group_data* data = nullptr;
         private:
             // cumulative height of thee child elements
             double internal_height = 0.0;
+            // grab area of scrollbar this frame
+            rect scrollbar_grab_area = {};
             constexpr static double scrollbar_width = 20.0;
             constexpr static double min_scrollbar_height = 150.0;            
             constexpr static double scroll_step = 30.0;
@@ -206,8 +210,9 @@ namespace tabletopify
             void begin() {}
             void first_render() const {}
             bounds_callback get_bounds_callback();
+            void middle() {}
             void second_render() const {}
-            void finish() {}
+            void end() {}
 
             std::vector<float> _widths;
             float _horizontal_offset = 0.0f;            
@@ -220,8 +225,9 @@ namespace tabletopify
             void begin();
             void first_render() const;
             bounds_callback get_bounds_callback();
+            void middle() {}
             void second_render() const {}
-            void finish() {}
+            void end() {}
 
             callback<void, vec2> on_mouse_move;
             callback<void, vec2> on_mouse_over;
