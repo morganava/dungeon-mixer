@@ -114,23 +114,17 @@ namespace tabletopify
                 }
                 else
                 {
+                    // release scrollbar
                     if(!current_mouse_down)
                     {
                         data->grabbing_scrollbar = false;
                     }
-                    else if (current_mouse_position.y >= bounds.position.y &&
-                             current_mouse_position.y <= bounds.position.y + bounds.size.y)
+                    // drag scroll
+                    else
                     {
-                        data->vertical_scroll = (current_mouse_position.y - bounds.position.y - data->grab_offset_y) / (bounds.size.y - scrollbar_grab_area.size.y) * scrollable_height;
+                        data->vertical_scroll = (current_mouse_position.y - bounds.position.y - data->grab_offset_y) / 
+                                                (bounds.size.y - scrollbar_grab_area.size.y) * scrollable_height;
                     } 
-                    else if(current_mouse_position.y < bounds.position.y)
-                    {
-                        data->vertical_scroll = 0;
-                    }
-                    else if(current_mouse_position.y > (bounds.position.y + bounds.size.y))
-                    {
-                        data->vertical_scroll = scrollable_height;
-                    }
                 }
 
                 // handle scroll wheel
