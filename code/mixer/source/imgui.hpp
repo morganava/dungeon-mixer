@@ -177,8 +177,12 @@ namespace tabletopify
         struct group_data
         {
             widget_id_t id = next_widget_id();
+            // vertical offset down 
             double vertical_scroll = 0.0;
+            // is user grabbng scrollbar with mouse
             bool grabbing_scrollbar = false;
+            // offset into scrollbar handle user is grabbng
+            double grab_offset_y = 0.0;
         };
 
         struct elem_group : public element<elem_group>

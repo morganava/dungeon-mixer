@@ -96,7 +96,6 @@ namespace tabletopify
 
                 auto prev_mouse_down = input->get_mouse_button_state(mouse_button::left, input_frame::previous);
                 auto current_mouse_down = input->get_mouse_button_state(mouse_button::left, input_frame::current);
-                auto prev_mouse_position = input->get_mouse_position(input_frame::previous);
                 auto current_mouse_position = input->get_mouse_position(input_frame::current);
 
                 // handle click and drag
@@ -109,6 +108,7 @@ namespace tabletopify
                         if (point_inside_rect(current_mouse_position, scrollbar_grab_area))
                         {
                             data->grabbing_scrollbar = true;
+                            data->grab_offset_y = current_mouse_position.y - scrollbar_grab_area.position.y;
                         }
                     } 
                 }
@@ -121,8 +121,15 @@ namespace tabletopify
                     else if (current_mouse_position.y >= bounds.position.y &&
                              current_mouse_position.y <= bounds.position.y + bounds.size.y)
                     {
-                        double y_delta = current_mouse_position.y - prev_mouse_position.y;
-                        data->vertical_scroll += y_delta / (height - scrollbar_grab_area.size.y) * scrollable_height;
+                        data->vertical_scroll = (current_mouse_position.y - bounds.position.y - data->grab_offset_y) / (bounds.size.y - scrollbar_grab_area.size.y) * scrollable_height;
+                    } 
+                    else if(current_mouse_position.y < bounds.position.y)
+                    {
+                        data->vertical_scroll = 0;
+                    }
+                    else if(current_mouse_position.y > (bounds.position.y + bounds.size.y))
+                    {
+                        data->vertical_scroll = scrollable_height;
                     }
                 }
 
