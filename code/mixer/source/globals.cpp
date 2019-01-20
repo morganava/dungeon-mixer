@@ -7,6 +7,7 @@
 #include "singleton.hpp"
 #include "utilities.hpp"
 #include "geometry.hpp"
+#include "nanovg.hpp"
 #include "imgui.hpp"
 #include "ui.hpp"
 #include "geometry.hpp"

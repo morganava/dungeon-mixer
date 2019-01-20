@@ -17,6 +17,21 @@ namespace tabletopify
             return nextId++;
         }
 
+        void context::push_scissor_rect(const rect& rect)
+        {
+            _scissor_stack.push_back(rect);
+        }
+
+        const rect& context::peek_scissor_rect() const
+        {
+            return _scissor_stack.back();
+        }
+
+        void context::pop_scissor_rect()
+        {
+            _scissor_stack.pop_back();
+        }
+
         // Group
 
         void elem_group::begin()

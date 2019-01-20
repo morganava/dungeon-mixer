@@ -63,6 +63,7 @@ namespace tabletopify
         void update(float dt, double window_width, double window_height, double pixel_ratio);
 
         // render methods
+        void set_scissor(const rect&);
         void fill_rect(const rect&, const NVGcolor&);
     private:
         NVGcontext* _ctx = nullptr;

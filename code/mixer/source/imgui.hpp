@@ -137,8 +137,14 @@ namespace tabletopify
             {
                 _bounds_stack.pop();
             }
+
+            void push_scissor_rect(const rect&);
+            const rect& peek_scissor_rect() const;
+            void pop_scissor_rect();
+
         private:
             fixed_stack<bounds_callback, 16> _bounds_stack;
+            std::vector<rect> _scissor_stack;
             widget_id_t _focused_widget = 0;
         };
 
@@ -156,17 +162,27 @@ namespace tabletopify
 
             ~element()
             {
+                get_nanovg()->set_scissor(_ctx.peek_scissor_rect());
+
                 auto& self = *static_cast<T*>(this);
                 self.middle();
                 self.second_render();
                 self.end();
 
                 _ctx.pop_bounds();
+                _ctx.pop_scissor_rect();
             }
 
-            void update_first_render_bounds()
+            // returns the valid render region
+            rect update_first_render_bounds()
             {
                 bounds = _ctx.peek_bounds().eval(bounds);
+                auto parent_scissor = _ctx.peek_scissor_rect();
+
+                auto sr = get_intersecting_rect(parent_scissor, bounds);
+                get_nanovg()->set_scissor(sr);
+
+                return sr;
             }
 
             rect bounds;
@@ -246,10 +262,11 @@ namespace tabletopify
     if (imgui::X group##__LINE__(imgui_ctx); \
         [&](auto& self) -> bool {\
             __VA_ARGS__\
-            self.update_first_render_bounds();\
+            auto scissor##__LINE__ = self.update_first_render_bounds();\
             self.begin();\
             self.first_render();\
             imgui_ctx.push_bounds_callback(self.get_bounds_callback());\
+            imgui_ctx.push_scissor_rect(scissor##__LINE__);\
             return true;\
         }(group##__LINE__))
 

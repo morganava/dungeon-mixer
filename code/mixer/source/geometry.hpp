@@ -74,6 +74,26 @@ namespace tabletopify
     {
         vec2 position;
         vec2 size;
+
+        constexpr double left() const
+        {
+            return position.x;
+        }
+
+        constexpr double right() const
+        {
+            return position.x + size.x;
+        }
+
+        constexpr double top() const
+        {
+            return position.y;
+        }
+
+        constexpr double bottom() const
+        {
+            return position.y + size.y;
+        }
     };
 
     struct circle
@@ -82,9 +102,40 @@ namespace tabletopify
         double radius;
     };
 
-    bool point_inside_circle(const point&, const circle&);
-    bool point_inside_rect(const point&, const rect&);
+    constexpr bool point_inside_circle(const point& p, const circle& c)
+    {
+        vec2 line = p.position - c.position;
+        double line_len_2 = line.squared_magnitude();
 
+        return line_len_2 <= (c.radius * c.radius);
+    }
+
+    constexpr bool point_inside_rect(const point& p, const rect& r)
+    {
+        return (p.position.x > r.position.x &&
+                p.position.x < (r.position.x + r.size.x) &&
+                p.position.y > r.position.y &&
+                p.position.y < (r.position.y + r.size.y));
+    }
+
+    constexpr bool rect_intersects_rect(const rect& r1, const rect& r2)
+    {
+        if (r1.right() < r2.left() || r1.left() > r2.right()) return false;
+        if (r1.bottom() < r2.top() || r1.top() > r2.bottom()) return false;
+        return true;
+    }
+
+    constexpr rect get_intersecting_rect(const rect& r1, const rect& r2)
+    {
+        if (!rect_intersects_rect(r1, r2)) return {};
+
+        auto left = std::max(r1.left(), r2.left());
+        auto right = std::min(r1.right(), r2.right());
+        auto top = std::max(r1.top(), r2.top());
+        auto bottom = std::min(r1.bottom(), r2.bottom());
+
+        return {{left, top}, {right - left, bottom - top}};
+    }
 }
 
 std::ostream& operator<<(std::ostream&, const tabletopify::vec2&);

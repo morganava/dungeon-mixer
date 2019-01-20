@@ -50,12 +50,13 @@ namespace tabletopify
             {
                 return *reinterpret_cast<rect*>(bounds);
             },
-            &bounds
+            &bounds,
         });
+        imgui_ctx.push_scissor_rect(bounds);
 
         mxGroup(self.data = &gd;)
         {
-            for(int i = 0; i < 20; ++i) {
+            for(int i = 0; i < 10; ++i) {
                 mxStaticRow(self._widths = {100.0f, 200.0f, 300.0f}; self.bounds.size.y = 100.0f;)
                 {
                     for(int j = 0; j < 3; ++j) {
@@ -75,11 +76,12 @@ namespace tabletopify
                     };
                     self.on_mouse_move = [](const vec2& pos)
                     {
-                        MX_LOG_INFO("MOVE CALLBACK {}", pos);
+                        // MX_LOG_INFO("MOVE CALLBACK {}", pos);
                     };);
             }
         }
 
         imgui_ctx.pop_bounds();
+        imgui_ctx.pop_scissor_rect();
     }
 }

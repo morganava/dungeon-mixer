@@ -32,6 +32,7 @@ namespace tabletopify
 
     typedef enum draw_command : uint8_t
     {
+        set_scissor,
         fill_rect,
     } draw_command_t;
 
@@ -50,6 +51,14 @@ namespace tabletopify
         {
             switch(cmd)
             {
+                case draw_command::set_scissor:
+                {
+                    rect r;
+                    MX_THROW_IF_FALSE(cq.next(r));
+
+                    nvgScissor(_ctx, (float)r.position.x, (float)r.position.y, (float)r.size.x, (float)r.size.y);
+                }
+                break;
                 case draw_command::fill_rect:
                 {
                     rect r;
@@ -71,6 +80,13 @@ namespace tabletopify
 
         std::swap(command_queue.current, command_queue.previous);
         command_queue.current.clear();
+    }
+
+    void nanovg::set_scissor(const rect& r)
+    {
+        auto& cq = command_queue.current;
+        cq.push_back(draw_command::set_scissor);
+        cq.push_back(r);
     }
 
     void nanovg::fill_rect(const rect& r, const NVGcolor& col)
