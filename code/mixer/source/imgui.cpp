@@ -51,13 +51,13 @@ namespace tabletopify
             const auto scrollable_height = internal_height - height;
 
             // scrollbar bg rect
-            scrollbar_area = {{bounds.size.x - scrollbar_width, 0.0}, {scrollbar_width, height}};
+            scrollbar_area = {{bounds.position.x + bounds.size.x - scrollbar_width, bounds.position.y}, {scrollbar_width, height}};
 
             // scrollbar rect
-            double scrollbar_x = bounds.size.x - scrollbar_width;
+            double scrollbar_x = bounds.position.x  + bounds.size.x - scrollbar_width;
 
             double scrollbar_height = std::min(std::max(height*height / internal_height, min_scrollbar_height), height);
-            double scrollbar_y = (height - scrollbar_height) * (data->vertical_scroll / scrollable_height);
+            double scrollbar_y = bounds.position.y + (height - scrollbar_height) * (data->vertical_scroll / scrollable_height);
 
             scrollbar_grab_area = {{scrollbar_x + 2.0, scrollbar_y + 2.0},{scrollbar_width - 4.0, scrollbar_height - 4.0}};
         }

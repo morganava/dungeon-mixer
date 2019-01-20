@@ -43,7 +43,7 @@ namespace tabletopify
     void ui::update(float dt, int32_t width, int32_t height)
     {
         imgui::context imgui_ctx;
-        rect bounds = {{0, 0}, {(double)width, (double)height}};
+        rect bounds = {{(double)width / 4.0, (double)height / 4.0}, {(double)width / 2.0, (double)height / 2.0}};
         imgui_ctx.push_bounds_callback(
         {
             [](void* bounds, const rect&) -> rect 
@@ -53,7 +53,7 @@ namespace tabletopify
             &bounds
         });
 
-        mxGroup(self.bounds.size = {(double)width, (double)height}; self.data = &gd;)
+        mxGroup(self.data = &gd;)
         {
             for(int i = 0; i < 20; ++i) {
                 mxStaticRow(self._widths = {100.0f, 200.0f, 300.0f}; self.bounds.size.y = 100.0f;)
