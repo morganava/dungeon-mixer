@@ -96,15 +96,17 @@ namespace tabletopify
 
                 auto prev_mouse_down = input->get_mouse_button_state(mouse_button::left, input_frame::previous);
                 auto current_mouse_down = input->get_mouse_button_state(mouse_button::left, input_frame::current);
+                auto prev_mouse_position = input->get_mouse_position(input_frame::previous);
+                auto current_mouse_position = input->get_mouse_position(input_frame::current);
 
+                // handle click and drag
                 if (!data->grabbing_scrollbar) 
                 {
                     // mouse clicked
                     if (!prev_mouse_down && current_mouse_down)
                     {
                         // mouse in scrollbar area
-                        auto mouse_position = input->get_mouse_position(input_frame::current);
-                        if (point_inside_rect(mouse_position, scrollbar_grab_area))
+                        if (point_inside_rect(current_mouse_position, scrollbar_grab_area))
                         {
                             data->grabbing_scrollbar = true;
                         }
@@ -116,9 +118,21 @@ namespace tabletopify
                     {
                         data->grabbing_scrollbar = false;
                     }
+                    else if (current_mouse_position.y >= bounds.position.y &&
+                             current_mouse_position.y <= bounds.position.y + bounds.size.y)
+                    {
+                        double y_delta = current_mouse_position.y - prev_mouse_position.y;
+                        data->vertical_scroll += y_delta / (height - scrollbar_grab_area.size.y) * scrollable_height;
+                    }
                 }
 
-                data->vertical_scroll -= input->get_mouse_scroll(input_frame::current).y * scroll_step;
+                // handle scroll wheel
+                if (!data->grabbing_scrollbar)
+                {
+                    data->vertical_scroll -= input->get_mouse_scroll(input_frame::current).y * scroll_step;
+                }
+
+                // clamp it
                 data->vertical_scroll = clamp<double>(0, data->vertical_scroll, scrollable_height);
             }            
         }
