@@ -122,28 +122,16 @@ namespace tabletopify
                 MX_ASSERT(_bounds_stack.size() == 0);
             }
 
-            constexpr void push_bounds_callback(const bounds_callback& bounds)
-            {
-                _bounds_stack.push(bounds);
-            }
-
-            constexpr bounds_callback peek_bounds() const
-            {
-                auto retval = _bounds_stack.peek();
-                return retval;
-            }
-
-            constexpr void pop_bounds()
-            {
-                _bounds_stack.pop();
-            }
+            void push_bounds_callback(const bounds_callback&);
+            const bounds_callback& peek_bounds_callback() const;
+            void pop_bounds_callback();
 
             void push_scissor_rect(const rect&);
             const rect& peek_scissor_rect() const;
             void pop_scissor_rect();
 
         private:
-            fixed_stack<bounds_callback, 16> _bounds_stack;
+            std::vector<bounds_callback> _bounds_stack;
             std::vector<rect> _scissor_stack;
             widget_id_t _focused_widget = 0;
         };
@@ -160,29 +148,38 @@ namespace tabletopify
             : _ctx(ctx)
             { }
 
+            // destructor called after child widgets have been handled
             ~element()
             {
+                // restore the scissor area for second render pass
                 get_nanovg()->set_scissor(_ctx.peek_scissor_rect());
 
                 auto& self = *static_cast<T*>(this);
+                // first update and render after child renders
                 self.middle();
                 self.second_render();
+                // our final update
                 self.end();
 
-                _ctx.pop_bounds();
+                _ctx.pop_bounds_callback();
                 _ctx.pop_scissor_rect();
             }
 
-            // returns the valid render region
-            rect update_first_render_bounds()
+            // gets and saves this widget's render bounds and scissor area
+            // and pushes callback and current scissor for child widgets
+            void calc_render_bounds()
             {
-                bounds = _ctx.peek_bounds().eval(bounds);
-                auto parent_scissor = _ctx.peek_scissor_rect();
+                bounds = _ctx.peek_bounds_callback().eval(bounds);
+                const auto& parent_scissor = _ctx.peek_scissor_rect();
 
-                auto sr = get_intersecting_rect(parent_scissor, bounds);
-                get_nanovg()->set_scissor(sr);
+                // calc the scissor geometry
+                auto scissor = get_intersecting_rect(parent_scissor, bounds);
+                get_nanovg()->set_scissor(scissor);
 
-                return sr;
+                // push info for child render bounds calculations
+                auto& self = *static_cast<T*>(this);
+                _ctx.push_bounds_callback(self.get_bounds_callback());
+                _ctx.push_scissor_rect(scissor);
             }
 
             rect bounds;
@@ -214,9 +211,9 @@ namespace tabletopify
 
             group_data* data = nullptr;
         private:
-            // cumulative height of thee child elements
+            // cumulative height of the child elements
             double internal_height = 0.0;
-            // area of whoel scrollbar widget
+            // area of entire scrollbar widget
             rect scrollbar_area = {};
             // grab area of scrollbar this frame
             rect scrollbar_grab_area = {};
@@ -262,11 +259,9 @@ namespace tabletopify
     if (imgui::X group##__LINE__(imgui_ctx); \
         [&](auto& self) -> bool {\
             __VA_ARGS__\
-            auto scissor##__LINE__ = self.update_first_render_bounds();\
+            self.calc_render_bounds();\
             self.begin();\
             self.first_render();\
-            imgui_ctx.push_bounds_callback(self.get_bounds_callback());\
-            imgui_ctx.push_scissor_rect(scissor##__LINE__);\
             return true;\
         }(group##__LINE__))
 

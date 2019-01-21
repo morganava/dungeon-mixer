@@ -17,6 +17,21 @@ namespace tabletopify
             return nextId++;
         }
 
+        void context::push_bounds_callback(const bounds_callback& bounds)
+        {
+            _bounds_stack.push_back(bounds);
+        }
+
+        const bounds_callback& context::peek_bounds_callback() const
+        {
+            return _bounds_stack.back();
+        }
+
+        void context::pop_bounds_callback()
+        {
+            _bounds_stack.pop_back();
+        }
+
         void context::push_scissor_rect(const rect& rect)
         {
             _scissor_stack.push_back(rect);

@@ -81,7 +81,7 @@ namespace tabletopify
             }
         }
 
-        imgui_ctx.pop_bounds();
+        imgui_ctx.pop_bounds_callback();
         imgui_ctx.pop_scissor_rect();
     }
 }
