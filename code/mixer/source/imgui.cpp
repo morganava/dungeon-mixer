@@ -17,34 +17,24 @@ namespace tabletopify
             return nextId++;
         }
 
-        void context::push_bounds_callback(const bounds_callback& bounds)
+        rect render_bounds::eval(const rect& desired) const
         {
-            _bounds_stack.push_back(bounds);
+            return this->callback(this->callback_data, desired);
         }
 
-        const bounds_callback& context::peek_bounds_callback() const
+        void context::push_render_bounds(const render_bounds& rb)
         {
-            return _bounds_stack.back();
+            _render_bounds_stack.push_back(rb);
         }
 
-        void context::pop_bounds_callback()
+        const render_bounds& context::peek_render_bounds() const
         {
-            _bounds_stack.pop_back();
+            return _render_bounds_stack.back();
         }
 
-        void context::push_scissor_rect(const rect& rect)
+        void context::pop_render_bounds()
         {
-            _scissor_stack.push_back(rect);
-        }
-
-        const rect& context::peek_scissor_rect() const
-        {
-            return _scissor_stack.back();
-        }
-
-        void context::pop_scissor_rect()
-        {
-            _scissor_stack.pop_back();
+            _render_bounds_stack.pop_back();
         }
 
         // Group
@@ -54,22 +44,18 @@ namespace tabletopify
 
         }
 
-        bounds_callback elem_group::get_bounds_callback()
+        render_bounds_callback_t elem_group::get_bounds_callback()
         {
-            return
+            return [](void* ptr, const rect& desired) -> rect
             {
-                [](void* ptr, const rect& desired) -> rect
+                auto& self = *static_cast<elem_group*>(ptr);
+                rect retval =
                 {
-                    auto& self = *static_cast<elem_group*>(ptr);
-                    rect retval =
-                    {
-                        {self.bounds.position.x, self.bounds.position.y + self.internal_height - self.data->vertical_scroll},
-                        {self.bounds.size.x - scrollbar_width, desired.size.y}
-                    };
-                    self.internal_height += desired.size.y;
-                    return retval;
-                },
-                this
+                    {self.bounds.position.x, self.bounds.position.y + self.internal_height - self.data->vertical_scroll},
+                    {self.bounds.size.x - scrollbar_width, desired.size.y}
+                };
+                self.internal_height += desired.size.y;
+                return retval;
             };
         }
 
@@ -176,27 +162,23 @@ namespace tabletopify
 
         // Static Row
 
-        bounds_callback elem_static_row::get_bounds_callback()
+        render_bounds_callback_t elem_static_row::get_bounds_callback()
         {
-            return
+            return [](void* ptr, const rect&) -> rect
             {
-                [](void* ptr, const rect&) -> rect
+                auto& self = *static_cast<elem_static_row*>(ptr);
+                float w = self._widths.front();
+                self._widths.erase(self._widths.begin());
+
+                rect retval =
                 {
-                    auto& self = *static_cast<elem_static_row*>(ptr);
-                    float w = self._widths.front();
-                    self._widths.erase(self._widths.begin());
+                    {self.bounds.position.x + self._horizontal_offset, self.bounds.position.y},
+                    {w, self.bounds.size.y}
+                };
 
-                    rect retval =
-                    {
-                        {self.bounds.position.x + self._horizontal_offset, self.bounds.position.y},
-                        {w, self.bounds.size.y}
-                    };
+                self._horizontal_offset += w;
 
-                    self._horizontal_offset += w;
-
-                    return retval;
-                },
-                this
+                return retval;
             };
         }
 
@@ -223,9 +205,9 @@ namespace tabletopify
             get_nanovg()->fill_rect(rect{bounds.position + vec2{1.0, 1.0}, {bounds.size - vec2{2.0, 2.0}}}, bg_color);
         }
 
-        bounds_callback elem_debug::get_bounds_callback()
+        render_bounds_callback_t elem_debug::get_bounds_callback()
         {
-            return {};
+            return nullptr;
         }
     }
 }

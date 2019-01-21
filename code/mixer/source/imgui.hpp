@@ -92,7 +92,7 @@ namespace tabletopify
             }
 
         private:
-            size_t _idx = 0;
+            size_t _idx = 0; Vagrant Story
             T _buffer[LEN] = {};
         };
 
@@ -107,6 +107,17 @@ namespace tabletopify
             void* element = nullptr;
         };
 
+        typedef rect (*render_bounds_callback_t)(void*, const rect&);
+
+        struct render_bounds
+        {
+            render_bounds_callback_t callback = nullptr;
+            void* callback_data = nullptr;
+            rect scissor = {};
+
+            rect eval(const rect& desired) const;
+        };
+
         typedef size_t widget_id_t;
         widget_id_t next_widget_id();
 
@@ -115,24 +126,14 @@ namespace tabletopify
         public:
             ~context()
             {
-                if (_bounds_stack.size() != 0) 
-                {
-                       MX_LOG_INFO("bounds.size(): {}", _bounds_stack.size());
-                }
-                MX_ASSERT(_bounds_stack.size() == 0);
+                MX_ASSERT(_render_bounds_stack.size() == 0);
             }
 
-            void push_bounds_callback(const bounds_callback&);
-            const bounds_callback& peek_bounds_callback() const;
-            void pop_bounds_callback();
-
-            void push_scissor_rect(const rect&);
-            const rect& peek_scissor_rect() const;
-            void pop_scissor_rect();
-
+            void push_render_bounds(const render_bounds&);
+            const render_bounds& peek_render_bounds() const;
+            void pop_render_bounds();
         private:
-            std::vector<bounds_callback> _bounds_stack;
-            std::vector<rect> _scissor_stack;
+            std::vector<render_bounds> _render_bounds_stack;
             widget_id_t _focused_widget = 0;
         };
 
@@ -152,7 +153,8 @@ namespace tabletopify
             ~element()
             {
                 // restore the scissor area for second render pass
-                get_nanovg()->set_scissor(_ctx.peek_scissor_rect());
+                auto scissor = _ctx.peek_render_bounds().scissor;
+                get_nanovg()->set_scissor(scissor);
 
                 auto& self = *static_cast<T*>(this);
                 // first update and render after child renders
@@ -161,16 +163,18 @@ namespace tabletopify
                 // our final update
                 self.end();
 
-                _ctx.pop_bounds_callback();
-                _ctx.pop_scissor_rect();
+                _ctx.pop_render_bounds();
+
             }
 
             // gets and saves this widget's render bounds and scissor area
             // and pushes callback and current scissor for child widgets
             void calc_render_bounds()
             {
-                bounds = _ctx.peek_bounds_callback().eval(bounds);
-                const auto& parent_scissor = _ctx.peek_scissor_rect();
+                const auto& rb = _ctx.peek_render_bounds();
+
+                bounds = rb.eval(bounds);
+                const auto& parent_scissor = rb.scissor;
 
                 // calc the scissor geometry
                 auto scissor = get_intersecting_rect(parent_scissor, bounds);
@@ -178,8 +182,7 @@ namespace tabletopify
 
                 // push info for child render bounds calculations
                 auto& self = *static_cast<T*>(this);
-                _ctx.push_bounds_callback(self.get_bounds_callback());
-                _ctx.push_scissor_rect(scissor);
+                _ctx.push_render_bounds({self.get_bounds_callback(), this, scissor});
             }
 
             rect bounds;
@@ -204,7 +207,7 @@ namespace tabletopify
 
             void begin();
             void first_render() const {}
-            bounds_callback get_bounds_callback();
+            render_bounds_callback_t get_bounds_callback();
             void middle();
             void second_render() const;
             void end();
@@ -228,7 +231,7 @@ namespace tabletopify
 
             void begin() {}
             void first_render() const {}
-            bounds_callback get_bounds_callback();
+            render_bounds_callback_t get_bounds_callback();
             void middle() {}
             void second_render() const {}
             void end() {}
@@ -243,7 +246,7 @@ namespace tabletopify
 
             void begin();
             void first_render() const;
-            bounds_callback get_bounds_callback();
+            render_bounds_callback_t get_bounds_callback();
             void middle() {}
             void second_render() const {}
             void end() {}

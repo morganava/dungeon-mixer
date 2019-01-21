@@ -44,15 +44,15 @@ namespace tabletopify
     {
         imgui::context imgui_ctx;
         rect bounds = {{(double)width / 4.0, (double)height / 4.0}, {(double)width / 2.0, (double)height / 2.0}};
-        imgui_ctx.push_bounds_callback(
+        imgui_ctx.push_render_bounds(
         {
             [](void* bounds, const rect&) -> rect 
             {
                 return *reinterpret_cast<rect*>(bounds);
             },
             &bounds,
+            bounds
         });
-        imgui_ctx.push_scissor_rect(bounds);
 
         mxGroup(self.data = &gd;)
         {
@@ -81,7 +81,6 @@ namespace tabletopify
             }
         }
 
-        imgui_ctx.pop_bounds_callback();
-        imgui_ctx.pop_scissor_rect();
+        imgui_ctx.pop_render_bounds();
     }
 }
