@@ -66,36 +66,6 @@ namespace tabletopify
             return make_callback_impl(func);
         }
 
-        template<typename T, size_t LEN>
-        struct fixed_stack
-        {
-            constexpr void push(T val)
-            {
-                _buffer[_idx++] = val;
-            }
-
-            constexpr T peek() const
-            {
-                assert(_idx > 0);
-                return _buffer[_idx - 1];
-            }
-
-            constexpr void pop()
-            {
-                assert(_idx > 0);
-                --_idx;
-            }
-
-            constexpr size_t size() const
-            {
-                return _idx;
-            }
-
-        private:
-            size_t _idx = 0;
-            T _buffer[LEN] = {};
-        };
-
         struct bounds_callback
         {
             constexpr rect eval(const rect& desired) const
@@ -124,14 +94,14 @@ namespace tabletopify
         class context
         {
         public:
-            ~context()
-            {
-                MX_ASSERT(_render_bounds_stack.size() == 0);
-            }
+            void update(double dt);
 
             void push_render_bounds(const render_bounds&);
             const render_bounds& peek_render_bounds() const;
             void pop_render_bounds();
+
+            void set_focused_widget(widget_id_t id) { _focused_widget = id; }
+            bool is_focused(widget_id_t id)  const { return id == _focused_widget; }
         private:
             std::vector<render_bounds> _render_bounds_stack;
             widget_id_t _focused_widget = 0;

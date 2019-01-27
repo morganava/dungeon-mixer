@@ -17,9 +17,16 @@ namespace tabletopify
             return nextId++;
         }
 
+        // render_bounds
+
         rect render_bounds::eval(const rect& desired) const
         {
             return this->callback(this->callback_data, desired);
+        }
+
+        void context::update(double dt)
+        {
+            MX_ASSERT(_render_bounds_stack.size() == 0);
         }
 
         void context::push_render_bounds(const render_bounds& rb)
@@ -41,7 +48,9 @@ namespace tabletopify
 
         void elem_group::begin()
         {
-
+            // auto input = get_input();
+            // auto current_mouse_position = input->get_mouse_position
+            // if(input->)
         }
 
         render_bounds_callback_t elem_group::get_bounds_callback()

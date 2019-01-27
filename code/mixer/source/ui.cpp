@@ -42,7 +42,8 @@ namespace tabletopify
 
     void ui::update(float dt, int32_t width, int32_t height)
     {
-        imgui::context imgui_ctx;
+        imgui_ctx.update(dt);
+        
         rect bounds = {{(double)width / 4.0, (double)height / 4.0}, {(double)width / 2.0, (double)height / 2.0}};
         imgui_ctx.push_render_bounds(
         {
