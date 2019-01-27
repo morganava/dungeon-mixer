@@ -182,17 +182,21 @@ namespace tabletopify
     {
         _mouse_state.previous = _mouse_state.current;
 
+        // reset
         _mouse_state.current.scroll = {0.0, 0.0};
-        _keypresses.clear();
+        _charpresses.clear();
 
+        // consume events
         for(const auto& ie : _raw_events)
         {
             switch(ie.type) 
             {
-                case keypress_event:
-                    _keypresses.push_back(ie.keypress.codepoint);
+                case codepoint_event:
+                    _charpresses.push_back(ie.charpress.codepoint);
                     break;
                 case keydown_event:
+                    break;
+                case keyrepeat_event:
                     break;
                 case keyup_event:
                     break;
@@ -238,15 +242,15 @@ namespace tabletopify
         _raw_events.clear();
     }
 
-    void input::push_keypress(utf8proc_int32_t codepoint)
+    void input::push_charpress(utf8proc_int32_t codepoint)
     {
         tabletopify::utf8_stringbuffer sb;
         sb.push_back(codepoint);
-        MX_LOG_INFO("keypress : {{ codepoint : 0x{:08x}, char : '{}' }}", codepoint, sb.str());
+        MX_LOG_INFO("codepoint : {{ codepoint : 0x{:08x}, char : '{}' }}", codepoint, sb.str());
 
         input_event ie;
-        ie.type = keypress_event;
-        ie.keypress.codepoint = codepoint;
+        ie.type = codepoint_event;
+        ie.charpress.codepoint = codepoint;
         _raw_events.push_back(ie);
     }
 
@@ -256,6 +260,16 @@ namespace tabletopify
 
         input_event ie;
         ie.type = keydown_event;
+        ie.keydown.keycode = keycode;
+        _raw_events.push_back(ie);
+    }
+    
+    void input::push_keyrepeat(key_code_t keycode)
+    {
+        MX_LOG_INFO("keyrepeat : {{ keycode : 0x{:08x}, key : '{}' }}", keycode, key_code_to_key_name(keycode));
+
+        input_event ie;
+        ie.type = keyrepeat_event;
         ie.keydown.keycode = keycode;
         _raw_events.push_back(ie);
     }

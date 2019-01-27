@@ -26,8 +26,9 @@ namespace tabletopify
     typedef enum
     {
         invalid_event = -1,
-        keypress_event,
+        codepoint_event,
         keydown_event,
+        keyrepeat_event,
         keyup_event,
         mousemove_event,
         mousedown_event,
@@ -44,7 +45,7 @@ namespace tabletopify
             } invalid;
             struct {
                 utf8_codepoint codepoint;
-            } keypress;
+            } charpress;
             struct {
                 key_code_t keycode;
             } keydown;
@@ -83,8 +84,9 @@ namespace tabletopify
 
         const char* key_code_to_key_name(key_code_t) const;
 
-        void push_keypress(utf8proc_int32_t codepoint);
+        void push_charpress(utf8proc_int32_t codepoint);
         void push_keydown(key_code_t);
+        void push_keyrepeat(key_code_t);
         void push_keyup(key_code_t);
         void push_mousemove(const vec2& pos);
         void push_mousedown(mouse_button_t btn);
@@ -98,7 +100,7 @@ namespace tabletopify
     private:
         std::map<key_code_t, utf8_string> _key_names;
         std::vector<input_event> _raw_events;
-        std::vector<utf8_codepoint> _keypresses;
+        std::vector<utf8_codepoint> _charpresses;
 
         struct
         {

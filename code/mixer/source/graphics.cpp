@@ -31,6 +31,7 @@ namespace tabletopify
                 get_input()->push_keydown(key);
                 break;
             case GLFW_REPEAT:
+                get_input()->push_keyrepeat(key);
                 break;
             case GLFW_RELEASE:
                 get_input()->push_keyup(key);
@@ -40,7 +41,7 @@ namespace tabletopify
 
     static void graphics_charmods_func(GLFWwindow*, uint32_t codepoint, int32_t mods)
     {
-        get_input()->push_keypress(codepoint);
+        get_input()->push_charpress(codepoint);
     }
 
     static void graphics_cursor_pos_func(GLFWwindow* window, double xpos, double ypos)
