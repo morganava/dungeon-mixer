@@ -92,7 +92,7 @@ namespace tabletopify
             }
 
         private:
-            size_t _idx = 0; Vagrant Story
+            size_t _idx = 0;
             T _buffer[LEN] = {};
         };
 
