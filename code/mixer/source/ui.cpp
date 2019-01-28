@@ -43,7 +43,7 @@ namespace tabletopify
     void ui::update(float dt, int32_t width, int32_t height)
     {
         imgui_ctx.update(dt);
-        
+
         rect bounds = {{(double)width / 4.0, (double)height / 4.0}, {(double)width / 2.0, (double)height / 2.0}};
         imgui_ctx.push_render_bounds(
         {
@@ -79,6 +79,7 @@ namespace tabletopify
                     {
                         // MX_LOG_INFO("MOVE CALLBACK {}", pos);
                     };);
+                mxDebug(self.bounds.size.y = 30.0f;);
             }
         }
 

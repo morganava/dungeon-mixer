@@ -50,10 +50,10 @@ namespace tabletopify
         {
             if (get_input()->get_mouse_clicked(mouse_button::left, this->scissor))
             {
-                _ctx.set_focused_widget(data->id);
-            } else if(get_input()->get_mouse_clicked(mouse_button::left) && _ctx.is_focused(data->id))
+                this->focus_widget();
+            } else if (get_input()->get_mouse_clicked(mouse_button::left))
             {
-                _ctx.set_focused_widget(INVALID_WIDGET_ID);
+                this->unfocus_widget();
             }
         }
 
@@ -163,7 +163,7 @@ namespace tabletopify
                 }
 
                 // handle scroll wheel
-                if (!data->grabbing_scrollbar)
+                if (!data->grabbing_scrollbar && point_inside_rect(current_mouse_position, this->scissor))
                 {
                     data->vertical_scroll -= input->get_mouse_scroll(input_frame::current).y * scroll_step;
                 }

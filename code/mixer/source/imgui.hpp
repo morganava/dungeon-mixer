@@ -89,7 +89,8 @@ namespace tabletopify
         };
 
         typedef size_t widget_id_t;
-        constexpr widget_id_t INVALID_WIDGET_ID = ~widget_id_t(0);
+        constexpr widget_id_t NULL_WIDGET_ID = 0;
+        constexpr widget_id_t INVALID_WIDGET_ID = ~NULL_WIDGET_ID;
         widget_id_t next_widget_id();
 
         struct widget_data
@@ -102,15 +103,18 @@ namespace tabletopify
         public:
             void update(double dt);
 
+            // render bound tree
             void push_render_bounds(const render_bounds&);
             const render_bounds& peek_render_bounds() const;
             void pop_render_bounds();
 
-            void set_focused_widget(widget_id_t id) { _focused_widget = id; }
-            bool is_focused(widget_id_t id)  const { return id == _focused_widget; }
+            // widget focus methods
+            constexpr void focus_widget(widget_id_t id) { _focused_widget = id; }
+            constexpr void unfocus_widget(widget_id_t id) { if (is_focused(id)) { focus_widget(INVALID_WIDGET_ID); } }
+            constexpr bool is_focused(widget_id_t id)  const { return id == _focused_widget; }
         private:
             std::vector<render_bounds> _render_bounds_stack;
-            widget_id_t _focused_widget = -1;
+            widget_id_t _focused_widget = INVALID_WIDGET_ID;
         };
 
         // base element
@@ -166,6 +170,27 @@ namespace tabletopify
             rect scissor;
 
             WIDGET_DATA* data;
+
+            constexpr widget_id_t get_widget_id() const
+            {
+                return data ? data->id : NULL_WIDGET_ID;
+            }
+
+            constexpr void focus_widget()
+            {
+                _ctx.focus_widget(get_widget_id());
+            }
+
+            constexpr void unfocus_widget()
+            {
+                _ctx.unfocus_widget(get_widget_id());
+            }
+
+            constexpr bool is_focused() const
+            {
+                return _ctx.is_focused(get_widget_id());
+            }
+
         protected:
             context& _ctx;
         };
