@@ -97,6 +97,7 @@ namespace tabletopify
         vec2 get_mouse_scroll(input_frame_t frame) const;
         button_state_t get_mouse_button_state(mouse_button_t, input_frame_t frame) const;
         constexpr const std::vector<utf8_codepoint>& get_charpresses() const {return _charpresses;}
+        bool get_mouse_clicked(mouse_button_t, const rect& region) const;
 
     private:
         std::map<key_code_t, utf8_string> _key_names;
@@ -124,6 +125,20 @@ namespace tabletopify
                     button_state_t middle  : 1;
                 };
             } current, previous;
+
+            struct
+            {
+                vec2 left = {-1.0, -1.0};
+                vec2 right = {-1.0, -1.0};
+                vec2 middle = {-1.0, -1.0};
+            } down_position;
+
+            struct
+            {
+                vec2 left = {-1.0, -1.0};
+                vec2 right = {-1.0, -1.0};
+                vec2 middle = {-1.0, -1.0};
+            } up_position;
         } _mouse_state;
     };
 

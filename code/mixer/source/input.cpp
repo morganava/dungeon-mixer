@@ -208,12 +208,18 @@ namespace tabletopify
                     {
                         case mouse_button::left:
                             _mouse_state.current.left = button_state::pressed;
+                            _mouse_state.down_position.left = _mouse_state.current.position;
+                            _mouse_state.up_position.left = {-1.0, -1.0};
                             break;
                         case mouse_button::right:
                             _mouse_state.current.right = button_state::pressed;
+                            _mouse_state.down_position.right = _mouse_state.current.position;
+                            _mouse_state.up_position.right = {-1.0, -1.0};
                             break;
                         case mouse_button::middle:
                             _mouse_state.current.middle = button_state::pressed;
+                            _mouse_state.down_position.middle = _mouse_state.current.position;
+                            _mouse_state.up_position.middle = {-1.0, -1.0};
                             break;
                     }
                     break;
@@ -222,12 +228,15 @@ namespace tabletopify
                     {
                         case mouse_button::left:
                             _mouse_state.current.left = button_state::released;
+                            _mouse_state.up_position.left = _mouse_state.current.position;
                             break;
                         case mouse_button::right:
                             _mouse_state.current.right = button_state::released;
+                            _mouse_state.up_position.right = _mouse_state.current.position;
                             break;
                         case mouse_button::middle:
                             _mouse_state.current.middle = button_state::released;
+                            _mouse_state.up_position.middle = _mouse_state.current.position;
                             break;
                     }
                     break;
@@ -238,6 +247,24 @@ namespace tabletopify
                     break;
             }
         }
+#if 0
+        // clear out click info
+        if (_mouse_state.current.left == button_state::released && 
+            _mouse_state.previous.left == button_state::released)
+        {
+            _mouse_state.down_position.left = _mouse_state.up_position.left = {-1.0, -1.0};
+        }
+        if (_mouse_state.current.right == button_state::released && 
+            _mouse_state.previous.right == button_state::released)
+        {
+            _mouse_state.down_position.right = _mouse_state.up_position.right = {-1.0, -1.0};
+        }
+        if (_mouse_state.current.middle == button_state::released && 
+            _mouse_state.previous.middle == button_state::released)
+        {
+            _mouse_state.down_position.middle = _mouse_state.up_position.middle = {-1.0, -1.0};
+        }        
+#endif
 
         _raw_events.clear();
     }
@@ -347,5 +374,26 @@ namespace tabletopify
                 break;
         }
         return button_state::released;
+    }
+
+    bool input::get_mouse_clicked(mouse_button_t btn, const rect& region) const
+    {
+        if (get_mouse_button_state(btn, input_frame::current) == button_state::released &&
+            get_mouse_button_state(btn, input_frame::previous) == button_state::pressed)
+        {
+            switch(btn)
+            {
+                case mouse_button::left:
+                    return point_inside_rect(_mouse_state.down_position.left, region) &&
+                           point_inside_rect(_mouse_state.up_position.left, region);
+                case mouse_button::right:
+                    return point_inside_rect(_mouse_state.down_position.right, region) &&
+                           point_inside_rect(_mouse_state.up_position.right, region);
+                case mouse_button::middle:
+                    return point_inside_rect(_mouse_state.down_position.middle, region) &&
+                           point_inside_rect(_mouse_state.up_position.middle, region);                           
+            }
+        }
+        return false;
     }
 }

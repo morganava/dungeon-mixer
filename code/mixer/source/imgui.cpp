@@ -48,9 +48,7 @@ namespace tabletopify
 
         void elem_group::begin()
         {
-            // auto input = get_input();
-            // auto current_mouse_position = input->get_mouse_position
-            // if(input->)
+            
         }
 
         render_bounds_callback_t elem_group::get_bounds_callback()
