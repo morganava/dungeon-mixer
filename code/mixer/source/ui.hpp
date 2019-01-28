@@ -9,7 +9,7 @@ namespace tabletopify
         void finish();
     private:
         imgui::context imgui_ctx;
-        imgui::group_data gd;
+        imgui::vbox_data gd;
     };
 
     ui* get_ui();

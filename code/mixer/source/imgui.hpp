@@ -225,7 +225,9 @@ namespace tabletopify
             context& _ctx;
         };
 
-        struct group_data : widget_data
+        // grouping widgets
+
+        struct vbox_data : widget_data
         {
             // vertical offset down 
             double vertical_scroll = 0.0;
@@ -235,7 +237,7 @@ namespace tabletopify
             double grab_offset_y = 0.0;
         };
 
-        struct widget_group : public widget<widget_group, group_data>
+        struct widget_vbox : public widget<widget_vbox, vbox_data>
         {
             using widget::widget;
 
@@ -255,7 +257,7 @@ namespace tabletopify
             rect scrollbar_grab_area = {};
         };
 
-        struct widget_static_row : public widget<widget_static_row>
+        struct widget_hbox : public widget<widget_hbox>
         {
             using widget::widget;
 
@@ -285,21 +287,34 @@ namespace tabletopify
             callback<void, vec2> on_mouse_over;
             NVGcolor bg_color = nvgRGB(0, 0xff, 0xff);
         };
+
+        // label
+
+        struct label_data : widget_data
+        {
+
+        };
+
+        struct widget_label : public widget<widget_label, label_data>
+        {
+
+        };
+
     } // imgui namespace
 
 
-#define MX_widget_CODEGEN(X, ...)\
-    if (imgui::X group##__LINE__(imgui_ctx); \
+#define MX_WIDGET_CODEGEN(X, ...)\
+    if (imgui::X widget##__LINE__(imgui_ctx); \
         [&](auto& self) -> bool {\
             __VA_ARGS__\
             self.calc_render_bounds();\
             self.begin();\
             self.first_render();\
             return true;\
-        }(group##__LINE__))
+        }(widget##__LINE__))
 
-#define mxGroup(...) MX_widget_CODEGEN(widget_group, __VA_ARGS__)
-#define mxStaticRow(...) MX_widget_CODEGEN(widget_static_row, __VA_ARGS__)
-#define mxDebug(...) MX_widget_CODEGEN(widget_debug, __VA_ARGS__)
+#define mxVbox(...) MX_WIDGET_CODEGEN(widget_vbox, __VA_ARGS__)
+#define mxHbox(...) MX_WIDGET_CODEGEN(widget_hbox, __VA_ARGS__)
+#define mxDebug(...) MX_WIDGET_CODEGEN(widget_debug, __VA_ARGS__)
 
 }
