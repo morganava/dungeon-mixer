@@ -125,6 +125,7 @@ namespace tabletopify
             element() = delete;
             element(const element&) = delete;
             element(element&&) = delete;
+
             constexpr element(context& ctx)
             : data(nullptr)
             , _ctx(ctx)
@@ -166,10 +167,7 @@ namespace tabletopify
                 _ctx.push_render_bounds({self.get_bounds_callback(), this, scissor});
             }
 
-            rect bounds;
-            rect scissor;
-
-            WIDGET_DATA* data;
+            // widget methods
 
             constexpr widget_id_t get_widget_id() const
             {
@@ -191,7 +189,11 @@ namespace tabletopify
                 return _ctx.is_focused(get_widget_id());
             }
 
-        protected:
+            rect bounds;
+            rect scissor;
+
+            WIDGET_DATA* data;
+        private:
             context& _ctx;
         };
 

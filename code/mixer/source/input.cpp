@@ -185,6 +185,7 @@ namespace tabletopify
         // reset
         _mouse_state.current.scroll = {0.0, 0.0};
         _charpresses.clear();
+        _keypresses.clear();
 
         // consume events
         for(const auto& ie : _raw_events)
@@ -195,8 +196,10 @@ namespace tabletopify
                     _charpresses.push_back(ie.charpress.codepoint);
                     break;
                 case keydown_event:
+                    _keypresses.push_back(ie.keydown.keycode);
                     break;
                 case keyrepeat_event:
+                    _keypresses.push_back(ie.keyrepeat.keycode);
                     break;
                 case keyup_event:
                     break;
@@ -247,24 +250,6 @@ namespace tabletopify
                     break;
             }
         }
-#if 0
-        // clear out click info
-        if (_mouse_state.current.left == button_state::released && 
-            _mouse_state.previous.left == button_state::released)
-        {
-            _mouse_state.down_position.left = _mouse_state.up_position.left = {-1.0, -1.0};
-        }
-        if (_mouse_state.current.right == button_state::released && 
-            _mouse_state.previous.right == button_state::released)
-        {
-            _mouse_state.down_position.right = _mouse_state.up_position.right = {-1.0, -1.0};
-        }
-        if (_mouse_state.current.middle == button_state::released && 
-            _mouse_state.previous.middle == button_state::released)
-        {
-            _mouse_state.down_position.middle = _mouse_state.up_position.middle = {-1.0, -1.0};
-        }        
-#endif
 
         _raw_events.clear();
     }
@@ -297,7 +282,7 @@ namespace tabletopify
 
         input_event ie;
         ie.type = keyrepeat_event;
-        ie.keydown.keycode = keycode;
+        ie.keyrepeat.keycode = keycode;
         _raw_events.push_back(ie);
     }
 

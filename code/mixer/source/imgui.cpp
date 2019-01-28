@@ -51,7 +51,8 @@ namespace tabletopify
             if (get_input()->get_mouse_clicked(mouse_button::left, this->scissor))
             {
                 this->focus_widget();
-            } else if (get_input()->get_mouse_clicked(mouse_button::left))
+            } 
+            else if (get_input()->get_mouse_clicked(mouse_button::left))
             {
                 this->unfocus_widget();
             }
@@ -113,14 +114,14 @@ namespace tabletopify
             // valid scrollable range  (0 to scrollable_height)
             const  auto scrollable_height = internal_height - height;
 
+            auto* input = get_input();
+
             if (internal_height < height)
             {
                 data->vertical_scroll = 0.0;
             } 
             else
             {
-                auto* input = get_input();
-
                 auto prev_mouse_down = input->get_mouse_button_state(mouse_button::left, input_frame::previous);
                 auto current_mouse_down = input->get_mouse_button_state(mouse_button::left, input_frame::current);
                 auto current_mouse_position = input->get_mouse_position(input_frame::current);
@@ -169,9 +170,26 @@ namespace tabletopify
                 }
 
                 // handle keyboard input
-                if (_ctx.is_focused(data->id))
+                if (is_focused())
                 {
-                    MX_LOG_INFO("FOCUSED!!");
+                    for(auto keycode : input->get_keypresses())
+                    {
+                        switch(keycode)
+                        {
+                            case GLFW_KEY_PAGE_UP:
+                                data->vertical_scroll -= 5 * scroll_step;
+                                break;
+                            case GLFW_KEY_PAGE_DOWN:
+                                data->vertical_scroll += 5 * scroll_step;
+                                break;
+                            case GLFW_KEY_UP:
+                                data->vertical_scroll -= scroll_step;
+                                break;
+                            case GLFW_KEY_DOWN:
+                                data->vertical_scroll += scroll_step;
+                                break;
+                        }
+                    }
                 }
 
                 // clamp it

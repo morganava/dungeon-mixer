@@ -51,6 +51,9 @@ namespace tabletopify
             } keydown;
             struct {
                 key_code_t keycode;
+            } keyrepeat;
+            struct {
+                key_code_t keycode;
             } keyup;
             struct {
                 vec2 position;
@@ -96,7 +99,8 @@ namespace tabletopify
         vec2 get_mouse_position(input_frame_t frame) const;
         vec2 get_mouse_scroll(input_frame_t frame) const;
         button_state_t get_mouse_button_state(mouse_button_t, input_frame_t frame) const;
-        constexpr const std::vector<utf8_codepoint>& get_charpresses() const {return _charpresses;}
+        constexpr const std::vector<utf8_codepoint>& get_charpresses() const { return _charpresses; }
+        constexpr const std::vector<key_code_t>& get_keypresses() const { return _keypresses; }
         bool get_mouse_clicked(mouse_button_t) const;
         bool get_mouse_clicked(mouse_button_t, const rect& region) const;
 
@@ -104,6 +108,7 @@ namespace tabletopify
         std::map<key_code_t, utf8_string> _key_names;
         std::vector<input_event> _raw_events;
         std::vector<utf8_codepoint> _charpresses;
+        std::vector<key_code_t> _keypresses;
 
         struct
         {
