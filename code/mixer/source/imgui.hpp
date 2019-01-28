@@ -89,7 +89,13 @@ namespace tabletopify
         };
 
         typedef size_t widget_id_t;
+        constexpr widget_id_t INVALID_WIDGET_ID = ~widget_id_t(0);
         widget_id_t next_widget_id();
+
+        struct widget_data
+        {
+            widget_id_t id = next_widget_id();
+        };
 
         class context
         {
@@ -104,26 +110,27 @@ namespace tabletopify
             bool is_focused(widget_id_t id)  const { return id == _focused_widget; }
         private:
             std::vector<render_bounds> _render_bounds_stack;
-            widget_id_t _focused_widget = 0;
+            widget_id_t _focused_widget = -1;
         };
 
         // base element
 
-        template<typename T>
+        template<typename T, typename WIDGET_DATA=widget_data>
         struct element
         {
             element() = delete;
             element(const element&) = delete;
             element(element&&) = delete;
             constexpr element(context& ctx)
-            : _ctx(ctx)
+            : data(nullptr)
+            , _ctx(ctx)
             { }
 
             // destructor called after child widgets have been handled
             ~element()
             {
                 // restore the scissor area for second render pass
-                auto scissor = _ctx.peek_render_bounds().scissor;
+                scissor = _ctx.peek_render_bounds().scissor;
                 get_nanovg()->set_scissor(scissor);
 
                 auto& self = *static_cast<T*>(this);
@@ -147,7 +154,7 @@ namespace tabletopify
                 const auto& parent_scissor = rb.scissor;
 
                 // calc the scissor geometry
-                auto scissor = get_intersecting_rect(parent_scissor, bounds);
+                scissor = get_intersecting_rect(parent_scissor, bounds);
                 get_nanovg()->set_scissor(scissor);
 
                 // push info for child render bounds calculations
@@ -156,13 +163,15 @@ namespace tabletopify
             }
 
             rect bounds;
+            rect scissor;
+
+            WIDGET_DATA* data;
         protected:
             context& _ctx;
         };
 
-        struct group_data
+        struct group_data : widget_data
         {
-            widget_id_t id = next_widget_id();
             // vertical offset down 
             double vertical_scroll = 0.0;
             // is user grabbng scrollbar with mouse
@@ -171,7 +180,7 @@ namespace tabletopify
             double grab_offset_y = 0.0;
         };
 
-        struct elem_group : public element<elem_group>
+        struct elem_group : public element<elem_group, group_data>
         {
             using element::element;
 
@@ -182,7 +191,6 @@ namespace tabletopify
             void second_render() const;
             void end();
 
-            group_data* data = nullptr;
         private:
             // cumulative height of the child elements
             double internal_height = 0.0;

@@ -376,10 +376,15 @@ namespace tabletopify
         return button_state::released;
     }
 
+    bool input::get_mouse_clicked(mouse_button_t btn) const
+    {
+        return (get_mouse_button_state(btn, input_frame::current) == button_state::released) &&
+               (get_mouse_button_state(btn, input_frame::previous) == button_state::pressed);
+    }
+
     bool input::get_mouse_clicked(mouse_button_t btn, const rect& region) const
     {
-        if (get_mouse_button_state(btn, input_frame::current) == button_state::released &&
-            get_mouse_button_state(btn, input_frame::previous) == button_state::pressed)
+        if (get_mouse_clicked(btn))
         {
             switch(btn)
             {

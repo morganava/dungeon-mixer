@@ -97,6 +97,7 @@ namespace tabletopify
         vec2 get_mouse_scroll(input_frame_t frame) const;
         button_state_t get_mouse_button_state(mouse_button_t, input_frame_t frame) const;
         constexpr const std::vector<utf8_codepoint>& get_charpresses() const {return _charpresses;}
+        bool get_mouse_clicked(mouse_button_t) const;
         bool get_mouse_clicked(mouse_button_t, const rect& region) const;
 
     private:

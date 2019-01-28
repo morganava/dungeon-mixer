@@ -48,7 +48,13 @@ namespace tabletopify
 
         void elem_group::begin()
         {
-            
+            if (get_input()->get_mouse_clicked(mouse_button::left, this->scissor))
+            {
+                _ctx.set_focused_widget(data->id);
+            } else if(get_input()->get_mouse_clicked(mouse_button::left) && _ctx.is_focused(data->id))
+            {
+                _ctx.set_focused_widget(INVALID_WIDGET_ID);
+            }
         }
 
         render_bounds_callback_t elem_group::get_bounds_callback()
@@ -162,6 +168,12 @@ namespace tabletopify
                     data->vertical_scroll -= input->get_mouse_scroll(input_frame::current).y * scroll_step;
                 }
 
+                // handle keyboard input
+                if (_ctx.is_focused(data->id))
+                {
+                    MX_LOG_INFO("FOCUSED!!");
+                }
+
                 // clamp it
                 data->vertical_scroll = clamp<double>(0, data->vertical_scroll, scrollable_height);
             }            
@@ -196,7 +208,7 @@ namespace tabletopify
             auto* input = get_input();
             auto current_position = input->get_mouse_position(input_frame::current);
             auto previous_position = input->get_mouse_position(input_frame::previous);
-            if (point_inside_rect(current_position, bounds))
+            if (point_inside_rect(current_position, scissor))
             {
                 on_mouse_over(current_position);
 
