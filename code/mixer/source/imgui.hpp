@@ -88,15 +88,30 @@ namespace tabletopify
             rect eval(const rect& desired) const;
         };
 
+        // widget id        
+
         typedef size_t widget_id_t;
         constexpr widget_id_t NULL_WIDGET_ID = 0;
         constexpr widget_id_t INVALID_WIDGET_ID = ~NULL_WIDGET_ID;
         widget_id_t next_widget_id();
 
-        struct widget_data
+        // style
+
+        struct stylesheet
         {
-            widget_id_t id = next_widget_id();
+            struct
+            {
+                NVGcolor color;
+            } body;
+            struct
+            {
+                double scrollbar_width = 20.0;
+                double min_scrollbar_height = 150.0;            
+                double scroll_step = 30.0;
+            } vbox;         
         };
+
+        // context
 
         class context
         {
@@ -112,9 +127,16 @@ namespace tabletopify
             constexpr void focus_widget(widget_id_t id) { _focused_widget = id; }
             constexpr void unfocus_widget(widget_id_t id) { if (is_focused(id)) { focus_widget(INVALID_WIDGET_ID); } }
             constexpr bool is_focused(widget_id_t id)  const { return id == _focused_widget; }
+
+            stylesheet style;
         private:
             std::vector<render_bounds> _render_bounds_stack;
             widget_id_t _focused_widget = INVALID_WIDGET_ID;
+        };
+        
+        struct widget_data
+        {
+            widget_id_t id = next_widget_id();
         };
 
         // base widget
@@ -165,6 +187,12 @@ namespace tabletopify
                 // push info for child render bounds calculations
                 auto& self = *static_cast<T*>(this);
                 _ctx.push_render_bounds({self.get_bounds_callback(), this, scissor});
+            }
+
+            // style
+            const stylesheet& style() const
+            {
+                return _ctx.style;
             }
 
             // widget methods
@@ -225,9 +253,6 @@ namespace tabletopify
             rect scrollbar_area = {};
             // grab area of scrollbar this frame
             rect scrollbar_grab_area = {};
-            constexpr static double scrollbar_width = 20.0;
-            constexpr static double min_scrollbar_height = 150.0;            
-            constexpr static double scroll_step = 30.0;
         };
 
         struct widget_static_row : public widget<widget_static_row>
