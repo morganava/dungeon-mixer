@@ -23,6 +23,19 @@ namespace tabletopify
         singleton<nanovg>::free();
     }
 
+    //  hash_buffer
+
+    template<>
+    void hash_buffer::push_back<rect>(const rect& val)
+    {
+        push_back<float>(val.position.x);
+        push_back<float>(val.position.y);
+        push_back<float>(val.size.x);
+        push_back<float>(val.size.y);        
+    }
+
+    // NanoVG
+
     void nanovg::create_context()
     {
         // init nanovg
@@ -53,21 +66,28 @@ namespace tabletopify
             {
                 case draw_command::set_scissor:
                 {
-                    rect r;
-                    MX_THROW_IF_FALSE(cq.next(r));
+                    float pos_x, pos_y, size_x, size_y;
+                    MX_THROW_IF_FALSE(cq.next(pos_x));
+                    MX_THROW_IF_FALSE(cq.next(pos_y));
+                    MX_THROW_IF_FALSE(cq.next(size_x));
+                    MX_THROW_IF_FALSE(cq.next(size_y));
 
-                    nvgScissor(_ctx, (float)r.position.x, (float)r.position.y, (float)r.size.x, (float)r.size.y);
+                    nvgScissor(_ctx, pos_x, pos_y, size_x, size_y);
                 }
                 break;
                 case draw_command::fill_rect:
                 {
-                    rect r;
+                    float pos_x, pos_y, size_x, size_y;
+                    MX_THROW_IF_FALSE(cq.next(pos_x));
+                    MX_THROW_IF_FALSE(cq.next(pos_y));
+                    MX_THROW_IF_FALSE(cq.next(size_x));
+                    MX_THROW_IF_FALSE(cq.next(size_y));
+
                     NVGcolor col;
-                    MX_THROW_IF_FALSE(cq.next(r))
                     MX_THROW_IF_FALSE(cq.next(col))
 
                     nvgBeginPath(_ctx);
-                    nvgRect(_ctx, r.position.x, r.position.y, r.size.x, r.size.y);
+                    nvgRect(_ctx, pos_x, pos_y, size_x, size_y);
                     nvgFillColor(_ctx, col);
                     nvgFill(_ctx);
                 }
