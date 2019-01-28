@@ -278,7 +278,7 @@ namespace tabletopify
 
             void begin();
             void first_render() const;
-            render_bounds_callback_t get_bounds_callback();
+            render_bounds_callback_t get_bounds_callback() { return nullptr; }
             void middle() {}
             void second_render() const {}
             void end() {}
@@ -292,12 +292,19 @@ namespace tabletopify
 
         struct label_data : widget_data
         {
-
+            utf8_string text;
         };
 
         struct widget_label : public widget<widget_label, label_data>
         {
-
+            using widget::widget;
+            
+            void begin() {}
+            void first_render() const {}
+            render_bounds_callback_t get_bounds_callback() { return nullptr; }
+            void middle() {}
+            void second_render() const {}
+            void end() {}            
         };
 
     } // imgui namespace
@@ -316,5 +323,6 @@ namespace tabletopify
 #define mxVbox(...) MX_WIDGET_CODEGEN(widget_vbox, __VA_ARGS__)
 #define mxHbox(...) MX_WIDGET_CODEGEN(widget_hbox, __VA_ARGS__)
 #define mxDebug(...) MX_WIDGET_CODEGEN(widget_debug, __VA_ARGS__)
+#define mxLabel(...) MX_WIDGET_CODEGEN(widget_label, __VA_ARGS__)
 
 }

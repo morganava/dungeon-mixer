@@ -44,7 +44,7 @@ namespace tabletopify
             _render_bounds_stack.pop_back();
         }
 
-        // Group
+        // vbox
 
         void widget_vbox::begin()
         {
@@ -209,7 +209,7 @@ namespace tabletopify
             }            
         }
 
-        // Static Row
+        // Hbox
 
         render_bounds_callback_t widget_hbox::get_bounds_callback()
         {
@@ -254,9 +254,8 @@ namespace tabletopify
             get_nanovg()->fill_rect(rect{bounds.position + vec2{1.0, 1.0}, {bounds.size - vec2{2.0, 2.0}}}, bg_color);
         }
 
-        render_bounds_callback_t widget_debug::get_bounds_callback()
-        {
-            return nullptr;
-        }
+        // Label
+
+
     }
 }

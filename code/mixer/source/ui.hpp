@@ -10,6 +10,7 @@ namespace tabletopify
     private:
         imgui::context imgui_ctx;
         imgui::vbox_data gd;
+        imgui::label_data ld[20];
     };
 
     ui* get_ui();
