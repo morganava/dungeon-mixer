@@ -70,11 +70,11 @@ namespace tabletopify
         {
             constexpr rect eval(const rect& desired) const
             {
-                return callback(element, desired);
+                return callback(widget, desired);
             }
 
             rect (*callback)(void*, const rect&) = [](void*, const rect&) -> rect {MX_ASSERT(!"Should Not Be Called"); return {};};
-            void* element = nullptr;
+            void* widget = nullptr;
         };
 
         typedef rect (*render_bounds_callback_t)(void*, const rect&);
@@ -117,22 +117,22 @@ namespace tabletopify
             widget_id_t _focused_widget = INVALID_WIDGET_ID;
         };
 
-        // base element
+        // base widget
 
         template<typename T, typename WIDGET_DATA=widget_data>
-        struct element
+        struct widget
         {
-            element() = delete;
-            element(const element&) = delete;
-            element(element&&) = delete;
+            widget() = delete;
+            widget(const widget&) = delete;
+            widget(widget&&) = delete;
 
-            constexpr element(context& ctx)
+            constexpr widget(context& ctx)
             : data(nullptr)
             , _ctx(ctx)
             { }
 
             // destructor called after child widgets have been handled
-            ~element()
+            ~widget()
             {
                 // restore the scissor area for second render pass
                 scissor = _ctx.peek_render_bounds().scissor;
@@ -207,9 +207,9 @@ namespace tabletopify
             double grab_offset_y = 0.0;
         };
 
-        struct elem_group : public element<elem_group, group_data>
+        struct widget_group : public widget<widget_group, group_data>
         {
-            using element::element;
+            using widget::widget;
 
             void begin();
             void first_render() const {}
@@ -219,7 +219,7 @@ namespace tabletopify
             void end();
 
         private:
-            // cumulative height of the child elements
+            // cumulative height of the child widgets
             double internal_height = 0.0;
             // area of entire scrollbar widget
             rect scrollbar_area = {};
@@ -230,9 +230,9 @@ namespace tabletopify
             constexpr static double scroll_step = 30.0;
         };
 
-        struct elem_static_row : public element<elem_static_row>
+        struct widget_static_row : public widget<widget_static_row>
         {
-            using element::element;
+            using widget::widget;
 
             void begin() {}
             void first_render() const {}
@@ -245,9 +245,9 @@ namespace tabletopify
             float _horizontal_offset = 0.0f;            
         };
 
-        struct elem_debug : public element<elem_debug>
+        struct widget_debug : public widget<widget_debug>
         {
-            using element::element;
+            using widget::widget;
 
             void begin();
             void first_render() const;
@@ -263,7 +263,7 @@ namespace tabletopify
     } // imgui namespace
 
 
-#define MX_ELEMENT_CODEGEN(X, ...)\
+#define MX_widget_CODEGEN(X, ...)\
     if (imgui::X group##__LINE__(imgui_ctx); \
         [&](auto& self) -> bool {\
             __VA_ARGS__\
@@ -273,8 +273,8 @@ namespace tabletopify
             return true;\
         }(group##__LINE__))
 
-#define mxGroup(...) MX_ELEMENT_CODEGEN(elem_group, __VA_ARGS__)
-#define mxStaticRow(...) MX_ELEMENT_CODEGEN(elem_static_row, __VA_ARGS__)
-#define mxDebug(...) MX_ELEMENT_CODEGEN(elem_debug, __VA_ARGS__)
+#define mxGroup(...) MX_widget_CODEGEN(widget_group, __VA_ARGS__)
+#define mxStaticRow(...) MX_widget_CODEGEN(widget_static_row, __VA_ARGS__)
+#define mxDebug(...) MX_widget_CODEGEN(widget_debug, __VA_ARGS__)
 
 }

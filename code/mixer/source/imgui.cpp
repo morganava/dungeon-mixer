@@ -46,7 +46,7 @@ namespace tabletopify
 
         // Group
 
-        void elem_group::begin()
+        void widget_group::begin()
         {
             if (get_input()->get_mouse_clicked(mouse_button::left, this->scissor))
             {
@@ -58,11 +58,11 @@ namespace tabletopify
             }
         }
 
-        render_bounds_callback_t elem_group::get_bounds_callback()
+        render_bounds_callback_t widget_group::get_bounds_callback()
         {
             return [](void* ptr, const rect& desired) -> rect
             {
-                auto& self = *static_cast<elem_group*>(ptr);
+                auto& self = *static_cast<widget_group*>(ptr);
                 rect retval =
                 {
                     {self.bounds.position.x, self.bounds.position.y + self.internal_height - self.data->vertical_scroll},
@@ -73,7 +73,7 @@ namespace tabletopify
             };
         }
 
-        void elem_group::middle()
+        void widget_group::middle()
         {
             // height of the group
             const auto height = bounds.size.y;
@@ -92,7 +92,7 @@ namespace tabletopify
             scrollbar_grab_area = {{scrollbar_x + 2.0, scrollbar_y + 2.0},{scrollbar_width - 4.0, scrollbar_height - 4.0}};
         }
 
-        void elem_group::second_render() const
+        void widget_group::second_render() const
         {
             get_nanovg()->fill_rect(scrollbar_area, nvgRGB(96,96,96));
 
@@ -107,7 +107,7 @@ namespace tabletopify
             
         }
 
-        void elem_group::end()
+        void widget_group::end()
         {
             // height of the group
             const auto height = bounds.size.y;
@@ -170,7 +170,7 @@ namespace tabletopify
                 }
 
                 // handle keyboard input
-                if (is_focused())
+                if (this->is_focused())
                 {
                     for(auto keycode : input->get_keypresses())
                     {
@@ -188,6 +188,12 @@ namespace tabletopify
                             case GLFW_KEY_DOWN:
                                 data->vertical_scroll += scroll_step;
                                 break;
+                            case GLFW_KEY_HOME:
+                                data->vertical_scroll = 0;
+                                break;
+                            case GLFW_KEY_END:
+                                data->vertical_scroll = scrollable_height;
+                                break;
                         }
                     }
                 }
@@ -199,11 +205,11 @@ namespace tabletopify
 
         // Static Row
 
-        render_bounds_callback_t elem_static_row::get_bounds_callback()
+        render_bounds_callback_t widget_static_row::get_bounds_callback()
         {
             return [](void* ptr, const rect&) -> rect
             {
-                auto& self = *static_cast<elem_static_row*>(ptr);
+                auto& self = *static_cast<widget_static_row*>(ptr);
                 float w = self._widths.front();
                 self._widths.erase(self._widths.begin());
 
@@ -221,7 +227,7 @@ namespace tabletopify
 
         // Debug
 
-        void elem_debug::begin()
+        void widget_debug::begin()
         {
             auto* input = get_input();
             auto current_position = input->get_mouse_position(input_frame::current);
@@ -236,13 +242,13 @@ namespace tabletopify
                 }
             }
         }
-        void elem_debug::first_render() const
+        void widget_debug::first_render() const
         {
             get_nanovg()->fill_rect(bounds, nvgRGB(0,0,0));
             get_nanovg()->fill_rect(rect{bounds.position + vec2{1.0, 1.0}, {bounds.size - vec2{2.0, 2.0}}}, bg_color);
         }
 
-        render_bounds_callback_t elem_debug::get_bounds_callback()
+        render_bounds_callback_t widget_debug::get_bounds_callback()
         {
             return nullptr;
         }

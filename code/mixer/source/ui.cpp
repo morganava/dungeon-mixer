@@ -79,7 +79,7 @@ namespace tabletopify
                     {
                         // MX_LOG_INFO("MOVE CALLBACK {}", pos);
                     };);
-                mxDebug(self.bounds.size.y = 30.0f;);
+                mxDebug(self.bounds.size.y = 35.0f;);
             }
         }
 
