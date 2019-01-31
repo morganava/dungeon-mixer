@@ -7,30 +7,10 @@
 #include "nanovg.hpp"
 #include "imgui.hpp"
 #include "ui.hpp"
+#include "singleton.hpp"
 
 namespace tabletopify
 {
-    static ui* g_ui = nullptr;
-
-    ui* get_ui()
-    {
-        MX_ASSERT(g_ui != nullptr);
-        return g_ui;
-    }
-
-    void init_ui()
-    {
-        MX_ASSERT(g_ui == nullptr);
-        g_ui = new ui();
-        g_ui->initialize();
-    }
-    void free_ui()
-    {
-        g_ui->finish();
-        delete g_ui;
-        g_ui = nullptr;
-    }
-
     void ui::initialize()
     {
 

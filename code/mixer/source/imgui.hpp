@@ -128,12 +128,16 @@ namespace tabletopify
             constexpr void unfocus_widget(widget_id_t id) { if (is_focused(id)) { focus_widget(INVALID_WIDGET_ID); } }
             constexpr bool is_focused(widget_id_t id)  const { return id == _focused_widget; }
 
+            // set's render scissor
+            void set_render_scissor(const rect&);
+
             stylesheet style;
         private:
             std::vector<render_bounds> _render_bounds_stack;
             widget_id_t _focused_widget = INVALID_WIDGET_ID;
         };
-        
+        context& get_context();
+
         struct widget_data
         {
             widget_id_t id = next_widget_id();
@@ -141,24 +145,35 @@ namespace tabletopify
 
         // base widget
 
+        struct widget_base
+        {
+            rect bounds = {};
+            rect scissor = {};
+            widget_data* data = nullptr;
+
+            constexpr widget_base(widget_data* data)
+            : data(data)
+            { }
+        };
+
+
         template<typename T, typename WIDGET_DATA=widget_data>
-        struct widget
+        struct widget : public widget_base
         {
             widget() = delete;
             widget(const widget&) = delete;
             widget(widget&&) = delete;
 
             constexpr widget(context& ctx)
-            : data(nullptr)
-            , _ctx(ctx)
+            : widget_base(nullptr)
             { }
 
             // destructor called after child widgets have been handled
             ~widget()
             {
                 // restore the scissor area for second render pass
-                scissor = _ctx.peek_render_bounds().scissor;
-                get_nanovg()->set_scissor(scissor);
+                scissor = get_context().peek_render_bounds().scissor;
+                get_context().set_render_scissor(scissor);
 
                 auto& self = *static_cast<T*>(this);
                 // first update and render after child renders
@@ -167,7 +182,7 @@ namespace tabletopify
                 // our final update
                 self.end();
 
-                _ctx.pop_render_bounds();
+                get_context().pop_render_bounds();
 
             }
 
@@ -175,7 +190,7 @@ namespace tabletopify
             // and pushes callback and current scissor for child widgets
             void calc_render_bounds()
             {
-                const auto& rb = _ctx.peek_render_bounds();
+                const auto& rb = get_context().peek_render_bounds();
 
                 bounds = rb.eval(bounds);
                 const auto& parent_scissor = rb.scissor;
@@ -186,13 +201,13 @@ namespace tabletopify
 
                 // push info for child render bounds calculations
                 auto& self = *static_cast<T*>(this);
-                _ctx.push_render_bounds({self.get_bounds_callback(), this, scissor});
+                get_context().push_render_bounds({self.get_bounds_callback(), this, scissor});
             }
 
             // style
             const stylesheet& style() const
             {
-                return _ctx.style;
+                return get_context().style;
             }
 
             // widget methods
@@ -204,25 +219,21 @@ namespace tabletopify
 
             constexpr void focus_widget()
             {
-                _ctx.focus_widget(get_widget_id());
+                // _ctx.focus_widget(get_widget_id());
             }
 
             constexpr void unfocus_widget()
             {
-                _ctx.unfocus_widget(get_widget_id());
+                // _ctx.unfocus_widget(get_widget_id());
             }
 
             constexpr bool is_focused() const
             {
-                return _ctx.is_focused(get_widget_id());
+                return false;
+                // return _ctx.is_focused(get_widget_id());
             }
 
-            rect bounds;
-            rect scissor;
-
             WIDGET_DATA* data;
-        private:
-            context& _ctx;
         };
 
         // grouping widgets

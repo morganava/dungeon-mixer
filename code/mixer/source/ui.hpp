@@ -1,4 +1,7 @@
 #pragma once
+
+#include "singleton.hpp"
+
 namespace tabletopify
 {
     class ui
@@ -7,13 +10,25 @@ namespace tabletopify
         void update(float dt, int32_t width, int32_t height);
         void initialize();
         void finish();
+        constexpr imgui::context&  get_context() { return imgui_ctx; }
     private:
         imgui::context imgui_ctx;
         imgui::vbox_data gd;
         imgui::label_data ld[20];
     };
 
-    ui* get_ui();
-    void init_ui();
-    void free_ui();    
+    constexpr ui* get_ui()
+    {
+        return singleton<ui>::addr();
+    }
+
+    inline void init_ui()
+    {
+        singleton<ui>::construct();
+    }
+
+    constexpr void free_ui()
+    {
+        singleton<ui>::free();
+    }
 }

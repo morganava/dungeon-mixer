@@ -1,3 +1,5 @@
+#pragma once
+
 namespace tabletopify
 { 
     template<typename TYPE>
