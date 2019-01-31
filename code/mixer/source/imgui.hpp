@@ -136,7 +136,6 @@ namespace tabletopify
             std::vector<render_bounds> _render_bounds_stack;
             widget_id_t _focused_widget = INVALID_WIDGET_ID;
         };
-        context& get_context();
 
         struct widget_data
         {
@@ -147,15 +146,29 @@ namespace tabletopify
 
         struct widget_base
         {
+        public:
+            widget_base(widget_data* data);
+
+            constexpr widget_id_t get_widget_id() const
+            {
+                return _data ? _data->id : NULL_WIDGET_ID;
+            }
+
+        protected:
+            void focus_widget();
+            void unfocus_widget();
+            bool is_focused() const;
+
+            // called by widget<T> in destruct and calc_render_bounds
+            void destructor_impl(void(*func)(void*));
+            void calc_render_bounds_impl(render_bounds(*func)(const rect&, void*));
+
+        public:
             rect bounds = {};
             rect scissor = {};
-            widget_data* data = nullptr;
-
-            constexpr widget_base(widget_data* data)
-            : data(data)
-            { }
+        protected:
+            widget_data* _data = nullptr;            
         };
-
 
         template<typename T, typename WIDGET_DATA=widget_data>
         struct widget : public widget_base
@@ -164,76 +177,46 @@ namespace tabletopify
             widget(const widget&) = delete;
             widget(widget&&) = delete;
 
-            constexpr widget(context& ctx)
-            : widget_base(nullptr)
+            constexpr widget(widget_data* pdata)
+            : widget_base(pdata)
             { }
 
             // destructor called after child widgets have been handled
             ~widget()
             {
-                // restore the scissor area for second render pass
-                scissor = get_context().peek_render_bounds().scissor;
-                get_context().set_render_scissor(scissor);
-
-                auto& self = *static_cast<T*>(this);
-                // first update and render after child renders
-                self.middle();
-                self.second_render();
-                // our final update
-                self.end();
-
-                get_context().pop_render_bounds();
-
+                destructor_impl([](void* pSelf)
+                {
+                    auto* self = static_cast<T*>(pSelf);
+                    // first update and render after child renders
+                    self->middle();
+                    self->second_render();
+                    // our final update
+                    self->end();                    
+                });
             }
 
             // gets and saves this widget's render bounds and scissor area
             // and pushes callback and current scissor for child widgets
             void calc_render_bounds()
             {
-                const auto& rb = get_context().peek_render_bounds();
-
-                bounds = rb.eval(bounds);
-                const auto& parent_scissor = rb.scissor;
-
-                // calc the scissor geometry
-                scissor = get_intersecting_rect(parent_scissor, bounds);
-                get_nanovg()->set_scissor(scissor);
-
-                // push info for child render bounds calculations
-                auto& self = *static_cast<T*>(this);
-                get_context().push_render_bounds({self.get_bounds_callback(), this, scissor});
-            }
-
-            // style
-            const stylesheet& style() const
-            {
-                return get_context().style;
+                calc_render_bounds_impl([](const rect& scissor, void* pSelf) -> render_bounds
+                {
+                    auto* self = static_cast<T*>(pSelf);
+                    return {self->get_bounds_callback(), self, scissor};
+                });
             }
 
             // widget methods
 
-            constexpr widget_id_t get_widget_id() const
+            constexpr WIDGET_DATA* data()
             {
-                return data ? data->id : NULL_WIDGET_ID;
+                return reinterpret_cast<WIDGET_DATA*>(this->_data);
             }
 
-            constexpr void focus_widget()
+            constexpr const WIDGET_DATA* data() const
             {
-                // _ctx.focus_widget(get_widget_id());
+                return reinterpret_cast<const WIDGET_DATA*>(this->_data);
             }
-
-            constexpr void unfocus_widget()
-            {
-                // _ctx.unfocus_widget(get_widget_id());
-            }
-
-            constexpr bool is_focused() const
-            {
-                return false;
-                // return _ctx.is_focused(get_widget_id());
-            }
-
-            WIDGET_DATA* data;
         };
 
         // grouping widgets
@@ -283,6 +266,8 @@ namespace tabletopify
             float _horizontal_offset = 0.0f;            
         };
 
+        // debug renderer
+
         struct widget_debug : public widget<widget_debug>
         {
             using widget::widget;
@@ -321,8 +306,8 @@ namespace tabletopify
     } // imgui namespace
 
 
-#define MX_WIDGET_CODEGEN(X, ...)\
-    if (imgui::X widget##__LINE__(imgui_ctx); \
+#define MX_WIDGET_CODEGEN(X, pdata, ...)\
+    if (imgui::X widget##__LINE__(pdata); \
         [&](auto& self) -> bool {\
             __VA_ARGS__\
             self.calc_render_bounds();\
@@ -331,9 +316,9 @@ namespace tabletopify
             return true;\
         }(widget##__LINE__))
 
-#define mxVbox(...) MX_WIDGET_CODEGEN(widget_vbox, __VA_ARGS__)
-#define mxHbox(...) MX_WIDGET_CODEGEN(widget_hbox, __VA_ARGS__)
-#define mxDebug(...) MX_WIDGET_CODEGEN(widget_debug, __VA_ARGS__)
-#define mxLabel(...) MX_WIDGET_CODEGEN(widget_label, __VA_ARGS__)
+#define mxVbox(data, ...) MX_WIDGET_CODEGEN(widget_vbox, data, __VA_ARGS__)
+#define mxHbox(...) MX_WIDGET_CODEGEN(widget_hbox, nullptr, __VA_ARGS__)
+#define mxDebug(...) MX_WIDGET_CODEGEN(widget_debug, nullptr, __VA_ARGS__)
+#define mxLabel(data, ...) MX_WIDGET_CODEGEN(widget_label, data, __VA_ARGS__)
 
 }

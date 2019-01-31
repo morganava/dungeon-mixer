@@ -36,7 +36,7 @@ namespace tabletopify
             bounds
         });
 
-        mxVbox(self.data = &gd;)
+        mxVbox(&gd)
         {
             for(auto& currentLabel : ld)
             {
@@ -62,7 +62,8 @@ namespace tabletopify
                         // MX_LOG_INFO("MOVE CALLBACK {}", pos);
                     };);
                 mxDebug(self.bounds.size.y = 35.0f;);
-                mxLabel(self.data = &currentLabel; self.bounds.size.y = 7.0f;);
+                mxLabel(&currentLabel, 
+                    self.bounds.size.y = 7.0f;);
             }
         }
 

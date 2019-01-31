@@ -15,11 +15,6 @@ namespace tabletopify
         constexpr context& _ctx = singleton<ui>::get().get_context();
         constexpr stylesheet& self_style = _ctx.style;
 
-        context& get_context() 
-        {
-            return _ctx;
-        }
-
         widget_id_t next_widget_id()
         {
             static widget_id_t nextId = 0;
@@ -62,6 +57,54 @@ namespace tabletopify
 
         // widget_base
 
+        widget_base::widget_base(widget_data* data)
+        : _data(data)
+        {
+
+        }
+
+        void widget_base::focus_widget()
+        {
+            _ctx.focus_widget(this->get_widget_id());
+        }
+
+         void widget_base::unfocus_widget()
+        {
+            _ctx.focus_widget(this->get_widget_id());
+        }
+
+        bool widget_base::is_focused() const
+        {
+            return _ctx.is_focused(this->get_widget_id());
+        }
+
+        void widget_base::destructor_impl(void(*func)(void*))
+        {
+            // restore the scissor area for second render pass
+            scissor = _ctx.peek_render_bounds().scissor;
+            _ctx.set_render_scissor(scissor);
+
+            // post-child updates and renders
+            func(this);
+
+            _ctx.pop_render_bounds();   
+        } 
+
+        void widget_base::calc_render_bounds_impl(render_bounds(*func)(const rect&, void*))
+        { 
+            const auto& rb = _ctx.peek_render_bounds();
+
+            bounds = rb.eval(bounds);
+            const auto& parent_scissor = rb.scissor;
+
+            // calc the scissor geometry
+            scissor = get_intersecting_rect(parent_scissor, bounds);
+            get_nanovg()->set_scissor(scissor);
+
+            // push info for child render bounds calculations
+            _ctx.push_render_bounds(func(scissor,this));
+        }
+
         // vbox
 
         void widget_vbox::begin()
@@ -83,7 +126,7 @@ namespace tabletopify
                 auto& self = *static_cast<widget_vbox*>(ptr);
                 rect retval =
                 {
-                    {self.bounds.position.x, self.bounds.position.y + self.internal_height - self.data->vertical_scroll},
+                    {self.bounds.position.x, self.bounds.position.y + self.internal_height - self.data()->vertical_scroll},
                     {self.bounds.size.x - self_style.vbox.scrollbar_width, desired.size.y}
                 };
                 self.internal_height += desired.size.y;
@@ -109,7 +152,7 @@ namespace tabletopify
             double scrollbar_x = bounds.position.x  + bounds.size.x - scrollbar_width;
 
             double scrollbar_height = std::min(std::max(height*height / internal_height, min_scrollbar_height), height);
-            double scrollbar_y = bounds.position.y + (height - scrollbar_height) * (data->vertical_scroll / scrollable_height);
+            double scrollbar_y = bounds.position.y + (height - scrollbar_height) * (data()->vertical_scroll / scrollable_height);
 
             scrollbar_grab_area = {{scrollbar_x + 2.0, scrollbar_y + 2.0},{scrollbar_width - 4.0, scrollbar_height - 4.0}};
         }
@@ -118,7 +161,7 @@ namespace tabletopify
         {
             get_nanovg()->fill_rect(scrollbar_area, nvgRGB(96,96,96));
 
-            if (data->grabbing_scrollbar)
+            if (data()->grabbing_scrollbar)
             {
                 get_nanovg()->fill_rect(scrollbar_grab_area, nvgRGB(192,96,0));                
             }
@@ -140,7 +183,7 @@ namespace tabletopify
 
             if (internal_height < height)
             {
-                data->vertical_scroll = 0.0;
+                data()->vertical_scroll = 0.0;
             } 
             else
             {
@@ -149,7 +192,7 @@ namespace tabletopify
                 auto current_mouse_position = input->get_mouse_position(input_frame::current);
 
                 // handle click and drag
-                if (!data->grabbing_scrollbar) 
+                if (!data()->grabbing_scrollbar) 
                 {
                     // mouse clicked
                     if (!prev_mouse_down && current_mouse_down)
@@ -157,15 +200,15 @@ namespace tabletopify
                         // mouse in scrollbar grab area
                         if (point_inside_rect(current_mouse_position, scrollbar_grab_area))
                         {
-                            data->grabbing_scrollbar = true;
-                            data->grab_offset_y = current_mouse_position.y - scrollbar_grab_area.position.y;
+                            data()->grabbing_scrollbar = true;
+                            data()->grab_offset_y = current_mouse_position.y - scrollbar_grab_area.position.y;
                         }
                         // mouse in scrollbar area
                         else if(point_inside_rect(current_mouse_position, scrollbar_area))
                         {
-                            data->grabbing_scrollbar = true;
-                            data->grab_offset_y = scrollbar_grab_area.size.y / 2.0;
-                            data->vertical_scroll = (current_mouse_position.y - bounds.position.y - data->grab_offset_y) / 
+                            data()->grabbing_scrollbar = true;
+                            data()->grab_offset_y = scrollbar_grab_area.size.y / 2.0;
+                            data()->vertical_scroll = (current_mouse_position.y - bounds.position.y - data()->grab_offset_y) / 
                                                     (bounds.size.y - scrollbar_grab_area.size.y) * scrollable_height;
                         }
                     } 
@@ -175,12 +218,12 @@ namespace tabletopify
                     // release scrollbar
                     if(!current_mouse_down)
                     {
-                        data->grabbing_scrollbar = false;
+                        data()->grabbing_scrollbar = false;
                     }
                     // drag scroll
                     else
                     {
-                        data->vertical_scroll = (current_mouse_position.y - bounds.position.y - data->grab_offset_y) / 
+                        data()->vertical_scroll = (current_mouse_position.y - bounds.position.y - data()->grab_offset_y) / 
                                                 (bounds.size.y - scrollbar_grab_area.size.y) * scrollable_height;
                     } 
                 }
@@ -188,9 +231,9 @@ namespace tabletopify
                 auto scroll_step = self_style.vbox.scroll_step;
 
                 // handle scroll wheel
-                if (!data->grabbing_scrollbar && point_inside_rect(current_mouse_position, this->scissor))
+                if (!data()->grabbing_scrollbar && point_inside_rect(current_mouse_position, this->scissor))
                 {
-                    data->vertical_scroll -= input->get_mouse_scroll(input_frame::current).y * scroll_step;
+                    data()->vertical_scroll -= input->get_mouse_scroll(input_frame::current).y * scroll_step;
                 }
 
                 // handle keyboard input
@@ -201,29 +244,29 @@ namespace tabletopify
                         switch(keycode)
                         {
                             case GLFW_KEY_PAGE_UP:
-                                data->vertical_scroll -= 5 * scroll_step;
+                                data()->vertical_scroll -= 5 * scroll_step;
                                 break;
                             case GLFW_KEY_PAGE_DOWN:
-                                data->vertical_scroll += 5 * scroll_step;
+                                data()->vertical_scroll += 5 * scroll_step;
                                 break;
                             case GLFW_KEY_UP:
-                                data->vertical_scroll -= scroll_step;
+                                data()->vertical_scroll -= scroll_step;
                                 break;
                             case GLFW_KEY_DOWN:
-                                data->vertical_scroll += scroll_step;
+                                data()->vertical_scroll += scroll_step;
                                 break;
                             case GLFW_KEY_HOME:
-                                data->vertical_scroll = 0;
+                                data()->vertical_scroll = 0;
                                 break;
                             case GLFW_KEY_END:
-                                data->vertical_scroll = scrollable_height;
+                                data()->vertical_scroll = scrollable_height;
                                 break;
                         }
                     }
                 }
 
                 // clamp it
-                data->vertical_scroll = clamp<double>(0, data->vertical_scroll, scrollable_height);
+                data()->vertical_scroll = clamp<double>(0, data()->vertical_scroll, scrollable_height);
             }            
         }
 
