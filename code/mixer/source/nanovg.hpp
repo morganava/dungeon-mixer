@@ -41,8 +41,6 @@ namespace tabletopify
 
         bool operator==(const hash_buffer& that) const
         {
-            return false;
-
             if (_hash != that._hash) return false;
             if (_raw.size() != that._raw.size()) return false;
 
