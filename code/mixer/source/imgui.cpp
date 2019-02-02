@@ -12,8 +12,6 @@ namespace tabletopify
 {
     namespace imgui
     {   
-        constexpr stylesheet& self_style = g_context.style;
-
         widget_id_t next_widget_id()
         {
             static widget_id_t nextId = 0;
@@ -127,7 +125,7 @@ namespace tabletopify
                 rect retval =
                 {
                     {self.bounds.position.x, self.bounds.position.y + self.internal_height - self.data()->vertical_scroll},
-                    {self.bounds.size.x - self_style.vbox.scrollbar_width, desired.size.y}
+                    {self.bounds.size.x - g_style.vbox.scrollbar_width, desired.size.y}
                 };
                 self.internal_height += desired.size.y;
                 return retval;
@@ -142,8 +140,8 @@ namespace tabletopify
             const auto scrollable_height = internal_height - height;
 
             // style constants
-            const auto scrollbar_width = self_style.vbox.scrollbar_width;
-            const auto min_scrollbar_height = self_style.vbox.min_scrollbar_height;
+            const auto scrollbar_width = g_style.vbox.scrollbar_width;
+            const auto min_scrollbar_height = g_style.vbox.min_scrollbar_height;
 
             // scrollbar bg rect
             scrollbar_area = {{bounds.position.x + bounds.size.x - scrollbar_width, bounds.position.y}, {scrollbar_width, height}};
@@ -228,7 +226,7 @@ namespace tabletopify
                     } 
                 }
 
-                auto scroll_step = self_style.vbox.scroll_step;
+                auto scroll_step = g_style.vbox.scroll_step;
 
                 // handle scroll wheel
                 if (!data()->grabbing_scrollbar && point_inside_rect(current_mouse_position, this->scissor))

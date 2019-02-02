@@ -146,6 +146,7 @@ namespace tabletopify
             singleton<context>::free();
         }
         inline constexpr context& g_context = singleton<context>::get();
+        inline constexpr const stylesheet& g_style = g_context.style;
 
         struct widget_data
         {
