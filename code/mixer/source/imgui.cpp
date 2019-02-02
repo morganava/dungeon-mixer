@@ -12,8 +12,7 @@ namespace tabletopify
 {
     namespace imgui
     {   
-        constexpr context& _ctx = singleton<ui>::get().get_context();
-        constexpr stylesheet& self_style = _ctx.style;
+        constexpr stylesheet& self_style = g_context.style;
 
         widget_id_t next_widget_id()
         {
@@ -55,6 +54,7 @@ namespace tabletopify
             get_nanovg()->set_scissor(region);
         }
 
+
         // widget_base
 
         widget_base::widget_base(widget_data* data)
@@ -65,34 +65,34 @@ namespace tabletopify
 
         void widget_base::focus_widget()
         {
-            _ctx.focus_widget(this->get_widget_id());
+            g_context.focus_widget(this->get_widget_id());
         }
 
          void widget_base::unfocus_widget()
         {
-            _ctx.focus_widget(this->get_widget_id());
+            g_context.focus_widget(this->get_widget_id());
         }
 
         bool widget_base::is_focused() const
         {
-            return _ctx.is_focused(this->get_widget_id());
+            return g_context.is_focused(this->get_widget_id());
         }
 
         void widget_base::destructor_impl(void(*func)(void*))
         {
             // restore the scissor area for second render pass
-            scissor = _ctx.peek_render_bounds().scissor;
-            _ctx.set_render_scissor(scissor);
+            scissor = g_context.peek_render_bounds().scissor;
+            g_context.set_render_scissor(scissor);
 
             // post-child updates and renders
             func(this);
 
-            _ctx.pop_render_bounds();   
+            g_context.pop_render_bounds();   
         } 
 
         void widget_base::calc_render_bounds_impl(render_bounds(*func)(const rect&, void*))
         { 
-            const auto& rb = _ctx.peek_render_bounds();
+            const auto& rb = g_context.peek_render_bounds();
 
             bounds = rb.eval(bounds);
             const auto& parent_scissor = rb.scissor;
@@ -102,7 +102,7 @@ namespace tabletopify
             get_nanovg()->set_scissor(scissor);
 
             // push info for child render bounds calculations
-            _ctx.push_render_bounds(func(scissor,this));
+            g_context.push_render_bounds(func(scissor,this));
         }
 
         // vbox

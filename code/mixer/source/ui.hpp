@@ -8,11 +8,7 @@ namespace tabletopify
     {
     public:
         void update(float dt, int32_t width, int32_t height);
-        void initialize();
-        void finish();
-        constexpr imgui::context&  get_context() { return imgui_ctx; }
     private:
-        imgui::context imgui_ctx;
         imgui::vbox_data gd;
         imgui::label_data ld[20];
     };

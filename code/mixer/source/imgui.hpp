@@ -137,6 +137,16 @@ namespace tabletopify
             widget_id_t _focused_widget = INVALID_WIDGET_ID;
         };
 
+        inline void init_context()
+        {
+            singleton<context>::construct();
+        }
+        constexpr void free_context()
+        {
+            singleton<context>::free();
+        }
+        inline constexpr context& g_context = singleton<context>::get();
+
         struct widget_data
         {
             widget_id_t id = next_widget_id();

@@ -26,6 +26,7 @@ namespace tabletopify
         init_logger(LogLevel_Info);
 
         // init ui
+        imgui::init_context();
         init_ui();
 
         // init input
@@ -59,6 +60,7 @@ namespace tabletopify
 
         // ui
         free_ui();
+        imgui::free_context();
 
         // close queues off to new work
         free_work_manager();        
