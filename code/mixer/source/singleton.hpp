@@ -34,6 +34,7 @@ namespace tabletopify
         static constexpr void free()
         {
             data.value.~TYPE();
+            data.assigned = false;            
         }
 
     private:
