@@ -4,10 +4,74 @@
 
 namespace tabletopify
 {
+    class run_once_task
+    {
+    public:
+        run_once_task() = default;
+        run_once_task(const run_once_task&) = delete;
+        run_once_task& operator=(const run_once_task&) = delete;
+        run_once_task(run_once_task&& that)
+        {
+            *this = std::move(that);
+        }    
+        run_once_task& operator=(run_once_task&& that)
+        {
+            std::memcpy(this, &that, sizeof(*this));
+            std::memset(&that, 0x00, sizeof(that));        
+            return *this;
+        }
+
+        template<typename func_t>
+        run_once_task(func_t&& lambda)
+        {
+            // convertible to raw function pointer
+            if constexpr (std::is_convertible<func_t, void(*)(void)>::value)
+            {
+                _callable = reinterpret_cast<void*>(static_cast<void(*)(void)>(lambda));
+            }
+            // small lambda optimization
+            else if constexpr (sizeof(func_t) <= sizeof(_callable))
+            {
+                new(&_callable) func_t(std::move(lambda));
+                _run = [](run_once_task* self)
+                {
+                    auto* plambda = reinterpret_cast<func_t*>(&self->_callable);
+                    (*plambda)();
+                    plambda->~func_t();
+                };            
+            }
+            // new heap copy
+            else
+            {
+                _callable = new func_t(std::move(lambda));
+                _run = [](run_once_task* self)
+                {
+                    auto* plambda = reinterpret_cast<func_t*>(self->_callable);
+                    (*plambda)();
+                    delete plambda;
+                };
+            }        
+        }
+
+        void operator()()
+        {
+            _run(this);
+            std::memset(this, 0x00, sizeof(*this));
+        };
+    private:
+        void(*_run)(run_once_task*) = [](run_once_task* self)
+        {
+            auto lambda = reinterpret_cast<void(*)(void)>(self->_callable);
+            lambda();
+        };
+        void* _callable = nullptr;
+    };
+
     struct work_item
     {
         // work to do
-        std::function<void(void)> func;
+        // std::function<void(void)> func;
+        run_once_task func;
         // consumer sets to true when finished
         volatile bool* finished;
     };
@@ -21,6 +85,8 @@ namespace tabletopify
 
         Worker_Count,
     };
+
+    // https://godbolt.org/z/9L1Rda
 
     class worker_manager
     {
@@ -50,8 +116,8 @@ namespace tabletopify
     public:
         worker(size_t index) : _index(index) {}
         std::thread::id getThreadId() const;
-        void enqueue(std::function<void(void)>&& work);
-        void enqueue(std::function<void(void)>&& work, volatile bool* finished);
+        void enqueue(run_once_task&& work);
+        void enqueue(run_once_task&& work, volatile bool* finished);
         bool try_dequeue(work_item& out_work);
         float nextFloat(float min, float max);
         size_t nextIndex(size_t count);

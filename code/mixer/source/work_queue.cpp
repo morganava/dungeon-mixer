@@ -72,17 +72,17 @@ namespace tabletopify
         return g_worker_manager->_thread_ids[_index];
     }
 
-    void worker::enqueue(std::function<void(void)>&& work)
+    void worker::enqueue(run_once_task&& work)
     {
-        this->enqueue(std::forward<std::function<void(void)>>(work), nullptr);
+        this->enqueue(std::move(work), nullptr);
     }
 
-    void worker::enqueue(std::function<void(void)>&& work, volatile bool* finished)
+    void worker::enqueue(run_once_task&& work, volatile bool* finished)
     {
         if(g_worker_manager->_accepting_work)
         {
             std::lock_guard<std::mutex> lock(g_worker_manager->_mutex[_index]);
-            work_item wi = {work, finished};
+            work_item wi = {std::move(work), finished};
             g_worker_manager->_queue[_index].emplace(std::move(wi));
         }
     }
