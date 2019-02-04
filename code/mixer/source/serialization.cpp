@@ -4,6 +4,8 @@
 #include "logger.hpp"
 #include "audio.hpp"
 #include "draw.hpp"
+#include "font_stash.hpp"
+#include "imgui.hpp"
 
 namespace tabletopify
 {
@@ -38,6 +40,25 @@ namespace tabletopify
     {
         static fs::path strings_path = get_tabletopify_path() / "strings";
         return strings_path;
+    }
+
+    void load_stylesheet()
+    {
+        worker(Worker_FileIO).enqueue([]() -> void
+        {
+            auto skinPath = get_skins_path() / "default.json";
+            MX_LOG_INFO("Loading skin: {}", skinPath);
+
+            memory_buffer mb(skinPath);
+
+            worker(Worker_Background).enqueue([mb=std::move(mb)]() -> void
+            {
+                auto json = nl::json::parse(mb.begin(), mb.end());
+
+                std::string font = json["font"];
+                imgui::g_style.font = g_font_stash.load_font(get_skins_path() / font);
+            });
+        });
     }
 
     void load_audio_manifests()

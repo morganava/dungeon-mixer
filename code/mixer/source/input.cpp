@@ -162,10 +162,10 @@ namespace tabletopify
             }
         }
 
-        for(auto it : _key_names)
-        {
-            MX_LOG_INFO("{} : '{}'", it.first, it.second);
-        }
+        // for(auto it : _key_names)
+        // {
+        //     MX_LOG_INFO("{} : '{}'", it.first, it.second);
+        // }
     }
 
     const char* input::key_code_to_key_name(key_code_t kd) const

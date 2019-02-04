@@ -1,5 +1,9 @@
 #pragma once
 
+#include "utilities.hpp"
+#include "geometry.hpp"
+#include "singleton.hpp"
+
 namespace tabletopify
 {
     struct hash_buffer
@@ -54,11 +58,17 @@ namespace tabletopify
         uint8_t* _read_head = _raw.data();
     };
 
+    typedef int nvg_font_face_id_t;
+    constexpr static nvg_font_face_id_t INVALID_NVG_FONT_ID = ~nvg_font_face_id_t(0);
+
     class nanovg
     {
     public:
         void create_context();
         void update(float dt, double window_width, double window_height, double pixel_ratio);
+
+        // loads font
+        nvg_font_face_id_t create_font(const char* name, const unsigned char* data, int dataSize);
 
         // render methods
         void set_scissor(const rect&);
@@ -72,7 +82,15 @@ namespace tabletopify
         } command_queue;
     };
 
-    nanovg* get_nanovg();
-    void init_nanovg();
-    void free_nanovg();
+    constexpr nanovg* get_nanovg() { return singleton<nanovg>::addr(); }
+    inline void init_nanovg()
+    {
+        singleton<nanovg>::construct();
+    }
+    constexpr void free_nanovg()
+    {
+        singleton<nanovg>::free();
+    }
+    inline constexpr nanovg& g_nanovg = singleton<nanovg>::get();
+
 }

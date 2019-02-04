@@ -48,4 +48,51 @@ namespace tabletopify
         double _dt_buffer[N] = {};
         size_t _idx = 0;
     };
+
+    typedef std::unique_ptr<::FILE> unique_file;
+
+    struct memory_buffer
+    {
+        memory_buffer() = default;
+        memory_buffer(const memory_buffer&) = delete;
+        memory_buffer(memory_buffer&&) = default;
+
+        memory_buffer(const fs::path&);
+
+        const uint8_t* data() const
+        {
+            return _memory.get();
+        }
+
+        const uint8_t* begin() const
+        {
+            return _memory.get();
+        }
+
+        const uint8_t* end() const
+        {
+            return begin() + size();
+        }
+
+        constexpr size_t size() const 
+        {
+            return _bytes;
+        }
+    private:
+        std::unique_ptr<uint8_t[]> _memory;
+        size_t _bytes;
+    };
+}
+
+namespace std
+{
+    template<>
+    class default_delete<std::FILE>
+    {
+    public:
+        void operator()(std::FILE* file)
+        {
+            std::fclose(file);
+        }
+    }; 
 }

@@ -154,8 +154,8 @@ namespace tabletopify
             glfwSetTime(0);
             double prev_t = glfwGetTime();
 
-            framerate_calculator<128> fc;
-            double time_since_framerate_print = 0.0;
+            // framerate_calculator<128> fc;
+            // double time_since_framerate_print = 0.0;
 
             while (!glfwWindowShouldClose(g_window))
             {
@@ -165,13 +165,13 @@ namespace tabletopify
                 prev_t = t;
 
                 // calculate framerate
-                fc.push_dt(dt);
-                time_since_framerate_print += dt;
-                if(time_since_framerate_print > 1.0)
-                {
-                    MX_LOG_INFO("FPS : {}", fc.framerate());
-                    time_since_framerate_print = 0.0;
-                }
+                // fc.push_dt(dt);
+                // time_since_framerate_print += dt;
+                // if(time_since_framerate_print > 1.0)
+                // {
+                //     MX_LOG_INFO("FPS : {}", fc.framerate());
+                //     time_since_framerate_print = 0.0;
+                // }
 
                 if (callbacks.update) {
                     callbacks.update(dt, g_window_width, g_window_height, g_pixel_ratio);

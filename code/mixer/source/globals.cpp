@@ -25,6 +25,11 @@ namespace tabletopify
         // init logger with desired log verbosity
         init_logger(LogLevel_Info);
 
+        init_font_stash();
+
+        // load default skin
+        load_stylesheet();
+
         // init ui
         imgui::init_context();
         init_ui();
@@ -61,6 +66,8 @@ namespace tabletopify
         // ui
         free_ui();
         imgui::free_context();
+
+        free_font_stash();
 
         // close queues off to new work
         free_work_manager();        

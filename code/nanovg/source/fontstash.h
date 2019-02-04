@@ -103,7 +103,7 @@ int fonsResetAtlas(FONScontext* stash, int width, int height);
 
 // Add fonts
 int fonsAddFont(FONScontext* s, const char* name, const char* path);
-int fonsAddFontMem(FONScontext* s, const char* name, unsigned char* data, int ndata, int freeData);
+int fonsAddFontMem(FONScontext* s, const char* name, const unsigned char* data, int ndata, int copyData);
 int fonsGetFontByName(FONScontext* s, const char* name);
 
 // State handling
@@ -910,7 +910,7 @@ int fonsAddFont(FONScontext* stash, const char* name, const char* path)
 	fp = 0;
 	if (readed != dataSize) goto error;
 
-	return fonsAddFontMem(stash, name, data, dataSize, 1);
+	return fonsAddFontMem(stash, name, data, dataSize, 0);
 
 error:
 	if (data) free(data);
@@ -918,10 +918,18 @@ error:
 	return FONS_INVALID;
 }
 
-int fonsAddFontMem(FONScontext* stash, const char* name, unsigned char* data, int dataSize, int freeData)
+int fonsAddFontMem(FONScontext* stash, const char* name, const unsigned char* data, int dataSize, int copyData)
 {
 	int i, ascent, descent, fh, lineGap;
 	FONSfont* font;
+
+	if (copyData) {
+		unsigned char* dataCopy = NULL;
+		dataCopy = (unsigned char*)malloc(dataSize);
+		memcpy(dataCopy, data, dataSize);
+
+		data = dataCopy;
+	}
 
 	int idx = fons__allocFont(stash);
 	if (idx == FONS_INVALID)
@@ -938,12 +946,12 @@ int fonsAddFontMem(FONScontext* stash, const char* name, unsigned char* data, in
 
 	// Read in the font data.
 	font->dataSize = dataSize;
-	font->data = data;
-	font->freeData = (unsigned char)freeData;
+	font->data = (unsigned char*)data;
+	font->freeData = 1;
 
 	// Init font
 	stash->nscratch = 0;
-	if (!fons__tt_loadFont(stash, &font->font, data, dataSize)) goto error;
+	if (!fons__tt_loadFont(stash, &font->font, font->data, dataSize)) goto error;
 
 	// Store normalized line height. The real line height is got
 	// by multiplying the lineh by font size.

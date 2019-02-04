@@ -13,5 +13,13 @@ namespace tabletopify
             return calc_hash(str);
         }
     };
+
+    struct path_hash
+    {
+        size_t operator()(const fs::path& p) const
+        {
+            return calc_hash(p.native());
+        }
+    };
 }
 

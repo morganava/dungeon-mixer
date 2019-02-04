@@ -3,25 +3,11 @@
 #include "utilities.hpp"
 #include "nanovg.hpp"
 #include "singleton.hpp"
+#include "font_stash.hpp"
 
 namespace tabletopify
 {
     extern GLFWwindow* g_window;
-
-    nanovg* get_nanovg()
-    {
-        return singleton<nanovg>::addr();
-    }
-
-    void init_nanovg()
-    {
-        singleton<nanovg>::construct();
-    }
-
-    void free_nanovg()
-    {
-        singleton<nanovg>::free();
-    }
 
     //  hash_buffer
 
@@ -90,6 +76,13 @@ namespace tabletopify
                     nvgRect(_ctx, pos_x, pos_y, size_x, size_y);
                     nvgFillColor(_ctx, col);
                     nvgFill(_ctx);
+
+                    // font test
+                    nvgFontFaceId(_ctx, g_font_stash.get_font_face(0));
+                    nvgFontSize(_ctx, 100.0f);
+                    nvgTextAlign(_ctx, NVG_ALIGN_LEFT|NVG_ALIGN_TOP);
+                    nvgFillColor(_ctx, nvgRGB(0x00, 0x00, 0x00));
+                    nvgText(_ctx, pos_x, pos_y, "hello", nullptr);
                 }
                 break;
             }
@@ -100,6 +93,11 @@ namespace tabletopify
 
         std::swap(command_queue.current, command_queue.previous);
         command_queue.current.clear();
+    }
+
+    nvg_font_face_id_t nanovg::create_font(const char* name, const unsigned char* data, int dataSize)
+    {
+        return nvgCreateFontMem(_ctx, name, data, dataSize);
     }
 
     void nanovg::set_scissor(const rect& r)

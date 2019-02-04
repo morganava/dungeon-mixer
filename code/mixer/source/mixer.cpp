@@ -129,7 +129,7 @@ int main() try
 {
     tabletopify::init_globals();
 
-    test();
+    // test();
 
     graphics_callbacks callbacks = 
     {

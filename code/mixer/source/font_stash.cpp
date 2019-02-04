@@ -1,61 +1,59 @@
 #include "utilities.hpp"
 #include "font_stash.hpp"
 #include "logger.hpp"
+#include "work_queue.hpp"
+#include "nanovg.hpp"
 
 namespace tabletopify
 {
-    bool font_key::operator==(const font_key& that) const
+    font_index_t font_stash::load_font(fs::path&& path)
     {
-        return this->filename == that.filename &&
-               this->size == that.size;
-    }
-
-    size_t font_key_hash::operator()(const font_key& fk) const
-    {
-        size_t hash = tabletopify::calc_hash(
-            fk.filename.c_str(), fk.filename.size());
-        hash = tabletopify::calc_hash(
-            &fk.size,
-            sizeof(fk.size),
-            hash);
-        return hash;
-    }
-
-    void font_stash::begin()
-    {
-#if 0        
-        nk_font_stash_begin(&_font_atlas);
-#endif        
-    }
-
-    nk_user_font* font_stash::add(const fs::path& fontFile, float fontSize)
-    {
-        MX_THROW_IF_FALSE(fs::exists(fontFile));
-
-        utf8_string fontName = fontFile.filename().native().data();
-#if 0
-        auto it = _font_map.find({fontName, fontSize});
+        auto it = _font_map.find(path);
         if(it == _font_map.end())
         {
-            nk_font* font = nk_font_atlas_add_from_file(
-                                _font_atlas,
-                                fontFile.native().data(),
-                                fontSize,
-                                nullptr);
-            auto fontHandle = &(font->handle);
-            _font_map.insert({{fontName, fontSize}, fontHandle});
-            MX_LOG_INFO("Baked font: {}, {}px", fontName, fontSize);
-            return fontHandle;
-        }
+            // index our font face id will be stored
+            auto retval = _nvg_font_faces.size();
+            _nvg_font_faces.push_back(INVALID_NVG_FONT_ID);
+
+            worker(Worker_FileIO).enqueue([index=retval, path=std::move(path)]() -> void
+            {
+                auto fontFilePath = fs::canonical(path);
+                memory_buffer fontFile(fontFilePath);
+
+                std::string fontName = path.filename();
+
+                worker(Worker_UI).enqueue([index=index, fontName=std::move(fontName), fontFile=std::move(fontFile)]() -> void
+                {
+                    auto fontFaceId = g_nanovg.create_font(
+                        fontName.c_str(),
+                        fontFile.data(),
+                        static_cast<int>(fontFile.size()));
+                    
+                    g_font_stash.set_font_face(
+                        index, 
+                        fontFaceId);;
+
+                    MX_LOG_INFO("Loaded font: {}", fontName);
+                });
+
+                g_font_stash._font_map.insert({fontFilePath, index});
+            });
+
+
+            return retval;
+        } 
+
         return it->second;
-#endif
-        return nullptr;        
     }
 
-    void font_stash::end()
+    void font_stash::set_font_face(font_index_t idx, nvg_font_face_id_t id)
     {
-#if 0        
-        nk_font_stash_end();
-#endif        
+        _nvg_font_faces[idx] = id;
+    }
+
+    nvg_font_face_id_t font_stash::get_font_face(font_index_t idx) const
+    {
+        MX_THROW_IF_FALSE(idx < _nvg_font_faces.size())
+        return _nvg_font_faces[idx];
     }
 }
