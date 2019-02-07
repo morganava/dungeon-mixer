@@ -4,7 +4,8 @@
 #include "logger.hpp"
 #include "audio.hpp"
 #include "draw.hpp"
-#include "font_stash.hpp"
+#include "hash.hpp"
+#include "nanovg.hpp"
 #include "imgui.hpp"
 
 namespace tabletopify
@@ -56,7 +57,7 @@ namespace tabletopify
                 auto json = nl::json::parse(mb.begin(), mb.end());
 
                 std::string font = json["font"];
-                imgui::g_style.font = g_font_stash.load_font(get_skins_path() / font);
+                imgui::g_style.font = g_nanovg.create_font(get_skins_path() / font);
             });
         });
     }

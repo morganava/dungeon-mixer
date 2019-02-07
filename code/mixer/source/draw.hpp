@@ -1,7 +1,7 @@
 #pragma once
 
 #include "text_buffer.hpp"
-#include "font_stash.hpp"
+// #include "font_stash.hpp"
 
 namespace tabletopify
 {
@@ -107,7 +107,7 @@ namespace tabletopify
             }
             viewport;
 
-            font_stash font_atlas;
+            // font_stash font_atlas;
         } _style;
 
         struct draw_data

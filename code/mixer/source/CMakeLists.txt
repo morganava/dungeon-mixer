@@ -40,8 +40,7 @@ add_executable(tabletop_mixer
     atmosphere_directory.cpp
     playback_manager.cpp
     # ui 
-    ui.cpp
-    font_stash.cpp)
+    ui.cpp)
 
 add_precompiled_header(tabletop_mixer precomp.hpp SOURCE_CXX precomp.cpp FORCEINCLUDE)
 

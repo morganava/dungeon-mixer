@@ -12,6 +12,7 @@
 #include "ui.hpp"
 #include "geometry.hpp"
 #include "input.hpp"
+#include "nanovg.hpp"
 
 namespace tabletopify
 {
@@ -25,7 +26,8 @@ namespace tabletopify
         // init logger with desired log verbosity
         init_logger(LogLevel_Info);
 
-        init_font_stash();
+        // iinit nanovg
+        init_nanovg();            
 
         // load default skin
         load_stylesheet();
@@ -67,7 +69,7 @@ namespace tabletopify
         free_ui();
         imgui::free_context();
 
-        free_font_stash();
+        free_nanovg();
 
         // close queues off to new work
         free_work_manager();        

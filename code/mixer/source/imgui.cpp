@@ -315,6 +315,10 @@ namespace tabletopify
 
         // Label
 
+        void widget_label::first_render() const
+        {
+            
+        }
 
     }
 }

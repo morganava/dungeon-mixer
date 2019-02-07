@@ -3,7 +3,7 @@
 #include "utilities.hpp"
 #include "nanovg.hpp"
 #include "singleton.hpp"
-#include "font_stash.hpp"
+#include "work_queue.hpp"
 
 namespace tabletopify
 {
@@ -18,6 +18,20 @@ namespace tabletopify
         push_back<float>(val.position.y);
         push_back<float>(val.size.x);
         push_back<float>(val.size.y);        
+    }
+
+    void hash_buffer::push_back(const void* pVal, size_t valSize)
+    {
+        MX_ASSERT(_raw.data() == _read_head);
+
+        // copy into raw buffer
+        auto ptr = reinterpret_cast<const uint8_t*>(pVal);
+        _raw.insert(_raw.end(), ptr, ptr+valSize);
+        // update read head in case _raw resized internally
+        _read_head = _raw.data();
+
+        // update the hash
+        _hash = calc_hash(ptr, valSize, _hash);
     }
 
     // NanoVG
@@ -37,15 +51,15 @@ namespace tabletopify
 
     void nanovg::update(float dt, double window_width, double window_height, double pixel_ratio)
     {
-        if(command_queue.current == command_queue.previous)
-            return;
+        if(_command_queue.current == _command_queue.previous)
+            // return;
 
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
 
         nvgBeginFrame(_ctx, window_width, window_height, pixel_ratio);
 
         draw_command_t cmd;
-        auto& cq = command_queue.current;
+        auto& cq = _command_queue.current;
         while(cq.next(cmd))
         {
             switch(cmd)
@@ -78,9 +92,10 @@ namespace tabletopify
                     nvgFill(_ctx);
 
                     // font test
-                    nvgFontFaceId(_ctx, g_font_stash.get_font_face(0));
+                    nvgFontFaceId(_ctx, _nvg_font_faces[0]);
+                    nvgFontBlur(_ctx, 10.0);
                     nvgFontSize(_ctx, 100.0f);
-                    nvgTextAlign(_ctx, NVG_ALIGN_LEFT|NVG_ALIGN_TOP);
+                    nvgTextAlign(_ctx, NVG_ALIGN_CENTER|NVG_ALIGN_MIDDLE);
                     nvgFillColor(_ctx, nvgRGB(0x00, 0x00, 0x00));
                     nvgText(_ctx, pos_x, pos_y, "hello", nullptr);
                 }
@@ -91,25 +106,48 @@ namespace tabletopify
         nvgEndFrame(_ctx);
         glfwSwapBuffers(g_window);
 
-        std::swap(command_queue.current, command_queue.previous);
-        command_queue.current.clear();
+        std::swap(_command_queue.current, _command_queue.previous);
+        _command_queue.current.clear();
     }
 
-    nvg_font_face_id_t nanovg::create_font(const char* name, const unsigned char* data, int dataSize)
+    font_id_t nanovg::create_font(fs::path&& path)
     {
-        return nvgCreateFontMem(_ctx, name, data, dataSize);
+        auto fontFilePath = fs::canonical(path);
+        auto it = _font_map.find(fontFilePath);
+        if(it == _font_map.end())
+        {
+            // index our font face id will be stored
+            auto index = _nvg_font_faces.size();
+            _font_map.insert({fontFilePath, index});            
+            _nvg_font_faces.push_back(INVALID_NVG_FONT_ID);
+
+            worker(Worker_FileIO).enqueue([index=index, fontFilePath=std::move(fontFilePath)]() -> void
+            {
+                memory_buffer fontFile(fontFilePath);
+                std::string fontName = fontFilePath.filename();
+
+                worker(Worker_UI).enqueue([index=index, fontName=std::move(fontName), fontFile=std::move(fontFile)]() -> void
+                {
+                    g_nanovg._nvg_font_faces[index] = nvgCreateFontMem(g_nanovg._ctx, fontName.c_str(), fontFile.data(), static_cast<int>(fontFile.size()));
+                    MX_LOG_INFO("Loaded font: {}", fontName);
+                });
+            });
+
+            return index;
+        } 
+        return it->second;
     }
 
     void nanovg::set_scissor(const rect& r)
     {
-        auto& cq = command_queue.current;
+        auto& cq = _command_queue.current;
         cq.push_back(draw_command::set_scissor);
         cq.push_back(r);
     }
 
     void nanovg::fill_rect(const rect& r, const NVGcolor& col)
     {
-        auto& cq = command_queue.current;
+        auto& cq = _command_queue.current;
         cq.push_back(draw_command::fill_rect);
         cq.push_back(r);
         cq.push_back(col);

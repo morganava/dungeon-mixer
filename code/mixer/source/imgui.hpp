@@ -1,7 +1,5 @@
 #pragma once
 
-#include "font_stash.hpp"
-
 namespace tabletopify
 {
     // immmediate mode gui
@@ -101,7 +99,7 @@ namespace tabletopify
 
         struct stylesheet
         {
-            font_index_t font;
+            font_id_t font;
             struct
             {
                 NVGcolor color;
@@ -310,7 +308,7 @@ namespace tabletopify
             using widget::widget;
             
             void begin() {}
-            void first_render() const {}
+            void first_render() const;
             render_bounds_callback_t get_bounds_callback() { return nullptr; }
             void middle() {}
             void second_render() const {}

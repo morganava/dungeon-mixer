@@ -3,24 +3,18 @@
 #include "utilities.hpp"
 #include "geometry.hpp"
 #include "singleton.hpp"
+#include "hash.hpp"
 
 namespace tabletopify
 {
+    class utf8_string;
+
     struct hash_buffer
     {
         template<typename TYPE>
         void push_back(const TYPE& val)
         {
-            MX_ASSERT(_raw.data() == _read_head);
-
-            // copy into raw buffer
-            auto ptr = reinterpret_cast<const uint8_t*>(&val);
-            _raw.insert(_raw.end(), ptr, ptr+sizeof(val));
-            // update read head in case _raw resized internally
-            _read_head = _raw.data();
-
-            // update the hash
-            _hash = calc_hash(ptr, sizeof(val), _hash);
+            push_back(&val, sizeof(val));
         }
 
         template<typename TYPE>
@@ -28,7 +22,7 @@ namespace tabletopify
         {
             if (_read_head + sizeof(TYPE) <= _raw.data() + _raw.size())
             {
-                memcpy(&outval, _read_head, sizeof(TYPE));
+                std::memcpy(&outval, _read_head, sizeof(TYPE));
                 _read_head += sizeof(TYPE);
                 return true;
             }
@@ -48,18 +42,32 @@ namespace tabletopify
             if (_hash != that._hash) return false;
             if (_raw.size() != that._raw.size()) return false;
 
-            return memcmp(_raw.data(), that._raw.data(), _raw.size()) == 0;
+            return std::memcmp(_raw.data(), that._raw.data(), _raw.size()) == 0;
         }
 
     private:
+        void push_back(const void* pVal, size_t valSize);
+
         std::vector<uint8_t> _raw;
         size_t _hash = 0;
 
         uint8_t* _read_head = _raw.data();
     };
 
-    typedef int nvg_font_face_id_t;
-    constexpr static nvg_font_face_id_t INVALID_NVG_FONT_ID = ~nvg_font_face_id_t(0);
+    typedef enum class font_align : uint8_t
+    {
+        // horizontal
+        left = NVG_ALIGN_LEFT,
+        center = NVG_ALIGN_CENTER,
+        right = NVG_ALIGN_RIGHT,
+        // vertical
+        top = NVG_ALIGN_TOP,
+        middle = NVG_ALIGN_MIDDLE,
+        bottom = NVG_ALIGN_BOTTOM,
+        baseline = NVG_ALIGN_BASELINE,
+    } font_align_t; 
+
+    typedef size_t font_id_t;
 
     class nanovg
     {
@@ -68,18 +76,26 @@ namespace tabletopify
         void update(float dt, double window_width, double window_height, double pixel_ratio);
 
         // loads font
-        nvg_font_face_id_t create_font(const char* name, const unsigned char* data, int dataSize);
+        font_id_t create_font(fs::path&& path);
 
         // render methods
         void set_scissor(const rect&);
         void fill_rect(const rect&, const NVGcolor&);
+        void draw_text(const rect& bounds, font_id_t font, float size, font_align_t align, const utf8_string& str);
     private:
         NVGcontext* _ctx = nullptr;
+        bool _double_buffer = false;
+
+        // font info
+        std::unordered_map<fs::path, font_id_t, path_hash> _font_map;
+        typedef int nvg_font_face_id_t;
+        constexpr static nvg_font_face_id_t INVALID_NVG_FONT_ID = ~nvg_font_face_id_t(0);
+        std::vector<nvg_font_face_id_t> _nvg_font_faces;
 
         struct
         {
             hash_buffer previous, current;
-        } command_queue;
+        } _command_queue;
     };
 
     constexpr nanovg* get_nanovg() { return singleton<nanovg>::addr(); }
