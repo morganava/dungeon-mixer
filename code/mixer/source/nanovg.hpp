@@ -84,13 +84,16 @@ namespace tabletopify
         void draw_text(const rect& bounds, font_id_t font, float size, font_align_t align, const utf8_string& str);
     private:
         NVGcontext* _ctx = nullptr;
-        bool _double_buffer = false;
+        size_t _same_frames = 0;
 
         // font info
         std::unordered_map<fs::path, font_id_t, path_hash> _font_map;
         typedef int nvg_font_face_id_t;
         constexpr static nvg_font_face_id_t INVALID_NVG_FONT_ID = ~nvg_font_face_id_t(0);
         std::vector<nvg_font_face_id_t> _nvg_font_faces;
+
+        bool early_exit();
+        void swap_buffers();
 
         struct
         {

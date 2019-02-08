@@ -49,10 +49,36 @@ namespace tabletopify
         fill_rect,
     } draw_command_t;
 
+    bool nanovg::early_exit()
+    {
+        if (_command_queue.current == _command_queue.previous)
+        {
+            ++_same_frames;
+        }
+        else
+        {
+            _same_frames = 0;
+        }
+
+        // double buffering means we need at least 2 same frames
+        // before we can start ignoring draw commands
+        return (_same_frames >= 2);
+    }
+
+    void nanovg::swap_buffers()
+    {
+        glfwSwapBuffers(g_window);
+        std::swap(_command_queue.current, _command_queue.previous);
+        _command_queue.current.clear();        
+    }
+
     void nanovg::update(float dt, double window_width, double window_height, double pixel_ratio)
     {
-        if(_command_queue.current == _command_queue.previous)
-            // return;
+        if(this->early_exit())
+        {
+            this->swap_buffers();
+            return;
+        }
 
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
 
@@ -104,10 +130,8 @@ namespace tabletopify
         }
 
         nvgEndFrame(_ctx);
-        glfwSwapBuffers(g_window);
 
-        std::swap(_command_queue.current, _command_queue.previous);
-        _command_queue.current.clear();
+        this->swap_buffers();
     }
 
     font_id_t nanovg::create_font(fs::path&& path)
