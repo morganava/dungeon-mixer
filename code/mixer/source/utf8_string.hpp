@@ -73,6 +73,22 @@ namespace tabletopify
         friend class utf8_string_iterator;
     };
 
+    class utf8_string_view
+    {
+    public:
+        utf8_string_view() = default;
+        utf8_string_view(const char* begin, const char* end)
+        : _begin(begin)
+        , _end(end)
+        { }
+
+        const char* begin() const { return _begin; }
+        const char* end() const { return _end; }
+    private:
+        const char* _begin = nullptr;
+        const char* _end = nullptr;
+    };
+
     void to_json(nl::json&, const utf8_string&);
     void from_json(const nl::json&, utf8_string&);
 

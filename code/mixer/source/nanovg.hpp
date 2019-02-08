@@ -26,7 +26,6 @@ namespace tabletopify
                 _read_head += sizeof(TYPE);
                 return true;
             }
-
             return false;
         }
 
@@ -65,7 +64,9 @@ namespace tabletopify
         middle = NVG_ALIGN_MIDDLE,
         bottom = NVG_ALIGN_BOTTOM,
         baseline = NVG_ALIGN_BASELINE,
-    } font_align_t; 
+    } font_align_t;
+
+    font_align_t operator|(const font_align_t&, const font_align_t&);
 
     typedef size_t font_id_t;
 

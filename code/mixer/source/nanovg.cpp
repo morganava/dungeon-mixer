@@ -4,6 +4,7 @@
 #include "nanovg.hpp"
 #include "singleton.hpp"
 #include "work_queue.hpp"
+#include "utf8_string.hpp"
 
 namespace tabletopify
 {
@@ -20,6 +21,35 @@ namespace tabletopify
         push_back<float>(val.size.y);        
     }
 
+    template<>
+    void hash_buffer::push_back<utf8_string>(const utf8_string& str)
+    {
+        push_back<size_t>(str.size());
+        push_back(str.c_str(), str.size());
+    }
+
+    template<>
+    bool hash_buffer::next<utf8_string_view>(utf8_string_view& sv)
+    {
+        size_t len = 0;
+        if (next<size_t>(len))
+        {
+            if (_read_head + len <= _raw.data() + _raw.size())
+            {
+                sv = utf8_string_view {
+                    reinterpret_cast<const char*>(_read_head), 
+                    reinterpret_cast<const char*>(_read_head) + len
+                };
+                _read_head += len;
+                MX_LOG_INFO("ho?");
+                return true;
+            }
+            MX_LOG_INFO("what?");
+        }
+        MX_LOG_INFO("hey?");
+        return false;
+    }
+
     void hash_buffer::push_back(const void* pVal, size_t valSize)
     {
         MX_ASSERT(_raw.data() == _read_head);
@@ -34,6 +64,13 @@ namespace tabletopify
         _hash = calc_hash(ptr, valSize, _hash);
     }
 
+    // Enums
+
+    font_align_t operator|(const font_align_t& l, const font_align_t& r)
+    {
+        return static_cast<font_align_t>(static_cast<uint8_t>(l) | static_cast<uint8_t>(r));
+    }
+
     // NanoVG
 
     void nanovg::create_context()
@@ -43,11 +80,33 @@ namespace tabletopify
         MX_THROW_IF_NULL(_ctx);        
     }
 
-    typedef enum draw_command : uint8_t
+    font_id_t nanovg::create_font(fs::path&& path)
     {
-        set_scissor,
-        fill_rect,
-    } draw_command_t;
+        auto fontFilePath = fs::canonical(path);
+        auto it = _font_map.find(fontFilePath);
+        if(it == _font_map.end())
+        {
+            // index our font face id will be stored
+            auto index = _nvg_font_faces.size();
+            _font_map.insert({fontFilePath, index});            
+            _nvg_font_faces.push_back(INVALID_NVG_FONT_ID);
+
+            worker(Worker_FileIO).enqueue([index=index, fontFilePath=std::move(fontFilePath)]() -> void
+            {
+                memory_buffer fontFile(fontFilePath);
+                std::string fontName = fontFilePath.filename();
+
+                worker(Worker_UI).enqueue([index=index, fontName=std::move(fontName), fontFile=std::move(fontFile)]() -> void
+                {
+                    g_nanovg._nvg_font_faces[index] = nvgCreateFontMem(g_nanovg._ctx, fontName.c_str(), fontFile.data(), static_cast<int>(fontFile.size()));
+                    MX_LOG_INFO("Loaded font: {}", fontName);
+                });
+            });
+
+            return index;
+        } 
+        return it->second;
+    }
 
     bool nanovg::early_exit()
     {
@@ -71,6 +130,13 @@ namespace tabletopify
         std::swap(_command_queue.current, _command_queue.previous);
         _command_queue.current.clear();        
     }
+
+    typedef enum draw_command : uint8_t
+    {
+        set_scissor,
+        fill_rect,
+        draw_text
+    } draw_command_t;
 
     void nanovg::update(float dt, double window_width, double window_height, double pixel_ratio)
     {
@@ -116,14 +182,31 @@ namespace tabletopify
                     nvgRect(_ctx, pos_x, pos_y, size_x, size_y);
                     nvgFillColor(_ctx, col);
                     nvgFill(_ctx);
+                }
+                break;
+                case draw_command::draw_text:
+                {
+                    float pos_x, pos_y, size_x, size_y;
+                    MX_THROW_IF_FALSE(cq.next(pos_x));
+                    MX_THROW_IF_FALSE(cq.next(pos_y));
+                    MX_THROW_IF_FALSE(cq.next(size_x));
+                    MX_THROW_IF_FALSE(cq.next(size_y));
 
-                    // font test
-                    nvgFontFaceId(_ctx, _nvg_font_faces[0]);
+                    font_id_t font;
+                    float size;
+                    font_align_t align;
+                    utf8_string_view str;
+                    MX_THROW_IF_FALSE(cq.next(font));
+                    MX_THROW_IF_FALSE(cq.next(size));
+                    MX_THROW_IF_FALSE(cq.next(align));
+                    MX_THROW_IF_FALSE(cq.next(str));
+
+                    nvgFontFaceId(_ctx, _nvg_font_faces[font]);
                     nvgFontBlur(_ctx, 10.0);
-                    nvgFontSize(_ctx, 100.0f);
-                    nvgTextAlign(_ctx, NVG_ALIGN_CENTER|NVG_ALIGN_MIDDLE);
+                    nvgFontSize(_ctx, size);
+                    nvgTextAlign(_ctx, static_cast<int>(align));
                     nvgFillColor(_ctx, nvgRGB(0x00, 0x00, 0x00));
-                    nvgText(_ctx, pos_x, pos_y, "hello", nullptr);
+                    nvgText(_ctx, pos_x, pos_y, str.begin(), str.end());
                 }
                 break;
             }
@@ -132,34 +215,6 @@ namespace tabletopify
         nvgEndFrame(_ctx);
 
         this->swap_buffers();
-    }
-
-    font_id_t nanovg::create_font(fs::path&& path)
-    {
-        auto fontFilePath = fs::canonical(path);
-        auto it = _font_map.find(fontFilePath);
-        if(it == _font_map.end())
-        {
-            // index our font face id will be stored
-            auto index = _nvg_font_faces.size();
-            _font_map.insert({fontFilePath, index});            
-            _nvg_font_faces.push_back(INVALID_NVG_FONT_ID);
-
-            worker(Worker_FileIO).enqueue([index=index, fontFilePath=std::move(fontFilePath)]() -> void
-            {
-                memory_buffer fontFile(fontFilePath);
-                std::string fontName = fontFilePath.filename();
-
-                worker(Worker_UI).enqueue([index=index, fontName=std::move(fontName), fontFile=std::move(fontFile)]() -> void
-                {
-                    g_nanovg._nvg_font_faces[index] = nvgCreateFontMem(g_nanovg._ctx, fontName.c_str(), fontFile.data(), static_cast<int>(fontFile.size()));
-                    MX_LOG_INFO("Loaded font: {}", fontName);
-                });
-            });
-
-            return index;
-        } 
-        return it->second;
     }
 
     void nanovg::set_scissor(const rect& r)
@@ -175,5 +230,16 @@ namespace tabletopify
         cq.push_back(draw_command::fill_rect);
         cq.push_back(r);
         cq.push_back(col);
+    }
+
+    void nanovg::draw_text(const rect& bounds, font_id_t font, float size, font_align_t align, const utf8_string& str)
+    {
+        auto& cq = _command_queue.current;
+        cq.push_back(draw_command::draw_text);
+        cq.push_back(bounds);        
+        cq.push_back(font);
+        cq.push_back(size);
+        cq.push_back(align);
+        cq.push_back(str);
     }
 }
