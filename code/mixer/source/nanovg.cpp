@@ -41,12 +41,9 @@ namespace tabletopify
                     reinterpret_cast<const char*>(_read_head) + len
                 };
                 _read_head += len;
-                MX_LOG_INFO("ho?");
                 return true;
             }
-            MX_LOG_INFO("what?");
         }
-        MX_LOG_INFO("hey?");
         return false;
     }
 
@@ -62,13 +59,6 @@ namespace tabletopify
 
         // update the hash
         _hash = calc_hash(ptr, valSize, _hash);
-    }
-
-    // Enums
-
-    font_align_t operator|(const font_align_t& l, const font_align_t& r)
-    {
-        return static_cast<font_align_t>(static_cast<uint8_t>(l) | static_cast<uint8_t>(r));
     }
 
     // NanoVG
@@ -110,6 +100,8 @@ namespace tabletopify
 
     bool nanovg::early_exit()
     {
+        return false;
+
         if (_command_queue.current == _command_queue.previous)
         {
             ++_same_frames;
@@ -194,19 +186,54 @@ namespace tabletopify
 
                     font_id_t font;
                     float size;
-                    font_align_t align;
+                    halign_t halign;
+                    valign_t valign;
                     utf8_string_view str;
                     MX_THROW_IF_FALSE(cq.next(font));
                     MX_THROW_IF_FALSE(cq.next(size));
-                    MX_THROW_IF_FALSE(cq.next(align));
+                    MX_THROW_IF_FALSE(cq.next(halign));
+                    MX_THROW_IF_FALSE(cq.next(valign));
                     MX_THROW_IF_FALSE(cq.next(str));
 
                     nvgFontFaceId(_ctx, _nvg_font_faces[font]);
-                    nvgFontBlur(_ctx, 10.0);
+                    nvgFontBlur(_ctx, 0.0);
                     nvgFontSize(_ctx, size);
-                    nvgTextAlign(_ctx, static_cast<int>(align));
+
+                    float x = 0.0f;
+                    float y = 0.0f;
+                    int align = static_cast<int>(halign);
+
+                    switch(halign)
+                    {
+                        case halign::left:
+                            x =  pos_x;
+                            break;
+                        case halign::center:
+                            x = (pos_x + pos_x + size_x) / 2.0f;
+                            break;
+                        case halign::right:
+                            x = pos_x + size_x;
+                            break;
+                    }
+
+                    align |= static_cast<int>(valign);
+
+                    switch(valign)
+                    {
+                        case valign::top:
+                            y = pos_y;
+                            break;
+                        case valign::middle:
+                            y = (pos_y + pos_y + size_y) / 2.0f;
+                            break;
+                        case valign::bottom:
+                            y = pos_y + size_y;
+                            break;
+                    }
+
+                    nvgTextAlign(_ctx, align);
                     nvgFillColor(_ctx, nvgRGB(0x00, 0x00, 0x00));
-                    nvgText(_ctx, pos_x, pos_y, str.begin(), str.end());
+                    nvgText(_ctx, x, y, str.begin(), str.end());
                 }
                 break;
             }
@@ -232,14 +259,15 @@ namespace tabletopify
         cq.push_back(col);
     }
 
-    void nanovg::draw_text(const rect& bounds, font_id_t font, float size, font_align_t align, const utf8_string& str)
+    void nanovg::draw_text(const rect& bounds, font_id_t font, float size, halign_t halign, valign_t valign, const utf8_string& str)
     {
         auto& cq = _command_queue.current;
         cq.push_back(draw_command::draw_text);
         cq.push_back(bounds);        
         cq.push_back(font);
         cq.push_back(size);
-        cq.push_back(align);
+        cq.push_back(halign);
+        cq.push_back(valign);
         cq.push_back(str);
     }
 }

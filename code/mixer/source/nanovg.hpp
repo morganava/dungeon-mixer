@@ -53,20 +53,20 @@ namespace tabletopify
         uint8_t* _read_head = _raw.data();
     };
 
-    typedef enum class font_align : uint8_t
+    typedef enum class halign : uint_fast8_t
     {
-        // horizontal
         left = NVG_ALIGN_LEFT,
         center = NVG_ALIGN_CENTER,
         right = NVG_ALIGN_RIGHT,
-        // vertical
+    } halign_t;
+
+    typedef enum class valign : uint_fast8_t
+    {
         top = NVG_ALIGN_TOP,
         middle = NVG_ALIGN_MIDDLE,
         bottom = NVG_ALIGN_BOTTOM,
-        baseline = NVG_ALIGN_BASELINE,
-    } font_align_t;
+    } valign_t;
 
-    font_align_t operator|(const font_align_t&, const font_align_t&);
 
     typedef size_t font_id_t;
 
@@ -82,7 +82,7 @@ namespace tabletopify
         // render methods
         void set_scissor(const rect&);
         void fill_rect(const rect&, const NVGcolor&);
-        void draw_text(const rect& bounds, font_id_t font, float size, font_align_t align, const utf8_string& str);
+        void draw_text(const rect& bounds, font_id_t font, float size, halign_t halign, valign_t valign, const utf8_string& str);
     private:
         NVGcontext* _ctx = nullptr;
         size_t _same_frames = 0;

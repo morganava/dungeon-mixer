@@ -79,13 +79,14 @@ namespace tabletopify
     {
         g_window_width = width;
         g_window_height = height;
+        g_pixel_ratio = (double)g_framebuffer_width / (double)g_window_width;
     }
 
     static void graphics_framebuffer_size_func(GLFWwindow* window, int width, int height)
     {
         g_framebuffer_width = width;
         g_framebuffer_height = height;
-        g_pixel_ratio = (double)width / (double)g_window_width;
+        g_pixel_ratio = (double)g_framebuffer_width / (double)g_window_width;
 
         glViewport(0, 0, width, height);
     }

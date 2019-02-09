@@ -53,8 +53,9 @@ namespace tabletopify
                         // MX_LOG_INFO("MOVE CALLBACK {}", pos);
                     };);
                 mxDebug(self.bounds.size.y = 35.0f;);
+                currentLabel.text = "hello world!";
                 mxLabel(&currentLabel, 
-                    self.bounds.size.y = 7.0f;);
+                    self.bounds.size.y = 100.0f;);
             }
         }
 
