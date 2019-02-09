@@ -31,6 +31,7 @@ add_executable(tabletop_mixer
     serialization.cpp
     string_manager.cpp
     geometry.cpp
+    json.cpp
     nanovg.cpp
     imgui.cpp
     # audio backend

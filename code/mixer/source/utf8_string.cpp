@@ -289,17 +289,6 @@ namespace tabletopify
 
     // Helper Functions
 
-    void to_json(nl::json& js, const utf8_string& str)
-    {
-        js = str.str();
-    }
-
-    void from_json(const nl::json& js, utf8_string& str)
-    {
-        MX_ASSERT(js.is_string());
-        str = (std::string)js;
-    }
-
     size_t utf8_string_hash::operator()(const utf8_string& str) const
     {
         return calc_hash(str.c_str(), str.size());

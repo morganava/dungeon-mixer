@@ -4,6 +4,7 @@
 #include "geometry.hpp"
 #include "singleton.hpp"
 #include "hash.hpp"
+#include "color.hpp"
 
 namespace tabletopify
 {
@@ -67,7 +68,6 @@ namespace tabletopify
         bottom = NVG_ALIGN_BOTTOM,
     } valign_t;
 
-
     typedef size_t font_id_t;
 
     class nanovg
@@ -82,7 +82,7 @@ namespace tabletopify
         // render methods
         void set_scissor(const rect&);
         void fill_rect(const rect&, const NVGcolor&);
-        void draw_text(const rect& bounds, font_id_t font, float size, halign_t halign, valign_t valign, const utf8_string& str);
+        void draw_text(const rect& bounds, font_id_t font, float size, const color& col,halign_t halign, valign_t valign, const utf8_string& str);
     private:
         NVGcontext* _ctx = nullptr;
         size_t _same_frames = 0;

@@ -54,6 +54,7 @@ namespace tabletopify
                     };);
                 mxDebug(self.bounds.size.y = 35.0f;);
                 currentLabel.text = "hello world!";
+                currentLabel.text_color = color::rgb(1.0f, 1.0f, 1.0f);
                 mxLabel(&currentLabel, 
                     self.bounds.size.y = 100.0f;);
             }

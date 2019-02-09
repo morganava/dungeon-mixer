@@ -1,5 +1,7 @@
 #pragma once
 
+#include "color.hpp"
+
 namespace tabletopify
 {
     // immmediate mode gui
@@ -301,6 +303,7 @@ namespace tabletopify
         struct label_data : widget_data
         {
             utf8_string text;
+            color text_color;
         };
 
         struct widget_label : public widget<widget_label, label_data>

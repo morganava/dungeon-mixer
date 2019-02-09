@@ -1,6 +1,7 @@
 #include "geometry.hpp"
 #include "hash.hpp"
 #include "utilities.hpp"
+#include "color.hpp"
 #include "nanovg.hpp"
 #include "singleton.hpp"
 #include "work_queue.hpp"
@@ -186,11 +187,13 @@ namespace tabletopify
 
                     font_id_t font;
                     float size;
+                    color col;
                     halign_t halign;
                     valign_t valign;
                     utf8_string_view str;
                     MX_THROW_IF_FALSE(cq.next(font));
                     MX_THROW_IF_FALSE(cq.next(size));
+                    MX_THROW_IF_FALSE(cq.next(col));
                     MX_THROW_IF_FALSE(cq.next(halign));
                     MX_THROW_IF_FALSE(cq.next(valign));
                     MX_THROW_IF_FALSE(cq.next(str));
@@ -232,7 +235,7 @@ namespace tabletopify
                     }
 
                     nvgTextAlign(_ctx, align);
-                    nvgFillColor(_ctx, nvgRGB(0x00, 0x00, 0x00));
+                    nvgFillColor(_ctx, col);
                     nvgText(_ctx, x, y, str.begin(), str.end());
                 }
                 break;
@@ -259,13 +262,14 @@ namespace tabletopify
         cq.push_back(col);
     }
 
-    void nanovg::draw_text(const rect& bounds, font_id_t font, float size, halign_t halign, valign_t valign, const utf8_string& str)
+    void nanovg::draw_text(const rect& bounds, font_id_t font, float size, const color& col, halign_t halign, valign_t valign, const utf8_string& str)
     {
         auto& cq = _command_queue.current;
         cq.push_back(draw_command::draw_text);
         cq.push_back(bounds);        
         cq.push_back(font);
         cq.push_back(size);
+        cq.push_back(col);
         cq.push_back(halign);
         cq.push_back(valign);
         cq.push_back(str);
