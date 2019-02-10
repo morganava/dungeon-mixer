@@ -4,18 +4,35 @@ namespace tabletopify
 {
     struct uuid
     {
-        std::string str() const;
-        operator std::string() const;
-        bool is_null() const;
-        bool operator==(const uuid& that) const;
+        constexpr uuid() 
+        : qwords{0,0}
+        { }
+
+        constexpr uuid(const uuid& that) = default;
+        constexpr uuid(uuid&& that) = default;
+        constexpr uuid& operator=(const uuid&) = default;
+        constexpr uuid& operator=(uuid&&) = default;
+
+        constexpr bool is_null() const 
+        {
+            return qwords[0] == 0 && qwords[1] == 0;
+        }
+
+        constexpr bool operator==(const uuid& that) const
+        {
+            return this->qwords[0] == that.qwords[0] &&
+                   this->qwords[1] == that.qwords[1];
+        }
 
         union
         {
-            uint8_t bytes[16] = {0};
+            uint8_t bytes[16];
             uint64_t qwords[2];
         };
 
-        const static uuid null;
+        constexpr static size_t string_length = sizeof("00000000-0000-0000-0000-000000000000") - 1;
+        constexpr static const char format_string[] =
+            "%02hhx%02hhx%02hhx%02hhx-%02hhx%02hhx-%02hhx%02hhx-%02hhx%02hhx-%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx";
     };
 
     void to_json(nl::json& j, const struct uuid& id);

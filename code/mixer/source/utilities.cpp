@@ -3,14 +3,6 @@
 #include "work_queue.hpp"
 #include "logger.hpp"
 
-
-// stream operator for various types
-
-std::ostream& operator<<(std::ostream& out, const sf::Vector3f& vec)
-{
-    return out << "{ x: " << vec.x << ", y: " << vec.y << ", z: " << vec.z << " }";
-}
-
 namespace tabletopify
 {
     // file dialog functions

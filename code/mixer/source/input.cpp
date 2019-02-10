@@ -3,20 +3,6 @@
 #include "input.hpp"
 #include "utilities.hpp"
 
-using tabletopify::mouse_button_t;
-using tabletopify::mouse_button;
-
-std::ostream& operator<<(std::ostream& out, mouse_button_t btn)
-{
-    switch(btn)
-    {
-        case mouse_button::left: return out << "left";
-        case mouse_button::right: return out << "right";
-        case mouse_button::middle: return out << "middle";
-        default: return out << "(unknown)";
-    }
-}
-
 namespace tabletopify
 {
     static input* g_input = nullptr;

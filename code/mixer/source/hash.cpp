@@ -1,3 +1,6 @@
+#include "uuid.hpp"
+#include "utf8_string.hpp"
+
 namespace tabletopify
 {
     template<size_t SIZE>
@@ -29,4 +32,17 @@ namespace tabletopify
     {
         return calc_hash(str.data(), str.size());
     }
+
+    // UUID
+    size_t uuid_hash::operator()(const tabletopify::uuid& id) const
+    {
+        return calc_hash(id.bytes, sizeof(id.bytes));
+    }
+
+    // utf8_string
+    size_t utf8_string_hash::operator()(const utf8_string& str) const
+    {
+        return calc_hash(str.c_str(), str.size());
+    }
 }
+

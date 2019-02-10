@@ -59,16 +59,14 @@ namespace tabletopify
 
                 std::string font = json["font"];
                 imgui::g_style.font = g_nanovg.create_font(get_skins_path() / font);
-
-                color col = json["color"];
-                (void)col;
+                imgui::g_style.font_color = json["font_color"];;
             });
         });
     }
 
     void load_audio_manifests()
     {
-        worker(Worker_FileIO).enqueue([]() -> void
+        worker(Worker_FileIO).enqueue([]() -> void 
         {
             // iterate over each subdirectory in the lilbrary directory
             for(auto& it : fs::directory_iterator(get_library_path()))

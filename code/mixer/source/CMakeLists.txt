@@ -14,12 +14,13 @@ add_compile_options(-std=c++17)
 add_executable(tabletop_mixer
     precomp.cpp
     # utilities
-    uuid.cpp
     tag_map.cpp
     text_buffer.cpp
     hash.cpp
     utf8_string.cpp
     utilities.cpp
+    format.cpp
+    json.cpp
     # main
     mixer.cpp
     # systems
@@ -30,8 +31,6 @@ add_executable(tabletop_mixer
     logger.cpp
     serialization.cpp
     string_manager.cpp
-    geometry.cpp
-    json.cpp
     nanovg.cpp
     imgui.cpp
     # audio backend

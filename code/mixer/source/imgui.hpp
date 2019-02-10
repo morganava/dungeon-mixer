@@ -102,6 +102,7 @@ namespace tabletopify
         struct stylesheet
         {
             font_id_t font;
+            color font_color;
             struct
             {
                 NVGcolor color;

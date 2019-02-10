@@ -299,10 +299,6 @@ namespace tabletopify
 
     // Helper Functions
 
-    size_t utf8_string_hash::operator()(const utf8_string& str) const
-    {
-        return calc_hash(str.c_str(), str.size());
-    }
 
     // UTF8 String Iterator
 
@@ -422,9 +418,4 @@ namespace tabletopify
     {
         return utf8_string_iterator(_end, _end);
     }
-}
-
-std::ostream& operator<<(std::ostream& out, const tabletopify::utf8_string& str)
-{
-    return out << str.c_str();
 }

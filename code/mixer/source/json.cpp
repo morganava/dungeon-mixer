@@ -1,6 +1,7 @@
 #include "utilities.hpp"
 #include "utf8_string.hpp"
 #include "color.hpp"
+#include "uuid.hpp"
 
 namespace tabletopify
 {
@@ -33,36 +34,82 @@ namespace tabletopify
         utf8_stringbuffer sb(str.size() + 1);
         for(auto cp : str)
         {
-            if (!cp.is_whitespace())
+            if(!cp.is_whitespace())
             {
                 sb.push_back(cp.to_lower());
             }
         }
         str = sb.str();
 
+        // rgb(0,0,0)
         {
-            float r,g,b;
-            if (3 == std::sscanf(str.c_str(), "rgb(%f,%f,%f)", &r, &g, &b))
+            uint32_t r,g,b;
+            if(3 == std::sscanf(str.c_str(), "rgb(%u,%u,%u)", &r, &g, &b))
             {
-                MX_THROW_IF_FALSE(r >= 0.0f && r <= 1.0f);
-                MX_THROW_IF_FALSE(g >= 0.0f && g <= 1.0f);
-                MX_THROW_IF_FALSE(b >= 0.0f && b <= 1.0f);
                 col = color::rgb(r, g, b);
                 return;
             }
         }
+        //  rgb(0,0,0,1.0)
         {
-            float r,g,b,a;
-            if (4 == std::sscanf(str.c_str(), "rgba(%f,%f,%f,%f)", &r, &g, &b, &a))
+            uint32_t r,g,b;
+            float a;
+            if(4 == std::sscanf(str.c_str(), "rgba(%u,%u,%u,%f)", &r, &g, &b, &a))
             {
-                MX_THROW_IF_FALSE(r >= 0.0f && r <= 1.0f);
-                MX_THROW_IF_FALSE(g >= 0.0f && g <= 1.0f);
-                MX_THROW_IF_FALSE(b >= 0.0f && b <= 1.0f);
-                MX_THROW_IF_FALSE(a >= 0.0f && a <= 1.0f);
                 col = color::rgba(r, g, b, a);
                 return;
             }
         }
+        // #000000
+        {
+            uint32_t r,g,b;
+            if(3 == std::sscanf(str.c_str(), "#%02x%02x%02x", &r, &g, &b))
+            {
+                col = color::rgb(r,g,b);
+                return;
+            }
+        }
+        // #000
+        {
+            uint32_t r,g,b;
+            if(3 == std::sscanf(str.c_str(), "#%01x%01x%01x", &r, &g, &b))
+            {
+                r *= 17;
+                g *= 17;
+                b *= 17;
+
+                col = color::rgb(r,g,b);
+                return;
+            }
+        }
         MX_THROW_MSG("invalid color string: {}", str);
+    }
+
+    // UUID
+    void to_json(nl::json& j, const struct uuid& id)
+    {
+        const auto& bytes = id.bytes;
+        j = fmt::sprintf(
+            uuid::format_string,
+            bytes[0], bytes[1], bytes[2], bytes[3],
+            bytes[4], bytes[5], bytes[6], bytes[7],
+            bytes[8], bytes[9], bytes[10], bytes[11],
+            bytes[12], bytes[13], bytes[14], bytes[15]);
+    }
+
+    void from_json(const nl::json& j, struct uuid& id)
+    {
+        MX_THROW_IF_FALSE(j.is_string());
+
+        auto& bytes = id.bytes;
+        std::string uuidString = j;
+
+        MX_THROW_IF_FALSE(uuidString.size() == uuid::string_length);
+        MX_THROW_IF_FALSE(16 == sscanf(uuidString.data(),
+            uuid::format_string,
+            &bytes[0], &bytes[1], &bytes[2], &bytes[3],
+            &bytes[4], &bytes[5], &bytes[6], &bytes[7],
+            &bytes[8], &bytes[9], &bytes[10], &bytes[11],
+            &bytes[12], &bytes[13], &bytes[14], &bytes[15]));
     }
 }
