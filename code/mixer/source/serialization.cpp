@@ -7,6 +7,7 @@
 #include "hash.hpp"
 #include "nanovg.hpp"
 #include "imgui.hpp"
+#include "color.hpp"
 
 namespace tabletopify
 {
@@ -58,6 +59,9 @@ namespace tabletopify
 
                 std::string font = json["font"];
                 imgui::g_style.font = g_nanovg.create_font(get_skins_path() / font);
+
+                color col = json["color"];
+                (void)col;
             });
         });
     }

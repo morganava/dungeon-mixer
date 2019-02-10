@@ -38,8 +38,8 @@ namespace tabletopify
             if (_read_head + len <= _raw.data() + _raw.size())
             {
                 sv = utf8_string_view {
-                    reinterpret_cast<const char*>(_read_head), 
-                    reinterpret_cast<const char*>(_read_head) + len
+                    reinterpret_cast<const utf8proc_uint8_t*>(_read_head), 
+                    reinterpret_cast<const utf8proc_uint8_t*>(_read_head) + len
                 };
                 _read_head += len;
                 return true;
@@ -68,7 +68,7 @@ namespace tabletopify
     {
         // init nanovg
         _ctx = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
-        MX_THROW_IF_NULL(_ctx);        
+        MX_THROW_IF_NULL(_ctx);
     }
 
     font_id_t nanovg::create_font(fs::path&& path)

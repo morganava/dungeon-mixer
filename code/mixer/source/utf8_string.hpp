@@ -12,6 +12,9 @@ namespace tabletopify
         bool is_valid() const;
         bool is_whitespace() const;
 
+        utf8_codepoint to_lower() const;
+        utf8_codepoint to_upper() const;
+
         operator utf8proc_int32_t() const {return _codepoint;}
     private:
         utf8proc_int32_t _codepoint = 0;
@@ -73,22 +76,6 @@ namespace tabletopify
         friend class utf8_string_iterator;
     };
 
-    class utf8_string_view
-    {
-    public:
-        utf8_string_view() = default;
-        utf8_string_view(const char* begin, const char* end)
-        : _begin(begin)
-        , _end(end)
-        { }
-
-        const char* begin() const { return _begin; }
-        const char* end() const { return _end; }
-    private:
-        const char* _begin = nullptr;
-        const char* _end = nullptr;
-    };
-
     void to_json(nl::json&, const utf8_string&);
     void from_json(const nl::json&, utf8_string&);
 
@@ -110,14 +97,36 @@ namespace tabletopify
         bool operator==(utf8_string_iterator that) const;
         bool operator!=(utf8_string_iterator that) const;
         utf8_codepoint operator*() const;
+        operator const char*() const { return reinterpret_cast<const char*>(_nextCodepoint); }
     private:
         void iterate();
-        explicit utf8_string_iterator(utf8proc_uint8_t* head, utf8proc_uint8_t* tail);
+        explicit utf8_string_iterator(const utf8proc_uint8_t* head, const utf8proc_uint8_t* tail);
         const utf8proc_uint8_t* _nextCodepoint;
         const utf8proc_uint8_t* _tail;
         utf8proc_int32_t _codepoint;
         
         friend class utf8_string;
+        friend class utf8_string_view;
+    };
+
+    class utf8_string_view
+    {
+    public:
+        utf8_string_view() = default;
+        utf8_string_view(const utf8proc_uint8_t* begin, const utf8proc_uint8_t* end)
+        : _begin(begin)
+        , _end(end)
+        { }
+        utf8_string_view(const utf8proc_int8_t* begin, const utf8proc_int8_t* end)
+        : _begin(reinterpret_cast<const utf8proc_uint8_t*>(begin))
+        , _end(reinterpret_cast<const utf8proc_uint8_t*>(end))
+        { }
+
+        utf8_string_iterator begin() const;
+        utf8_string_iterator end() const;
+    private:
+        const utf8proc_uint8_t* _begin = nullptr;
+        const utf8proc_uint8_t* _end = nullptr;
     };
 
     class utf8_stringbuffer

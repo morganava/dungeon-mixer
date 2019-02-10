@@ -24,7 +24,7 @@ namespace tabletopify
 
     bool utf8_codepoint::is_valid() const
     {
-        return utf8proc_codepoint_valid(*this);
+        return utf8proc_codepoint_valid(_codepoint);
     }
 
     bool utf8_codepoint::is_whitespace() const
@@ -58,6 +58,16 @@ namespace tabletopify
         }
 
         return false;
+    }
+
+    utf8_codepoint utf8_codepoint::to_lower() const
+    {
+        return utf8_codepoint(utf8proc_tolower(_codepoint));
+    }
+
+    utf8_codepoint utf8_codepoint::to_upper() const
+    {
+        return utf8_codepoint(utf8proc_toupper(_codepoint));
     }
 
     // Constructors
@@ -165,7 +175,7 @@ namespace tabletopify
         auto size = utf8proc_map(reinterpret_cast<const utf8proc_uint8_t*>(cstr), len, &data, options);
         if(size < 0)
         {
-            MX_THROW_MSG(utf8proc_errmsg(size));
+            MX_THROW_MSG("{}", utf8proc_errmsg(size));
         }
 
         this->_size = size;
@@ -244,7 +254,7 @@ namespace tabletopify
             auto size = utf8proc_map(this->_data.get(), 0, &data, options);
             if(size < 0)
             {
-                MX_THROW_MSG(utf8proc_errmsg(size));
+                MX_THROW_MSG("{}", utf8proc_errmsg(size));
             }
 
             return utf8_string(size, data);
@@ -296,7 +306,7 @@ namespace tabletopify
 
     // UTF8 String Iterator
 
-    utf8_string_iterator::utf8_string_iterator(utf8proc_uint8_t* head, utf8proc_uint8_t* tail)
+    utf8_string_iterator::utf8_string_iterator(const utf8proc_uint8_t* head, const utf8proc_uint8_t* tail)
     : _nextCodepoint(head)
     , _tail(tail)
     , _codepoint(0)
@@ -311,7 +321,7 @@ namespace tabletopify
             auto codepointSize = utf8proc_iterate(_nextCodepoint, _tail - _nextCodepoint, &_codepoint);
             if(codepointSize < 0)
             {
-                MX_THROW_MSG(utf8proc_errmsg(codepointSize));
+                MX_THROW_MSG("{}", utf8proc_errmsg(codepointSize));
             }
             _nextCodepoint += codepointSize;
         }
@@ -366,7 +376,7 @@ namespace tabletopify
         auto codepointSize = utf8proc_encode_char(codepoint, (utf8proc_uint8_t*)buffer);
         if(codepointSize < 0)
         {
-            MX_THROW_MSG(utf8proc_errmsg(codepointSize));
+            MX_THROW_MSG("{}", utf8proc_errmsg(codepointSize));
         }
         
         for(decltype(codepointSize) k = 0; k < codepointSize; ++k)
@@ -399,6 +409,18 @@ namespace tabletopify
     void utf8_stringbuffer::clear()
     {
         _data.clear();
+    }
+
+    // UTF String View
+
+    utf8_string_iterator utf8_string_view::begin() const
+    {
+        return utf8_string_iterator(_begin, _end);
+    }
+
+    utf8_string_iterator utf8_string_view::end() const
+    {
+        return utf8_string_iterator(_end, _end);
     }
 }
 
