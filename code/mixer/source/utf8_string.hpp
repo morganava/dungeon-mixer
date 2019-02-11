@@ -97,12 +97,13 @@ namespace tabletopify
         bool operator==(utf8_string_iterator that) const;
         bool operator!=(utf8_string_iterator that) const;
         utf8_codepoint operator*() const;
-        operator const char*() const { return reinterpret_cast<const char*>(_nextCodepoint); }
+        operator const char*() const { return reinterpret_cast<const char*>(_currentCodepoint); }
     private:
         void iterate();
         explicit utf8_string_iterator(const utf8proc_uint8_t* head, const utf8proc_uint8_t* tail);
-        const utf8proc_uint8_t* _nextCodepoint;
-        const utf8proc_uint8_t* _tail;
+        const utf8proc_uint8_t* _currentCodepoint = nullptr;
+        const utf8proc_uint8_t* _nextCodepoint = nullptr;
+        const utf8proc_uint8_t* _tail = nullptr;
         utf8proc_int32_t _codepoint;
         
         friend class utf8_string;
@@ -124,6 +125,7 @@ namespace tabletopify
 
         utf8_string_iterator begin() const;
         utf8_string_iterator end() const;
+        constexpr size_t size() const {return _end - _begin;};
     private:
         const utf8proc_uint8_t* _begin = nullptr;
         const utf8proc_uint8_t* _end = nullptr;
@@ -156,3 +158,4 @@ namespace tabletopify
 }
 
 std::ostream& operator<<(std::ostream& out, const tabletopify::utf8_string& str);
+std::ostream& operator<<(std::ostream& out, const tabletopify::utf8_string_view& str);

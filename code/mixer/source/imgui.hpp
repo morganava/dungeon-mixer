@@ -304,7 +304,11 @@ namespace tabletopify
         struct label_data : widget_data
         {
             utf8_string text;
-            color text_color;
+            font_id_t font = 0;
+            float text_size = 12.0f;
+            color text_color = color::rgb(0,0,0);
+            halign_t text_halign = halign::right;
+            valign_t text_valign = valign::top;
         };
 
         struct widget_label : public widget<widget_label, label_data>

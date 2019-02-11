@@ -209,7 +209,7 @@ namespace tabletopify
                     switch(halign)
                     {
                         case halign::left:
-                            x =  pos_x;
+                            x = pos_x;
                             break;
                         case halign::center:
                             x = (pos_x + pos_x + size_x) / 2.0f;

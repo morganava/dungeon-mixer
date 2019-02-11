@@ -303,7 +303,8 @@ namespace tabletopify
     // UTF8 String Iterator
 
     utf8_string_iterator::utf8_string_iterator(const utf8proc_uint8_t* head, const utf8proc_uint8_t* tail)
-    : _nextCodepoint(head)
+    : _currentCodepoint(head)
+    , _nextCodepoint(head)
     , _tail(tail)
     , _codepoint(0)
     {
@@ -319,6 +320,7 @@ namespace tabletopify
             {
                 MX_THROW_MSG("{}", utf8proc_errmsg(codepointSize));
             }
+            _currentCodepoint = _nextCodepoint;
             _nextCodepoint += codepointSize;
         }
         else

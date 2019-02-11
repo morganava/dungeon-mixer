@@ -13,6 +13,11 @@ ostream& operator<<(ostream& out, const utf8_string& str)
     return out << str.c_str();
 }
 
+ostream& operator<<(ostream& out, const utf8_string_view& sv)
+{
+    return out.write(sv.begin(), sv.size());
+}
+
 // mouse_button
 ostream& operator<<(ostream& out, mouse_button_t btn)
 {

@@ -317,7 +317,14 @@ namespace tabletopify
 
         void widget_label::first_render() const
         {
-            g_nanovg.draw_text(bounds, 0, 150.0f, data()->text_color, halign::center, valign::top, data()->text);
+            g_nanovg.draw_text(
+                bounds,
+                data()->font,
+                data()->text_size,
+                data()->text_color,
+                data()->text_halign,
+                data()->text_valign,
+                data()->text);
         }
     }
 }
