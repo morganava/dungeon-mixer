@@ -1,6 +1,7 @@
 #pragma once
 
 #include "color.hpp"
+#include "array.hpp"
 
 namespace tabletopify
 {
@@ -277,7 +278,9 @@ namespace tabletopify
             void second_render() const {}
             void end() {}
 
-            std::vector<float> _widths;
+            array_view<double> widths;
+        private:
+            size_t _index = 0;
             float _horizontal_offset = 0.0f;            
         };
 

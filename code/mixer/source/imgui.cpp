@@ -275,8 +275,8 @@ namespace tabletopify
             return [](void* ptr, const rect&) -> rect
             {
                 auto& self = *static_cast<widget_hbox*>(ptr);
-                float w = self._widths.front();
-                self._widths.erase(self._widths.begin());
+
+                float w = self.widths[self._index++];
 
                 rect retval =
                 {

@@ -8,6 +8,8 @@
 #include "imgui.hpp"
 #include "ui.hpp"
 #include "singleton.hpp"
+#include "linear_constraint_solver.hpp"
+#include "array.hpp"
 
 namespace tabletopify
 {
@@ -27,11 +29,18 @@ namespace tabletopify
             bounds
         });
 
+        linear_constraint_solver<3> lcg({
+            {20.0, 1000.0, 1.0},
+            {20.0, 80.0, 2.0},
+            {20.0, std::numeric_limits<double>::max(), 3.0},
+        });
+
         mxVbox(&gd)
         {
             for(auto& currentLabel : ld)
             {
-                mxHbox(self._widths = {100.0f, 200.0f, 300.0f}; self.bounds.size.y = 100.0f;)
+                lcg.update_size(width / 2.0);
+                mxHbox(self.widths = lcg.sizes(); self.bounds.size.y = 100.0f;)
                 {
                     for(int j = 0; j < 3; ++j) {
                         mxDebug(

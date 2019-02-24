@@ -1,5 +1,7 @@
  #pragma once
 
+#include "array.hpp"
+
 namespace tabletopify
 {
     struct constraint
@@ -78,10 +80,8 @@ namespace tabletopify
                     return true;
                 };
 
-                size_t iterations = 0;
                 do
                 {
-                    iterations++;
                     double remainingRatio =  1.0;
                     double remainingSize = totalSize;
                     bool resolved[N] = {false};
@@ -100,7 +100,7 @@ namespace tabletopify
                         }
                     }
 
-                    // stretch remaining
+                    // squish remaining
                     for(size_t i = 0; i < N; ++i)
                     {
                         auto& size = _sizes[i];
@@ -143,9 +143,9 @@ namespace tabletopify
             }
         }
 
-        constexpr const auto& sizes() const
+        constexpr const array_view<double> sizes()
         {
-            return _sizes;
+            return array_view<double>(_sizes, _sizes + N);
         }
 
     private:
