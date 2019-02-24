@@ -28,25 +28,25 @@ namespace tabletopify
         switch(action)
         {
             case GLFW_PRESS:
-                get_input()->push_keydown(key);
+                g_input.push_keydown(key);
                 break;
             case GLFW_REPEAT:
-                get_input()->push_keyrepeat(key);
+                g_input.push_keyrepeat(key);
                 break;
             case GLFW_RELEASE:
-                get_input()->push_keyup(key);
+                g_input.push_keyup(key);
                 break;
         }
     }
 
     static void graphics_charmods_func(GLFWwindow*, uint32_t codepoint, int32_t mods)
     {
-        get_input()->push_charpress(codepoint);
+        g_input.push_charpress(codepoint);
     }
 
     static void graphics_cursor_pos_func(GLFWwindow* window, double xpos, double ypos)
     {
-        get_input()->push_mousemove({xpos, ypos});
+        g_input.push_mousemove({xpos, ypos});
     }
 
     static void graphics_mouse_button_func(GLFWwindow* window, int button, int action, int mods)
@@ -54,10 +54,10 @@ namespace tabletopify
         switch(action)
         {
             case GLFW_PRESS:
-                get_input()->push_mousedown(static_cast<mouse_button_t>(button));
+                g_input.push_mousedown(static_cast<mouse_button_t>(button));
                 break;
             case GLFW_RELEASE:
-                get_input()->push_mouseup(static_cast<mouse_button_t>(button));
+                g_input.push_mouseup(static_cast<mouse_button_t>(button));
                 break;
         }
     }
@@ -72,7 +72,7 @@ namespace tabletopify
 
     static void graphics_scroll_func(GLFWwindow* window, double xoffset, double yoffset)
     {
-        get_input()->push_scroll(xoffset, yoffset);
+        g_input.push_scroll(xoffset, yoffset);
     }
 
     static void graphics_window_size_func(GLFWwindow* window, int width, int height)

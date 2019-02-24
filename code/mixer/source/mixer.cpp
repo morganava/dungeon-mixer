@@ -19,7 +19,7 @@ namespace tabletopify
     {
         MX_LOG_INFO("Init callback!");
         // builds map from keycodes to character name
-        get_input()->build_key_map();
+        g_input.build_key_map();
 
         get_nanovg()->create_context();
         // init renderer
@@ -41,7 +41,7 @@ namespace tabletopify
             wi = {};
         }
 
-        get_input()->update(dt);
+        g_input.update(dt);
         get_ui()->update(dt, width, height);
         get_nanovg()->update(dt, width, height, pixel_ratio);
 

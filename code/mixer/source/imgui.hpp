@@ -113,7 +113,16 @@ namespace tabletopify
                 double scrollbar_width = 20.0;
                 double min_scrollbar_height = 150.0;            
                 double scroll_step = 30.0;
-            } vbox;         
+            } vbox;
+            struct
+            {
+                font_id_t font_face;
+                color font_color;
+                double font_size;
+                color background_color;
+                color background_hover_color;
+                color background_active_color;
+            } button;
         };
 
         // context
@@ -290,7 +299,7 @@ namespace tabletopify
         {
             using widget::widget;
 
-            void begin();
+            void begin(); 
             void first_render() const;
             render_bounds_callback_t get_bounds_callback() { return nullptr; }
             void middle() {}
@@ -326,6 +335,27 @@ namespace tabletopify
             void end() {}            
         };
 
+        /// button
+
+        struct button_data : widget_data
+        {
+            utf8_string text;
+        };
+
+        struct widget_button : public widget<widget_button, button_data>
+        {
+            using widget::widget;
+
+            void begin();
+            void first_render() const;
+            render_bounds_callback_t get_bounds_callback() { return nullptr; }
+            void middle() {}
+            void second_render() const {}
+            void end();
+
+            callback<void> on_click;
+        };
+
     } // imgui namespace
 
 
@@ -343,5 +373,6 @@ namespace tabletopify
 #define mxHbox(...) MX_WIDGET_CODEGEN(widget_hbox, nullptr, __VA_ARGS__)
 #define mxDebug(...) MX_WIDGET_CODEGEN(widget_debug, nullptr, __VA_ARGS__)
 #define mxLabel(data, ...) MX_WIDGET_CODEGEN(widget_label, data, __VA_ARGS__)
+#define mxButton(data, ...) MX_WIDGET_CODEGEN(widget_button, data, __VA_ARGS__)
 
 }

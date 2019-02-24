@@ -5,26 +5,6 @@
 
 namespace tabletopify
 {
-    static input* g_input = nullptr;
-
-    input* get_input()
-    {
-        MX_ASSERT(g_input != nullptr);
-        return g_input;
-    }
-    void init_input()
-    {
-        MX_ASSERT(g_input == nullptr);
-        g_input = new input();
-        g_input->initialize();
-    }
-    void free_input()
-    {
-        g_input->finish();
-        delete g_input;
-        g_input = nullptr;
-    }
-
     void input::initialize()
     {
         
@@ -244,7 +224,7 @@ namespace tabletopify
     {
         tabletopify::utf8_stringbuffer sb;
         sb.push_back(codepoint);
-        MX_LOG_INFO("codepoint : {{ codepoint : 0x{:08x}, char : '{}' }}", codepoint, sb.str());
+        // MX_LOG_INFO("codepoint : {{ codepoint : 0x{:08x}, char : '{}' }}", codepoint, sb.str());
 
         input_event ie;
         ie.type = codepoint_event;
@@ -254,7 +234,7 @@ namespace tabletopify
 
     void input::push_keydown(key_code_t keycode)
     {
-        MX_LOG_INFO("keydown : {{ keycode : 0x{:08x}, key : '{}' }}", keycode, key_code_to_key_name(keycode));
+        // MX_LOG_INFO("keydown : {{ keycode : 0x{:08x}, key : '{}' }}", keycode, key_code_to_key_name(keycode));
 
         input_event ie;
         ie.type = keydown_event;
@@ -264,7 +244,7 @@ namespace tabletopify
     
     void input::push_keyrepeat(key_code_t keycode)
     {
-        MX_LOG_INFO("keyrepeat : {{ keycode : 0x{:08x}, key : '{}' }}", keycode, key_code_to_key_name(keycode));
+        // MX_LOG_INFO("keyrepeat : {{ keycode : 0x{:08x}, key : '{}' }}", keycode, key_code_to_key_name(keycode));
 
         input_event ie;
         ie.type = keyrepeat_event;
@@ -274,7 +254,7 @@ namespace tabletopify
 
     void input::push_keyup(key_code_t keycode)
     {
-        MX_LOG_INFO("keyup : {{ keycode : 0x{:08x}, key : '{}' }}", keycode, key_code_to_key_name(keycode));
+        // MX_LOG_INFO("keyup : {{ keycode : 0x{:08x}, key : '{}' }}", keycode, key_code_to_key_name(keycode));
 
         input_event ie;
         ie.type = keyup_event;
@@ -284,7 +264,7 @@ namespace tabletopify
 
     void input::push_mousemove(const vec2& pos)
     {
-        MX_LOG_INFO("mousemove : {{ position : {} }}", pos);
+        // MX_LOG_INFO("mousemove : {{ position : {} }}", pos);
         input_event ie;
         ie.type = mousemove_event;
         ie.mousemove.position = pos;
@@ -293,7 +273,7 @@ namespace tabletopify
 
     void input::push_mousedown(mouse_button_t btn)
     {
-        MX_LOG_INFO("mousedown : {{ button : {} }}", btn);
+        // MX_LOG_INFO("mousedown : {{ button : {} }}", btn);
         input_event ie;
         ie.type = mousedown_event;
         ie.mousedown.button = btn;
@@ -302,7 +282,7 @@ namespace tabletopify
 
     void input::push_mouseup(mouse_button_t btn)
     {
-        MX_LOG_INFO("mouseup : {{ button : {} }}", btn);
+        // MX_LOG_INFO("mouseup : {{ button : {} }}", btn);
         input_event ie;
         ie.type = mouseup_event;
         ie.mouseup.button = btn;
@@ -311,7 +291,7 @@ namespace tabletopify
 
     void input::push_scroll(double scroll_x, double scroll_y)
     {
-        MX_LOG_INFO("scroll : {{ x : {}, y : {} }}", scroll_x, scroll_y);
+        // MX_LOG_INFO("scroll : {{ x : {}, y : {} }}", scroll_x, scroll_y);
         input_event ie;
         ie.type = scroll_event;
         ie.scroll.scroll_x = scroll_x;

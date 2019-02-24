@@ -1,4 +1,7 @@
 #pragma once
+
+#include "singleton.hpp"
+
 namespace tabletopify
 {
     typedef int32_t key_code_t;
@@ -148,9 +151,16 @@ namespace tabletopify
         } _mouse_state;
     };
 
-    input* get_input();
-    void init_input();
-    void free_input();
+    inline constexpr input& g_input = singleton<input>::get();
+    inline void init_input()
+    {
+        singleton<input>::construct();
+    }
+
+    constexpr void free_input()
+    {
+        singleton<input>::free();
+    }
 }
 
 std::ostream& operator<<(std::ostream&, tabletopify::mouse_button_t);

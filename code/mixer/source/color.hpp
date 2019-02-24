@@ -33,7 +33,13 @@ namespace tabletopify
 
         operator NVGcolor() const
         {
-            return NVGcolor{raw[0], raw[1], raw[2], raw[3]};
+            NVGcolor retval;
+            retval.r = r;
+            retval.g = g;
+            retval.b = b;
+            retval.a = a;
+
+            return retval;
         }
     public:
         struct

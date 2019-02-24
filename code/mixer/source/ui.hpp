@@ -11,6 +11,7 @@ namespace tabletopify
     private:
         imgui::vbox_data gd;
         imgui::label_data ld[20];
+        imgui::button_data bd[20];
     };
 
     constexpr ui* get_ui()

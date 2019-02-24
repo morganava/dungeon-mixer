@@ -107,11 +107,11 @@ namespace tabletopify
 
         void widget_vbox::begin()
         {
-            if (get_input()->get_mouse_clicked(mouse_button::left, this->scissor))
+            if (g_input.get_mouse_clicked(mouse_button::left, this->scissor))
             {
                 this->focus_widget();
             } 
-            else if (get_input()->get_mouse_clicked(mouse_button::left))
+            else if (g_input.get_mouse_clicked(mouse_button::left))
             {
                 this->unfocus_widget();
             }
@@ -177,17 +177,15 @@ namespace tabletopify
             // valid scrollable range  (0 to scrollable_height)
             const  auto scrollable_height = internal_height - height;
 
-            auto* input = get_input();
-
             if (internal_height < height)
             {
                 data()->vertical_scroll = 0.0;
             } 
             else
             {
-                auto prev_mouse_down = input->get_mouse_button_state(mouse_button::left, input_frame::previous);
-                auto current_mouse_down = input->get_mouse_button_state(mouse_button::left, input_frame::current);
-                auto current_mouse_position = input->get_mouse_position(input_frame::current);
+                auto prev_mouse_down = g_input.get_mouse_button_state(mouse_button::left, input_frame::previous);
+                auto current_mouse_down = g_input.get_mouse_button_state(mouse_button::left, input_frame::current);
+                auto current_mouse_position = g_input.get_mouse_position(input_frame::current);
 
                 // handle click and drag
                 if (!data()->grabbing_scrollbar) 
@@ -231,13 +229,13 @@ namespace tabletopify
                 // handle scroll wheel
                 if (!data()->grabbing_scrollbar && point_inside_rect(current_mouse_position, this->scissor))
                 {
-                    data()->vertical_scroll -= input->get_mouse_scroll(input_frame::current).y * scroll_step;
+                    data()->vertical_scroll -= g_input.get_mouse_scroll(input_frame::current).y * scroll_step;
                 }
 
                 // handle keyboard input
                 if (this->is_focused())
                 {
-                    for(auto keycode : input->get_keypresses())
+                    for(auto keycode : g_input.get_keypresses())
                     {
                         switch(keycode)
                         {
@@ -294,9 +292,8 @@ namespace tabletopify
 
         void widget_debug::begin()
         {
-            auto* input = get_input();
-            auto current_position = input->get_mouse_position(input_frame::current);
-            auto previous_position = input->get_mouse_position(input_frame::previous);
+            auto current_position = g_input.get_mouse_position(input_frame::current);
+            auto previous_position = g_input.get_mouse_position(input_frame::previous);
             if (point_inside_rect(current_position, scissor))
             {
                 on_mouse_over(current_position);
@@ -325,6 +322,57 @@ namespace tabletopify
                 data()->text_halign,
                 data()->text_valign,
                 data()->text);
+        }
+
+        // Button
+
+        void widget_button::begin()
+        {
+            if (g_input.get_mouse_clicked(mouse_button::left, this->scissor))
+            {
+                this->focus_widget();
+            } 
+            else if (g_input.get_mouse_clicked(mouse_button::left))
+            {
+                this->unfocus_widget();
+            }            
+        }
+
+        void widget_button::first_render() const
+        {
+            auto current_mouse_position = g_input.get_mouse_position(input_frame::current);
+            if(point_inside_rect(current_mouse_position, scissor))
+            {
+                if (!g_input.get_mouse_button_state(mouse_button::left, input_frame::current))
+                {
+                    g_nanovg.fill_rect(bounds, g_style.button.background_hover_color);
+                }
+                else
+                {
+                    g_nanovg.fill_rect(bounds, g_style.button.background_active_color);
+                }
+            }
+            else
+            {
+                g_nanovg.fill_rect(bounds, g_style.button.background_color);
+            }
+            
+            g_nanovg.draw_text(
+                bounds,
+                g_style.button.font_face,
+                g_style.button.font_size,
+                g_style.button.font_color,
+                halign::center,
+                valign::middle,
+                data()->text);
+        }
+
+        void widget_button::end()
+        {
+            if (g_input.get_mouse_clicked(mouse_button::left, this->scissor))
+            {
+                this->on_click();
+            }    
         }
     }
 }

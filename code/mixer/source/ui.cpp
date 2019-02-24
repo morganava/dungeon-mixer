@@ -37,12 +37,20 @@ namespace tabletopify
 
         mxVbox(&gd)
         {
-            for(auto& currentLabel : ld)
+            for(size_t idx = 0; idx < 20; ++idx)
             {
+                auto& currentLabel = ld[idx];
+                auto& currentButton = bd[idx];
+
                 lcg.update_size(width / 2.0);
                 mxHbox(self.widths = lcg.sizes(); self.bounds.size.y = 100.0f;)
                 {
-                    for(int j = 0; j < 3; ++j) {
+                    currentButton.text = "button";
+                    mxButton(&currentButton, self.on_click = [&]() -> void
+                    {
+                       MX_LOG_INFO("Clicked Button {}", idx); 
+                    };);
+                    for(int j = 0; j < 2; ++j) {
                         mxDebug(
                             self.on_mouse_over = [&](const vec2&) 
                             { 
