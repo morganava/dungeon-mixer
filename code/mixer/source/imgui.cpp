@@ -152,7 +152,7 @@ namespace tabletopify
             double scrollbar_height = std::min(std::max(height*height / internal_height, min_scrollbar_height), height);
             double scrollbar_y = bounds.position.y + (height - scrollbar_height) * (data()->vertical_scroll / scrollable_height);
 
-            scrollbar_grab_area = {{scrollbar_x + 2.0, scrollbar_y + 2.0},{scrollbar_width - 4.0, scrollbar_height - 4.0}};
+            scrollbar_grab_area = {{scrollbar_x, scrollbar_y}, {scrollbar_width, scrollbar_height}};
         }
 
         void widget_vbox::second_render() const
