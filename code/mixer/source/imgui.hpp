@@ -186,7 +186,7 @@ namespace tabletopify
 
             // called by widget<T> in destruct and calc_render_bounds
             void destructor_impl(void(*func)(void*));
-            void calc_render_bounds_impl(render_bounds(*func)(const rect&, void*));
+            void calc_render_bounds_impl(render_bounds(*func)(void*));
 
         public:
             rect bounds = {};
@@ -224,10 +224,10 @@ namespace tabletopify
             // and pushes callback and current scissor for child widgets
             void calc_render_bounds()
             {
-                calc_render_bounds_impl([](const rect& scissor, void* pSelf) -> render_bounds
+                calc_render_bounds_impl([](void* pSelf) -> render_bounds
                 {
                     auto* self = static_cast<T*>(pSelf);
-                    return {self->get_bounds_callback(), self, scissor};
+                    return {self->get_bounds_callback(), self, self->scissor};
                 });
             }
 

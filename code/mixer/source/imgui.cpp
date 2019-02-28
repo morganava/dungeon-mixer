@@ -88,7 +88,7 @@ namespace tabletopify
             g_context.pop_render_bounds();   
         } 
 
-        void widget_base::calc_render_bounds_impl(render_bounds(*func)(const rect&, void*))
+        void widget_base::calc_render_bounds_impl(render_bounds(*func)(void*))
         { 
             const auto& rb = g_context.peek_render_bounds();
 
@@ -100,7 +100,7 @@ namespace tabletopify
             get_nanovg()->set_scissor(scissor);
 
             // push info for child render bounds calculations
-            g_context.push_render_bounds(func(scissor,this));
+            g_context.push_render_bounds(func(this));
         }
 
         // vbox
