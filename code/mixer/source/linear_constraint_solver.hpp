@@ -58,94 +58,66 @@ namespace tabletopify
                     _sizes[i] = _constraints[i].max;
                 }
             }
-
-            bool resolved[N] = {false};
-            double absdiff[N];
-            
-            double remainingRatio = 1.0;
-            double remainingSize = totalSize;
-            MX_LOG_INFO("---");
-            MX_LOG_INFO("totalSize: {}", totalSize);
-
-            for(size_t i = 0; i < N; ++i)
+            else
             {
-                MX_LOG_INFO("ratio[{}] : {}", i, _constraints[i].ratio);
-            }
+                bool resolved[N] = {false};
+                
+                double remainingRatio = 1.0;
+                double remainingSize = totalSize;
 
-            do
-            {
-                // initial guess
-                for(size_t i = 0; i < N; ++i)
+                bool needResolve = true;
+                while(needResolve)
                 {
-                    if (!resolved[i])
+                    // initial guess
+                    for(size_t i = 0; i < N; ++i)
                     {
-                        _sizes[i] = _constraints[i].ratio / remainingRatio * remainingSize;    
+                        if (!resolved[i])
+                        {
+                            _sizes[i] = _constraints[i].ratio / remainingRatio * remainingSize;    
+                        }
                     }
-                    MX_LOG_INFO("guess[{}] : {}", i, _sizes[i]);
-                }
 
-                for(size_t i = 0; i < N; ++i)
-                {
-                    MX_LOG_INFO("resolved[{}] : {}", i, resolved[i]);
-                }
-
-                size_t invalidCount = 0;
-                auto calc_absdiff = [&](size_t i) -> double
-                {
-                    auto s = _sizes[i];
-                    const auto& c = _constraints[i];
-
-                    if (s < c.min) {
-                        invalidCount++;
-                        return c.min - s;
-                    }
-                    if (s > c.max) {
-                        invalidCount++;
-                        return s - c.max;
-                    }
-                    return 0.0;
-                };
-
-                size_t maxIndex = 0;
-                for(size_t i = 0; i < N; ++i)
-                {
-                    if (!resolved[i])
+                    // figure out which index is most out of constraints and has not yet been resolved
+                    needResolve = false;
+                    size_t maxIndex = 0;
+                    double maxAbsDiff = 0.0;
+                    for(size_t i = 0; i < N; ++i)
                     {
-                        const auto diff = calc_absdiff(i); 
-                        absdiff[i] = diff;
+                        if (!resolved[i])
+                        {
+                            const auto currentSize = _sizes[i];
+                            const auto& currentConstraint = _constraints[i];
 
-                        if (invalidCount > 0 && diff > absdiff[maxIndex]) {
-                            maxIndex = i;
-                        }    
+                            double absDiff = 0.0;
+                            if (currentSize < currentConstraint.min)
+                            {
+                                absDiff = (currentConstraint.min - currentSize);
+                                needResolve = true;
+                            }
+                            else if(currentConstraint.max < currentSize)
+                            {
+                                absDiff = (currentSize - currentConstraint.max);
+                                needResolve = true;
+                            }
+     
+                            if (needResolve && absDiff > maxAbsDiff)
+                            {
+                                maxIndex = i;
+                                maxAbsDiff = absDiff;
+                            }    
+                        }
+                    }
+
+                    // resolve the index that has largest abs difference between the size and min or max
+                    if (needResolve)
+                    {
+                        _sizes[maxIndex] = clamp(_constraints[maxIndex].min, _sizes[maxIndex], _constraints[maxIndex].max);
+                        resolved[maxIndex] = true;
+
+                        remainingSize -= _sizes[maxIndex];
+                        remainingRatio -= _constraints[maxIndex].ratio;
                     }
                 }
-
-                for(size_t i = 0; i < N; ++i)
-                {
-                    MX_LOG_INFO("diff[{}] : {}", i, absdiff[i]);
-                }
-
-                if (invalidCount > 0)
-                {
-                    _sizes[maxIndex] = clamp(_constraints[maxIndex].min, _sizes[maxIndex], _constraints[maxIndex].max);
-                    resolved[maxIndex] = true;
-                    remainingSize -= _sizes[maxIndex];
-                    remainingRatio -= _constraints[maxIndex].ratio;
-
-                    MX_LOG_INFO("maxIndex: {}", maxIndex);
-                    MX_LOG_INFO("remainingSize : {}", remainingSize);
-                }
-                else
-                {
-                    break;
-                }
-            }
-            while(true);
-
-            MX_LOG_INFO("remainingSize : {}", remainingSize);
-            for(size_t i = 0; i < N ; ++i)
-            {
-                MX_LOG_INFO("size[{}] : {}, resolved[{}] : {}", i, _sizes[i], i, resolved[i]);
             }
         }
 
