@@ -198,6 +198,7 @@ namespace tabletopify
 
             struct 
             {
+                corners borderRadius = 0.0;
                 double padding = 1;
             } style;
         protected:

@@ -10,89 +10,107 @@ namespace tabletopify
         return val;
     }
 
-    struct vec2
+    template<typename T>
+    struct vec2_
     {
-        double x = 0.0;
-        double y = 0.0;
+        T x = 0.0;
+        T y = 0.0;
 
-        constexpr vec2() = default;
-        constexpr vec2(const vec2&) = default;
-        constexpr vec2(vec2&&) = default;
+        constexpr vec2_() = default;
+        constexpr vec2_(const vec2_&) = default;
+        constexpr vec2_(vec2_&&) = default;
         
-        constexpr vec2(double x, double y)
+        constexpr vec2_(double x, double y)
         : x(x)
         , y(y)
         { }
         
-        constexpr vec2& operator=(const vec2&) = default;
+        constexpr vec2_& operator=(const vec2_&) = default;
 
-        constexpr vec2 operator+(const vec2& that) const
+        constexpr vec2_ operator+(const vec2_& that) const
         {
-            return vec2(this->x + that.x, this->y + that.y);
+            return vec2_(this->x + that.x, this->y + that.y);
         }
 
-        constexpr vec2 operator-(const vec2& that) const
+        constexpr vec2_ operator-(const vec2_& that) const
         {
-            return vec2(this->x - that.x, this->y - that.y);
+            return vec2_(this->x - that.x, this->y - that.y);
         }
 
-        constexpr vec2 operator*(double d) const
+        constexpr vec2_ operator*(double d) const
         {
-            return vec2(this->x * d, this->y * d);
+            return vec2_(this->x * d, this->y * d);
         }
 
-        constexpr vec2& operator+=(const vec2& that)
+        constexpr vec2_& operator+=(const vec2_& that)
         {
             this->x += that.x;
             this->y += that.y;
             return *this;
         }
 
-        constexpr vec2& operator-=(const vec2& that)
+        constexpr vec2_& operator-=(const vec2_& that)
         {
             this->x -= that.x;
             this->y -= that.y;
             return *this;
         }
 
-        constexpr bool operator==(const vec2& that) const
+        constexpr bool operator==(const vec2_& that) const
         {
             return x == that.x && y == that.y;
         }
 
-        constexpr bool operator!=(const vec2& that) const
+        constexpr bool operator!=(const vec2_& that) const
         {
             return x != that.x || y != that.y;
         }
 
-        constexpr static double dot_product(const vec2& a, const vec2& b)
+        constexpr static T dot_product(const vec2_& a, const vec2_& b)
         {
             return a.x*b.x + a.y*b.y;
         }
 
-        constexpr double squared_magnitude() const
+        constexpr T squared_magnitude() const
         {
             return x*x + y*y;
         }
+
+        constexpr operator vec2_<float>() const
+        {
+            return {(float)x, (float)y};
+        };
     };
 
-    constexpr vec2 operator*(double d, const vec2& v)
+    template<typename T>
+    constexpr vec2_<T> operator*(double d, const vec2_<T>& v)
     {
         return v * d;
     }
+    typedef vec2_<double> vec2;
+    typedef vec2_<float> vec2f;
 
-    struct point
+    template<typename T>
+    struct point_
     {
-        vec2 position;
-        point(const vec2& p)
+        vec2_<T> position;
+        point_(const vec2_<T>& p)
         : position(p) 
         { }
-    };
 
-    struct rect
+        constexpr operator point_<float>() const
+        {
+            return {(vec2f)position};
+        }
+    };
+    typedef point_<double> point;
+    typedef point_<float> pointf;
+
+    template<typename T>
+    struct rect_
     {
-        vec2 position;
-        vec2 size;
+        vec2_<T> position;
+        vec2_<T> size;
 
         constexpr double left() const
         {
@@ -113,18 +131,78 @@ namespace tabletopify
         {
             return position.y + size.y;
         }
-    };
 
-    struct circle
-    {
-        vec2 position;
-        double radius;
+        constexpr operator rect_<float>() const
+        {
+            return {(vec2f)position, (vec2f)size};
+        }
     };
+    typedef rect_<double> rect;
+    typedef rect_<float> rectf;
+
+    template<typename T>
+    struct circle_
+    {
+        vec2_<T> position;
+        T radius;
+
+        constexpr operator circle_<float>() const
+        {
+            return {(vec2f)position, (float)radius};
+        }
+    };
+    typedef circle_<double> circle;
+    typedef circle_<float> circlef;
+
+    template<typename T>
+    struct corners_
+    {
+        T topLeft = 0;
+        T topRight = 0;
+        T bottomRight = 0;
+        T bottomLeft = 0;
+
+        constexpr corners_(T val)
+        : topLeft(val)
+        , topRight(val)
+        , bottomRight(val)
+        , bottomLeft(val)
+        { }
+        constexpr corners_(T tl, T tr, T br, T bl)
+        : topLeft(tl)
+        , topRight(tr)
+        , bottomRight(br)
+        , bottomLeft(bl)
+        { }
+
+        constexpr corners_() = default;
+        constexpr corners_(const corners_&) = default;
+        constexpr corners_(corners_&&) = default;
+
+        constexpr corners_& operator=(T val) 
+        {
+            topLeft = val;
+            topRight = val;
+            bottomRight = val;
+            bottomLeft = val;
+            return *this;
+        }
+        constexpr corners_& operator=(const corners_&) = default;
+
+        constexpr operator corners_<float>() const
+        {
+            return {(float)topLeft, (float)topRight, (float)bottomRight, (float)bottomLeft};
+        }
+    };
+    typedef corners_<double> corners;
+    typedef corners_<float> cornersf;
+
+    // collision types
 
     constexpr bool point_inside_circle(const point& p, const circle& c)
     {
-        vec2 line = p.position - c.position;
-        double line_len_2 = line.squared_magnitude();
+        auto line = p.position - c.position;
+        auto line_len_2 = line.squared_magnitude();
 
         return line_len_2 <= (c.radius * c.radius);
     }

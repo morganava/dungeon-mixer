@@ -128,6 +128,7 @@ namespace tabletopify
     {
         set_scissor,
         fill_rect,
+        fill_rounded_rect,
         draw_text
     } draw_command_t;
 
@@ -175,6 +176,21 @@ namespace tabletopify
                     nvgRect(_ctx, pos_x, pos_y, size_x, size_y);
                     nvgFillColor(_ctx, col);
                     nvgFill(_ctx);
+                }
+                break;
+                case draw_command::fill_rounded_rect:
+                {
+                    rectf r;
+                    cornersf rad;
+                    color col;
+                    MX_THROW_IF_FALSE(cq.next(r));
+                    MX_THROW_IF_FALSE(cq.next(rad));
+                    MX_THROW_IF_FALSE(cq.next(col));
+
+                    nvgBeginPath(_ctx);
+                    nvgRoundedRectVarying(_ctx, r.position.x, r.position.y, r.size.x, r.size.y, rad.topLeft, rad.topRight, rad.bottomRight, rad.bottomLeft);
+                    nvgFillColor(_ctx, col);
+                    nvgFill(_ctx);                    
                 }
                 break;
                 case draw_command::draw_text:
@@ -259,6 +275,15 @@ namespace tabletopify
         auto& cq = _command_queue.current;
         cq.push_back(draw_command::fill_rect);
         cq.push_back(r);
+        cq.push_back(col);
+    }
+
+    void nanovg::fill_rounded_rect(const rectf& r, const cornersf& c, const color& col)
+    {
+        auto& cq = _command_queue.current;
+        cq.push_back(draw_command::fill_rounded_rect);
+        cq.push_back(r);
+        cq.push_back(c);
         cq.push_back(col);
     }
 
