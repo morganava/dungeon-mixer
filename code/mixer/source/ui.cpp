@@ -37,7 +37,7 @@ namespace tabletopify
 
         mxVbox(&gd)
         {
-            for(size_t idx = 0; idx < 20; ++idx)
+            for(size_t idx = 0; idx < 1; ++idx)
             {
                 auto& currentLabel = ld[idx];
                 auto& currentButton = bd[idx];

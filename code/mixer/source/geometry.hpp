@@ -41,6 +41,20 @@ namespace tabletopify
             return vec2(this->x * d, this->y * d);
         }
 
+        constexpr vec2& operator+=(const vec2& that)
+        {
+            this->x += that.x;
+            this->y += that.y;
+            return *this;
+        }
+
+        constexpr vec2& operator-=(const vec2& that)
+        {
+            this->x -= that.x;
+            this->y -= that.y;
+            return *this;
+        }
+
         constexpr bool operator==(const vec2& that) const
         {
             return x == that.x && y == that.y;
@@ -61,6 +75,11 @@ namespace tabletopify
             return x*x + y*y;
         }
     };
+
+    constexpr vec2 operator*(double d, const vec2& v)
+    {
+        return v * d;
+    }
 
     struct point
     {

@@ -99,8 +99,19 @@ namespace tabletopify
             scissor = get_intersecting_rect(parent_scissor, bounds);
             get_nanovg()->set_scissor(scissor);
 
+            bounds = this->render_border(bounds);
+
             // push info for child render bounds calculations
             g_context.push_render_bounds(func(this));
+        }
+
+        rect widget_base::render_border(const rect& bounds)
+        {
+            auto retval = bounds;
+            retval.position += vec2{style.padding, style.padding};
+            retval.size -= 2.0* vec2{style.padding, style.padding};
+
+            return retval;
         }
 
         // vbox

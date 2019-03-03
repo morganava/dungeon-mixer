@@ -184,13 +184,22 @@ namespace tabletopify
             void unfocus_widget();
             bool is_focused() const;
 
-            // called by widget<T> in destruct and calc_render_bounds
+            // called by widget<T> in destructor
             void destructor_impl(void(*func)(void*));
+            // called by widget<T> in calc_render_bounds
             void calc_render_bounds_impl(render_bounds(*func)(void*));
-
+        private:
+            // shared margin/border/padding rendering
+            // returns updated bounds
+            rect render_border(const rect& bounds);
         public:
             rect bounds = {};
             rect scissor = {};
+
+            struct 
+            {
+                double padding = 1;
+            } style;
         protected:
             widget_data* _data = nullptr;            
         };
