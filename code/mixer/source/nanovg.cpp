@@ -163,17 +163,13 @@ namespace tabletopify
                 break;
                 case draw_command::fill_rect:
                 {
-                    float pos_x, pos_y, size_x, size_y;
-                    MX_THROW_IF_FALSE(cq.next(pos_x));
-                    MX_THROW_IF_FALSE(cq.next(pos_y));
-                    MX_THROW_IF_FALSE(cq.next(size_x));
-                    MX_THROW_IF_FALSE(cq.next(size_y));
-
-                    NVGcolor col;
+                    rectf r;
+                    color col;
+                    MX_THROW_IF_FALSE(cq.next(r));
                     MX_THROW_IF_FALSE(cq.next(col))
 
                     nvgBeginPath(_ctx);
-                    nvgRect(_ctx, pos_x, pos_y, size_x, size_y);
+                    nvgRect(_ctx, r.position.x, r.position.y, r.size.x, r.size.y);
                     nvgFillColor(_ctx, col);
                     nvgFill(_ctx);
                 }
@@ -270,7 +266,7 @@ namespace tabletopify
         cq.push_back(r);
     }
 
-    void nanovg::fill_rect(const rect& r, const NVGcolor& col)
+    void nanovg::fill_rect(const rect& r, const color& col)
     {
         auto& cq = _command_queue.current;
         cq.push_back(draw_command::fill_rect);

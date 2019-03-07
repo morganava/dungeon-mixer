@@ -8,6 +8,7 @@
 #include "nanovg.hpp"
 #include "imgui.hpp"
 #include "color.hpp"
+#include "stylesheet.hpp"
 
 namespace tabletopify
 {
@@ -55,9 +56,11 @@ namespace tabletopify
 
             worker(Worker_Background).enqueue([mb=std::move(mb)]() -> void
             {
-                using imgui::g_style;
-
                 auto json = nl::json::parse(mb.begin(), mb.end());
+                // g_style_resolver = json;
+                from_json(json, g_style_resolver);
+
+                using imgui::g_style;
                 auto button = json["button"];
                 g_style.button.font_face = g_nanovg.create_font(get_skins_path() / (std::string)button["font"]);
                 g_style.button.font_color = button["font_color"];

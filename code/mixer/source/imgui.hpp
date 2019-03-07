@@ -322,7 +322,7 @@ namespace tabletopify
 
             callback<void, vec2> on_mouse_move;
             callback<void, vec2> on_mouse_over;
-            NVGcolor bg_color = nvgRGB(0, 0xff, 0xff);
+            color bg_color = color::rgb(0,0,0);
         };
 
         // label

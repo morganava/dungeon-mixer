@@ -30,9 +30,9 @@ namespace tabletopify
         });
 
         linear_constraint_solver<3> lcg({
-            {20.0, 80.0, 1.0},
-            {20.0, 80.0, 2.0},
-            {20.0, std::numeric_limits<double>::max(), 3.0},
+            {20.0, 100.0, 1.0},
+            {20.0, 200.0, 2.0},
+            {20.0, 300.0, 3.0},
         });
 
         mxVbox(&gd)
@@ -54,16 +54,16 @@ namespace tabletopify
                         mxDebug(
                             self.on_mouse_over = [&](const vec2&) 
                             { 
-                                self.bg_color = nvgRGB(255, 128, 0); 
+                                self.bg_color = color::rgb(255, 128, 0); 
                             };);
                     }
                 };
                 mxDebug(
                     self.bounds.size.y = 80.0f;
-                    self.bg_color = nvgRGB(255, 32, 0);
+                    self.bg_color = color::rgb(255, 32, 0);
                     self.on_mouse_over = [&](const vec2&)
                     {
-                        self.bg_color = nvgRGB(64, 128, 64);
+                        self.bg_color = color::rgb(64, 128, 64);
                     };
                     self.on_mouse_move = [](const vec2& pos)
                     {

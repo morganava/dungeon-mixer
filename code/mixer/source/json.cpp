@@ -2,6 +2,7 @@
 #include "utf8_string.hpp"
 #include "color.hpp"
 #include "uuid.hpp"
+#include "stylesheet.hpp"
 
 namespace tabletopify
 {
@@ -111,5 +112,18 @@ namespace tabletopify
             &bytes[4], &bytes[5], &bytes[6], &bytes[7],
             &bytes[8], &bytes[9], &bytes[10], &bytes[11],
             &bytes[12], &bytes[13], &bytes[14], &bytes[15]));
+    }
+
+    // style_resolver
+    void from_json(const nl::json& j, style_resolver& sr)
+    {
+        MX_THROW_IF_FALSE(j.is_object());
+
+        for(auto& el : j.items())
+        {
+            MX_LOG_INFO("{} : {}", el.key(), el.value().dump());
+            // MX_LOG_INFO("{}", el.value().dump());
+            // MX_LOG_INFO("{} : {}", el.key(), el.value());
+        }
     }
 }

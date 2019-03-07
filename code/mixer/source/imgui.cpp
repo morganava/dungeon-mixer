@@ -220,15 +220,15 @@ namespace tabletopify
 
         void widget_vbox::second_render() const
         {
-            get_nanovg()->fill_rect(scrollbar_area, nvgRGB(96,96,96));
+            get_nanovg()->fill_rect(scrollbar_area, color::rgb(96,96,96));
 
             if (data()->grabbing_scrollbar)
             {
-                get_nanovg()->fill_rect(scrollbar_grab_area, nvgRGB(192,96,0));                
+                get_nanovg()->fill_rect(scrollbar_grab_area, color::rgb(192,96,0));                
             }
             else
             {
-                get_nanovg()->fill_rect(scrollbar_grab_area, nvgRGB(192,192,192));
+                get_nanovg()->fill_rect(scrollbar_grab_area, color::rgb(192,192,192));
             }
             
         }
@@ -369,7 +369,7 @@ namespace tabletopify
         }
         void widget_debug::first_render() const
         {
-            get_nanovg()->fill_rect(bounds, nvgRGB(0,0,0));
+            get_nanovg()->fill_rect(bounds, color::rgb(0,0,0));
             get_nanovg()->fill_rect(rect{bounds.position + vec2{1.0, 1.0}, {bounds.size - vec2{2.0, 2.0}}}, bg_color);
             // get_nanovg()->fill_rounded_rect((rectf)rect{bounds.position + vec2{1.0, 1.0}, {bounds.size - vec2{2.0, 2.0}}}, cornersf{10.0f}, color::rgb(0x77, 0x77, 0x77));
         }
