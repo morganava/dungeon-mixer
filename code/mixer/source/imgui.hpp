@@ -191,15 +191,19 @@ namespace tabletopify
         private:
             // shared margin/border/padding rendering
             // returns updated bounds
-            rect render_border(const rect& bounds);
+            rect render_border(const rect& bounds) const;
         public:
             rect bounds = {};
             rect scissor = {};
 
             struct 
             {
-                corners borderRadius = 0.0;
-                double padding = 1;
+                double margin = 10.0;
+                corners borderRadius = {20.0, 10.0, 5.0, 1.0};
+                color borderColor = color::rgb(0xff, 0xff, 0xff);
+                double borderWidth = 5.0;
+                color backgroundColor = color::rgb(0xff, 0x80, 0x00);
+                double padding = 20.0;
             } style;
         protected:
             widget_data* _data = nullptr;            
@@ -329,7 +333,7 @@ namespace tabletopify
             font_id_t font = 0;
             float text_size = 12.0f;
             color text_color = color::rgb(0,0,0);
-            halign_t text_halign = halign::right;
+            halign_t text_halign = halign::left;
             valign_t text_valign = valign::top;
         };
 

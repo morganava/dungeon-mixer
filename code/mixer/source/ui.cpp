@@ -30,7 +30,7 @@ namespace tabletopify
         });
 
         linear_constraint_solver<3> lcg({
-            {20.0, 1000.0, 1.0},
+            {20.0, 80.0, 1.0},
             {20.0, 80.0, 2.0},
             {20.0, std::numeric_limits<double>::max(), 3.0},
         });
@@ -43,7 +43,7 @@ namespace tabletopify
                 auto& currentButton = bd[idx];
 
                 lcg.update_size(width / 2.0);
-                mxHbox(self.widths = lcg.sizes(); self.bounds.size.y = 100.0f;)
+                mxHbox(self.widths = lcg.sizes(); self.bounds.size.y = 200.0f;)
                 {
                     currentButton.text = "button";
                     mxButton(&currentButton, self.on_click = [&]() -> void
@@ -59,7 +59,7 @@ namespace tabletopify
                     }
                 };
                 mxDebug(
-                    self.bounds.size.y = 20.0f;
+                    self.bounds.size.y = 80.0f;
                     self.bg_color = nvgRGB(255, 32, 0);
                     self.on_mouse_over = [&](const vec2&)
                     {
@@ -69,9 +69,9 @@ namespace tabletopify
                     {
                         // MX_LOG_INFO("MOVE CALLBACK {}", pos);
                     };);
-                mxDebug(self.bounds.size.y = 35.0f;);
+                mxDebug(self.bounds.size.y = 120.0f;);
                 currentLabel.text = "hello world!";
-                currentLabel.text_color = imgui::g_style.font_color;
+                currentLabel.text_color = color::rgb(0,0,0);
                 currentLabel.text_size = 36.0f;
 
                 mxLabel(&currentLabel, 

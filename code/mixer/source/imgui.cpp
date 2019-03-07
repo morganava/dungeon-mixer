@@ -92,26 +92,78 @@ namespace tabletopify
         { 
             const auto& rb = g_context.peek_render_bounds();
 
-            bounds = rb.eval(bounds);
+            this->bounds = rb.eval(this->bounds);
             const auto& parent_scissor = rb.scissor;
 
-            // calc the scissor geometry
-            scissor = get_intersecting_rect(parent_scissor, bounds);
-            get_nanovg()->set_scissor(scissor);
+            // render the border and bgcolor
+            auto marginScissor = get_intersecting_rect(parent_scissor, this->bounds);
+            get_nanovg()->set_scissor(marginScissor);
+            this->bounds = this->render_border(bounds);
 
-            bounds = this->render_border(bounds);
+            // calc the scissor geometry for widget specific contetn
+            this->scissor = get_intersecting_rect(parent_scissor, this->bounds);
+            get_nanovg()->set_scissor(this->scissor);
 
             // push info for child render bounds calculations
             g_context.push_render_bounds(func(this));
         }
 
-        rect widget_base::render_border(const rect& bounds)
+        rect widget_base::render_border(const rect& desiredBounds) const
         {
-            auto retval = bounds;
-            retval.position += vec2{style.padding, style.padding};
-            retval.size -= 2.0* vec2{style.padding, style.padding};
+            if (style.borderWidth > 0.0)
+            {
+                rect borderBounds = desiredBounds;
+                borderBounds.position += vec2{style.margin, style.margin};
+                borderBounds.size -= 2.0 * vec2{style.margin, style.margin};
+                if (borderBounds.size.x <= 0 || borderBounds.size.y <= 0)
+                {
+                    return rect {
+                        {desiredBounds.position.x + (style.margin) / (style.margin + style.margin) * desiredBounds.size.x,
+                         desiredBounds.position.y + (style.margin) / (style.margin + style.margin) * desiredBounds.size.y},
+                        {0.0, 0.0}
+                    };
+                }
+                // draw border
+                g_nanovg.fill_rounded_rect(borderBounds, style.borderRadius, style.borderColor);
+            }
 
-            return retval;
+            rect interiorBounds = desiredBounds;
+            interiorBounds.position += vec2{style.margin + style.borderWidth, style.margin + style.borderWidth};
+            interiorBounds.size -= 2.0 * vec2{style.margin + style.borderWidth, style.margin + style.borderWidth};
+            if (interiorBounds.size.x <= 0 || interiorBounds.size.y <= 0)
+            {
+                return rect {
+                    {desiredBounds.position.x + (style.margin + style.borderWidth) / (style.margin + style.margin + 2 * style.borderWidth) * desiredBounds.size.x,
+                     desiredBounds.position.y + (style.margin + style.borderWidth) / (style.margin + style.margin + 2 * style.borderWidth) * desiredBounds.size.y},
+                    {0.0, 0.0}
+                };
+            }
+            corners interiorRadius = style.borderRadius;
+            interiorRadius.topLeft -= style.borderWidth;
+            interiorRadius.topRight -= style.borderWidth;
+            interiorRadius.bottomRight -= style.borderWidth;
+            interiorRadius.bottomLeft -= style.borderWidth;
+            interiorRadius.topLeft = max(interiorRadius.topLeft, 0.0);
+            interiorRadius.topRight = max(interiorRadius.topRight, 0.0);
+            interiorRadius.bottomRight = max(interiorRadius.bottomRight, 0.0);
+            interiorRadius.bottomLeft = max(interiorRadius.bottomLeft, 0.0);
+            // draw interior background color
+            g_nanovg.fill_rounded_rect(interiorBounds, interiorRadius, style.backgroundColor);
+
+            // calculate internal bounds of widget content
+            rect paddedBounds = desiredBounds;
+            paddedBounds.position += vec2{style.margin + style.borderWidth + style.padding, style.margin + style.borderWidth + style.padding};
+            paddedBounds.size -= 2.0 * vec2{style.margin + style.borderWidth + style.padding, style.margin + style.borderWidth + style.padding};
+            if (paddedBounds.size.x <= 0 || paddedBounds.size.y <= 0)
+            {
+                return rect {
+                    {desiredBounds.position.x + (style.margin + style.borderWidth + style.padding) / (style.margin + style.margin + 2 * style.borderWidth + 2 * style.padding) * desiredBounds.size.x,
+                     desiredBounds.position.y + (style.margin + style.borderWidth + style.padding) / (style.margin + style.margin + 2 * style.borderWidth + 2 * style.padding) * desiredBounds.size.y},
+                    {0.0, 0.0}
+                };
+            }
+
+            return paddedBounds;
         }
 
         // vbox

@@ -11,6 +11,20 @@ namespace tabletopify
     }
 
     template<typename T>
+    constexpr T max(T a, T b)
+    {
+        if (a > b) return a;
+        return b;
+    }
+
+    template<typename T>
+    constexpr T min(T a, T b)
+    {
+        if (a < b) return a;
+        return b;
+    }
+
+    template<typename T>
     struct vec2_
     {
         T x = 0.0;
