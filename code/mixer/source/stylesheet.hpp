@@ -25,10 +25,12 @@ namespace tabletopify
     struct style
     {
         double scrollbarSize = 20.0;
+        double scrollbarMinLength = 40.0;
         color scrollbarForeColor = color::rgb(0x60,0x60,0x60);
         color scrollbarActiveColor = color::rgb(0xc0,0x60,0x00); 
         color scrollbarBackColor = color::rgb(0xc0,0xc0,0xc0);
         double scrollbarCornerRadius = 5.0;
+        double scrollbarStep = 45.0;
         // edges margin;
         double borderSize = 3.0;
         color borderColor = color::rgb(0x00,0x00,0x00);
@@ -50,7 +52,7 @@ namespace tabletopify
             element_state_t state;
         };
 
-        const style _rootStyle = {};
+        style _rootStyle = {};
 
         friend void from_json(const nl::json&,style_resolver&);
     };

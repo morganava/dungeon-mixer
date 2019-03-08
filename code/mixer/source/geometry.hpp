@@ -202,6 +202,7 @@ namespace tabletopify
             return *this;
         }
         constexpr corners_& operator=(const corners_&) = default;
+        constexpr corners_& operator=(corners_&&) = default;
 
         constexpr operator corners_<float>() const
         {
@@ -210,6 +211,8 @@ namespace tabletopify
     };
     typedef corners_<double> corners;
     typedef corners_<float> cornersf;
+
+    void from_json(const nl::json&, corners&);
 
     // collision types
 

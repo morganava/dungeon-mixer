@@ -2,6 +2,7 @@
 
 #include "color.hpp"
 #include "array.hpp"
+#include "stylesheet.hpp"
 
 namespace tabletopify
 {
@@ -106,16 +107,6 @@ namespace tabletopify
             color font_color;
             struct
             {
-                NVGcolor color;
-            } body;
-            struct
-            {
-                double scrollbar_width = 20.0;
-                double min_scrollbar_height = 150.0;            
-                double scroll_step = 30.0;
-            } vbox;
-            struct
-            {
                 font_id_t font_face;
                 color font_color;
                 double font_size;
@@ -179,6 +170,7 @@ namespace tabletopify
                 return _data ? _data->id : NULL_WIDGET_ID;
             }
 
+            void resolve_style();
         protected:
             void focus_widget();
             void unfocus_widget();
@@ -188,6 +180,7 @@ namespace tabletopify
             void destructor_impl(void(*func)(void*));
             // called by widget<T> in calc_render_bounds
             void calc_render_bounds_impl(render_bounds(*func)(void*));
+
         private:
             // shared margin/border/padding rendering
             // returns updated bounds
@@ -199,13 +192,11 @@ namespace tabletopify
             struct 
             {
                 double margin = 10.0;
-                corners borderRadius = {20.0, 10.0, 5.0, 1.0};
-                color borderColor = color::rgb(0xff, 0xff, 0xff);
-                double borderWidth = 5.0;
-                color backgroundColor = color::rgb(0xff, 0x80, 0x00);
                 double padding = 20.0;
-            } style;
+            } s;
+
         protected:
+            const style* _style = nullptr;
             widget_data* _data = nullptr;            
         };
 
@@ -377,6 +368,7 @@ namespace tabletopify
     if (imgui::X widget##__LINE__(pdata); \
         [&](auto& self) -> bool {\
             __VA_ARGS__\
+            self.resolve_style();\
             self.calc_render_bounds();\
             self.begin();\
             self.first_render();\

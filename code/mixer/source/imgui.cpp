@@ -108,57 +108,68 @@ namespace tabletopify
             g_context.push_render_bounds(func(this));
         }
 
+        void widget_base::resolve_style()
+        {
+            this->_style = g_style_resolver.resolve();
+        }
+
         rect widget_base::render_border(const rect& desiredBounds) const
         {
-            if (style.borderWidth > 0.0)
+            const auto borderSize = this->_style->borderSize;
+            const auto borderRadius = this->_style->borderRadius;
+            const auto backgroundColor = this->_style->backgroundColor;
+
+            if (borderSize > 0.0)
             {
+                const auto borderColor = this->_style->borderColor;
+
                 rect borderBounds = desiredBounds;
-                borderBounds.position += vec2{style.margin, style.margin};
-                borderBounds.size -= 2.0 * vec2{style.margin, style.margin};
+                borderBounds.position += vec2{s.margin, s.margin};
+                borderBounds.size -= 2.0 * vec2{s.margin, s.margin};
                 if (borderBounds.size.x <= 0 || borderBounds.size.y <= 0)
                 {
                     return rect {
-                        {desiredBounds.position.x + (style.margin) / (style.margin + style.margin) * desiredBounds.size.x,
-                         desiredBounds.position.y + (style.margin) / (style.margin + style.margin) * desiredBounds.size.y},
+                        {desiredBounds.position.x + (s.margin) / (s.margin + s.margin) * desiredBounds.size.x,
+                         desiredBounds.position.y + (s.margin) / (s.margin + s.margin) * desiredBounds.size.y},
                         {0.0, 0.0}
                     };
                 }
                 // draw border
-                g_nanovg.fill_rounded_rect(borderBounds, style.borderRadius, style.borderColor);
+                g_nanovg.fill_rounded_rect(borderBounds, borderRadius, borderColor);
             }
 
             rect interiorBounds = desiredBounds;
-            interiorBounds.position += vec2{style.margin + style.borderWidth, style.margin + style.borderWidth};
-            interiorBounds.size -= 2.0 * vec2{style.margin + style.borderWidth, style.margin + style.borderWidth};
+            interiorBounds.position += vec2{s.margin + borderSize, s.margin + borderSize};
+            interiorBounds.size -= 2.0 * vec2{s.margin + borderSize, s.margin + borderSize};
             if (interiorBounds.size.x <= 0 || interiorBounds.size.y <= 0)
             {
                 return rect {
-                    {desiredBounds.position.x + (style.margin + style.borderWidth) / (style.margin + style.margin + 2 * style.borderWidth) * desiredBounds.size.x,
-                     desiredBounds.position.y + (style.margin + style.borderWidth) / (style.margin + style.margin + 2 * style.borderWidth) * desiredBounds.size.y},
+                    {desiredBounds.position.x + (s.margin + borderSize) / (s.margin + s.margin + 2 * borderSize) * desiredBounds.size.x,
+                     desiredBounds.position.y + (s.margin + borderSize) / (s.margin + s.margin + 2 * borderSize) * desiredBounds.size.y},
                     {0.0, 0.0}
                 };
             }
-            corners interiorRadius = style.borderRadius;
-            interiorRadius.topLeft -= style.borderWidth;
-            interiorRadius.topRight -= style.borderWidth;
-            interiorRadius.bottomRight -= style.borderWidth;
-            interiorRadius.bottomLeft -= style.borderWidth;
+            corners interiorRadius = borderRadius;
+            interiorRadius.topLeft -= borderSize;
+            interiorRadius.topRight -= borderSize;
+            interiorRadius.bottomRight -= borderSize;
+            interiorRadius.bottomLeft -= borderSize;
             interiorRadius.topLeft = max(interiorRadius.topLeft, 0.0);
             interiorRadius.topRight = max(interiorRadius.topRight, 0.0);
             interiorRadius.bottomRight = max(interiorRadius.bottomRight, 0.0);
             interiorRadius.bottomLeft = max(interiorRadius.bottomLeft, 0.0);
             // draw interior background color
-            g_nanovg.fill_rounded_rect(interiorBounds, interiorRadius, style.backgroundColor);
+            g_nanovg.fill_rounded_rect(interiorBounds, interiorRadius, backgroundColor);
 
             // calculate internal bounds of widget content
             rect paddedBounds = desiredBounds;
-            paddedBounds.position += vec2{style.margin + style.borderWidth + style.padding, style.margin + style.borderWidth + style.padding};
-            paddedBounds.size -= 2.0 * vec2{style.margin + style.borderWidth + style.padding, style.margin + style.borderWidth + style.padding};
+            paddedBounds.position += vec2{s.margin + borderSize + s.padding, s.margin + borderSize + s.padding};
+            paddedBounds.size -= 2.0 * vec2{s.margin + borderSize + s.padding, s.margin + borderSize + s.padding};
             if (paddedBounds.size.x <= 0 || paddedBounds.size.y <= 0)
             {
                 return rect {
-                    {desiredBounds.position.x + (style.margin + style.borderWidth + style.padding) / (style.margin + style.margin + 2 * style.borderWidth + 2 * style.padding) * desiredBounds.size.x,
-                     desiredBounds.position.y + (style.margin + style.borderWidth + style.padding) / (style.margin + style.margin + 2 * style.borderWidth + 2 * style.padding) * desiredBounds.size.y},
+                    {desiredBounds.position.x + (s.margin + borderSize + s.padding) / (s.margin + s.margin + 2 * borderSize + 2 * s.padding) * desiredBounds.size.x,
+                     desiredBounds.position.y + (s.margin + borderSize + s.padding) / (s.margin + s.margin + 2 * borderSize + 2 * s.padding) * desiredBounds.size.y},
                     {0.0, 0.0}
                 };
             }
@@ -188,7 +199,7 @@ namespace tabletopify
                 rect retval =
                 {
                     {self.bounds.position.x, self.bounds.position.y + self.internal_height - self.data()->vertical_scroll},
-                    {self.bounds.size.x - g_style.vbox.scrollbar_width, desired.size.y}
+                    {self.bounds.size.x - self._style->scrollbarSize, desired.size.y}
                 };
                 self.internal_height += desired.size.y;
                 return retval;
@@ -203,8 +214,8 @@ namespace tabletopify
             const auto scrollable_height = internal_height - height;
 
             // style constants
-            const auto scrollbar_width = g_style.vbox.scrollbar_width;
-            const auto min_scrollbar_height = g_style.vbox.min_scrollbar_height;
+            const auto scrollbar_width = _style->scrollbarSize;
+            const auto min_scrollbar_height = _style->scrollbarMinLength;
 
             // scrollbar bg rect
             scrollbar_area = {{bounds.position.x + bounds.size.x - scrollbar_width, bounds.position.y}, {scrollbar_width, height}};
@@ -220,15 +231,17 @@ namespace tabletopify
 
         void widget_vbox::second_render() const
         {
-            get_nanovg()->fill_rect(scrollbar_area, color::rgb(96,96,96));
+            get_nanovg()->fill_rect(scrollbar_area, this->_style->scrollbarBackColor);
+
+            corners radius = this->_style->scrollbarCornerRadius;
 
             if (data()->grabbing_scrollbar)
             {
-                get_nanovg()->fill_rect(scrollbar_grab_area, color::rgb(192,96,0));                
+                get_nanovg()->fill_rounded_rect(scrollbar_grab_area, radius, this->_style->scrollbarActiveColor);                
             }
             else
             {
-                get_nanovg()->fill_rect(scrollbar_grab_area, color::rgb(192,192,192));
+                get_nanovg()->fill_rounded_rect(scrollbar_grab_area, radius, this->_style->scrollbarForeColor);
             }
             
         }
@@ -287,8 +300,7 @@ namespace tabletopify
                     } 
                 }
 
-                auto scroll_step = g_style.vbox.scroll_step;
-
+                const auto scroll_step = this->_style->scrollbarStep;
                 // handle scroll wheel
                 if (!data()->grabbing_scrollbar && point_inside_rect(current_mouse_position, this->scissor))
                 {

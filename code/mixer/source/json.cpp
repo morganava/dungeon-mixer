@@ -2,6 +2,7 @@
 #include "utf8_string.hpp"
 #include "color.hpp"
 #include "uuid.hpp"
+#include "geometry.hpp"
 #include "stylesheet.hpp"
 
 namespace tabletopify
@@ -114,10 +115,80 @@ namespace tabletopify
             &bytes[12], &bytes[13], &bytes[14], &bytes[15]));
     }
 
+    // Geometry
+
+    void from_json(const nl::json& j, corners& c)
+    {
+        if (j.is_object())
+        {
+            if(auto it = j.find("topLeft"); it != j.end())
+            {
+                MX_THROW_IF_FALSE(it->is_number());
+                c.topLeft = it->get<double>();
+            }
+            if(auto it = j.find("topRight"); it != j.end())
+            {
+                MX_THROW_IF_FALSE(it->is_number());
+                c.topRight = it->get<double>();
+            }
+            if(auto it = j.find("bottomRight"); it != j.end())
+            {
+                MX_THROW_IF_FALSE(it->is_number());
+                c.bottomRight = it->get<double>();
+            }
+            if(auto it = j.find("bottomLeft"); it != j.end())
+            {
+                MX_THROW_IF_FALSE(it->is_number());
+                c.bottomLeft = it->get<double>();
+            }
+        }
+        else if(j.is_array())
+        {
+            MX_THROW_IF_FALSE(j.size() == 4);
+            c.topLeft = j[0].get<double>();
+            c.topRight = j[1].get<double>();
+            c.bottomRight = j[2].get<double>();
+            c.bottomLeft = j[3].get<double>();
+        }
+        else if(j.is_number())
+        {
+            c.topLeft = c.topRight = c.bottomRight = c.bottomLeft = j.get<double>();
+        }
+    }
+
     // style_resolver
     void from_json(const nl::json& j, style_resolver& sr)
     {
         MX_THROW_IF_FALSE(j.is_object());
+
+        // populate the root style
+        auto jRoot = j.find("*");
+        if(jRoot != j.end()) {
+            auto& rs = sr._rootStyle;
+
+            auto getVal = [](const nl::json& j, const char* name, auto fallback) -> decltype(fallback)
+            {
+                auto retval = fallback;
+                if(auto it = j.find(name); it != j.end())
+                {
+                    retval = it->get<decltype(retval)>();                
+                }
+                return retval;
+            };
+
+            #define SET_STYLE_ATTRIBUTE(X, FALLBACK) rs.X = getVal(*jRoot, #X, FALLBACK)
+            SET_STYLE_ATTRIBUTE(scrollbarSize, 20.0);
+            SET_STYLE_ATTRIBUTE(scrollbarMinLength, 40.0);
+            SET_STYLE_ATTRIBUTE(scrollbarForeColor, color::rgb(0xc0, 0xc0, 0xc0));
+            SET_STYLE_ATTRIBUTE(scrollbarActiveColor, color::rgb(0xc0, 0x60, 0x00));
+            SET_STYLE_ATTRIBUTE(scrollbarBackColor, color::rgb(0x60, 0x60, 0x60));
+            SET_STYLE_ATTRIBUTE(scrollbarCornerRadius, 3.0);
+            SET_STYLE_ATTRIBUTE(scrollbarStep, 45.0);
+            SET_STYLE_ATTRIBUTE(borderSize, 2.0);
+            SET_STYLE_ATTRIBUTE(borderColor, color::rgb(0x00, 0x00, 0x00));
+            SET_STYLE_ATTRIBUTE(borderRadius, corners(0.0));
+            SET_STYLE_ATTRIBUTE(backgroundColor, color::rgb(0xff,0xff,0xff));
+        }
 
         for(auto& el : j.items())
         {

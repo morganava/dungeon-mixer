@@ -152,13 +152,10 @@ namespace tabletopify
             {
                 case draw_command::set_scissor:
                 {
-                    float pos_x, pos_y, size_x, size_y;
-                    MX_THROW_IF_FALSE(cq.next(pos_x));
-                    MX_THROW_IF_FALSE(cq.next(pos_y));
-                    MX_THROW_IF_FALSE(cq.next(size_x));
-                    MX_THROW_IF_FALSE(cq.next(size_y));
+                    rectf r;
+                    MX_THROW_IF_FALSE(cq.next(r));
 
-                    nvgScissor(_ctx, pos_x, pos_y, size_x, size_y);
+                    nvgScissor(_ctx, r.position.x, r.position.y, r.size.x, r.size.y);
                 }
                 break;
                 case draw_command::fill_rect:
@@ -259,14 +256,14 @@ namespace tabletopify
         this->swap_buffers();
     }
 
-    void nanovg::set_scissor(const rect& r)
+    void nanovg::set_scissor(const rectf& r)
     {
         auto& cq = _command_queue.current;
         cq.push_back(draw_command::set_scissor);
         cq.push_back(r);
     }
 
-    void nanovg::fill_rect(const rect& r, const color& col)
+    void nanovg::fill_rect(const rectf& r, const color& col)
     {
         auto& cq = _command_queue.current;
         cq.push_back(draw_command::fill_rect);
