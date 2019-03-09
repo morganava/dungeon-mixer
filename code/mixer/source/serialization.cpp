@@ -62,7 +62,7 @@ namespace tabletopify
 
                 using imgui::g_style;
                 auto button = json["button"];
-                g_style.button.font_face = g_nanovg.create_font(get_skins_path() / (std::string)button["font"]);
+                // g_style.button.font_face = g_nanovg.create_font(get_skins_path() / (std::string)button["font"]);
                 g_style.button.font_color = button["font_color"];
                 g_style.button.font_size = button["font_size"];
                 g_style.button.background_color = button["background_color"];
@@ -74,7 +74,7 @@ namespace tabletopify
 
     void load_audio_manifests()
     {
-        worker(Worker_FileIO).enqueue([]() -> void 
+        worker(Worker_FileIO).enqueue([]() -> void
         {
             // iterate over each subdirectory in the lilbrary directory
             for(auto& it : fs::directory_iterator(get_library_path()))

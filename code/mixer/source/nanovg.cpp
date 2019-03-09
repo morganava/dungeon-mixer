@@ -29,7 +29,7 @@ namespace tabletopify
             if (_read_head + len <= _raw.data() + _raw.size())
             {
                 sv = utf8_string_view {
-                    reinterpret_cast<const utf8proc_uint8_t*>(_read_head), 
+                    reinterpret_cast<const utf8proc_uint8_t*>(_read_head),
                     reinterpret_cast<const utf8proc_uint8_t*>(_read_head) + len
                 };
                 _read_head += len;
@@ -62,7 +62,7 @@ namespace tabletopify
         MX_THROW_IF_NULL(_ctx);
     }
 
-    font_id_t nanovg::create_font(fs::path&& path)
+    font_id nanovg::create_font(fs::path&& path)
     {
         auto fontFilePath = fs::canonical(path);
         auto it = _font_map.find(fontFilePath);
@@ -70,7 +70,7 @@ namespace tabletopify
         {
             // index our font face id will be stored
             auto index = _nvg_font_faces.size();
-            _font_map.insert({fontFilePath, index});            
+            _font_map.insert({fontFilePath, index});
             _nvg_font_faces.push_back(INVALID_NVG_FONT_ID);
 
             worker(Worker_FileIO).enqueue([index=index, fontFilePath=std::move(fontFilePath)]() -> void
@@ -86,7 +86,7 @@ namespace tabletopify
             });
 
             return index;
-        } 
+        }
         return it->second;
     }
 
@@ -110,7 +110,7 @@ namespace tabletopify
     {
         glfwSwapBuffers(g_window);
         std::swap(_command_queue.current, _command_queue.previous);
-        _command_queue.current.clear();        
+        _command_queue.current.clear();
     }
 
     typedef enum draw_command : uint8_t
@@ -175,7 +175,7 @@ namespace tabletopify
                     nvgBeginPath(_ctx);
                     nvgRoundedRectVarying(_ctx, r.position.x, r.position.y, r.size.x, r.size.y, rad.topLeft, rad.topRight, rad.bottomRight, rad.bottomLeft);
                     nvgFillColor(_ctx, col);
-                    nvgFill(_ctx);                    
+                    nvgFill(_ctx);
                 }
                 break;
                 case draw_command::draw_text:
@@ -186,7 +186,7 @@ namespace tabletopify
                     MX_THROW_IF_FALSE(cq.next(size_x));
                     MX_THROW_IF_FALSE(cq.next(size_y));
 
-                    font_id_t font;
+                    font_id font;
                     float size;
                     color col;
                     halign_t halign;
@@ -272,11 +272,15 @@ namespace tabletopify
         cq.push_back(col);
     }
 
-    void nanovg::draw_text(const rectf& bounds, font_id_t font, float size, const color& col, halign_t halign, valign_t valign, const utf8_string& str)
+    void nanovg::draw_text(const rectf& bounds, font_id font, float size, const color& col, halign_t halign, valign_t valign, const utf8_string& str)
     {
+        if (font == font_id::invalid) {
+            return;
+        }
+
         auto& cq = _command_queue.current;
         cq.push_back(draw_command::draw_text);
-        cq.push_back(bounds);        
+        cq.push_back(bounds);
         cq.push_back(font);
         cq.push_back(size);
         cq.push_back(col);

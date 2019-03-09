@@ -1,9 +1,11 @@
+#include "serialization.hpp"
 #include "utilities.hpp"
 #include "utf8_string.hpp"
 #include "color.hpp"
 #include "uuid.hpp"
 #include "geometry.hpp"
 #include "stylesheet.hpp"
+#include "nanovg.hpp"
 
 namespace tabletopify
 {
@@ -207,6 +209,14 @@ namespace tabletopify
         }
     }
 
+    // font_id
+    void from_json(const nl::json& j, font_id& fi)
+    {
+        MX_THROW_IF_FALSE(j.is_string());
+
+        fi = g_nanovg.create_font(get_skins_path() / j.get<std::string>());
+    }
+
     // style_resolver
     void from_json(const nl::json& j, style_resolver& sr)
     {
@@ -241,6 +251,7 @@ namespace tabletopify
             SET_STYLE_ATTRIBUTE(borderRadius, corners(0.0));
             SET_STYLE_ATTRIBUTE(padding, edges(0.0));
             SET_STYLE_ATTRIBUTE(backgroundColor, color::rgb(0xff,0xff,0xff));
+            SET_STYLE_ATTRIBUTE(fontFamily, font_id::invalid);
         }
 
         for(auto& el : j.items())

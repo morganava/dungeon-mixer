@@ -5,13 +5,13 @@
 #include "input.hpp"
 #include "hash.hpp"
 #include "nanovg.hpp"
-#include "imgui.hpp" 
+#include "imgui.hpp"
 #include "ui.hpp"
 
 namespace tabletopify
 {
     namespace imgui
-    {   
+    {
         widget_id_t next_widget_id()
         {
             static widget_id_t nextId = 0;
@@ -85,11 +85,11 @@ namespace tabletopify
             // post-child updates and renders
             func(this);
 
-            g_context.pop_render_bounds();   
-        } 
+            g_context.pop_render_bounds();
+        }
 
         void widget_base::calc_render_bounds_impl(render_bounds(*func)(void*))
-        { 
+        {
             const auto& rb = g_context.peek_render_bounds();
 
             this->bounds = rb.eval(this->bounds);
@@ -186,7 +186,7 @@ namespace tabletopify
             if (g_input.get_mouse_clicked(mouse_button::left, this->scissor))
             {
                 this->focus_widget();
-            } 
+            }
             else if (g_input.get_mouse_clicked(mouse_button::left))
             {
                 this->unfocus_widget();
@@ -239,13 +239,13 @@ namespace tabletopify
 
             if (data()->grabbing_scrollbar)
             {
-                get_nanovg()->fill_rounded_rect(scrollbar_grab_area, radius, this->_style->scrollbarActiveColor);                
+                get_nanovg()->fill_rounded_rect(scrollbar_grab_area, radius, this->_style->scrollbarActiveColor);
             }
             else
             {
                 get_nanovg()->fill_rounded_rect(scrollbar_grab_area, radius, this->_style->scrollbarForeColor);
             }
-            
+
         }
 
         void widget_vbox::end()
@@ -258,7 +258,7 @@ namespace tabletopify
             if (internal_height < height)
             {
                 data()->vertical_scroll = 0.0;
-            } 
+            }
             else
             {
                 auto prev_mouse_down = g_input.get_mouse_button_state(mouse_button::left, input_frame::previous);
@@ -266,7 +266,7 @@ namespace tabletopify
                 auto current_mouse_position = g_input.get_mouse_position(input_frame::current);
 
                 // handle click and drag
-                if (!data()->grabbing_scrollbar) 
+                if (!data()->grabbing_scrollbar)
                 {
                     // mouse clicked
                     if (!prev_mouse_down && current_mouse_down)
@@ -282,10 +282,10 @@ namespace tabletopify
                         {
                             data()->grabbing_scrollbar = true;
                             data()->grab_offset_y = scrollbar_grab_area.size.y / 2.0;
-                            data()->vertical_scroll = (current_mouse_position.y - bounds.position.y - data()->grab_offset_y) / 
+                            data()->vertical_scroll = (current_mouse_position.y - bounds.position.y - data()->grab_offset_y) /
                                                     (bounds.size.y - scrollbar_grab_area.size.y) * scrollable_height;
                         }
-                    } 
+                    }
                 }
                 else
                 {
@@ -297,9 +297,9 @@ namespace tabletopify
                     // drag scroll
                     else
                     {
-                        data()->vertical_scroll = (current_mouse_position.y - bounds.position.y - data()->grab_offset_y) / 
+                        data()->vertical_scroll = (current_mouse_position.y - bounds.position.y - data()->grab_offset_y) /
                                                 (bounds.size.y - scrollbar_grab_area.size.y) * scrollable_height;
-                    } 
+                    }
                 }
 
                 const auto scroll_step = this->_style->scrollbarStep;
@@ -340,7 +340,7 @@ namespace tabletopify
 
                 // clamp it
                 data()->vertical_scroll = clamp<double>(0, data()->vertical_scroll, scrollable_height);
-            }            
+            }
         }
 
         // Hbox
@@ -375,7 +375,7 @@ namespace tabletopify
             {
                 on_mouse_over(current_position);
 
-                if (current_position != previous_position) 
+                if (current_position != previous_position)
                 {
                     on_mouse_move(current_position);
                 }
@@ -392,14 +392,14 @@ namespace tabletopify
 
         void widget_label::first_render() const
         {
-            g_nanovg.draw_text(
-                bounds,
-                data()->font,
-                data()->text_size,
-                data()->text_color,
-                data()->text_halign,
-                data()->text_valign,
-                data()->text);
+            // g_nanovg.draw_text(
+            //     bounds,
+            //     data()->font,
+            //     data()->text_size,
+            //     data()->text_color,
+            //     data()->text_halign,
+            //     data()->text_valign,
+            //     data()->text);
         }
 
         // Button
@@ -409,11 +409,11 @@ namespace tabletopify
             if (g_input.get_mouse_clicked(mouse_button::left, this->scissor))
             {
                 this->focus_widget();
-            } 
+            }
             else if (g_input.get_mouse_clicked(mouse_button::left))
             {
                 this->unfocus_widget();
-            }            
+            }
         }
 
         void widget_button::first_render() const
@@ -434,10 +434,11 @@ namespace tabletopify
             {
                 g_nanovg.fill_rect(bounds, g_style.button.background_color);
             }
-            
+
             g_nanovg.draw_text(
                 bounds,
-                g_style.button.font_face,
+                this->_style->fontFamily,
+                // g_style.button.font_face,
                 g_style.button.font_size,
                 g_style.button.font_color,
                 halign::center,
@@ -450,7 +451,7 @@ namespace tabletopify
             if (g_input.get_mouse_clicked(mouse_button::left, this->scissor))
             {
                 this->on_click();
-            }    
+            }
         }
     }
 }

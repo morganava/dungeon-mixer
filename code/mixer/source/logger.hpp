@@ -5,7 +5,7 @@
 #define MX_LOG_ERROR(...) get_logger()->log(tabletopify::LogLevel_Error, __VA_ARGS__)
 #define MX_LOG_INFO(...) get_logger()->log(tabletopify::LogLevel_Info, __VA_ARGS__)
 #define MX_LOG_TRACE(...) get_logger()->log(tabletopify::LogLevel_Info, __FILE__"(" __STR_LINE__ "): " __VA_ARGS__)
-
+#define MX_LOG_INFO_BLOCKING(...) get_logger()->blocking_log(tabletopify::LogLevel_Info, __VA_ARGS__)
 namespace tabletopify
 {
     typedef enum
@@ -30,7 +30,7 @@ namespace tabletopify
             {
                 std::chrono::duration<double> duration(now - _start);
                 write_message(lvl, duration.count(), msg.c_str());
-            });            
+            });
         }
 
         template<size_t N>
@@ -44,7 +44,7 @@ namespace tabletopify
                 write_message(lvl, duration.count(), msg);
             });
         }
-        
+
         template<size_t N, typename... Args>
         void log(log_level_t lvl, const char (&format)[N], const Args&... args)
         {
@@ -98,7 +98,7 @@ namespace tabletopify
 
                 auto msg = fmt::format(format, args...);
                 write_message(lvl, duration.count(), msg.c_str());
-            }, &finished);            
+            }, &finished);
             while(!finished) std::this_thread::yield();
         }
 
@@ -108,7 +108,7 @@ namespace tabletopify
         log_level_t _log_level;
         FILE* _log_file;
         const static std::chrono::system_clock::time_point _start;
-        constexpr static const char* _log_format_strings[] = 
+        constexpr static const char* _log_format_strings[] =
         {
             "[{:f}][ERROR] {}\n",
             "[{:f}][INFO] {}\n",

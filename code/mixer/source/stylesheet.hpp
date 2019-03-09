@@ -4,6 +4,7 @@
 #include "array.hpp"
 #include "geometry.hpp"
 #include "color.hpp"
+#include "nanovg.hpp"
 
 namespace tabletopify
 {
@@ -27,7 +28,7 @@ namespace tabletopify
         double scrollbarSize = 20.0;
         double scrollbarMinLength = 40.0;
         color scrollbarForeColor = color::rgb(0x60,0x60,0x60);
-        color scrollbarActiveColor = color::rgb(0xc0,0x60,0x00); 
+        color scrollbarActiveColor = color::rgb(0xc0,0x60,0x00);
         color scrollbarBackColor = color::rgb(0xc0,0xc0,0xc0);
         double scrollbarCornerRadius = 5.0;
         double scrollbarStep = 45.0;
@@ -37,6 +38,7 @@ namespace tabletopify
         corners borderRadius = 0.0;
         edges padding;
         color backgroundColor= color::rgb(0xff,0xff,0xff);
+        font_id fontFamily = font_id::invalid;
     };
 
     class style_resolver
@@ -52,7 +54,7 @@ namespace tabletopify
             element_state_t state;
         };
 
-        style _rootStyle = {};
+        style _rootStyle;
 
         friend void from_json(const nl::json&,style_resolver&);
     };

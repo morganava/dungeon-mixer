@@ -103,11 +103,10 @@ namespace tabletopify
 
         struct stylesheet
         {
-            font_id_t font;
-            color font_color;
+            // color font_color;
             struct
             {
-                font_id_t font_face;
+                // font_id_t font_face;
                 color font_color;
                 double font_size;
                 color background_color;
@@ -315,7 +314,7 @@ namespace tabletopify
         struct label_data : widget_data
         {
             utf8_string text;
-            font_id_t font = 0;
+            // font_id_t font = 0;
             float text_size = 12.0f;
             color text_color = color::rgb(0,0,0);
             halign_t text_halign = halign::left;
