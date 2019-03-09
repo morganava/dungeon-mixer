@@ -118,19 +118,21 @@ namespace tabletopify
             const auto borderSize = this->_style->borderSize;
             const auto borderRadius = this->_style->borderRadius;
             const auto backgroundColor = this->_style->backgroundColor;
+            const auto margin = this->_style->margin;
+            const auto padding = this->_style->padding;
 
             if (borderSize > 0.0)
             {
                 const auto borderColor = this->_style->borderColor;
 
                 rect borderBounds = desiredBounds;
-                borderBounds.position += vec2{s.margin, s.margin};
-                borderBounds.size -= 2.0 * vec2{s.margin, s.margin};
+                borderBounds.position += vec2{margin.left, margin.top};
+                borderBounds.size -= vec2{margin.left + margin.right, margin.top + margin.bottom};
                 if (borderBounds.size.x <= 0 || borderBounds.size.y <= 0)
                 {
                     return rect {
-                        {desiredBounds.position.x + (s.margin) / (s.margin + s.margin) * desiredBounds.size.x,
-                         desiredBounds.position.y + (s.margin) / (s.margin + s.margin) * desiredBounds.size.y},
+                        {desiredBounds.position.x + (margin.left) / (margin.left + margin.right) * desiredBounds.size.x,
+                         desiredBounds.position.y + (margin.top) / (margin.top + margin.bottom) * desiredBounds.size.y},
                         {0.0, 0.0}
                     };
                 }
@@ -139,13 +141,13 @@ namespace tabletopify
             }
 
             rect interiorBounds = desiredBounds;
-            interiorBounds.position += vec2{s.margin + borderSize, s.margin + borderSize};
-            interiorBounds.size -= 2.0 * vec2{s.margin + borderSize, s.margin + borderSize};
+            interiorBounds.position += vec2{margin.left + borderSize, margin.top + borderSize};
+            interiorBounds.size -= 2.0 * vec2{borderSize, borderSize} + vec2{margin.left + margin.right, margin.top + margin.bottom};
             if (interiorBounds.size.x <= 0 || interiorBounds.size.y <= 0)
             {
                 return rect {
-                    {desiredBounds.position.x + (s.margin + borderSize) / (s.margin + s.margin + 2 * borderSize) * desiredBounds.size.x,
-                     desiredBounds.position.y + (s.margin + borderSize) / (s.margin + s.margin + 2 * borderSize) * desiredBounds.size.y},
+                    {desiredBounds.position.x + (margin.left + borderSize) / (margin.left + margin.right + 2 * borderSize) * desiredBounds.size.x,
+                     desiredBounds.position.y + (margin.top + borderSize) / (margin.top + margin.bottom + 2 *borderSize) * desiredBounds.size.y},
                     {0.0, 0.0}
                 };
             }
@@ -163,13 +165,13 @@ namespace tabletopify
 
             // calculate internal bounds of widget content
             rect paddedBounds = desiredBounds;
-            paddedBounds.position += vec2{s.margin + borderSize + s.padding, s.margin + borderSize + s.padding};
-            paddedBounds.size -= 2.0 * vec2{s.margin + borderSize + s.padding, s.margin + borderSize + s.padding};
+            paddedBounds.position += vec2{margin.left + borderSize + padding.left, margin.top + borderSize + padding.top};
+            paddedBounds.size -= 2.0 * vec2{borderSize, borderSize} + vec2{margin.left + margin.right, margin.top + margin.bottom} + vec2{padding.left + padding.right, padding.top + padding.bottom};
             if (paddedBounds.size.x <= 0 || paddedBounds.size.y <= 0)
             {
                 return rect {
-                    {desiredBounds.position.x + (s.margin + borderSize + s.padding) / (s.margin + s.margin + 2 * borderSize + 2 * s.padding) * desiredBounds.size.x,
-                     desiredBounds.position.y + (s.margin + borderSize + s.padding) / (s.margin + s.margin + 2 * borderSize + 2 * s.padding) * desiredBounds.size.y},
+                    {desiredBounds.position.x + (margin.left + borderSize + padding.left) / (margin.left + margin.right + 2 * borderSize + padding.left + padding.right) * desiredBounds.size.x,
+                     desiredBounds.position.y + (margin.top + borderSize + padding.top) / (margin.top + margin.bottom + 2 * borderSize + padding.top + padding.bottom) * desiredBounds.size.y},
                     {0.0, 0.0}
                 };
             }

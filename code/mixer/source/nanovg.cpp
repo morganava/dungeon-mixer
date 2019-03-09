@@ -14,15 +14,6 @@ namespace tabletopify
     //  hash_buffer
 
     template<>
-    void hash_buffer::push_back<rect>(const rect& val)
-    {
-        push_back<float>(val.position.x);
-        push_back<float>(val.position.y);
-        push_back<float>(val.size.x);
-        push_back<float>(val.size.y);        
-    }
-
-    template<>
     void hash_buffer::push_back<utf8_string>(const utf8_string& str)
     {
         push_back<size_t>(str.size());
@@ -101,8 +92,6 @@ namespace tabletopify
 
     bool nanovg::early_exit()
     {
-        return false;
-
         if (_command_queue.current == _command_queue.previous)
         {
             ++_same_frames;
@@ -146,6 +135,9 @@ namespace tabletopify
 
         draw_command_t cmd;
         auto& cq = _command_queue.current;
+
+        MX_LOG_INFO("command queue size : {}", cq.size());
+
         while(cq.next(cmd))
         {
             switch(cmd)
@@ -280,7 +272,7 @@ namespace tabletopify
         cq.push_back(col);
     }
 
-    void nanovg::draw_text(const rect& bounds, font_id_t font, float size, const color& col, halign_t halign, valign_t valign, const utf8_string& str)
+    void nanovg::draw_text(const rectf& bounds, font_id_t font, float size, const color& col, halign_t halign, valign_t valign, const utf8_string& str)
     {
         auto& cq = _command_queue.current;
         cq.push_back(draw_command::draw_text);

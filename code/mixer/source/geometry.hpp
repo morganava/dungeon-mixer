@@ -2,6 +2,8 @@
 
 namespace tabletopify
 {
+    // math functions
+
     template<typename T>
     constexpr T clamp(const T& min, const T& val, const T& max)
     {
@@ -24,6 +26,8 @@ namespace tabletopify
         return b;
     }
 
+    // vector 2
+
     template<typename T>
     struct vec2_
     {
@@ -33,12 +37,12 @@ namespace tabletopify
         constexpr vec2_() = default;
         constexpr vec2_(const vec2_&) = default;
         constexpr vec2_(vec2_&&) = default;
-        
+
         constexpr vec2_(double x, double y)
         : x(x)
         , y(y)
         { }
-        
+
         constexpr vec2_& operator=(const vec2_&) = default;
 
         constexpr vec2_ operator+(const vec2_& that) const
@@ -104,12 +108,14 @@ namespace tabletopify
     typedef vec2_<double> vec2;
     typedef vec2_<float> vec2f;
 
+    // point
+
     template<typename T>
     struct point_
     {
         vec2_<T> position;
         point_(const vec2_<T>& p)
-        : position(p) 
+        : position(p)
         { }
 
         constexpr operator point_<float>() const
@@ -119,6 +125,8 @@ namespace tabletopify
     };
     typedef point_<double> point;
     typedef point_<float> pointf;
+
+    // rectangle
 
     template<typename T>
     struct rect_
@@ -154,6 +162,8 @@ namespace tabletopify
     typedef rect_<double> rect;
     typedef rect_<float> rectf;
 
+    // circle
+
     template<typename T>
     struct circle_
     {
@@ -168,14 +178,22 @@ namespace tabletopify
     typedef circle_<double> circle;
     typedef circle_<float> circlef;
 
+    // corners (for rounded rects for instance)
+
     template<typename T>
     struct corners_
     {
-        T topLeft = 0;
-        T topRight = 0;
-        T bottomRight = 0;
-        T bottomLeft = 0;
-
+        union
+        {
+            struct
+            {
+                T topLeft = 0;
+                T topRight = 0;
+                T bottomRight = 0;
+                T bottomLeft = 0;
+            };
+            T raw[4];
+        };
         constexpr corners_(T val)
         : topLeft(val)
         , topRight(val)
@@ -193,12 +211,12 @@ namespace tabletopify
         constexpr corners_(const corners_&) = default;
         constexpr corners_(corners_&&) = default;
 
-        constexpr corners_& operator=(T val) 
+        constexpr corners_& operator=(T val)
         {
-            topLeft = val;
-            topRight = val;
-            bottomRight = val;
-            bottomLeft = val;
+            for(auto& r : raw)
+            {
+                r = val;
+            }
             return *this;
         }
         constexpr corners_& operator=(const corners_&) = default;
@@ -214,7 +232,61 @@ namespace tabletopify
 
     void from_json(const nl::json&, corners&);
 
-    // collision types
+    template<typename T>
+    struct edges_
+    {
+        union
+        {
+            struct
+            {
+                T top = 0;
+                T right = 0;
+                T bottom = 0;
+                T left = 0;
+            };
+            T raw[4];
+        };
+
+        constexpr edges_(T val)
+        : top(val)
+        , right(val)
+        , bottom(val)
+        , left(val)
+        { }
+        constexpr edges_(T t, T r, T b, T l)
+        : top(t)
+        , right(r)
+        , bottom(b)
+        , left(l)
+        { }
+
+        constexpr edges_() = default;
+        constexpr edges_(const edges_&) = default;
+        constexpr edges_(edges_&&) = default;
+
+        constexpr edges_& operator=(T val)
+        {
+            for(auto& r : raw)
+            {
+                r = val;
+            }
+            return *this;
+        }
+        constexpr edges_& operator=(const edges_&) = default;
+        constexpr edges_& operator=(edges_&&) = default;
+
+        constexpr operator edges_<float>() const
+        {
+            return {static_cast<float>(top), static_cast<float>(right), static_cast<float>(bottom), static_cast<float>(left)};
+        }
+    };
+    typedef edges_<double> edges;
+    typedef edges_<float> edgesf;
+
+    void from_json(const nl::json&, edges&);
+
+
+    // collision checks
 
     constexpr bool point_inside_circle(const point& p, const circle& c)
     {

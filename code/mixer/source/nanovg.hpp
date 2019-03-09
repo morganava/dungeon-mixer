@@ -45,6 +45,11 @@ namespace tabletopify
             return std::memcmp(_raw.data(), that._raw.data(), _raw.size()) == 0;
         }
 
+        size_t size() const
+        {
+            return _raw.size();
+        }
+
     private:
         void push_back(const void* pVal, size_t valSize);
 
@@ -83,7 +88,7 @@ namespace tabletopify
         void set_scissor(const rectf&);
         void fill_rect(const rectf&, const color&);
         void fill_rounded_rect(const rectf&, const cornersf&, const color&);
-        void draw_text(const rect& bounds, font_id_t font, float size, const color& col,halign_t halign, valign_t valign, const utf8_string& str);
+        void draw_text(const rectf& bounds, font_id_t font, float size, const color& col,halign_t halign, valign_t valign, const utf8_string& str);
     private:
         NVGcontext* _ctx = nullptr;
         size_t _same_frames = 0;

@@ -92,7 +92,7 @@ namespace tabletopify
             rect eval(const rect& desired) const;
         };
 
-        // widget id        
+        // widget id
 
         typedef size_t widget_id_t;
         constexpr widget_id_t NULL_WIDGET_ID = 0;
@@ -189,15 +189,9 @@ namespace tabletopify
             rect bounds = {};
             rect scissor = {};
 
-            struct 
-            {
-                double margin = 10.0;
-                double padding = 20.0;
-            } s;
-
         protected:
             const style* _style = nullptr;
-            widget_data* _data = nullptr;            
+            widget_data* _data = nullptr;
         };
 
         template<typename T, typename WIDGET_DATA=widget_data>
@@ -221,7 +215,7 @@ namespace tabletopify
                     self->middle();
                     self->second_render();
                     // our final update
-                    self->end();                    
+                    self->end();
                 });
             }
 
@@ -253,7 +247,7 @@ namespace tabletopify
 
         struct vbox_data : widget_data
         {
-            // vertical offset down 
+            // vertical offset down
             double vertical_scroll = 0.0;
             // is user grabbng scrollbar with mouse
             bool grabbing_scrollbar = false;
@@ -295,7 +289,7 @@ namespace tabletopify
             array_view<double> widths;
         private:
             size_t _index = 0;
-            float _horizontal_offset = 0.0f;            
+            float _horizontal_offset = 0.0f;
         };
 
         // debug renderer
@@ -304,7 +298,7 @@ namespace tabletopify
         {
             using widget::widget;
 
-            void begin(); 
+            void begin();
             void first_render() const;
             render_bounds_callback_t get_bounds_callback() { return nullptr; }
             void middle() {}
@@ -331,13 +325,13 @@ namespace tabletopify
         struct widget_label : public widget<widget_label, label_data>
         {
             using widget::widget;
-            
+
             void begin() {}
             void first_render() const;
             render_bounds_callback_t get_bounds_callback() { return nullptr; }
             void middle() {}
             void second_render() const {}
-            void end() {}            
+            void end() {}
         };
 
         /// button

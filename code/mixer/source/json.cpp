@@ -26,7 +26,7 @@ namespace tabletopify
     {
         js = fmt::format("rgba({:f},{:f},{:f},{:f})", col.r, col.g, col.b, col.a);
     }
-    
+
     void from_json(const nl::json& js, color& col)
     {
         MX_THROW_IF_FALSE(js.is_string());
@@ -145,14 +145,65 @@ namespace tabletopify
         else if(j.is_array())
         {
             MX_THROW_IF_FALSE(j.size() == 4);
-            c.topLeft = j[0].get<double>();
-            c.topRight = j[1].get<double>();
-            c.bottomRight = j[2].get<double>();
-            c.bottomLeft = j[3].get<double>();
+            for(size_t i = 0; i < 4; ++i)
+            {
+                const auto& j_i = j[i];
+                MX_THROW_IF_FALSE(j_i.is_number());
+                c.raw[i] = j_i.get<double>();
+            }
         }
         else if(j.is_number())
         {
-            c.topLeft = c.topRight = c.bottomRight = c.bottomLeft = j.get<double>();
+            const auto val = j.get<double>();
+            for(size_t i = 0; i < 4; ++i)
+            {
+                c.raw[i] = val;
+            }
+        }
+    }
+
+    void from_json(const nl::json& j, edges& e)
+    {
+        if (j.is_object())
+        {
+            if(auto it = j.find("top"); it != j.end())
+            {
+                MX_THROW_IF_FALSE(it->is_number());
+                e.top = it->get<double>();
+            }
+            if(auto it = j.find("right"); it != j.end())
+            {
+                MX_THROW_IF_FALSE(it->is_number());
+                e.right = it->get<double>();
+            }
+            if(auto it = j.find("bottom"); it != j.end())
+            {
+                MX_THROW_IF_FALSE(it->is_number());
+                e.bottom = it->get<double>();
+            }
+            if(auto it = j.find("left"); it != j.end())
+            {
+                MX_THROW_IF_FALSE(it->is_number());
+                e.left = it->get<double>();
+            }
+        }
+        else if(j.is_array())
+        {
+            MX_THROW_IF_FALSE(j.size() == 4);
+            for(size_t i = 0; i < 4; ++i)
+            {
+                const auto& j_i = j[i];
+                MX_THROW_IF_FALSE(j_i.is_number());
+                e.raw[i] = j_i.get<double>();
+            }
+        }
+        else if(j.is_number())
+        {
+            const auto val = j.get<double>();
+            for(size_t i = 0; i < 4; ++i)
+            {
+                e.raw[i] = val;
+            }
         }
     }
 
@@ -171,7 +222,7 @@ namespace tabletopify
                 auto retval = fallback;
                 if(auto it = j.find(name); it != j.end())
                 {
-                    retval = it->get<decltype(retval)>();                
+                    retval = it->get<decltype(retval)>();
                 }
                 return retval;
             };
@@ -184,9 +235,11 @@ namespace tabletopify
             SET_STYLE_ATTRIBUTE(scrollbarBackColor, color::rgb(0x60, 0x60, 0x60));
             SET_STYLE_ATTRIBUTE(scrollbarCornerRadius, 3.0);
             SET_STYLE_ATTRIBUTE(scrollbarStep, 45.0);
+            SET_STYLE_ATTRIBUTE(margin, edges(0.0));
             SET_STYLE_ATTRIBUTE(borderSize, 2.0);
             SET_STYLE_ATTRIBUTE(borderColor, color::rgb(0x00, 0x00, 0x00));
             SET_STYLE_ATTRIBUTE(borderRadius, corners(0.0));
+            SET_STYLE_ATTRIBUTE(padding, edges(0.0));
             SET_STYLE_ATTRIBUTE(backgroundColor, color::rgb(0xff,0xff,0xff));
         }
 

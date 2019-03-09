@@ -31,11 +31,11 @@ namespace tabletopify
         color scrollbarBackColor = color::rgb(0xc0,0xc0,0xc0);
         double scrollbarCornerRadius = 5.0;
         double scrollbarStep = 45.0;
-        // edges margin;
+        edges margin;
         double borderSize = 3.0;
         color borderColor = color::rgb(0x00,0x00,0x00);
         corners borderRadius = 0.0;
-        // edges padding;
+        edges padding;
         color backgroundColor= color::rgb(0xff,0xff,0xff);
     };
 
@@ -48,7 +48,7 @@ namespace tabletopify
         struct selector
         {
             element_type_t type;
-            class array<class utf8_string> classes;
+            array<class utf8_string> classes;
             element_state_t state;
         };
 
