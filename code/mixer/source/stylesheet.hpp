@@ -23,7 +23,7 @@ namespace tabletopify
         active,
     } element_state_t;
 
-    struct style
+    struct style_sheet
     {
         // scrollbar
         double scrollbarSize = 20.0;
@@ -55,7 +55,7 @@ namespace tabletopify
     class style_resolver
     {
     public:
-        const style* resolve() const;
+        const style_sheet* resolve(const char* elementType) const;
     private:
 
         struct selector
@@ -65,7 +65,7 @@ namespace tabletopify
             element_state_t state;
         };
 
-        style _rootStyle;
+        style_sheet _rootStyle;
 
         friend void from_json(const nl::json&,style_resolver&);
     };

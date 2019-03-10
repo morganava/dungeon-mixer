@@ -110,20 +110,20 @@ namespace tabletopify
 
         void widget_base::resolve_style()
         {
-            this->_style = g_style_resolver.resolve();
+            this->_style = g_style_resolver.resolve(nullptr);
         }
 
         rect widget_base::render_border(const rect& desiredBounds) const
         {
-            const auto borderSize = this->_style->borderSize;
-            const auto borderRadius = this->_style->borderRadius;
-            const auto backgroundColor = this->_style->backgroundColor;
-            const auto margin = this->_style->margin;
-            const auto padding = this->_style->padding;
+            const auto borderSize = this->style().borderSize;
+            const auto borderRadius = this->style().borderRadius;
+            const auto backgroundColor = this->style().backgroundColor;
+            const auto margin = this->style().margin;
+            const auto padding = this->style().padding;
 
             if (borderSize > 0.0)
             {
-                const auto borderColor = this->_style->borderColor;
+                const auto borderColor = this->style().borderColor;
 
                 rect borderBounds = desiredBounds;
                 borderBounds.position += vec2{margin.left, margin.top};
@@ -201,7 +201,7 @@ namespace tabletopify
                 rect retval =
                 {
                     {self.bounds.position.x, self.bounds.position.y + self.internal_height - self.data()->vertical_scroll},
-                    {self.bounds.size.x - self._style->scrollbarSize, desired.size.y}
+                    {self.bounds.size.x - self.style().scrollbarSize, desired.size.y}
                 };
                 self.internal_height += desired.size.y;
                 return retval;
@@ -216,8 +216,8 @@ namespace tabletopify
             const auto scrollable_height = internal_height - height;
 
             // style constants
-            const auto scrollbar_width = _style->scrollbarSize;
-            const auto min_scrollbar_height = _style->scrollbarMinLength;
+            const auto scrollbar_width = this->style().scrollbarSize;
+            const auto min_scrollbar_height = this->style().scrollbarMinLength;
 
             // scrollbar bg rect
             scrollbar_area = {{bounds.position.x + bounds.size.x - scrollbar_width, bounds.position.y}, {scrollbar_width, height}};
@@ -233,17 +233,17 @@ namespace tabletopify
 
         void widget_vbox::second_render() const
         {
-            get_nanovg()->fill_rect(scrollbar_area, this->_style->scrollbarBackColor);
+            get_nanovg()->fill_rect(scrollbar_area, this->style().scrollbarBackColor);
 
-            corners radius = this->_style->scrollbarCornerRadius;
+            corners radius = this->style().scrollbarCornerRadius;
 
             if (data()->grabbing_scrollbar)
             {
-                get_nanovg()->fill_rounded_rect(scrollbar_grab_area, radius, this->_style->scrollbarActiveColor);
+                get_nanovg()->fill_rounded_rect(scrollbar_grab_area, radius, this->style().scrollbarActiveColor);
             }
             else
             {
-                get_nanovg()->fill_rounded_rect(scrollbar_grab_area, radius, this->_style->scrollbarForeColor);
+                get_nanovg()->fill_rounded_rect(scrollbar_grab_area, radius, this->style().scrollbarForeColor);
             }
 
         }
@@ -302,7 +302,7 @@ namespace tabletopify
                     }
                 }
 
-                const auto scroll_step = this->_style->scrollbarStep;
+                const auto scroll_step = this->style().scrollbarStep;
                 // handle scroll wheel
                 if (!data()->grabbing_scrollbar && point_inside_rect(current_mouse_position, this->scissor))
                 {
@@ -394,11 +394,11 @@ namespace tabletopify
         {
             g_nanovg.draw_text(
                 bounds,
-                this->_style->fontFamily,
-                this->_style->fontSize,
-                this->_style->fontColor,
-                this->_style->textHalign,
-                this->_style->textValign,
+                this->style().fontFamily,
+                this->style().fontSize,
+                this->style().fontColor,
+                this->style().textHalign,
+                this->style().textValign,
                 data()->text);
         }
 
@@ -420,11 +420,11 @@ namespace tabletopify
         {
             g_nanovg.draw_text(
                 bounds,
-                this->_style->fontFamily,
-                this->_style->fontSize,
-                this->_style->fontColor,
-                this->_style->textHalign,
-                this->_style->textValign,
+                this->style().fontFamily,
+                this->style().fontSize,
+                this->style().fontColor,
+                this->style().textHalign,
+                this->style().textValign,
                 data()->text);
         }
 

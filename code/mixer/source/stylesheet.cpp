@@ -2,7 +2,7 @@
 
 namespace tabletopify
 {
-    const style* style_resolver::resolve() const
+    const style_sheet* style_resolver::resolve(const char* elementType) const
     {
         return &_rootStyle;
     }

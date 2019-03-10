@@ -162,16 +162,20 @@ namespace tabletopify
             // called by widget<T> in calc_render_bounds
             void calc_render_bounds_impl(render_bounds(*func)(void*));
 
+            const style_sheet& style() const {return *_style;}
+
         private:
             // shared margin/border/padding rendering
             // returns updated bounds
             rect render_border(const rect& bounds) const;
+
+            const style_sheet* _style = nullptr;
         public:
             rect bounds = {};
             rect scissor = {};
 
         protected:
-            const style* _style = nullptr;
+
             widget_data* _data = nullptr;
         };
 
