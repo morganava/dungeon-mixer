@@ -392,14 +392,14 @@ namespace tabletopify
 
         void widget_label::first_render() const
         {
-            // g_nanovg.draw_text(
-            //     bounds,
-            //     data()->font,
-            //     data()->text_size,
-            //     data()->text_color,
-            //     data()->text_halign,
-            //     data()->text_valign,
-            //     data()->text);
+            g_nanovg.draw_text(
+                bounds,
+                this->_style->fontFamily,
+                this->_style->fontSize,
+                this->_style->fontColor,
+                this->_style->textHalign,
+                this->_style->textValign,
+                data()->text);
         }
 
         // Button
@@ -421,13 +421,10 @@ namespace tabletopify
             g_nanovg.draw_text(
                 bounds,
                 this->_style->fontFamily,
-                // g_style.button.font_face,
                 this->_style->fontSize,
-                // g_style.button.font_size,
                 this->_style->fontColor,
-                // g_style.button.font_color,
-                halign::center,
-                valign::middle,
+                this->_style->textHalign,
+                this->_style->textValign,
                 data()->text);
         }
 

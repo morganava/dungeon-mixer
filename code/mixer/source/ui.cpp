@@ -21,7 +21,7 @@ namespace tabletopify
         rect bounds = {{(double)width / 4.0, (double)height / 4.0}, {(double)width / 2.0, (double)height / 2.0}};
         imgui_ctx.push_render_bounds(
         {
-            [](void* bounds, const rect&) -> rect 
+            [](void* bounds, const rect&) -> rect
             {
                 return *reinterpret_cast<rect*>(bounds);
             },
@@ -48,16 +48,16 @@ namespace tabletopify
                     currentButton.text = "button";
                     mxButton(&currentButton, self.on_click = [&]() -> void
                     {
-                       MX_LOG_INFO("Clicked Button {}", idx); 
+                       MX_LOG_INFO("Clicked Button {}", idx);
                     };);
                     for(int j = 0; j < 2; ++j) {
                         mxDebug(
-                            self.on_mouse_over = [&](const vec2&) 
-                            { 
-                                self.bg_color = color::rgb(255, 128, 0); 
+                            self.on_mouse_over = [&](const vec2&)
+                            {
+                                self.bg_color = color::rgb(255, 128, 0);
                             };);
                     }
-                };
+                }
                 mxDebug(
                     self.bounds.size.y = 80.0f;
                     self.bg_color = color::rgb(255, 32, 0);
@@ -71,10 +71,8 @@ namespace tabletopify
                     };);
                 mxDebug(self.bounds.size.y = 120.0f;);
                 currentLabel.text = "hello world!";
-                currentLabel.text_color = color::rgb(0,0,0);
-                currentLabel.text_size = 36.0f;
 
-                mxLabel(&currentLabel, 
+                mxLabel(&currentLabel,
                     self.bounds.size.y = 100.0f;);
             }
         }

@@ -75,7 +75,7 @@ namespace tabletopify
 
 using namespace tabletopify;
 
-void test() 
+void test()
 {
     tabletopify::utf8_stringbuffer sb;
 
@@ -122,24 +122,21 @@ void test()
     for(auto str : splitme.split())
     {
         MX_LOG_INFO("'{}'", str);
-    }    
+    }
 }
 
 int main() try
 {
+
     tabletopify::init_globals();
 
-    // test();
-
-    graphics_callbacks callbacks = 
+    graphics_callbacks callbacks =
     {
         &init_callback,
         &gui_callback,
         &close_callback,
     };
-
     graphics_main(callbacks);
-
     return 0;
 }
 catch(const std::exception& ex)

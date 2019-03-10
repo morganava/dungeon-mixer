@@ -217,6 +217,54 @@ namespace tabletopify
         fi = g_nanovg.create_font(get_skins_path() / j.get<std::string>());
     }
 
+    // text alignment
+
+    void from_json(const nl::json& j, halign_t& ha)
+    {
+        MX_THROW_IF_FALSE(j.is_string());
+
+        const auto jstr = j.get<std::string>();
+        if(jstr == "left")
+        {
+            ha = halign::left;
+        }
+        else if(jstr == "center")
+        {
+            ha = halign::center;
+        }
+        else if(jstr == "right")
+        {
+            ha = halign::right;
+        }
+        else
+        {
+            MX_THROW_MSG("Cannot parse '{}' as halign_t, must be 'left', 'center', or 'right'", jstr);
+        }
+    }
+
+    void from_json(const nl::json& j, valign_t& va)
+    {
+        MX_THROW_IF_FALSE(j.is_string());
+
+        const auto jstr = j.get<std::string>();
+        if(jstr == "top")
+        {
+            va = valign::top;
+        }
+        else if(jstr == "middle")
+        {
+            va = valign::middle;
+        }
+        else if(jstr == "bottom")
+        {
+            va = valign::bottom;
+        }
+        else
+        {
+            MX_THROW_MSG("Cannot parse '{}' as valign_t, must be 'top', 'middle', or 'bottom'", jstr);
+        }
+    }
+
     // style_resolver
     void from_json(const nl::json& j, style_resolver& sr)
     {
@@ -254,6 +302,8 @@ namespace tabletopify
             SET_STYLE_ATTRIBUTE(fontFamily, font_id::invalid);
             SET_STYLE_ATTRIBUTE(fontColor, color::rgb(0x00, 0x00, 0x00));
             SET_STYLE_ATTRIBUTE(fontSize, 24.0);
+            SET_STYLE_ATTRIBUTE(textHalign, halign::left);
+            SET_STYLE_ATTRIBUTE(textValign, valign::middle);
         }
 
         for(auto& el : j.items())

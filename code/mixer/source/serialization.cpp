@@ -58,7 +58,6 @@ namespace tabletopify
             {
                 auto json = nl::json::parse(mb.begin(), mb.end());
                 g_style_resolver = json.get<style_resolver>();
-                // from_json(json, g_style_resolver);
             });
         });
     }

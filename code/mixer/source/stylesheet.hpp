@@ -47,6 +47,9 @@ namespace tabletopify
         font_id fontFamily = font_id::invalid;
         color fontColor = color::rgb(0x00, 0x00, 0x00);
         double fontSize = 12.0;
+        // text
+        halign_t textHalign = halign::left;
+        valign_t textValign = valign::middle;
     };
 
     class style_resolver
