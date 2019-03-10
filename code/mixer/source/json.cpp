@@ -252,6 +252,8 @@ namespace tabletopify
             SET_STYLE_ATTRIBUTE(padding, edges(0.0));
             SET_STYLE_ATTRIBUTE(backgroundColor, color::rgb(0xff,0xff,0xff));
             SET_STYLE_ATTRIBUTE(fontFamily, font_id::invalid);
+            SET_STYLE_ATTRIBUTE(fontColor, color::rgb(0x00, 0x00, 0x00));
+            SET_STYLE_ATTRIBUTE(fontSize, 24.0);
         }
 
         for(auto& el : j.items())

@@ -99,22 +99,6 @@ namespace tabletopify
         constexpr widget_id_t INVALID_WIDGET_ID = ~NULL_WIDGET_ID;
         widget_id_t next_widget_id();
 
-        // style
-
-        struct stylesheet
-        {
-            // color font_color;
-            struct
-            {
-                // font_id_t font_face;
-                color font_color;
-                double font_size;
-                color background_color;
-                color background_hover_color;
-                color background_active_color;
-            } button;
-        };
-
         // context
 
         class context
@@ -135,7 +119,6 @@ namespace tabletopify
             // set's render scissor
             void set_render_scissor(const rect&);
 
-            stylesheet style;
         private:
             std::vector<render_bounds> _render_bounds_stack;
             widget_id_t _focused_widget = INVALID_WIDGET_ID;
@@ -150,7 +133,6 @@ namespace tabletopify
             singleton<context>::free();
         }
         inline constexpr context& g_context = singleton<context>::get();
-        inline constexpr stylesheet& g_style = g_context.style;
 
         struct widget_data
         {

@@ -57,17 +57,8 @@ namespace tabletopify
             worker(Worker_Background).enqueue([mb=std::move(mb)]() -> void
             {
                 auto json = nl::json::parse(mb.begin(), mb.end());
-                // g_style_resolver = json;
-                from_json(json, g_style_resolver);
-
-                using imgui::g_style;
-                auto button = json["button"];
-                // g_style.button.font_face = g_nanovg.create_font(get_skins_path() / (std::string)button["font"]);
-                g_style.button.font_color = button["font_color"];
-                g_style.button.font_size = button["font_size"];
-                g_style.button.background_color = button["background_color"];
-                g_style.button.background_hover_color = button["background_hover_color"];
-                g_style.button.background_active_color = button["background_active_color"];
+                g_style_resolver = json.get<style_resolver>();
+                // from_json(json, g_style_resolver);
             });
         });
     }

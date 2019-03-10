@@ -418,29 +418,14 @@ namespace tabletopify
 
         void widget_button::first_render() const
         {
-            auto current_mouse_position = g_input.get_mouse_position(input_frame::current);
-            if(point_inside_rect(current_mouse_position, scissor))
-            {
-                if (!g_input.get_mouse_button_state(mouse_button::left, input_frame::current))
-                {
-                    g_nanovg.fill_rect(bounds, g_style.button.background_hover_color);
-                }
-                else
-                {
-                    g_nanovg.fill_rect(bounds, g_style.button.background_active_color);
-                }
-            }
-            else
-            {
-                g_nanovg.fill_rect(bounds, g_style.button.background_color);
-            }
-
             g_nanovg.draw_text(
                 bounds,
                 this->_style->fontFamily,
                 // g_style.button.font_face,
-                g_style.button.font_size,
-                g_style.button.font_color,
+                this->_style->fontSize,
+                // g_style.button.font_size,
+                this->_style->fontColor,
+                // g_style.button.font_color,
                 halign::center,
                 valign::middle,
                 data()->text);
