@@ -108,7 +108,7 @@ namespace tabletopify
             g_context.push_render_bounds(func(this));
         }
 
-        void widget_base::resolve_style()
+        void widget_base::resolve_style_impl(const char* elementType)
         {
             this->_style = g_style_resolver.resolve(nullptr);
         }

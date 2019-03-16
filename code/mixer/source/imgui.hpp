@@ -151,7 +151,7 @@ namespace tabletopify
                 return _data ? _data->id : NULL_WIDGET_ID;
             }
 
-            void resolve_style();
+
         protected:
             void focus_widget();
             void unfocus_widget();
@@ -161,6 +161,9 @@ namespace tabletopify
             void destructor_impl(void(*func)(void*));
             // called by widget<T> in calc_render_bounds
             void calc_render_bounds_impl(render_bounds(*func)(void*));
+            // called by widget<T> in resolve_style
+            void resolve_style_impl(const char* elementType);
+
 
             const style_sheet& style() const {return *_style;}
 
@@ -213,6 +216,12 @@ namespace tabletopify
                     auto* self = static_cast<T*>(pSelf);
                     return {self->get_bounds_callback(), self, self->scissor};
                 });
+            }
+
+            // resolve this widget's style
+            void resolve_style()
+            {
+                this->resolve_style_impl(nullptr);
             }
 
             // widget methods

@@ -21,6 +21,7 @@ add_executable(tabletop_mixer
     utilities.cpp
     format.cpp
     json.cpp
+    hash_buffer.cpp
     # main
     mixer.cpp
     # systems
@@ -40,7 +41,7 @@ add_executable(tabletop_mixer
     track_directory.cpp
     atmosphere_directory.cpp
     playback_manager.cpp
-    # ui 
+    # ui
     ui.cpp)
 
 add_precompiled_header(tabletop_mixer precomp.hpp SOURCE_CXX precomp.cpp FORCEINCLUDE)
