@@ -32,15 +32,6 @@ namespace tabletopify
         return calc_hash_raw(buffer, len, 0);
     }
 
-    // template function for POD types
-
-    template<typename T>
-    typename std::enable_if<std::is_trivial<T>::value, size_t>::type
-    calc_hash(const T& val, size_t seed)
-    {
-        return calc_hash_raw(&val, sizeof(T), seed);
-    }
-
     // specializations
 
     size_t calc_hash(const std::string& str, size_t seed)
@@ -51,14 +42,6 @@ namespace tabletopify
     size_t calc_hash(const utf8_string& str, size_t seed)
     {
         return calc_hash_raw(str.c_str(), str.size(), seed);
-    }
-
-    // template function without seed
-
-    template<typename T>
-    size_t calc_hash(const T& val)
-    {
-        return calc_hash(val, size_t(0));
     }
 }
 using namespace tabletopify;

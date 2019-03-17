@@ -21,6 +21,7 @@ add_executable(tabletop_mixer
     utilities.cpp
     format.cpp
     json.cpp
+    motley_buffer.cpp
     hash_buffer.cpp
     # main
     mixer.cpp
