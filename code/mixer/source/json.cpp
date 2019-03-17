@@ -266,6 +266,24 @@ namespace tabletopify
     }
 
     // style_resolver
+
+    void from_json(const nl::json& j, style_declaration_set& sds)
+    {
+        MX_THROW_IF_FALSE(j.is_object());
+
+        auto& d = sds._declarations;
+
+        #define STYLE_SHEET_ENTRY(TYPE, NAME, VAL)\
+        if(auto it = j.find(#NAME); it != j.end())\
+        {\
+            d.push_back<style_entry_t>(style_entry::NAME);\
+            d.push_back<TYPE>(it->get<TYPE>());\
+        }\
+
+        #include "stylesheet.inl"
+        #undef STYLE_SHEET_ENTRY
+    }
+
     void from_json(const nl::json& j, style_resolver& sr)
     {
         MX_THROW_IF_FALSE(j.is_object());
@@ -274,36 +292,23 @@ namespace tabletopify
         auto jRoot = j.find("*");
         if(jRoot != j.end()) {
             auto& rs = sr._rootStyle;
+            style_declaration_set sds;
+            from_json(*jRoot, sds);
+            rs = sds.apply(rs);
 
-            auto getVal = [](const nl::json& j, const char* name, auto fallback) -> decltype(fallback)
-            {
-                auto retval = fallback;
-                if(auto it = j.find(name); it != j.end())
-                {
-                    retval = it->get<decltype(retval)>();
-                }
-                return retval;
-            };
+            // auto getVal = [](const nl::json& j, const char* name, auto fallback) -> decltype(fallback)
+            // {
+            //     auto retval = fallback;
+            //     if(auto it = j.find(name); it != j.end())
+            //     {
+            //         retval = it->get<decltype(retval)>();
+            //     }
+            //     return retval;
+            // };
 
-            #define SET_STYLE_ATTRIBUTE(X, FALLBACK) rs.X = getVal(*jRoot, #X, FALLBACK)
-            SET_STYLE_ATTRIBUTE(scrollbarSize, 20.0);
-            SET_STYLE_ATTRIBUTE(scrollbarMinLength, 40.0);
-            SET_STYLE_ATTRIBUTE(scrollbarForeColor, color::rgb(0xc0, 0xc0, 0xc0));
-            SET_STYLE_ATTRIBUTE(scrollbarActiveColor, color::rgb(0xc0, 0x60, 0x00));
-            SET_STYLE_ATTRIBUTE(scrollbarBackColor, color::rgb(0x60, 0x60, 0x60));
-            SET_STYLE_ATTRIBUTE(scrollbarCornerRadius, 3.0);
-            SET_STYLE_ATTRIBUTE(scrollbarStep, 45.0);
-            SET_STYLE_ATTRIBUTE(margin, edges(0.0));
-            SET_STYLE_ATTRIBUTE(borderSize, 2.0);
-            SET_STYLE_ATTRIBUTE(borderColor, color::rgb(0x00, 0x00, 0x00));
-            SET_STYLE_ATTRIBUTE(borderRadius, corners(0.0));
-            SET_STYLE_ATTRIBUTE(padding, edges(0.0));
-            SET_STYLE_ATTRIBUTE(backgroundColor, color::rgb(0xff,0xff,0xff));
-            SET_STYLE_ATTRIBUTE(fontFamily, font_id::invalid);
-            SET_STYLE_ATTRIBUTE(fontColor, color::rgb(0x00, 0x00, 0x00));
-            SET_STYLE_ATTRIBUTE(fontSize, 24.0);
-            SET_STYLE_ATTRIBUTE(textHalign, halign::left);
-            SET_STYLE_ATTRIBUTE(textValign, valign::middle);
+            // #define STYLE_SHEET_ENTRY(TYPE, NAME, VAL) rs.NAME = getVal(*jRoot, #NAME, TYPE(VAL));
+            // #include "stylesheet.inl"
+            // #undef STYLE_SHEET_ENTRY
         }
 
         for(auto& el : j.items())
