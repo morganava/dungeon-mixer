@@ -155,7 +155,7 @@ namespace tabletopify
 std::ostream& operator<<(std::ostream& out, const tabletopify::utf8_string& str);
 std::ostream& operator<<(std::ostream& out, const tabletopify::utf8_string_view& str);
 
-template <> struct std::hash<class tabletopify::utf8_string>
+template <> struct std::hash<tabletopify::utf8_string>
 {
-    size_t operator()(const class tabletopify::utf8_string&) const;
+    size_t operator()(const tabletopify::utf8_string&) const;
 };

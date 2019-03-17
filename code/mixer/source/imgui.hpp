@@ -162,7 +162,7 @@ namespace tabletopify
             // called by widget<T> in calc_render_bounds
             void calc_render_bounds_impl(render_bounds(*func)(void*));
             // called by widget<T> in resolve_style
-            void resolve_style_impl(const char* elementType);
+            void resolve_style_impl(element_type_t);
 
 
             const style_sheet& style() const {return *_style;}
@@ -221,7 +221,7 @@ namespace tabletopify
             // resolve this widget's style
             void resolve_style()
             {
-                this->resolve_style_impl(nullptr);
+                this->resolve_style_impl(element_type::any);
             }
 
             // widget methods

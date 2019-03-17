@@ -108,9 +108,9 @@ namespace tabletopify
             g_context.push_render_bounds(func(this));
         }
 
-        void widget_base::resolve_style_impl(const char* elementType)
+        void widget_base::resolve_style_impl(element_type_t et)
         {
-            this->_style = g_style_resolver.resolve(nullptr);
+            this->_style = g_style_resolver.resolve(et, {}, element_state::none);
         }
 
         rect widget_base::render_border(const rect& desiredBounds) const

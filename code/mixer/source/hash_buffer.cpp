@@ -42,6 +42,6 @@ namespace tabletopify
         _read_head = _raw.data();
 
         // update the hash
-        _hash = calc_hash(ptr, valSize, _hash);
+        _hash = calc_hash_raw(ptr, valSize, _hash);
     }
 }

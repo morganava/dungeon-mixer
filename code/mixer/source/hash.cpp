@@ -1,6 +1,7 @@
 #include "hash.hpp"
 #include "uuid.hpp"
 #include "utf8_string.hpp"
+#include "stylesheet.hpp"
 
 namespace tabletopify
 {
@@ -19,14 +20,45 @@ namespace tabletopify
         return ::XXH64(buffer, len, seed);
     }
 
-    size_t calc_hash(const void* buffer, size_t len, size_t seed)
+    // base functions
+
+    size_t calc_hash_raw(const void* buffer, size_t len, size_t seed)
     {
         return calc_hash_impl<sizeof(size_t)>(buffer, len, seed);
     }
 
-    size_t calc_hash(const void* buffer, size_t len)
+    size_t calc_hash_raw(const void* buffer, size_t len)
     {
-        return calc_hash(buffer, len, 0);
+        return calc_hash_raw(buffer, len, 0);
+    }
+
+    // template function for POD types
+
+    template<typename T>
+    typename std::enable_if<std::is_trivial<T>::value, size_t>::type
+    calc_hash(const T& val, size_t seed)
+    {
+        return calc_hash_raw(&val, sizeof(T), seed);
+    }
+
+    // specializations
+
+    size_t calc_hash(const std::string& str, size_t seed)
+    {
+        return calc_hash_raw(str.c_str(), str.size(), seed);
+    }
+
+    size_t calc_hash(const utf8_string& str, size_t seed)
+    {
+        return calc_hash_raw(str.c_str(), str.size(), seed);
+    }
+
+    // template function without seed
+
+    template<typename T>
+    size_t calc_hash(const T& val)
+    {
+        return calc_hash(val, size_t(0));
     }
 }
 using namespace tabletopify;
@@ -35,17 +67,24 @@ namespace std
 {
     size_t hash<fs::path>::operator()(const fs::path& p) const
     {
-        const auto& n = p.native();
-        return calc_hash(n.c_str(), n.size());
+        return calc_hash(p.native());
     }
 
     size_t hash<utf8_string>::operator()(const utf8_string& str) const
     {
-        return calc_hash(str.c_str(), str.size());
+        return calc_hash(str);
     }
 
     size_t hash<uuid>::operator()(const uuid& id) const
     {
-        return calc_hash(id.bytes, sizeof(id.bytes));
+        return calc_hash(id.bytes);
+    }
+
+    size_t hash<selector>::operator()(const selector& sel) const
+    {
+        auto retval = calc_hash(sel.type);
+        retval = calc_hash(sel.tag, retval);
+        retval = calc_hash(sel.state, retval);
+        return retval;
     }
 }
