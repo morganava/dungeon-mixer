@@ -70,7 +70,7 @@ namespace tabletopify
         size_t _same_frames = 0;
 
         // font info
-        std::unordered_map<fs::path, font_id, path_hash> _font_map;
+        std::unordered_map<fs::path, font_id> _font_map;
         typedef int nvg_font_face_id_t;
         constexpr static nvg_font_face_id_t INVALID_NVG_FONT_ID = ~nvg_font_face_id_t(0);
         std::vector<nvg_font_face_id_t> _nvg_font_faces;

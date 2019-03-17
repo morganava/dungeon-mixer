@@ -13,7 +13,7 @@ namespace tabletopify
         void remove_key(handle_t key);
         void add_key(handle_t key, const std::vector<utf8_string>& tags);
     private:
-        std::unordered_multimap<utf8_string, handle_t, utf8_string_hash> _tag_to_keys;
+        std::unordered_multimap<utf8_string, handle_t> _tag_to_keys;
         std::unordered_multimap<handle_t, utf8_string> _key_to_tags;
         std::unordered_set<handle_t> _keys;
     };

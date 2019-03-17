@@ -1,3 +1,4 @@
+#include "hash.hpp"
 #include "uuid.hpp"
 #include "utf8_string.hpp"
 
@@ -27,22 +28,24 @@ namespace tabletopify
     {
         return calc_hash(buffer, len, 0);
     }
+}
+using namespace tabletopify;
 
-    size_t calc_hash(const std::string& str)
+namespace std
+{
+    size_t hash<fs::path>::operator()(const fs::path& p) const
     {
-        return calc_hash(str.data(), str.size());
+        const auto& n = p.native();
+        return calc_hash(n.c_str(), n.size());
     }
 
-    // UUID
-    size_t uuid_hash::operator()(const tabletopify::uuid& id) const
-    {
-        return calc_hash(id.bytes, sizeof(id.bytes));
-    }
-
-    // utf8_string
-    size_t utf8_string_hash::operator()(const utf8_string& str) const
+    size_t hash<utf8_string>::operator()(const utf8_string& str) const
     {
         return calc_hash(str.c_str(), str.size());
     }
-}
 
+    size_t hash<uuid>::operator()(const uuid& id) const
+    {
+        return calc_hash(id.bytes, sizeof(id.bytes));
+    }
+}

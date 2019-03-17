@@ -4,7 +4,7 @@ namespace tabletopify
 {
     struct uuid
     {
-        constexpr uuid() 
+        constexpr uuid()
         : qwords{0,0}
         { }
 
@@ -13,7 +13,7 @@ namespace tabletopify
         constexpr uuid& operator=(const uuid&) = default;
         constexpr uuid& operator=(uuid&&) = default;
 
-        constexpr bool is_null() const 
+        constexpr bool is_null() const
         {
             return qwords[0] == 0 && qwords[1] == 0;
         }
@@ -37,11 +37,10 @@ namespace tabletopify
 
     void to_json(nl::json& j, const struct uuid& id);
     void from_json(const nl::json& j, struct uuid& id);
-
-    struct uuid_hash
-    {
-        size_t operator()(const tabletopify::uuid& id) const;
-    };
 }
 
 std::ostream& operator<<(std::ostream& out, const struct tabletopify::uuid& id);
+template <> struct std::hash<class tabletopify::uuid>
+{
+    size_t operator()(const class tabletopify::uuid&) const;
+};

@@ -66,6 +66,7 @@ namespace tabletopify
         };
 
         style_sheet _rootStyle;
+        // std::unordered_map<selector, style_sheet> _styleMap;
 
         friend void from_json(const nl::json&,style_resolver&);
     };

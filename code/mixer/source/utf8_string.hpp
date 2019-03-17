@@ -6,7 +6,7 @@ namespace tabletopify
     {
     public:
         utf8_codepoint(utf8proc_int32_t);
-        bool operator==(const utf8_codepoint&) const;        
+        bool operator==(const utf8_codepoint&) const;
         bool operator!=(const utf8_codepoint&) const;
 
         bool is_valid() const;
@@ -20,7 +20,7 @@ namespace tabletopify
         utf8proc_int32_t _codepoint = 0;
     };
 
-    class utf8_string_iterator;    
+    class utf8_string_iterator;
     class utf8_string
     {
     public:
@@ -79,11 +79,6 @@ namespace tabletopify
     void to_json(nl::json&, const utf8_string&);
     void from_json(const nl::json&, utf8_string&);
 
-    struct utf8_string_hash
-    {
-        size_t operator()(const utf8_string&) const;
-    };
-
     class utf8_string_iterator : public std::iterator<
                                             std::forward_iterator_tag,
                                             utf8proc_int32_t,
@@ -105,7 +100,7 @@ namespace tabletopify
         const utf8proc_uint8_t* _nextCodepoint = nullptr;
         const utf8proc_uint8_t* _tail = nullptr;
         utf8proc_int32_t _codepoint;
-        
+
         friend class utf8_string;
         friend class utf8_string_view;
     };
@@ -159,3 +154,8 @@ namespace tabletopify
 
 std::ostream& operator<<(std::ostream& out, const tabletopify::utf8_string& str);
 std::ostream& operator<<(std::ostream& out, const tabletopify::utf8_string_view& str);
+
+template <> struct std::hash<class tabletopify::utf8_string>
+{
+    size_t operator()(const class tabletopify::utf8_string&) const;
+};
