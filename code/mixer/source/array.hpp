@@ -8,6 +8,8 @@ namespace tabletopify
     class array
     {
     public:
+        array() = default;
+
         array(size_t N)
         : _size(N)
         , _data(std::make_unique<T[]>(N))
@@ -19,6 +21,12 @@ namespace tabletopify
             std::copy(il.begin(), il.end(), _data.get());
         }
 
+        array(const std::vector<T>& vec)
+        : array(vec.size())
+        {
+            std::copy(vec.begin(), vec.end(), _data.get());
+        }
+
         T& operator[](size_t idx)
         {
             MX_THROW_IF_FALSE(idx < _size);
@@ -28,7 +36,7 @@ namespace tabletopify
         const T& operator[](size_t idx) const
         {
             MX_THROW_IF_FALSE(idx < _size);
-            return _data[idx];   
+            return _data[idx];
         }
 
         T* begin()
@@ -38,8 +46,19 @@ namespace tabletopify
 
         T* end()
         {
-            return _data.get() + _size;
+            return this->begin() + _size;
         }
+
+        T* const begin() const
+        {
+            return _data.get();
+        }
+
+        T* const end() const
+        {
+            return this->begin() + _size;
+        }
+
 
         constexpr size_t size() const
         {
@@ -47,7 +66,7 @@ namespace tabletopify
         }
 
     private:
-        const size_t _size;
+        size_t _size = 0;
         std::unique_ptr<T[]> _data;
     };
 
@@ -60,7 +79,7 @@ namespace tabletopify
         constexpr array_view(T* begin, T* end)
         : _begin(begin)
         , _end(end)
-        { 
+        {
             MX_THROW_IF_FALSE(begin <= end);
         };
 

@@ -10,19 +10,31 @@
 
 namespace tabletopify
 {
-    typedef enum class element_type
+    typedef enum class element_type : uint_fast8_t
     {
         any,
 
+        vbox,
+        hbox,
+        spacer,
         button,
+        label,
+        debug,
+
     } element_type_t;
 
-    typedef enum class element_state
+    element_type_t parse_element_type(const std::string&);
+
+    typedef enum class element_state : uint_fast8_t
     {
         none = 0,
-        hover = 1 << 1,
-        active= 1 << 2,
+        hover = 1 << 0,
+        active= 1 << 1,
     } element_state_t;
+
+    element_state_t parse_element_state(const std::string&);
+
+    // element_state_t operator&(const element_state_t&, const element_state_t&);
 
     struct style_sheet
     {
@@ -53,6 +65,8 @@ namespace tabletopify
         element_type_t type;
         utf8_string tag;
         element_state_t state;
+
+        bool operator==(const selector&) const;
     };
 }
 
@@ -68,10 +82,8 @@ namespace tabletopify
     public:
         const style_sheet* resolve(element_type_t et, const std::vector<utf8_string>& tags, element_state_t es) const;
     private:
-        std::unordered_map<selector, hash_buffer> _styleFactory;
-
-        style_sheet _rootStyle;
-        // std::unordered_map<selector, style_sheet> _styleMap;
+        std::unordered_map<selector, style_declaration_set> _styleFactory;
+        mutable style_sheet _rootStyle;
 
         friend void from_json(const nl::json&,style_resolver&);
     };

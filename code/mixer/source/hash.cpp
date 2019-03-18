@@ -66,8 +66,11 @@ namespace std
     size_t hash<selector>::operator()(const selector& sel) const
     {
         auto retval = calc_hash(sel.type);
-        retval = calc_hash(sel.tag, retval);
-        retval = calc_hash(sel.state, retval);
+        // for(auto& currentTag : sel.tags)
+        // {
+        //     retval = calc_hash(currentTag, retval);
+        // }
+        // retval = calc_hash(sel.state, retval);
         return retval;
     }
 }

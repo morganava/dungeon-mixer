@@ -30,6 +30,7 @@ using ss = std::stringstream;
 namespace fs = std::experimental::filesystem;
 #include <iterator>
 #include <algorithm>
+#include <regex>
 
 // utf8proc : https://github.com/JuliaStrings/utf8proc
 #define UTF8PROC_STATIC

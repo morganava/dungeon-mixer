@@ -182,7 +182,7 @@ namespace tabletopify
             widget_data* _data = nullptr;
         };
 
-        template<typename T, typename WIDGET_DATA=widget_data>
+        template<typename T, element_type ELEMENT_TYPE, typename WIDGET_DATA=widget_data>
         struct widget : public widget_base
         {
             widget() = delete;
@@ -221,7 +221,7 @@ namespace tabletopify
             // resolve this widget's style
             void resolve_style()
             {
-                this->resolve_style_impl(element_type::any);
+                this->resolve_style_impl(ELEMENT_TYPE);
             }
 
             // widget methods
@@ -249,7 +249,7 @@ namespace tabletopify
             double grab_offset_y = 0.0;
         };
 
-        struct widget_vbox : public widget<widget_vbox, vbox_data>
+        struct widget_vbox : public widget<widget_vbox, element_type::vbox, vbox_data>
         {
             using widget::widget;
 
@@ -269,7 +269,7 @@ namespace tabletopify
             rect scrollbar_grab_area = {};
         };
 
-        struct widget_hbox : public widget<widget_hbox>
+        struct widget_hbox : public widget<widget_hbox, element_type::hbox>
         {
             using widget::widget;
 
@@ -288,7 +288,7 @@ namespace tabletopify
 
         // debug renderer
 
-        struct widget_debug : public widget<widget_debug>
+        struct widget_debug : public widget<widget_debug, element_type::debug>
         {
             using widget::widget;
 
@@ -311,7 +311,7 @@ namespace tabletopify
             utf8_string text;
         };
 
-        struct widget_label : public widget<widget_label, label_data>
+        struct widget_label : public widget<widget_label, element_type::label, label_data>
         {
             using widget::widget;
 
@@ -330,7 +330,7 @@ namespace tabletopify
             utf8_string text;
         };
 
-        struct widget_button : public widget<widget_button, button_data>
+        struct widget_button : public widget<widget_button, element_type::button, button_data>
         {
             using widget::widget;
 

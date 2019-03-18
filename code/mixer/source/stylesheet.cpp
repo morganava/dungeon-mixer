@@ -3,7 +3,58 @@
 
 namespace tabletopify
 {
+    element_type_t parse_element_type(const std::string& str)
+    {
+        constexpr const char* typeStrings[] =
+        {
+            "",
+            "vbox",
+            "hbox",
+            "spacer",
+            "button",
+            "label",
+            "debug",
+        };
 
+        for(uint_fast8_t i = 0; i < countof(typeStrings); ++i)
+        {
+            if(str == typeStrings[i])
+            {
+                return static_cast<element_type_t>(i);
+            }
+        }
+        MX_THROW_MSG("Unable to parse '{}' as element_type_t", str);
+    }
+
+    element_state_t parse_element_state(const std::string& str)
+    {
+        constexpr const char* stateStrings[] =
+        {
+            "hover",
+            "active",
+        };
+
+        if (str == "")
+        {
+            return element_state::none;
+        }
+
+        for(uint_fast8_t i = 0; i < countof(stateStrings); ++i)
+        {
+            if(str == stateStrings[i])
+            {
+                return static_cast<element_state_t>(1 << i);
+            }
+        }
+        MX_THROW_MSG("Unable to parse '{}' as element_state_t", str);
+    }
+
+    bool selector::operator==(const selector& that) const
+    {
+        return this->type == that.type &&
+               this->state == that.state &&
+               this->tag == that.tag;
+    }
 
     style_sheet style_declaration_set::apply(const style_sheet& base) const
     {
@@ -33,29 +84,41 @@ namespace tabletopify
     }
 
 
-    const style_sheet* style_resolver::resolve(element_type_t et, const std::vector<utf8_string>& tags, element_state_t es) const
+    const style_sheet* style_resolver::resolve(element_type_t type, const std::vector<utf8_string>& tags, element_state_t state) const
     {
-        // element_type types[] =
-        // {
-        //     element_type::any,
-        //     et
-        // };
+        element_type_t typeList[2] = {element_type::any, type};
+        std::vector<utf8_string> tagList = {""};
+        std::copy(tags.begin(), tags.end(), tagList.end());
+        std::vector<element_state_t> stateList = {element_state::none};
+        const auto& push_state = [&](element_state_t flag) -> void
+        {
+            if (static_cast<uint_fast8_t>(state) & static_cast<uint_fast8_t>(flag))
+            {
+                stateList.push_back(flag);
+            }
+        };
+        push_state(element_state::hover);
+        push_state(element_state::active);
 
 
+        style_sheet retval;
 
-        // start with 'any' element
+        for(auto currentType : typeList)
+        {
+            for(const auto& currentTag : tagList)
+            {
+                for(auto currentState : stateList)
+                {
+                    selector s = {currentType, currentTag, currentState};
+                    if(auto it = _styleFactory.find(s); it != _styleFactory.end())
+                    {
+                        retval = it->second.apply(retval);
+                    }
+                }
+            }
+        }
+        _rootStyle = retval;
 
-        // then 'any' elements with each possible 'state'
-
-        // then 'any' elements with each possible class
-
-        // then 'any' elements with each possible class with each state
-
-        // then actual element
-
-        // then actual element with each class
-
-        // then actual element with each class with each state
 
         return &_rootStyle;
     }

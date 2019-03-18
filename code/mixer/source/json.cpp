@@ -295,27 +295,38 @@ namespace tabletopify
             style_declaration_set sds;
             from_json(*jRoot, sds);
             rs = sds.apply(rs);
-
-            // auto getVal = [](const nl::json& j, const char* name, auto fallback) -> decltype(fallback)
-            // {
-            //     auto retval = fallback;
-            //     if(auto it = j.find(name); it != j.end())
-            //     {
-            //         retval = it->get<decltype(retval)>();
-            //     }
-            //     return retval;
-            // };
-
-            // #define STYLE_SHEET_ENTRY(TYPE, NAME, VAL) rs.NAME = getVal(*jRoot, #NAME, TYPE(VAL));
-            // #include "stylesheet.inl"
-            // #undef STYLE_SHEET_ENTRY
         }
 
+        // iterate over each selector and build our style selector set
+        const std::regex selectorRegex("^([a-z]*)[\\.]?([a-z]*)[\\:]?([a-z]*)$");
         for(auto& el : j.items())
         {
-            MX_LOG_INFO("{} : {}", el.key(), el.value().dump());
-            // MX_LOG_INFO("{}", el.value().dump());
-            // MX_LOG_INFO("{} : {}", el.key(), el.value());
+            const auto& selectorString = el.key();
+            std::smatch matches;
+            if(std::regex_match(selectorString, matches, selectorRegex))
+            {
+                MX_LOG_INFO("'{}' selector matches", selectorString);
+
+                const auto& elementStr = matches[1].str();
+                const auto& tagStr = matches[2].str();
+                const auto& stateStr = matches[3].str();
+
+                MX_LOG_INFO(" element : {}", elementStr);
+                MX_LOG_INFO(" tag : {}", tagStr);
+                MX_LOG_INFO(" state : {}", stateStr);
+
+                MX_LOG_INFO(" rule : {}", el.value().dump());
+
+                style_declaration_set sds;
+                from_json(el.value(), sds);
+
+                auto element = parse_element_type(elementStr);
+                auto state = parse_element_state(stateStr);
+
+                MX_LOG_INFO("element : {}, state : {}", (uint_fast8_t)element, (uint_fast8_t)state);
+
+                sr._styleFactory.insert({{element, tagStr, state}, sds});
+            }
         }
     }
 }
