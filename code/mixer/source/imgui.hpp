@@ -176,6 +176,7 @@ namespace tabletopify
         public:
             rect bounds = {};
             rect scissor = {};
+            array<utf8_string> tags;
 
         protected:
 

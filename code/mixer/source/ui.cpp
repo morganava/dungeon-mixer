@@ -46,17 +46,27 @@ namespace tabletopify
                 mxHbox(self.widths = lcg.sizes(); self.bounds.size.y = 200.0f;)
                 {
                     currentButton.text = "button";
-                    mxButton(&currentButton, self.on_click = [&]() -> void
-                    {
-                       MX_LOG_INFO("Clicked Button {}", idx);
-                    };);
-                    for(int j = 0; j < 2; ++j) {
-                        mxDebug(
-                            self.on_mouse_over = [&](const vec2&)
-                            {
-                                self.bg_color = color::rgb(255, 128, 0);
-                            };);
-                    }
+                    mxButton(
+                        &currentButton,
+                        self.tags = {"foo"};
+                        self.on_click = [&]() -> void
+                        {
+                           MX_LOG_INFO("Clicked Button {}", idx);
+                        };);
+                    currentButton.text = "push";
+                    mxButton(
+                        &currentButton,
+                        self.tags = {"push"};
+                        self.on_click = []() -> void
+                        {
+                            MX_LOG_INFO("PUSHED");
+                        };);
+
+                    mxDebug(
+                        self.on_mouse_over = [&](const vec2&)
+                        {
+                            self.bg_color = color::rgb(255, 128, 0);
+                        };);
                 }
                 mxDebug(
                     self.bounds.size.y = 80.0f;

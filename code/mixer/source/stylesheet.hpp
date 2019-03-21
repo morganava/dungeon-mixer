@@ -80,7 +80,7 @@ namespace tabletopify
     class style_resolver
     {
     public:
-        const style_sheet* resolve(element_type_t et, const std::vector<utf8_string>& tags, element_state_t es) const;
+        const style_sheet* resolve(element_type_t et, const array<utf8_string>& tags, element_state_t es) const;
     private:
         std::unordered_map<selector, style_declaration_set> _styleFactory;
         mutable style_sheet _rootStyle;

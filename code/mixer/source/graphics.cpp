@@ -64,7 +64,7 @@ namespace tabletopify
 
     static void graphics_mouse_enter_func(GLFWwindow* window, int entered)
     {
-        if (!entered) 
+        if (!entered)
         {
             graphics_cursor_pos_func(window, -1.0, -1.0);
         }
@@ -91,7 +91,7 @@ namespace tabletopify
         glViewport(0, 0, width, height);
     }
 
-    void graphics_main(const graphics_callbacks& callbacks) 
+    void graphics_main(const graphics_callbacks& callbacks)
     {
         try
         {
@@ -100,13 +100,13 @@ namespace tabletopify
             MX_THROW_IF_FALSE(glfwInit());
             MX_THROW_IF_NOT_NULL(glfwSetErrorCallback(&graphics_error_func));
         }
-        catch(const std::exception& ex) 
+        catch(const std::exception& ex)
         {
             MX_LOG_ERROR(ex.what());
             return;
         }
 
-        try 
+        try
         {
            // create window
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -184,13 +184,13 @@ namespace tabletopify
 
             glfwTerminate();
         }
-        catch(const std::exception& ex) 
+        catch(const std::exception& ex)
         {
             MX_LOG_ERROR(ex.what());
             glfwTerminate();
             return;
         }
-        
+
         // close
         if (callbacks.close) {
             callbacks.close();

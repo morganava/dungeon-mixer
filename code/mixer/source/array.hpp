@@ -59,7 +59,6 @@ namespace tabletopify
             return this->begin() + _size;
         }
 
-
         constexpr size_t size() const
         {
             return _size;

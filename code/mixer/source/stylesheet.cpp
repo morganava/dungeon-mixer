@@ -84,11 +84,10 @@ namespace tabletopify
     }
 
 
-    const style_sheet* style_resolver::resolve(element_type_t type, const std::vector<utf8_string>& tags, element_state_t state) const
+    const style_sheet* style_resolver::resolve(element_type_t type, const array<utf8_string>& tags, element_state_t state) const
     {
         element_type_t typeList[2] = {element_type::any, type};
-        std::vector<utf8_string> tagList = {""};
-        std::copy(tags.begin(), tags.end(), tagList.end());
+        const auto& tagList = tags;
         std::vector<element_state_t> stateList = {element_state::none};
         const auto& push_state = [&](element_state_t flag) -> void
         {
@@ -100,20 +99,28 @@ namespace tabletopify
         push_state(element_state::hover);
         push_state(element_state::active);
 
-
         style_sheet retval;
+        const auto applyStyle = [&](const selector& sel) -> void
+        {
+            if(auto it = _styleFactory.find(sel); it != _styleFactory.end())
+            {
+                retval = it->second.apply(retval);
+            }
+        };
 
         for(auto currentType : typeList)
         {
+            for(auto currentState : stateList)
+            {
+                selector s = {currentType, "", currentState};
+                applyStyle(s);
+            }
             for(const auto& currentTag : tagList)
             {
                 for(auto currentState : stateList)
                 {
                     selector s = {currentType, currentTag, currentState};
-                    if(auto it = _styleFactory.find(s); it != _styleFactory.end())
-                    {
-                        retval = it->second.apply(retval);
-                    }
+                    applyStyle(s);
                 }
             }
         }

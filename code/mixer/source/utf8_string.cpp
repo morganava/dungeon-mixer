@@ -20,7 +20,7 @@ namespace tabletopify
     bool utf8_codepoint::operator!=(const utf8_codepoint& that) const
     {
         return !this->operator==(that);
-    }    
+    }
 
     bool utf8_codepoint::is_valid() const
     {
@@ -45,7 +45,7 @@ namespace tabletopify
             if(s == _codepoint) return true;
         }
 
-        utf8proc_int32_t ranges[][2] = 
+        utf8proc_int32_t ranges[][2] =
         {
             {0x09,0x0D},
             {0x2000,0x200A},
@@ -88,7 +88,7 @@ namespace tabletopify
     : _size(0)
     , _data(nullptr, std::free)
     {
-        *this = that;
+        *this = std::move(that);
     }
 
     utf8_string::utf8_string(const char* cstr)
@@ -179,7 +179,7 @@ namespace tabletopify
         }
 
         this->_size = size;
-        this->_data.reset(data);        
+        this->_data.reset(data);
     }
 
     // Equality Operators
@@ -190,7 +190,7 @@ namespace tabletopify
         {
             return true;
         }
-        
+
         if(this->_size != that._size)
         {
             return false;
@@ -376,7 +376,7 @@ namespace tabletopify
         {
             MX_THROW_MSG("{}", utf8proc_errmsg(codepointSize));
         }
-        
+
         for(decltype(codepointSize) k = 0; k < codepointSize; ++k)
         {
             _data.push_back(buffer[k]);

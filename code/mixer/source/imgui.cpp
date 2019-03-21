@@ -110,7 +110,7 @@ namespace tabletopify
 
         void widget_base::resolve_style_impl(element_type_t et)
         {
-            this->_style = g_style_resolver.resolve(et, {}, element_state::none);
+            this->_style = g_style_resolver.resolve(et, this->tags, element_state::none);
         }
 
         rect widget_base::render_border(const rect& desiredBounds) const
