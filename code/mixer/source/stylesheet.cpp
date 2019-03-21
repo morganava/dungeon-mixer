@@ -100,7 +100,7 @@ namespace tabletopify
         push_state(element_state::active);
 
         style_sheet retval;
-        const auto applyStyle = [&](const selector& sel) -> void
+        const auto apply_style = [&](const selector& sel) -> void
         {
             if(auto it = _styleFactory.find(sel); it != _styleFactory.end())
             {
@@ -113,14 +113,14 @@ namespace tabletopify
             for(auto currentState : stateList)
             {
                 selector s = {currentType, "", currentState};
-                applyStyle(s);
+                apply_style(s);
             }
             for(const auto& currentTag : tagList)
             {
                 for(auto currentState : stateList)
                 {
                     selector s = {currentType, currentTag, currentState};
-                    applyStyle(s);
+                    apply_style(s);
                 }
             }
         }
