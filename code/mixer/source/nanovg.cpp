@@ -94,8 +94,6 @@ namespace tabletopify
         draw_command_t cmd;
         auto& cq = _command_queue.current;
 
-        MX_LOG_INFO("command queue size : {}", cq.size());
-
         while(cq.next<draw_command_t>(cmd))
         {
             switch(cmd)

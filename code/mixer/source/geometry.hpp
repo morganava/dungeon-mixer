@@ -154,6 +154,26 @@ namespace tabletopify
             return position.y + size.y;
         }
 
+        constexpr vec2_<T> top_left() const
+        {
+            return position;
+        }
+
+        constexpr vec2_<T> top_right() const
+        {
+            return position + vec2_<T>{size.x, T{0}};
+        }
+
+        constexpr vec2_<T> bottom_left() const
+        {
+            return position + vec2_<T>{T{0}, size.y};
+        }
+
+        constexpr vec2_<T> bottom_right() const
+        {
+            return position + size;
+        }
+
         constexpr operator rect_<float>() const
         {
             return {(vec2f)position, (vec2f)size};
@@ -285,6 +305,37 @@ namespace tabletopify
 
     void from_json(const nl::json&, edges&);
 
+    template<typename T>
+    struct box_model_
+    {
+        rect_<T> outer_bounds;
+        edges_<T> margin;
+        T border_size;
+        corners_<T> border_radius;
+        edges_<T> padding;
+
+        constexpr rect_<T> inner_bounds() const
+        {
+            auto topLeft =
+                outer_bounds.top_left() +
+                vec2_<T>{margin.left, margin.top} +
+                vec2_<T>{border_size, border_size} +
+                vec2_<T>{padding.left, padding.right};
+
+            auto bottomRight =
+                outer_bounds.bottom_right() -
+                vec2_<T>{margin.right, margin.bottom} -
+                vec2_<T>{border_size, border_size} -
+                vec2_<T>{padding.right, padding.bottom};
+
+            const auto& position = topLeft;
+            auto size = bottomRight - topLeft;
+
+            return rect_<T> { position, size };
+        }
+    };
+    typedef box_model_<double> box_model;
+    typedef box_model_<float> box_modelf;
 
     // collision checks
 

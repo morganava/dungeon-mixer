@@ -30,22 +30,32 @@ namespace tabletopify
         none = 0,
         hover = 1 << 0,
         active= 1 << 1,
+        disabled= 1 << 2,
     } element_state_t;
 
     element_state_t parse_element_state(const std::string&);
 
     // element_state_t operator&(const element_state_t&, const element_state_t&);
 
+    namespace sdf
+    {
+        enum style_decleration_flag
+        {
+            none = 0,
+            geometry = 1 << 0,
+        };
+    }
+
     struct style_sheet
     {
-        #define STYLE_SHEET_ENTRY(TYPE, NAME, VAL) TYPE NAME = VAL;
+        #define STYLE_SHEET_ENTRY(NAME, VAL, FLAGS) std::remove_const<std::remove_reference<decltype(VAL)>::type>::type NAME = VAL;
         #include "stylesheet.inl"
         #undef STYLE_SHEET_ENTRY
     };
 
     typedef enum style_entry
     {
-        #define STYLE_SHEET_ENTRY(TYPE, NAME, VAL) NAME,
+        #define STYLE_SHEET_ENTRY(NAME, VAL, FLAGS) NAME,
         #include "stylesheet.inl"
         #undef STYLE_SHEET_ENTRY
     } style_entry_t;
@@ -80,6 +90,7 @@ namespace tabletopify
     class style_resolver
     {
     public:
+
         const style_sheet* resolve(element_type_t et, const array<utf8_string>& tags, element_state_t es) const;
     private:
         std::unordered_map<selector, style_declaration_set> _styleFactory;

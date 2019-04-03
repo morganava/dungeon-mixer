@@ -67,9 +67,12 @@ namespace tabletopify
         {
             switch(se)
             {
-                #define STYLE_SHEET_ENTRY(TYPE, NAME, VAL)\
+                #define STYLE_SHEET_ENTRY(NAME, VAL, FLAGS)\
                 case style_entry::NAME:\
-                    _declarations.next<TYPE>(retval.NAME);\
+                    {\
+                        typedef std::remove_const<std::remove_reference<decltype(VAL)>::type>::type TYPE;\
+                        _declarations.next<TYPE>(retval.NAME);\
+                    }\
                     break;
 
                 #include "stylesheet.inl"

@@ -273,10 +273,11 @@ namespace tabletopify
 
         auto& d = sds._declarations;
 
-        #define STYLE_SHEET_ENTRY(TYPE, NAME, VAL)\
+        #define STYLE_SHEET_ENTRY(NAME, VAL, FLAGS)\
         if(auto it = j.find(#NAME); it != j.end())\
         {\
             d.push_back<style_entry_t>(style_entry::NAME);\
+            typedef std::remove_const<std::remove_reference<decltype(VAL)>::type>::type TYPE;\
             d.push_back<TYPE>(it->get<TYPE>());\
         }\
 
@@ -287,15 +288,6 @@ namespace tabletopify
     void from_json(const nl::json& j, style_resolver& sr)
     {
         MX_THROW_IF_FALSE(j.is_object());
-
-        // populate the root style
-        auto jRoot = j.find("*");
-        if(jRoot != j.end()) {
-            auto& rs = sr._rootStyle;
-            style_declaration_set sds;
-            from_json(*jRoot, sds);
-            rs = sds.apply(rs);
-        }
 
         // iterate over each selector and build our style selector set
         const std::regex selectorRegex("^([a-z]*)[\\.]?([a-z]*)[\\:]?([a-z]*)$");

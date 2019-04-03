@@ -1,6 +1,6 @@
 {
     "" : {
-        "scrollbarSize" : 20.0,
+        "scrollbarSize" : 50.0,
         "scrollbarMinLength" : 0.0,
         "scrollbarForeColor" : "#C0C0C0",
         "scrollbarActiveColor" : "#C06000",

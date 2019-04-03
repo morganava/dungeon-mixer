@@ -113,9 +113,9 @@ namespace tabletopify
             this->_style = g_style_resolver.resolve(et, this->tags, element_state::none);
         }
 
-        rect widget_base::render_border(const rect& desiredBounds) const
+         rect widget_base::render_border(const rect& desiredBounds) const
         {
-            const auto borderSize = this->style().borderSize;
+             const auto borderSize = this->style().borderSize;
             const auto borderRadius = this->style().borderRadius;
             const auto backgroundColor = this->style().backgroundColor;
             const auto margin = this->style().margin;
@@ -146,8 +146,8 @@ namespace tabletopify
             if (interiorBounds.size.x <= 0 || interiorBounds.size.y <= 0)
             {
                 return rect {
-                    {desiredBounds.position.x + (margin.left + borderSize) / (margin.left + margin.right + 2 * borderSize) * desiredBounds.size.x,
-                     desiredBounds.position.y + (margin.top + borderSize) / (margin.top + margin.bottom + 2 *borderSize) * desiredBounds.size.y},
+                    {desiredBounds.position.x + (margin.left + borderSize) / (margin.left + margin.right + 2.0 * borderSize) * desiredBounds.size.x,
+                     desiredBounds.position.y + (margin.top + borderSize) / (margin.top + margin.bottom + 2.0 *borderSize) * desiredBounds.size.y},
                     {0.0, 0.0}
                 };
             }
@@ -167,7 +167,7 @@ namespace tabletopify
             rect paddedBounds = desiredBounds;
             paddedBounds.position += vec2{margin.left + borderSize + padding.left, margin.top + borderSize + padding.top};
             paddedBounds.size -= 2.0 * vec2{borderSize, borderSize} + vec2{margin.left + margin.right, margin.top + margin.bottom} + vec2{padding.left + padding.right, padding.top + padding.bottom};
-            if (paddedBounds.size.x <= 0 || paddedBounds.size.y <= 0)
+            if (paddedBounds.size.x <= 0.0 || paddedBounds.size.y <= 0.0)
             {
                 return rect {
                     {desiredBounds.position.x + (margin.left + borderSize + padding.left) / (margin.left + margin.right + 2 * borderSize + padding.left + padding.right) * desiredBounds.size.x,

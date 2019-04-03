@@ -164,7 +164,6 @@ namespace tabletopify
             // called by widget<T> in resolve_style
             void resolve_style_impl(element_type_t);
 
-
             const style_sheet& style() const {return *_style;}
 
         private:
@@ -347,6 +346,14 @@ namespace tabletopify
 
     } // imgui namespace
 
+
+// user logic
+// resolve collision geometry
+// determine style selector state (hover,active,etc)
+// trigger callbacks
+// first render
+//  child widgets
+// second render
 
 #define MX_WIDGET_CODEGEN(X, pdata, ...)\
     if (imgui::X widget##__LINE__(pdata); \
