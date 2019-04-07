@@ -76,46 +76,41 @@ namespace tabletopify
             return g_context.is_focused(this->get_widget_id());
         }
 
-        void widget_base::destructor_impl(void(*func)(void*))
-        {
-            // restore the scissor area for second render pass
-            scissor = g_context.peek_render_bounds().scissor;
-            g_context.set_render_scissor(scissor);
-
-            // post-child updates and renders
-            func(this);
-
-            g_context.pop_render_bounds();
-        }
-
-        void widget_base::calc_render_bounds_impl(render_bounds(*func)(void*))
-        {
-            const auto& rb = g_context.peek_render_bounds();
-
-            this->bounds = rb.eval(this->bounds);
-            const auto& parent_scissor = rb.scissor;
-
-            // render the border and bgcolor
-            auto marginScissor = get_intersecting_rect(parent_scissor, this->bounds);
-            get_nanovg()->set_scissor(marginScissor);
-            this->bounds = this->render_border(bounds);
-
-            // calc the scissor geometry for widget specific contetn
-            this->scissor = get_intersecting_rect(parent_scissor, this->bounds);
-            get_nanovg()->set_scissor(this->scissor);
-
-            // push info for child render bounds calculations
-            g_context.push_render_bounds(func(this));
-        }
-
         void widget_base::resolve_style_impl(element_type_t et)
         {
             this->_style = g_style_resolver.resolve(et, this->tags, element_state::none);
         }
 
-         rect widget_base::render_border(const rect& desiredBounds) const
+        void widget_base::resolve_box_layout_impl(element_type_t et)
         {
-             const auto borderSize = this->style().borderSize;
+            const auto& rb = g_context.peek_render_bounds();
+            const auto& parent_scissor = rb.scissor;
+
+            // get our box layout based off type and tags
+            this->layout = *g_style_resolver.resolve_box_layout(et, this->tags);
+            layout.outer_bounds = rb.eval(this->bounds);
+            this->bounds = layout.outer_bounds;
+
+            // calculate state
+            //blah blah blah use element_state::none for now
+
+            // get our style
+            this->_style = g_style_resolver.resolve(et, this->tags, element_state::none);
+
+            // render our common stuff (border, background, etc)
+            // this->render_background();
+
+            // calc the scissor geometry for widget specific contetn
+            // but only scissor the rendering if we're a certain type of element
+            this->scissor = get_intersecting_rect(parent_scissor, this->bounds);
+            if (et == element_type::vbox) {
+                get_nanovg()->set_scissor(this->scissor);
+            }
+        }
+
+        rect widget_base::render_border(const rect& desiredBounds) const
+        {
+            const auto borderSize = this->style().borderSize;
             const auto borderRadius = this->style().borderRadius;
             const auto backgroundColor = this->style().backgroundColor;
             const auto margin = this->style().margin;
@@ -181,7 +176,7 @@ namespace tabletopify
 
         // vbox
 
-        void widget_vbox::begin()
+        void widget_vbox::first_update_impl()
         {
             if (g_input.get_mouse_clicked(mouse_button::left, this->scissor))
             {
@@ -208,7 +203,7 @@ namespace tabletopify
             };
         }
 
-        void widget_vbox::middle()
+        void widget_vbox::last_update_impl()
         {
             // height of the group
             const auto height = bounds.size.y;
@@ -229,31 +224,6 @@ namespace tabletopify
             double scrollbar_y = bounds.position.y + (height - scrollbar_height) * (data()->vertical_scroll / scrollable_height);
 
             scrollbar_grab_area = {{scrollbar_x, scrollbar_y}, {scrollbar_width, scrollbar_height}};
-        }
-
-        void widget_vbox::second_render() const
-        {
-            get_nanovg()->fill_rect(scrollbar_area, this->style().scrollbarBackColor);
-
-            corners radius = this->style().scrollbarCornerRadius;
-
-            if (data()->grabbing_scrollbar)
-            {
-                get_nanovg()->fill_rounded_rect(scrollbar_grab_area, radius, this->style().scrollbarActiveColor);
-            }
-            else
-            {
-                get_nanovg()->fill_rounded_rect(scrollbar_grab_area, radius, this->style().scrollbarForeColor);
-            }
-
-        }
-
-        void widget_vbox::end()
-        {
-            // height of the group
-            const auto height = bounds.size.y;
-            // valid scrollable range  (0 to scrollable_height)
-            const  auto scrollable_height = internal_height - height;
 
             if (internal_height < height)
             {
@@ -343,6 +313,23 @@ namespace tabletopify
             }
         }
 
+        void widget_vbox::last_render_impl() const
+        {
+            get_nanovg()->fill_rect(scrollbar_area, this->style().scrollbarBackColor);
+
+            corners radius = this->style().scrollbarCornerRadius;
+
+            if (data()->grabbing_scrollbar)
+            {
+                get_nanovg()->fill_rounded_rect(scrollbar_grab_area, radius, this->style().scrollbarActiveColor);
+            }
+            else
+            {
+                get_nanovg()->fill_rounded_rect(scrollbar_grab_area, radius, this->style().scrollbarForeColor);
+            }
+
+        }
+
         // Hbox
 
         render_bounds_callback_t widget_hbox::get_bounds_callback()
@@ -367,7 +354,7 @@ namespace tabletopify
 
         // Debug
 
-        void widget_debug::begin()
+        void widget_debug::first_update_impl()
         {
             auto current_position = g_input.get_mouse_position(input_frame::current);
             auto previous_position = g_input.get_mouse_position(input_frame::previous);
@@ -381,7 +368,7 @@ namespace tabletopify
                 }
             }
         }
-        void widget_debug::first_render() const
+        void widget_debug::first_render_impl() const
         {
             get_nanovg()->fill_rect(bounds, color::rgb(0,0,0));
             get_nanovg()->fill_rect(rect{bounds.position + vec2{1.0, 1.0}, {bounds.size - vec2{2.0, 2.0}}}, bg_color);
@@ -390,7 +377,7 @@ namespace tabletopify
 
         // Label
 
-        void widget_label::first_render() const
+        void widget_label::first_render_impl() const
         {
             g_nanovg.draw_text(
                 bounds,
@@ -404,7 +391,7 @@ namespace tabletopify
 
         // Button
 
-        void widget_button::begin()
+        void widget_button::first_update_impl()
         {
             if (g_input.get_mouse_clicked(mouse_button::left, this->scissor))
             {
@@ -416,7 +403,7 @@ namespace tabletopify
             }
         }
 
-        void widget_button::first_render() const
+        void widget_button::first_render_impl() const
         {
             g_nanovg.draw_text(
                 bounds,
@@ -428,7 +415,7 @@ namespace tabletopify
                 data()->text);
         }
 
-        void widget_button::end()
+        void widget_button::last_update_impl()
         {
             if (g_input.get_mouse_clicked(mouse_button::left, this->scissor))
             {

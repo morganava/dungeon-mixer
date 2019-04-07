@@ -306,7 +306,7 @@ namespace tabletopify
     void from_json(const nl::json&, edges&);
 
     template<typename T>
-    struct box_model_
+    struct box_layout_
     {
         rect_<T> outer_bounds;
         edges_<T> margin;
@@ -334,8 +334,8 @@ namespace tabletopify
             return rect_<T> { position, size };
         }
     };
-    typedef box_model_<double> box_model;
-    typedef box_model_<float> box_modelf;
+    typedef box_layout_<double> box_layout;
+    typedef box_layout_<float> box_layoutf;
 
     // collision checks
 

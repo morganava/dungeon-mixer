@@ -151,20 +151,22 @@ namespace tabletopify
                 return _data ? _data->id : NULL_WIDGET_ID;
             }
 
-
         protected:
             void focus_widget();
             void unfocus_widget();
             bool is_focused() const;
 
-            // called by widget<T> in destructor
-            void destructor_impl(void(*func)(void*));
-            // called by widget<T> in calc_render_bounds
-            void calc_render_bounds_impl(render_bounds(*func)(void*));
-            // called by widget<T> in resolve_style
+            const style_sheet& style() const {return *_style;}
+
+            // common funcs
+            void resolve_box_layout_impl(element_type_t et);
             void resolve_style_impl(element_type_t);
 
-            const style_sheet& style() const {return *_style;}
+            // widget interface methods
+            void first_update_impl() {}
+            void first_render_impl() const {}
+            void last_update_impl() {}
+            void last_render_impl() const {}
 
         private:
             // shared margin/border/padding rendering
@@ -175,6 +177,7 @@ namespace tabletopify
         public:
             rect bounds = {};
             rect scissor = {};
+            box_layout layout = {};
             array<utf8_string> tags;
 
         protected:
@@ -196,15 +199,16 @@ namespace tabletopify
             // destructor called after child widgets have been handled
             ~widget()
             {
-                destructor_impl([](void* pSelf)
-                {
-                    auto* self = static_cast<T*>(pSelf);
-                    // first update and render after child renders
-                    self->middle();
-                    self->second_render();
-                    // our final update
-                    self->end();
-                });
+                auto* self = static_cast<T*>(this);
+                // first update and render after child renders
+                // self->last_update();
+                // self->second_render();
+                // // our final update
+                // self->end();
+                self->last_update_impl();
+                self->last_render_impl();
+
+                g_context.pop_render_bounds();
             }
 
             // gets and saves this widget's render bounds and scissor area
@@ -218,10 +222,42 @@ namespace tabletopify
                 });
             }
 
+            void resolve_box_layout()
+            {
+                this->resolve_box_layout_impl(ELEMENT_TYPE);
+            }
+
             // resolve this widget's style
             void resolve_style()
             {
                 this->resolve_style_impl(ELEMENT_TYPE);
+            }
+
+            void first_update()
+            {
+                static_cast<T*>(this)->first_update_impl();
+            }
+
+            void first_render() const
+            {
+                static_cast<const T*>(this)->first_render_impl();
+            }
+
+            void push_render_bounds()
+            {
+                auto* self = static_cast<T*>(this);
+                render_bounds rb = {self->get_bounds_callback(), self, self->scissor};
+                g_context.push_render_bounds(rb);
+            }
+
+            void last_update()
+            {
+                static_cast<T*>(this)->last_update_impl();
+            }
+
+            void last_render() const
+            {
+                static_cast<const T*>(this)->last_render_impl();
             }
 
             // widget methods
@@ -243,7 +279,7 @@ namespace tabletopify
         {
             // vertical offset down
             double vertical_scroll = 0.0;
-            // is user grabbng scrollbar with mouse
+            // is user grabbing scrollbar with mouse
             bool grabbing_scrollbar = false;
             // offset into scrollbar handle user is grabbng
             double grab_offset_y = 0.0;
@@ -253,12 +289,10 @@ namespace tabletopify
         {
             using widget::widget;
 
-            void begin();
-            void first_render() const {}
+            void first_update_impl();
             render_bounds_callback_t get_bounds_callback();
-            void middle();
-            void second_render() const;
-            void end();
+            void last_update_impl();
+            void last_render_impl() const;
 
         private:
             // cumulative height of the child widgets
@@ -273,12 +307,7 @@ namespace tabletopify
         {
             using widget::widget;
 
-            void begin() {}
-            void first_render() const {}
             render_bounds_callback_t get_bounds_callback();
-            void middle() {}
-            void second_render() const {}
-            void end() {}
 
             array_view<double> widths;
         private:
@@ -292,12 +321,9 @@ namespace tabletopify
         {
             using widget::widget;
 
-            void begin();
-            void first_render() const;
+            void first_update_impl();
+            void first_render_impl() const;
             render_bounds_callback_t get_bounds_callback() { return nullptr; }
-            void middle() {}
-            void second_render() const {}
-            void end() {}
 
             callback<void, vec2> on_mouse_move;
             callback<void, vec2> on_mouse_over;
@@ -315,12 +341,8 @@ namespace tabletopify
         {
             using widget::widget;
 
-            void begin() {}
-            void first_render() const;
+            void first_render_impl() const;
             render_bounds_callback_t get_bounds_callback() { return nullptr; }
-            void middle() {}
-            void second_render() const {}
-            void end() {}
         };
 
         /// button
@@ -334,12 +356,10 @@ namespace tabletopify
         {
             using widget::widget;
 
-            void begin();
-            void first_render() const;
+            void first_update_impl();
+            void first_render_impl() const;
             render_bounds_callback_t get_bounds_callback() { return nullptr; }
-            void middle() {}
-            void second_render() const {}
-            void end();
+            void last_update_impl();
 
             callback<void> on_click;
         };
@@ -349,20 +369,21 @@ namespace tabletopify
 
 // user logic
 // resolve collision geometry
+// trigger input/collision callbacks
 // determine style selector state (hover,active,etc)
-// trigger callbacks
-// first render
+// render borders/margin/etc
+// widget-specific first render
 //  child widgets
-// second render
+// widget-specific second render
 
 #define MX_WIDGET_CODEGEN(X, pdata, ...)\
     if (imgui::X widget##__LINE__(pdata); \
         [&](auto& self) -> bool {\
             __VA_ARGS__\
-            self.resolve_style();\
-            self.calc_render_bounds();\
-            self.begin();\
+            self.resolve_box_layout();\
+            self.first_update();\
             self.first_render();\
+            self.push_render_bounds();\
             return true;\
         }(widget##__LINE__))
 

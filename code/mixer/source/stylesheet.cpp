@@ -86,7 +86,6 @@ namespace tabletopify
         return retval;
     }
 
-
     const style_sheet* style_resolver::resolve(element_type_t type, const array<utf8_string>& tags, element_state_t state) const
     {
         element_type_t typeList[2] = {element_type::any, type};
@@ -131,5 +130,19 @@ namespace tabletopify
 
 
         return &_rootStyle;
+    }
+
+    const box_layout* style_resolver::resolve_box_layout(element_type_t type, const array<utf8_string>& tags) const
+    {
+        const auto* styleSheet = resolve(type, tags, element_state::none);
+        box_layout retval;
+        retval.margin = styleSheet->margin;
+        retval.border_size = styleSheet->borderSize;
+        retval.border_radius = styleSheet->borderRadius;
+        retval.padding = styleSheet->padding;
+
+        _boxLayout = retval;
+
+        return &_boxLayout;
     }
 }
