@@ -108,6 +108,14 @@ namespace tabletopify
             }
         }
 
+        void widget_base::render_box_layout_impl() const
+        {
+            if (this->style().borderSize > 0.0) {
+                g_nanovg.stroke_rect(this->layout.border_bounds(), this->style().borderColor, this->style().borderSize);
+            }
+
+        }
+
         rect widget_base::render_border(const rect& desiredBounds) const
         {
             const auto borderSize = this->style().borderSize;

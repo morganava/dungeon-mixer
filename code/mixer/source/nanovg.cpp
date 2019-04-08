@@ -76,6 +76,7 @@ namespace tabletopify
         set_scissor,
         fill_rect,
         fill_rounded_rect,
+        stroke_rect,
         draw_text
     } draw_command_t;
 
@@ -132,6 +133,25 @@ namespace tabletopify
                     nvgRoundedRectVarying(_ctx, r.position.x, r.position.y, r.size.x, r.size.y, rad.topLeft, rad.topRight, rad.bottomRight, rad.bottomLeft);
                     nvgFillColor(_ctx, col);
                     nvgFill(_ctx);
+                }
+                break;
+                case draw_command::stroke_rect:
+                {
+                    rectf r;
+                    color col;
+                    float strokeWidth;
+                    MX_THROW_IF_FALSE(cq.next(r));
+                    MX_THROW_IF_FALSE(cq.next(col));
+                    MX_THROW_IF_FALSE(cq.next(strokeWidth));
+
+                    r.position += vec2f{strokeWidth / 2.0, strokeWidth / 2.0};
+                    r.size -= vec2f{strokeWidth, strokeWidth};
+
+                    nvgBeginPath(_ctx);
+                    nvgRect(_ctx, r.position.x, r.position.y, r.size.x, r.size.y);
+                    nvgStrokeColor(_ctx, col);
+                    nvgStrokeWidth(_ctx, strokeWidth);
+                    nvgStroke(_ctx);
                 }
                 break;
                 case draw_command::draw_text:
@@ -226,6 +246,15 @@ namespace tabletopify
         cq.push_back(r);
         cq.push_back(c);
         cq.push_back(col);
+    }
+
+    void nanovg::stroke_rect(const rectf& r, const color& col, float strokeWidth)
+    {
+        auto& cq = _command_queue.current;
+        cq.push_back(draw_command::stroke_rect);
+        cq.push_back(r);
+        cq.push_back(col);
+        cq.push_back(strokeWidth);
     }
 
     void nanovg::draw_text(const rectf& bounds, font_id font, float size, const color& col, halign_t halign, valign_t valign, const utf8_string& str)

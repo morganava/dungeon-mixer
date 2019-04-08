@@ -161,6 +161,7 @@ namespace tabletopify
             // common funcs
             void resolve_box_layout_impl(element_type_t et);
             void resolve_style_impl(element_type_t);
+            void render_box_layout_impl() const;
 
             // widget interface methods
             void first_update_impl() {}
@@ -200,12 +201,7 @@ namespace tabletopify
             ~widget()
             {
                 auto* self = static_cast<T*>(this);
-                // first update and render after child renders
-                // self->last_update();
-                // self->second_render();
-                // // our final update
-                // self->end();
-                self->last_update_impl();
+                 self->last_update_impl();
                 self->last_render_impl();
 
                 g_context.pop_render_bounds();
@@ -225,6 +221,11 @@ namespace tabletopify
             void resolve_box_layout()
             {
                 this->resolve_box_layout_impl(ELEMENT_TYPE);
+            }
+
+            void render_box_layout() const
+            {
+                static_cast<const T*>(this)->render_box_layout_impl();
             }
 
             // resolve this widget's style
@@ -382,6 +383,8 @@ namespace tabletopify
             __VA_ARGS__\
             self.resolve_box_layout();\
             self.first_update();\
+            self.resolve_style();\
+            self.render_box_layout();\
             self.first_render();\
             self.push_render_bounds();\
             return true;\

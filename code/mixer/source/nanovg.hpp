@@ -64,6 +64,7 @@ namespace tabletopify
         void set_scissor(const rectf&);
         void fill_rect(const rectf&, const color&);
         void fill_rounded_rect(const rectf&, const cornersf&, const color&);
+        void stroke_rect(const rectf&, const color&, float strokeWidth);
         void draw_text(const rectf& bounds, font_id font, float size, const color& col,halign_t halign, valign_t valign, const utf8_string& str);
     private:
         NVGcontext* _ctx = nullptr;

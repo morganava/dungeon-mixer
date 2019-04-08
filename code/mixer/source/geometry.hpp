@@ -314,7 +314,7 @@ namespace tabletopify
         corners_<T> border_radius;
         edges_<T> padding;
 
-        constexpr rect_<T> inner_bounds() const
+        constexpr rect_<T> child_bounds() const
         {
             auto topLeft =
                 outer_bounds.top_left() +
@@ -327,6 +327,22 @@ namespace tabletopify
                 vec2_<T>{margin.right, margin.bottom} -
                 vec2_<T>{border_size, border_size} -
                 vec2_<T>{padding.right, padding.bottom};
+
+            const auto& position = topLeft;
+            auto size = bottomRight - topLeft;
+
+            return rect_<T> { position, size };
+        }
+
+        constexpr rect_<T> border_bounds() const
+        {
+            auto topLeft =
+                outer_bounds.top_left() +
+                vec2_<T>{margin.left, margin.top};
+
+            auto bottomRight =
+                outer_bounds.bottom_right() -
+                vec2_<T>{margin.right, margin.bottom};
 
             const auto& position = topLeft;
             auto size = bottomRight - topLeft;
