@@ -109,17 +109,18 @@ namespace tabletopify
             // calc the scissor geometry for widget specific contetn
             // but only scissor the rendering if we're a certain type of element
             this->scissor = get_intersecting_rect(parent_scissor, this->bounds);
-            if (flag & widget_flag::scissors) {
+            if (flag & widget_flag::scissors)
+            {
                 g_context.push_scissor(this->scissor);
             }
         }
 
         void widget_base::render_box_layout_impl() const
         {
-            if (this->style().borderSize > 0.0) {
-                g_nanovg.stroke_rect(this->layout.border_bounds(), this->style().borderColor, this->style().borderSize);
+            if (this->style().borderSize > 0.0)
+            {
+                g_nanovg.stroke_rect(this->layout.border_bounds(), this->style().borderSize, this->style().borderColor);
             }
-
         }
 
         rect widget_base::render_border(const rect& desiredBounds) const
