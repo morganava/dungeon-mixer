@@ -32,7 +32,8 @@
         "fontSize" : 36
     },
     "button.foo" : {
-        "backgroundColor" : "#08F"
+        "backgroundColor" : "#08F",
+        "margin" : 20
     },
     "button.push" : {
         "borderRadius" : 0,

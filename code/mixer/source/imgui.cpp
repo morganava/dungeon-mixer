@@ -97,14 +97,8 @@ namespace tabletopify
             layout.outer_bounds = rb.eval(this->bounds);
             this->bounds = layout.outer_bounds;
 
-            // calculate state
-            //blah blah blah use element_state::none for now
-
             // get our style
             this->_style = g_style_resolver.resolve(et, this->tags, element_state::none);
-
-            // render our common stuff (border, background, etc)
-            // this->render_background();
 
             // calc the scissor geometry for widget specific contetn
             // but only scissor the rendering if we're a certain type of element
@@ -117,76 +111,23 @@ namespace tabletopify
 
         void widget_base::render_box_layout_impl() const
         {
-            if (this->style().borderSize > 0.0)
+            const auto& style = this->style();
+
+            if (style.borderSize > 0.0)
             {
-                g_nanovg.stroke_rect(this->layout.border_bounds(), this->style().borderSize, this->style().borderColor);
+                auto strokeBounds = this->layout.border_bounds();
+                auto fillBounds = strokeBounds;
+                fillBounds.position += vec2{style.borderSize, style.borderSize} / 2.0;
+                fillBounds.size -= vec2{style.borderSize, style.borderSize};
+
+                g_nanovg.fill_rounded_rect(fillBounds, style.borderRadius, style.backgroundColor);
+                g_nanovg.stroke_rounded_rect(strokeBounds, style.borderRadius, style.borderSize, style.borderColor);
             }
-        }
-
-        rect widget_base::render_border(const rect& desiredBounds) const
-        {
-            const auto borderSize = this->style().borderSize;
-            const auto borderRadius = this->style().borderRadius;
-            const auto backgroundColor = this->style().backgroundColor;
-            const auto margin = this->style().margin;
-            const auto padding = this->style().padding;
-
-            if (borderSize > 0.0)
+            else
             {
-                const auto borderColor = this->style().borderColor;
-
-                rect borderBounds = desiredBounds;
-                borderBounds.position += vec2{margin.left, margin.top};
-                borderBounds.size -= vec2{margin.left + margin.right, margin.top + margin.bottom};
-                if (borderBounds.size.x <= 0 || borderBounds.size.y <= 0)
-                {
-                    return rect {
-                        {desiredBounds.position.x + (margin.left) / (margin.left + margin.right) * desiredBounds.size.x,
-                         desiredBounds.position.y + (margin.top) / (margin.top + margin.bottom) * desiredBounds.size.y},
-                        {0.0, 0.0}
-                    };
-                }
-                // draw border
-                g_nanovg.fill_rounded_rect(borderBounds, borderRadius, borderColor);
+                auto fillBounds = this->layout.border_bounds();
+                g_nanovg.fill_rounded_rect(fillBounds, style.borderRadius, style.backgroundColor);
             }
-
-            rect interiorBounds = desiredBounds;
-            interiorBounds.position += vec2{margin.left + borderSize, margin.top + borderSize};
-            interiorBounds.size -= 2.0 * vec2{borderSize, borderSize} + vec2{margin.left + margin.right, margin.top + margin.bottom};
-            if (interiorBounds.size.x <= 0 || interiorBounds.size.y <= 0)
-            {
-                return rect {
-                    {desiredBounds.position.x + (margin.left + borderSize) / (margin.left + margin.right + 2.0 * borderSize) * desiredBounds.size.x,
-                     desiredBounds.position.y + (margin.top + borderSize) / (margin.top + margin.bottom + 2.0 *borderSize) * desiredBounds.size.y},
-                    {0.0, 0.0}
-                };
-            }
-            corners interiorRadius = borderRadius;
-            interiorRadius.topLeft -= borderSize;
-            interiorRadius.topRight -= borderSize;
-            interiorRadius.bottomRight -= borderSize;
-            interiorRadius.bottomLeft -= borderSize;
-            interiorRadius.topLeft = max(interiorRadius.topLeft, 0.0);
-            interiorRadius.topRight = max(interiorRadius.topRight, 0.0);
-            interiorRadius.bottomRight = max(interiorRadius.bottomRight, 0.0);
-            interiorRadius.bottomLeft = max(interiorRadius.bottomLeft, 0.0);
-            // draw interior background color
-            g_nanovg.fill_rounded_rect(interiorBounds, interiorRadius, backgroundColor);
-
-            // calculate internal bounds of widget content
-            rect paddedBounds = desiredBounds;
-            paddedBounds.position += vec2{margin.left + borderSize + padding.left, margin.top + borderSize + padding.top};
-            paddedBounds.size -= 2.0 * vec2{borderSize, borderSize} + vec2{margin.left + margin.right, margin.top + margin.bottom} + vec2{padding.left + padding.right, padding.top + padding.bottom};
-            if (paddedBounds.size.x <= 0.0 || paddedBounds.size.y <= 0.0)
-            {
-                return rect {
-                    {desiredBounds.position.x + (margin.left + borderSize + padding.left) / (margin.left + margin.right + 2 * borderSize + padding.left + padding.right) * desiredBounds.size.x,
-                     desiredBounds.position.y + (margin.top + borderSize + padding.top) / (margin.top + margin.bottom + 2 * borderSize + padding.top + padding.bottom) * desiredBounds.size.y},
-                    {0.0, 0.0}
-                };
-            }
-
-            return paddedBounds;
         }
 
         // vbox

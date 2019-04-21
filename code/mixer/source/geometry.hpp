@@ -55,9 +55,14 @@ namespace tabletopify
             return vec2_(this->x - that.x, this->y - that.y);
         }
 
-        constexpr vec2_ operator*(double d) const
+        constexpr vec2_ operator*(T d) const
         {
             return vec2_(this->x * d, this->y * d);
+        }
+
+        constexpr vec2_ operator/(T d) const
+        {
+            return vec2_(this->x / d, this->y / d);
         }
 
         constexpr vec2_& operator+=(const vec2_& that)
