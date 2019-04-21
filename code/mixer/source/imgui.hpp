@@ -117,10 +117,13 @@ namespace tabletopify
             constexpr bool is_focused(widget_id_t id)  const { return id == _focused_widget; }
 
             // set's render scissor
-            void set_render_scissor(const rect&);
+            void push_scissor(const rect&);
+            void pop_scissor();
+
 
         private:
             std::vector<render_bounds> _render_bounds_stack;
+            std::vector<rect> _render_scissor_stack;
             widget_id_t _focused_widget = INVALID_WIDGET_ID;
         };
 
@@ -138,6 +141,16 @@ namespace tabletopify
         {
             widget_id_t id = next_widget_id();
         };
+
+        namespace widget_flag
+        {
+            enum values
+            {
+                none        = 0x0,
+                scissors    = 0x1,
+            };
+        }
+        typedef widget_flag::values widget_flag_t;
 
         // base widget
 
@@ -159,7 +172,7 @@ namespace tabletopify
             const style_sheet& style() const {return *_style;}
 
             // common funcs
-            void resolve_box_layout_impl(element_type_t et);
+            void resolve_box_layout_impl(element_type_t et, widget_flag_t flags);
             void resolve_style_impl(element_type_t);
             void render_box_layout_impl() const;
 
@@ -186,7 +199,7 @@ namespace tabletopify
             widget_data* _data = nullptr;
         };
 
-        template<typename T, element_type ELEMENT_TYPE, typename WIDGET_DATA=widget_data>
+        template<typename T, element_type ELEMENT_TYPE, typename WIDGET_DATA=widget_data, widget_flag_t WIDGET_FLAGS=widget_flag::none>
         struct widget : public widget_base
         {
             widget() = delete;
@@ -201,8 +214,12 @@ namespace tabletopify
             ~widget()
             {
                 auto* self = static_cast<T*>(this);
-                 self->last_update_impl();
+                self->last_update_impl();
                 self->last_render_impl();
+
+                if (WIDGET_FLAGS & widget_flag::scissors) {
+                    g_context.pop_scissor();
+                }
 
                 g_context.pop_render_bounds();
             }
@@ -220,7 +237,7 @@ namespace tabletopify
 
             void resolve_box_layout()
             {
-                this->resolve_box_layout_impl(ELEMENT_TYPE);
+                this->resolve_box_layout_impl(ELEMENT_TYPE, WIDGET_FLAGS);
             }
 
             void render_box_layout() const
@@ -286,7 +303,7 @@ namespace tabletopify
             double grab_offset_y = 0.0;
         };
 
-        struct widget_vbox : public widget<widget_vbox, element_type::vbox, vbox_data>
+        struct widget_vbox : public widget<widget_vbox, element_type::vbox, vbox_data, widget_flag::scissors>
         {
             using widget::widget;
 

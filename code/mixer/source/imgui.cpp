@@ -47,11 +47,17 @@ namespace tabletopify
             _render_bounds_stack.pop_back();
         }
 
-        void context::set_render_scissor(const rect& region)
+        void context::push_scissor(const rect& scissor)
         {
-            get_nanovg()->set_scissor(region);
+            _render_scissor_stack.push_back(scissor);
+            g_nanovg.set_scissor(scissor);
         }
 
+        void context::pop_scissor()
+        {
+            _render_scissor_stack.pop_back();
+            g_nanovg.set_scissor(_render_scissor_stack.back());
+        }
 
         // widget_base
 
@@ -81,7 +87,7 @@ namespace tabletopify
             this->_style = g_style_resolver.resolve(et, this->tags, element_state::none);
         }
 
-        void widget_base::resolve_box_layout_impl(element_type_t et)
+        void widget_base::resolve_box_layout_impl(element_type_t et, widget_flag_t flag)
         {
             const auto& rb = g_context.peek_render_bounds();
             const auto& parent_scissor = rb.scissor;
@@ -103,8 +109,8 @@ namespace tabletopify
             // calc the scissor geometry for widget specific contetn
             // but only scissor the rendering if we're a certain type of element
             this->scissor = get_intersecting_rect(parent_scissor, this->bounds);
-            if (et == element_type::vbox) {
-                get_nanovg()->set_scissor(this->scissor);
+            if (flag & widget_flag::scissors) {
+                g_context.push_scissor(this->scissor);
             }
         }
 
