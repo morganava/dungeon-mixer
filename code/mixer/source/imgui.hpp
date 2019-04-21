@@ -173,8 +173,10 @@ namespace tabletopify
 
             // common funcs
             void resolve_box_layout_impl(element_type_t et, widget_flag_t flags);
-            void resolve_style_impl(element_type_t);
+            element_state_t resolve_element_state_impl() const {return element_state::none;}
+            void resolve_style_impl(element_type_t, element_state_t);
             void render_box_layout_impl() const;
+            render_bounds_callback_t get_bounds_callback() { return nullptr; }
 
             // widget interface methods
             void first_update_impl() {}
@@ -248,7 +250,8 @@ namespace tabletopify
             // resolve this widget's style
             void resolve_style()
             {
-                this->resolve_style_impl(ELEMENT_TYPE);
+                auto self = static_cast<T*>(this);
+                self->resolve_style_impl(ELEMENT_TYPE, self->resolve_element_state_impl());
             }
 
             void first_update()
@@ -341,7 +344,6 @@ namespace tabletopify
 
             void first_update_impl();
             void first_render_impl() const;
-            render_bounds_callback_t get_bounds_callback() { return nullptr; }
 
             callback<void, vec2> on_mouse_move;
             callback<void, vec2> on_mouse_over;
@@ -360,7 +362,6 @@ namespace tabletopify
             using widget::widget;
 
             void first_render_impl() const;
-            render_bounds_callback_t get_bounds_callback() { return nullptr; }
         };
 
         /// button
@@ -374,9 +375,9 @@ namespace tabletopify
         {
             using widget::widget;
 
+            element_state_t resolve_element_state_impl() const;
             void first_update_impl();
             void first_render_impl() const;
-            render_bounds_callback_t get_bounds_callback() { return nullptr; }
             void last_update_impl();
 
             callback<void> on_click;

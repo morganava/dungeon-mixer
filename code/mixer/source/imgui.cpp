@@ -82,9 +82,9 @@ namespace tabletopify
             return g_context.is_focused(this->get_widget_id());
         }
 
-        void widget_base::resolve_style_impl(element_type_t et)
+        void widget_base::resolve_style_impl(element_type_t et, element_state_t es)
         {
-            this->_style = g_style_resolver.resolve(et, this->tags, element_state::none);
+            this->_style = g_style_resolver.resolve(et, this->tags, es);
         }
 
         void widget_base::resolve_box_layout_impl(element_type_t et, widget_flag_t flag)
@@ -94,8 +94,8 @@ namespace tabletopify
 
             // get our box layout based off type and tags
             this->layout = *g_style_resolver.resolve_box_layout(et, this->tags);
-            layout.outer_bounds = rb.eval(this->bounds);
-            this->bounds = layout.outer_bounds;
+            layout.outerBounds = rb.eval(this->bounds);
+            this->bounds = layout.outerBounds;
 
             // get our style
             this->_style = g_style_resolver.resolve(et, this->tags, element_state::none);
@@ -346,6 +346,18 @@ namespace tabletopify
         }
 
         // Button
+
+        element_state_t widget_button::resolve_element_state_impl() const
+        {
+            if (point_inside_rounded_rect(
+                g_input.get_mouse_position(input_frame::current),
+                layout.border_bounds(),
+                layout.borderRadius))
+            {
+                return element_state::hover;
+            }
+            return element_state::none;
+        }
 
         void widget_button::first_update_impl()
         {

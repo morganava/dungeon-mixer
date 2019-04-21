@@ -145,7 +145,7 @@ namespace tabletopify
                     MX_THROW_IF_FALSE(cq.next(strokeWidth));
                     MX_THROW_IF_FALSE(cq.next(col));
 
-                    r.position += vec2f{strokeWidth / 2.0, strokeWidth / 2.0};
+                    r.position += vec2f{strokeWidth / 2.0f, strokeWidth / 2.0f};
                     r.size -= vec2f{strokeWidth, strokeWidth};
 
                     nvgBeginPath(_ctx);
@@ -166,7 +166,7 @@ namespace tabletopify
                     MX_THROW_IF_FALSE(cq.next(strokeWidth));
                     MX_THROW_IF_FALSE(cq.next(col));
 
-                    r.position += vec2f{strokeWidth / 2.0, strokeWidth / 2.0};
+                    r.position += vec2f{strokeWidth / 2.0f, strokeWidth / 2.0f};
                     r.size -= vec2f{strokeWidth, strokeWidth};
 
                     nvgBeginPath(_ctx);

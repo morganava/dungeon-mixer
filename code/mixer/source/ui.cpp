@@ -30,7 +30,7 @@ namespace tabletopify
         });
 
         linear_constraint_solver<3> lcg({
-            {0.0, 100.0, 1.0},
+            {50.0, 500.0, 1.0},
             {0.0, 200.0, 2.0},
             {0.0, 300.0, 3.0},
         });

@@ -38,9 +38,14 @@ namespace tabletopify
         constexpr vec2_(const vec2_&) = default;
         constexpr vec2_(vec2_&&) = default;
 
-        constexpr vec2_(double x, double y)
+        constexpr vec2_(T x, T y)
         : x(x)
         , y(y)
+        { }
+
+        constexpr explicit vec2_(T val)
+        : x(val)
+        , y(val)
         { }
 
         constexpr vec2_& operator=(const vec2_&) = default;
@@ -313,24 +318,24 @@ namespace tabletopify
     template<typename T>
     struct box_layout_
     {
-        rect_<T> outer_bounds;
+        rect_<T> outerBounds;
         edges_<T> margin;
-        T border_size;
-        corners_<T> border_radius;
+        T borderSize;
+        corners_<T> borderRadius;
         edges_<T> padding;
 
         constexpr rect_<T> child_bounds() const
         {
             auto topLeft =
-                outer_bounds.top_left() +
+                outerBounds.top_left() +
                 vec2_<T>{margin.left, margin.top} +
-                vec2_<T>{border_size, border_size} +
+                vec2_<T>{borderSize, borderSize} +
                 vec2_<T>{padding.left, padding.right};
 
             auto bottomRight =
-                outer_bounds.bottom_right() -
+                outerBounds.bottom_right() -
                 vec2_<T>{margin.right, margin.bottom} -
-                vec2_<T>{border_size, border_size} -
+                vec2_<T>{borderSize, borderSize} -
                 vec2_<T>{padding.right, padding.bottom};
 
             const auto& position = topLeft;
@@ -342,11 +347,11 @@ namespace tabletopify
         constexpr rect_<T> border_bounds() const
         {
             auto topLeft =
-                outer_bounds.top_left() +
+                outerBounds.top_left() +
                 vec2_<T>{margin.left, margin.top};
 
             auto bottomRight =
-                outer_bounds.bottom_right() -
+                outerBounds.bottom_right() -
                 vec2_<T>{margin.right, margin.bottom};
 
             const auto& position = topLeft;
@@ -374,6 +379,45 @@ namespace tabletopify
                 p.position.x < (r.position.x + r.size.x) &&
                 p.position.y > r.position.y &&
                 p.position.y < (r.position.y + r.size.y));
+    }
+
+    // todo cubic bezier approximation when a radius is larger than half the rect width/height
+    constexpr bool point_inside_rounded_rect(const point& p, const rect& r, const corners& rad)
+    {
+        if (!point_inside_rect(p, r))
+        {
+            return false;
+        }
+
+        rect topLeftBox = {r.top_left(), vec2{rad.topLeft}};
+        if (point_inside_rect(p, topLeftBox))
+        {
+            circle topLeftCircle = {topLeftBox.bottom_right(), rad.topLeft};
+            return point_inside_circle(p, topLeftCircle);
+        }
+
+        rect topRightBox = {r.top_right() + vec2{-rad.topRight, 0}, vec2{rad.topRight}};
+        if (point_inside_rect(p, topRightBox))
+        {
+            circle topRightCircle = {topRightBox.bottom_left(), rad.topRight};
+            return point_inside_circle(p, topRightCircle);
+        }
+
+        rect bottomRightBox = {r.bottom_right() + vec2{-rad.bottomRight, -rad.bottomRight}, vec2{rad.bottomRight}};
+        if (point_inside_rect(p, bottomRightBox))
+        {
+            circle bottomRightCircle = {bottomRightBox.top_left(), rad.bottomRight};
+            return point_inside_circle(p, bottomRightCircle);
+        }
+
+        rect bottomLeftBox = {r.bottom_left() + vec2{0, -rad.bottomRight}, vec2{rad.bottomLeft}};
+        if (point_inside_rect(p, bottomLeftBox))
+        {
+            circle bottomLeftCircle = {bottomLeftBox.top_right(), rad.bottomLeft};
+            return point_inside_circle(p, bottomLeftCircle);
+        }
+
+        return true;
     }
 
     constexpr bool rect_intersects_rect(const rect& r1, const rect& r2)
