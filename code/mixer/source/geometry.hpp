@@ -144,24 +144,39 @@ namespace tabletopify
         vec2_<T> position;
         vec2_<T> size;
 
-        constexpr double left() const
+        constexpr T left() const
         {
             return position.x;
         }
 
-        constexpr double right() const
+        constexpr T right() const
         {
             return position.x + size.x;
         }
 
-        constexpr double top() const
+        constexpr T top() const
         {
             return position.y;
         }
 
-        constexpr double bottom() const
+        constexpr T bottom() const
         {
             return position.y + size.y;
+        }
+
+        constexpr vec2_<T> center() const
+        {
+            return position + (size / T(2));
+        }
+
+        constexpr T width() const
+        {
+            return size.x;
+        }
+
+        constexpr T height() const
+        {
+            return size.y;
         }
 
         constexpr vec2_<T> top_left() const
@@ -207,6 +222,22 @@ namespace tabletopify
     };
     typedef circle_<double> circle;
     typedef circle_<float> circlef;
+
+    // ellipse
+
+    template<typename T>
+    struct ellipse_
+    {
+        vec2_<T> position;
+        vec2_<T> radius;
+
+        constexpr operator ellipse_<float>() const
+        {
+            return {(vec2f)position, (vec2f)radius};
+        }
+    };
+    typedef ellipse_<double> ellipse;
+    typedef ellipse_<float> ellipsef;
 
     // corners (for rounded rects for instance)
 
@@ -373,6 +404,16 @@ namespace tabletopify
         return line_len_2 <= (c.radius * c.radius);
     }
 
+    constexpr bool point_inside_ellipse(const point& p, const ellipse& e)
+    {
+        // normalized point
+        auto np = p.position - e.position;
+        np.x /= e.radius.x;
+        np.y /= e.radius.y;
+
+        return np.squared_magnitude() <= 1.0;
+    }
+
     constexpr bool point_inside_rect(const point& p, const rect& r)
     {
         return (p.position.x > r.position.x &&
@@ -381,7 +422,6 @@ namespace tabletopify
                 p.position.y < (r.position.y + r.size.y));
     }
 
-    // todo cubic bezier approximation when a radius is larger than half the rect width/height
     constexpr bool point_inside_rounded_rect(const point& p, const rect& r, const corners& rad)
     {
         if (!point_inside_rect(p, r))
@@ -389,32 +429,84 @@ namespace tabletopify
             return false;
         }
 
-        rect topLeftBox = {r.top_left(), vec2{rad.topLeft}};
-        if (point_inside_rect(p, topLeftBox))
+        // top left corner
+        if (rad.topLeft > 0.0)
         {
-            circle topLeftCircle = {topLeftBox.bottom_right(), rad.topLeft};
-            return point_inside_circle(p, topLeftCircle);
+            vec2 topLeftBoxSize = {
+                min(rad.topLeft, r.width() / 2.0),
+                min(rad.topLeft, r.height() / 2.0)
+            };
+            rect topLeftBox = {
+                r.top_left(),
+                topLeftBoxSize
+            };
+            if (point_inside_rect(p, topLeftBox))
+            {
+                vec2 position = topLeftBox.bottom_right();
+                const auto& radius = topLeftBoxSize;
+
+                return point_inside_ellipse(p, {position, radius});
+            }
         }
 
-        rect topRightBox = {r.top_right() + vec2{-rad.topRight, 0}, vec2{rad.topRight}};
-        if (point_inside_rect(p, topRightBox))
+        // top right corner
+        if (rad.topRight > 0.0)
         {
-            circle topRightCircle = {topRightBox.bottom_left(), rad.topRight};
-            return point_inside_circle(p, topRightCircle);
+            vec2 topRightBoxSize = {
+                min(rad.topRight, r.width() / 2.0),
+                min(rad.topRight, r.height() / 2.0)
+            };
+            rect topRightBox = {
+                r.top_right() + vec2{-topRightBoxSize.x, 0.0},
+                topRightBoxSize
+            };
+            if (point_inside_rect(p, topRightBox))
+            {
+                vec2 position = topRightBox.bottom_left();
+                const auto& radius = topRightBoxSize;
+
+                return point_inside_ellipse(p, {position, radius});
+            }
         }
 
-        rect bottomRightBox = {r.bottom_right() + vec2{-rad.bottomRight, -rad.bottomRight}, vec2{rad.bottomRight}};
-        if (point_inside_rect(p, bottomRightBox))
+        // bottom right corner
+        if (rad.bottomRight > 0.0)
         {
-            circle bottomRightCircle = {bottomRightBox.top_left(), rad.bottomRight};
-            return point_inside_circle(p, bottomRightCircle);
+            vec2 bottomRightBoxSize = {
+                min(rad.bottomRight, r.width() / 2.0),
+                min(rad.bottomRight, r.height() / 2.0),
+            };
+            rect bottomRightBox = {
+                r.bottom_right() + vec2{-bottomRightBoxSize.x, -bottomRightBoxSize.y},
+                bottomRightBoxSize
+            };
+            if (point_inside_rect(p, bottomRightBox))
+            {
+                vec2 position = bottomRightBox.top_left();
+                const auto& radius = bottomRightBoxSize;
+
+                return point_inside_ellipse(p, {position, radius});
+            }
         }
 
-        rect bottomLeftBox = {r.bottom_left() + vec2{0, -rad.bottomRight}, vec2{rad.bottomLeft}};
-        if (point_inside_rect(p, bottomLeftBox))
+        // bottom left corner
+        if (rad.bottomLeft > 0.0)
         {
-            circle bottomLeftCircle = {bottomLeftBox.top_right(), rad.bottomLeft};
-            return point_inside_circle(p, bottomLeftCircle);
+            vec2 bottomLeftBoxSize = {
+                min(rad.bottomLeft, r.width() / 2.0),
+                min(rad.bottomLeft, r.height() / 2.0)
+            };
+            rect bottomLeftBox = {
+                r.bottom_left() + vec2{0.0, -bottomLeftBoxSize.y},
+                bottomLeftBoxSize
+            };
+            if (point_inside_rect(p, bottomLeftBox))
+            {
+                vec2 position = bottomLeftBox.top_right();
+                const auto& radius = bottomLeftBoxSize;
+
+                return point_inside_ellipse(p, {position, radius});
+            }
         }
 
         return true;
