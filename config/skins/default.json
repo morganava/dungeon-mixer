@@ -37,7 +37,8 @@
         "margin" : 20
     },
     "button.foo:hover" : {
-        "backgroundColor" : "#F80"
+        "backgroundColor" : "#F80",
+        "borderSize" : 10
     },
     "button.push" : {
         "borderRadius" : 0,

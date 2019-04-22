@@ -165,9 +165,14 @@ namespace tabletopify
                     MX_THROW_IF_FALSE(cq.next(rad));
                     MX_THROW_IF_FALSE(cq.next(strokeWidth));
                     MX_THROW_IF_FALSE(cq.next(col));
+                    float halfStrokeWidth = strokeWidth / 2.0f;
 
-                    r.position += vec2f{strokeWidth / 2.0f, strokeWidth / 2.0f};
+                    r.position += vec2f{halfStrokeWidth};
                     r.size -= vec2f{strokeWidth, strokeWidth};
+                    rad.topLeft = max(0.0f, rad.topLeft - halfStrokeWidth);
+                    rad.topRight = max(0.0f, rad.topRight - halfStrokeWidth);
+                    rad.bottomRight = max(0.0f, rad.bottomRight - halfStrokeWidth);
+                    rad.bottomLeft = max(0.0f, rad.bottomLeft - halfStrokeWidth);
 
                     nvgBeginPath(_ctx);
                     nvgRoundedRectVarying(_ctx, r.position.x, r.position.y, r.size.x, r.size.y, rad.topLeft, rad.topRight, rad.bottomRight, rad.bottomLeft);

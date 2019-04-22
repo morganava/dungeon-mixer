@@ -7,14 +7,14 @@ namespace tabletopify
 {
     void input::initialize()
     {
-        
+
     }
 
     void input::finish()
     {
 
     }
-    
+
     // maps glfw 'key codes' to localized human readable names
     void input::build_key_map()
     {
@@ -81,7 +81,7 @@ namespace tabletopify
         _key_names[GLFW_KEY_PAUSE] = "pause";
 
         // f-keys
-        
+
         for(int f = 1; f <= 25; ++f)
         {
             sb.clear();
@@ -97,7 +97,7 @@ namespace tabletopify
             sb.clear();
             sb.push_back("num pad ");
             sb.push_back(fmt::format("{}", i));
-            _key_names[GLFW_KEY_KP_0 + i]  = sb.str();            
+            _key_names[GLFW_KEY_KP_0 + i]  = sb.str();
         }
 
         _key_names[GLFW_KEY_KP_DECIMAL] = "num pad .";
@@ -156,7 +156,7 @@ namespace tabletopify
         // consume events
         for(const auto& ie : _raw_events)
         {
-            switch(ie.type) 
+            switch(ie.type)
             {
                 case codepoint_event:
                     _charpresses.push_back(ie.charpress.codepoint);
@@ -241,7 +241,7 @@ namespace tabletopify
         ie.keydown.keycode = keycode;
         _raw_events.push_back(ie);
     }
-    
+
     void input::push_keyrepeat(key_code_t keycode)
     {
         // MX_LOG_INFO("keyrepeat : {{ keycode : 0x{:08x}, key : '{}' }}", keycode, key_code_to_key_name(keycode));
@@ -259,7 +259,7 @@ namespace tabletopify
         input_event ie;
         ie.type = keyup_event;
         ie.keyup.keycode = keycode;
-        _raw_events.push_back(ie);        
+        _raw_events.push_back(ie);
     }
 
     void input::push_mousemove(const vec2& pos)
@@ -321,7 +321,7 @@ namespace tabletopify
                 return mouse_state.right;
                 break;
             case mouse_button::middle:
-                return mouse_state.middle;                
+                return mouse_state.middle;
                 break;
         }
         return button_state::released;
@@ -347,7 +347,7 @@ namespace tabletopify
                            point_inside_rect(_mouse_state.up_position.right, region);
                 case mouse_button::middle:
                     return point_inside_rect(_mouse_state.down_position.middle, region) &&
-                           point_inside_rect(_mouse_state.up_position.middle, region);                           
+                           point_inside_rect(_mouse_state.up_position.middle, region);
             }
         }
         return false;
