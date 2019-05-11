@@ -14,6 +14,8 @@
 #define MX_THROW_IF_NULL(X) MX_THROW_IF_FALSE((X) != nullptr)
 #define MX_THROW_IF_NOT_NULL(X) MX_THROW_IF_FALSE((X) == nullptr)
 #define MX_THROW_MSG(...) throw std::runtime_error(fmt::format("Runtime Failure: " __FILE__ ":" __STR_LINE__ " " __VA_ARGS__));
+#define MX_THROW_MSG_IF_FALSE(X, ...) do { bool result = (X); if (!result) { throw std::runtime_error(fmt::format("Runtime Failure: " __FILE__ ":" __STR_LINE__ " " __VA_ARGS__)); } } while(0)
+
 
 #define MX_DEBUG_TRACE(...) fprintf(stderr, __FILE__"(" __STR_LINE__ "): " __VA_ARGS__); fputs("\n", stderr);
 

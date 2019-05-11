@@ -267,7 +267,7 @@ namespace tabletopify
 
     // style_resolver
 
-    void from_json(const nl::json& j, style_declaration_set& sds)
+    void from_json(const nl::json& j, element_state_t state, style_declaration_set& sds)
     {
         MX_THROW_IF_FALSE(j.is_object());
 
@@ -276,6 +276,7 @@ namespace tabletopify
         #define STYLE_SHEET_ENTRY(NAME, VAL, FLAGS)\
         if(auto it = j.find(#NAME); it != j.end())\
         {\
+            if constexpr(FLAGS & sdf::geometry) MX_THROW_MSG_IF_FALSE(state == element_state::none, "style property '{}' cannot be specified in styles with '{}' selector", #NAME, state);\
             d.push_back<style_entry_t>(style_entry::NAME);\
             typedef std::remove_const<std::remove_reference<decltype(VAL)>::type>::type TYPE;\
             d.push_back<TYPE>(it->get<TYPE>());\
@@ -309,13 +310,13 @@ namespace tabletopify
 
                 MX_LOG_INFO(" rule : {}", el.value().dump());
 
-                style_declaration_set sds;
-                from_json(el.value(), sds);
-
                 auto element = parse_element_type(elementStr);
                 auto state = parse_element_state(stateStr);
 
-                MX_LOG_INFO("element : {}, state : {}", (uint_fast8_t)element, (uint_fast8_t)state);
+                style_declaration_set sds;
+                from_json(el.value(), state, sds);
+
+                MX_LOG_INFO(" element : {}, state : {}", (uint_fast8_t)element, (uint_fast8_t)state);
 
                 sr._styleFactory.insert({{element, tagStr, state}, sds});
             }

@@ -3,6 +3,7 @@
 #include "input.hpp"
 #include "geometry.hpp"
 #include "uuid.hpp"
+#include "stylesheet.hpp"
 
 using std::ostream;
 using namespace tabletopify;
@@ -59,5 +60,26 @@ ostream& operator<<(ostream& out, const struct uuid& id)
         bytes[8], bytes[9], bytes[10], bytes[11],
         bytes[12], bytes[13], bytes[14], bytes[15]);
 
+    return out;
+}
+
+// element_state
+ostream& operator<<(ostream& out, const element_state_t& es)
+{
+    switch(es)
+    {
+        case element_state::none:
+            out << "none";
+            break;
+        case element_state::hover:
+            out << "hover";
+            break;
+        case element_state::active:
+            out << "active";
+            break;
+        case element_state::disabled:
+            out << "disabled";
+            break;
+    }
     return out;
 }

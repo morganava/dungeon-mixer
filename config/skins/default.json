@@ -34,7 +34,7 @@
     },
     "button.foo" : {
         "backgroundColor" : "#08F",
-        "margin" : 20
+        "margin" : 5
     },
     "button.foo:hover" : {
         "backgroundColor" : "#F80",

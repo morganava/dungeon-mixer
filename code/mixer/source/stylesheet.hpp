@@ -35,8 +35,6 @@ namespace tabletopify
 
     element_state_t parse_element_state(const std::string&);
 
-    // element_state_t operator&(const element_state_t&, const element_state_t&);
-
     namespace sdf
     {
         enum style_decleration_flag
@@ -65,7 +63,7 @@ namespace tabletopify
         style_sheet apply(const style_sheet&) const;
     private:
         mutable motley_buffer _declarations;
-        friend void from_json(const nl::json&, style_declaration_set&);
+        friend void from_json(const nl::json&, element_state_t, style_declaration_set&);
     };
 
     void from_json(const nl::json&, style_declaration_set&);
@@ -112,4 +110,4 @@ namespace tabletopify
     inline constexpr style_resolver& g_style_resolver = singleton<style_resolver>::get();
 }
 
-
+std::ostream& operator<<(std::ostream&, const tabletopify::element_state_t&);
