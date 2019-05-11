@@ -22,7 +22,7 @@ namespace tabletopify
 
         rect render_bounds::eval(const rect& desired) const
         {
-            return this->callback(this->callback_data, desired);
+            return this->callback(this->widget, desired);
         }
 
         // context
@@ -144,19 +144,16 @@ namespace tabletopify
             }
         }
 
-        render_bounds_callback_t widget_vbox::get_bounds_callback()
+        rect widget_vbox::bounds_callback(widget_base* wb, const rect& desired)
         {
-            return [](void* ptr, const rect& desired) -> rect
+            auto& self = *static_cast<widget_vbox*>(wb);
+            rect retval =
             {
-                auto& self = *static_cast<widget_vbox*>(ptr);
-                rect retval =
-                {
-                    {self.bounds.position.x, self.bounds.position.y + self.internal_height - self.data()->vertical_scroll},
-                    {self.bounds.size.x - self.style().scrollbarSize, desired.size.y}
-                };
-                self.internal_height += desired.size.y;
-                return retval;
+                {self.bounds.position.x, self.bounds.position.y + self.internal_height - self.data()->vertical_scroll},
+                {self.bounds.size.x - self.style().scrollbarSize, desired.size.y}
             };
+            self.internal_height += desired.size.y;
+            return retval;            
         }
 
         void widget_vbox::last_update_impl()
@@ -288,24 +285,21 @@ namespace tabletopify
 
         // Hbox
 
-        render_bounds_callback_t widget_hbox::get_bounds_callback()
+        rect widget_hbox::bounds_callback(widget_base* parent, const rect& desired)
         {
-            return [](void* ptr, const rect&) -> rect
+            auto& self = *static_cast<widget_hbox*>(parent);
+
+            float w = self.widths[self._index++];
+
+            rect retval =
             {
-                auto& self = *static_cast<widget_hbox*>(ptr);
-
-                float w = self.widths[self._index++];
-
-                rect retval =
-                {
-                    {self.bounds.position.x + self._horizontal_offset, self.bounds.position.y},
-                    {w, self.bounds.size.y}
-                };
-
-                self._horizontal_offset += w;
-
-                return retval;
+                {self.bounds.position.x + self._horizontal_offset, self.bounds.position.y},
+                {w, self.bounds.size.y}
             };
+
+            self._horizontal_offset += w;
+
+            return retval;
         }
 
         // Debug

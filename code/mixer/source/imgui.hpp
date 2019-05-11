@@ -70,23 +70,14 @@ namespace tabletopify
             return make_callback_impl(func);
         }
 
-        struct bounds_callback
-        {
-            constexpr rect eval(const rect& desired) const
-            {
-                return callback(widget, desired);
-            }
+        struct widget_base;
 
-            rect (*callback)(void*, const rect&) = [](void*, const rect&) -> rect {MX_ASSERT(!"Should Not Be Called"); return {};};
-            void* widget = nullptr;
-        };
-
-        typedef rect (*render_bounds_callback_t)(void*, const rect&);
+        typedef rect (*bounds_callback_t)(widget_base*, const rect&);
 
         struct render_bounds
         {
-            render_bounds_callback_t callback = nullptr;
-            void* callback_data = nullptr;
+            bounds_callback_t callback = nullptr;
+            widget_base* widget = nullptr;
             rect scissor = {};
 
             rect eval(const rect& desired) const;
@@ -176,7 +167,7 @@ namespace tabletopify
             element_state_t resolve_element_state_impl() const {return element_state::none;}
             void resolve_style_impl(element_type_t, element_state_t);
             void render_box_layout_impl() const;
-            render_bounds_callback_t get_bounds_callback() { return nullptr; }
+            static rect bounds_callback(widget_base* wb, const rect& desired) {  MX_ASSERT(!"Empty bounds callback, widget should not have children"); return {};}
 
             // widget interface methods
             void first_update_impl() {}
@@ -226,17 +217,6 @@ namespace tabletopify
                 g_context.pop_render_bounds();
             }
 
-            // gets and saves this widget's render bounds and scissor area
-            // and pushes callback and current scissor for child widgets
-            void calc_render_bounds()
-            {
-                calc_render_bounds_impl([](void* pSelf) -> render_bounds
-                {
-                    auto* self = static_cast<T*>(pSelf);
-                    return {self->get_bounds_callback(), self, self->scissor};
-                });
-            }
-
             void resolve_box_layout()
             {
                 this->resolve_box_layout_impl(ELEMENT_TYPE, WIDGET_FLAGS);
@@ -267,7 +247,7 @@ namespace tabletopify
             void push_render_bounds()
             {
                 auto* self = static_cast<T*>(this);
-                render_bounds rb = {self->get_bounds_callback(), self, self->scissor};
+                render_bounds rb = {&T::bounds_callback, self, self->scissor};
                 g_context.push_render_bounds(rb);
             }
 
@@ -311,7 +291,7 @@ namespace tabletopify
             using widget::widget;
 
             void first_update_impl();
-            render_bounds_callback_t get_bounds_callback();
+            static rect bounds_callback(widget_base* parent, const rect& desired);
             void last_update_impl();
             void last_render_impl() const;
 
@@ -328,8 +308,8 @@ namespace tabletopify
         {
             using widget::widget;
 
-            render_bounds_callback_t get_bounds_callback();
-
+            static rect bounds_callback(widget_base* parent, const rect& desired);
+            
             array_view<double> widths;
         private:
             size_t _index = 0;

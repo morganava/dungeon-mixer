@@ -20,12 +20,12 @@ namespace tabletopify
 
         rect bounds = {{(double)width / 4.0, (double)height / 4.0}, {(double)width / 2.0, (double)height / 2.0}};
         imgui_ctx.push_render_bounds(
-        {
-            [](void* bounds, const rect&) -> rect
+        imgui::render_bounds{
+            [](imgui::widget_base* widget, const rect&) -> rect
             {
-                return *reinterpret_cast<rect*>(bounds);
+                return *reinterpret_cast<rect*>(widget);
             },
-            &bounds,
+            reinterpret_cast<imgui::widget_base*>(&bounds),
             bounds
         });
 
