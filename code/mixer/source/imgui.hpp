@@ -302,6 +302,8 @@ namespace tabletopify
             double grab_offset_y = 0.0;
         };
 
+        // vbox
+
         struct widget_vbox : public widget<widget_vbox, element_type::vbox, vbox_data, widget_flag::scissors>
         {
             using widget::widget;
@@ -320,6 +322,8 @@ namespace tabletopify
             rect scrollbar_grab_area = {};
         };
 
+        // hbox
+
         struct widget_hbox : public widget<widget_hbox, element_type::hbox>
         {
             using widget::widget;
@@ -332,6 +336,12 @@ namespace tabletopify
             float _horizontal_offset = 0.0f;
         };
 
+        // spacer
+
+        struct widget_spacer : public widget<widget_spacer, element_type::spacer>
+        {
+            using widget::widget;
+        };
 
         // label
 
@@ -393,6 +403,7 @@ namespace tabletopify
 #define mxRoot(viewport, ...) MX_WIDGET_CODEGEN(widget_root, viewport, __VA_ARGS__)
 #define mxVbox(data, ...) MX_WIDGET_CODEGEN(widget_vbox, data, __VA_ARGS__)
 #define mxHbox(...) MX_WIDGET_CODEGEN(widget_hbox, nullptr, __VA_ARGS__)
+#define mxSpacer(...) MX_WIDGET_CODEGEN(widget_spacer, nullptr, __VA_ARGS__)
 #define mxDebug(...) MX_WIDGET_CODEGEN(widget_debug, nullptr, __VA_ARGS__)
 #define mxLabel(data, ...) MX_WIDGET_CODEGEN(widget_label, data, __VA_ARGS__)
 #define mxButton(data, ...) MX_WIDGET_CODEGEN(widget_button, data, __VA_ARGS__)
