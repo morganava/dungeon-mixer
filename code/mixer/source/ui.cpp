@@ -50,25 +50,7 @@ namespace tabletopify
                             {
                                 MX_LOG_INFO("PUSHED");
                             };);
-
-                        mxDebug(
-                            self.on_mouse_over = [&](const vec2&)
-                            {
-                                self.bg_color = color::rgb(255, 128, 0);
-                            };);
                     }
-                    mxDebug(
-                        self.bounds.size.y = 80.0f;
-                        self.bg_color = color::rgb(255, 32, 0);
-                        self.on_mouse_over = [&](const vec2&)
-                        {
-                            self.bg_color = color::rgb(64, 128, 64);
-                        };
-                        self.on_mouse_move = [](const vec2& pos)
-                        {
-                            // MX_LOG_INFO("MOVE CALLBACK {}", pos);
-                        };);
-                    mxDebug(self.bounds.size.y = 120.0f;);
                     currentLabel.text = "hello world!";
 
                     mxLabel(&currentLabel,

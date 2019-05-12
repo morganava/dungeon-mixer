@@ -328,29 +328,6 @@ namespace tabletopify
             return retval;
         }
 
-        // Debug
-
-        void widget_debug::first_update_impl()
-        {
-            auto current_position = g_input.get_mouse_position(input_frame::current);
-            auto previous_position = g_input.get_mouse_position(input_frame::previous);
-            if (point_inside_rect(current_position, scissor))
-            {
-                on_mouse_over(current_position);
-
-                if (current_position != previous_position)
-                {
-                    on_mouse_move(current_position);
-                }
-            }
-        }
-        void widget_debug::first_render_impl() const
-        {
-            get_nanovg()->fill_rect(bounds, color::rgb(0,0,0));
-            get_nanovg()->fill_rect(rect{bounds.position + vec2{1.0, 1.0}, {bounds.size - vec2{2.0, 2.0}}}, bg_color);
-            // get_nanovg()->fill_rounded_rect((rectf)rect{bounds.position + vec2{1.0, 1.0}, {bounds.size - vec2{2.0, 2.0}}}, cornersf{10.0f}, color::rgb(0x77, 0x77, 0x77));
-        }
-
         // Label
 
         void widget_label::first_render_impl() const

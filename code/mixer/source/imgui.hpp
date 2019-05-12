@@ -167,9 +167,9 @@ namespace tabletopify
             element_state_t resolve_element_state_impl() const {return element_state::none;}
             void resolve_style_impl(element_type_t, element_state_t);
             void render_box_layout_impl() const;
-            static rect bounds_callback(widget_base* wb, const rect& desired) {  MX_ASSERT(!"Empty bounds callback, widget should not have children"); return {};}
 
             // widget interface methods
+            static rect bounds_callback(widget_base* wb, const rect& desired) {  MX_ASSERT(!"Empty bounds callback, widget should not have children"); return {};}
             void first_update_impl() {}
             void first_render_impl() const {}
             void last_update_impl() {}
@@ -332,19 +332,6 @@ namespace tabletopify
             float _horizontal_offset = 0.0f;
         };
 
-        // debug renderer
-
-        struct widget_debug : public widget<widget_debug, element_type::debug>
-        {
-            using widget::widget;
-
-            void first_update_impl();
-            void first_render_impl() const;
-
-            callback<void, vec2> on_mouse_move;
-            callback<void, vec2> on_mouse_over;
-            color bg_color = color::rgb(0,0,0);
-        };
 
         // label
 
