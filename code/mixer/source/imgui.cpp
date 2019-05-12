@@ -59,6 +59,32 @@ namespace tabletopify
             g_nanovg.set_scissor(_render_scissor_stack.back());
         }
 
+        // widget root
+
+        widget_root::widget_root(const rect& viewport)
+        : widget_root(nullptr)
+        {
+            _viewport = viewport;
+            g_context.push_render_bounds({&widget_root::root_bounds_callback, this, viewport});
+        }
+
+        widget_root::~widget_root()
+        {
+            g_context.pop_render_bounds();
+        }
+
+        rect widget_root::bounds_callback(widget_base* parent, const rect& desired)
+        {
+            auto& self = *static_cast<widget_root*>(parent);
+            return self.layout.child_bounds();
+        }
+
+        rect widget_root::root_bounds_callback(widget_base* parent, const rect& desired)
+        {
+            auto& self = *static_cast<widget_root*>(parent);
+            return self._viewport;
+        }
+
         // widget_base
 
         widget_base::widget_base(widget_data* data)
@@ -153,7 +179,7 @@ namespace tabletopify
                 {self.bounds.size.x - self.style().scrollbarSize, desired.size.y}
             };
             self.internal_height += desired.size.y;
-            return retval;            
+            return retval;
         }
 
         void widget_vbox::last_update_impl()

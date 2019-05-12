@@ -14,12 +14,15 @@ namespace tabletopify
     {
         any,
 
+        root,
         vbox,
         hbox,
         spacer,
         button,
         label,
         debug,
+
+        count,
 
     } element_type_t;
 

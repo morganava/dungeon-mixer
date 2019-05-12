@@ -143,7 +143,7 @@ namespace tabletopify
         }
         typedef widget_flag::values widget_flag_t;
 
-        // base widget
+        // widget base-class
 
         struct widget_base
         {
@@ -182,6 +182,7 @@ namespace tabletopify
 
             const style_sheet* _style = nullptr;
         public:
+            /* TODO: kill bounds, use layout instead */
             rect bounds = {};
             rect scissor = {};
             box_layout layout = {};
@@ -195,7 +196,9 @@ namespace tabletopify
         template<typename T, element_type ELEMENT_TYPE, typename WIDGET_DATA=widget_data, widget_flag_t WIDGET_FLAGS=widget_flag::none>
         struct widget : public widget_base
         {
-            widget() = delete;
+        protected:
+            widget() : widget(nullptr) {};
+        public:
             widget(const widget&) = delete;
             widget(widget&&) = delete;
 
@@ -274,6 +277,19 @@ namespace tabletopify
             }
         };
 
+        // the root widget with viewport info
+        struct widget_root : public widget<widget_root, element_type::root, widget_data, widget_flag::scissors>
+        {
+            using widget::widget;
+            widget_root(const rect& viewport);
+            ~widget_root();
+
+            static rect bounds_callback(widget_base* parent, const rect& desired);
+            static rect root_bounds_callback(widget_base* parent, const rect& desired);
+        private:
+            rect _viewport;
+        };
+
         // grouping widgets
 
         struct vbox_data : widget_data
@@ -309,7 +325,7 @@ namespace tabletopify
             using widget::widget;
 
             static rect bounds_callback(widget_base* parent, const rect& desired);
-            
+
             array_view<double> widths;
         private:
             size_t _index = 0;
@@ -365,7 +381,6 @@ namespace tabletopify
 
     } // imgui namespace
 
-
 // user logic
 // resolve collision geometry
 // trigger input/collision callbacks
@@ -388,6 +403,7 @@ namespace tabletopify
             return true;\
         }(widget##__LINE__))
 
+#define mxRoot(viewport, ...) MX_WIDGET_CODEGEN(widget_root, viewport, __VA_ARGS__)
 #define mxVbox(data, ...) MX_WIDGET_CODEGEN(widget_vbox, data, __VA_ARGS__)
 #define mxHbox(...) MX_WIDGET_CODEGEN(widget_hbox, nullptr, __VA_ARGS__)
 #define mxDebug(...) MX_WIDGET_CODEGEN(widget_debug, nullptr, __VA_ARGS__)

@@ -8,6 +8,7 @@ namespace tabletopify
         constexpr const char* typeStrings[] =
         {
             "",
+            "root",
             "vbox",
             "hbox",
             "spacer",
@@ -15,6 +16,8 @@ namespace tabletopify
             "label",
             "debug",
         };
+
+        static_assert(countof(typeStrings) == (size_t)element_type::count, "mismatch of element_type enum and names");
 
         for(uint_fast8_t i = 0; i < countof(typeStrings); ++i)
         {
