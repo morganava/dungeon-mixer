@@ -59,32 +59,6 @@ namespace tabletopify
             g_nanovg.set_scissor(_render_scissor_stack.back());
         }
 
-        // widget root
-
-        widget_root::widget_root(const rect& viewport)
-        : widget_root(nullptr)
-        {
-            _viewport = viewport;
-            g_context.push_render_bounds({&widget_root::root_bounds_callback, this, viewport});
-        }
-
-        widget_root::~widget_root()
-        {
-            g_context.pop_render_bounds();
-        }
-
-        rect widget_root::bounds_callback(widget_base* parent, const rect& desired)
-        {
-            auto& self = *static_cast<widget_root*>(parent);
-            return self.layout.child_bounds();
-        }
-
-        rect widget_root::root_bounds_callback(widget_base* parent, const rect& desired)
-        {
-            auto& self = *static_cast<widget_root*>(parent);
-            return self._viewport;
-        }
-
         // widget_base
 
         widget_base::widget_base(widget_data* data)
@@ -116,22 +90,21 @@ namespace tabletopify
         void widget_base::resolve_box_layout_impl(element_type_t et, widget_flag_t flag)
         {
             const auto& rb = g_context.peek_render_bounds();
-            const auto& parent_scissor = rb.scissor;
+            const auto& parent_scissor = rb.widget->_scissor;
 
             // get our box layout based off type and tags
             this->layout = *g_style_resolver.resolve_box_layout(et, this->tags);
-            layout.outerBounds = rb.eval(this->bounds);
-            this->bounds = layout.outerBounds;
+            layout.outerBounds = rb.eval(this->_desiredBounds);
 
             // get our style
             this->_style = g_style_resolver.resolve(et, this->tags, element_state::none);
 
             // calc the scissor geometry for widget specific contetn
             // but only scissor the rendering if we're a certain type of element
-            this->scissor = get_intersecting_rect(parent_scissor, this->bounds);
+            this->_scissor = get_intersecting_rect(parent_scissor, layout.outerBounds);
             if (flag & widget_flag::scissors)
             {
-                g_context.push_scissor(this->scissor);
+                g_context.push_scissor(this->_scissor);
             }
         }
 
@@ -156,11 +129,63 @@ namespace tabletopify
             }
         }
 
+        void widget_base::requestSize(const vec2& size)
+        {
+            _desiredBounds.size = size;
+        }
+
+        void widget_base::requestWidth(double width)
+        {
+            _desiredBounds.size.x = width;
+        }
+
+        void widget_base::requestHeight(double height)
+        {
+            _desiredBounds.size.y = height;
+        }
+
+        void widget_base::requestPosition(const vec2& position)
+        {
+            _desiredBounds.position = position;
+        }
+
+        void widget_base::requestBounds(const rect& bounds)
+        {
+            _desiredBounds = bounds;
+        }
+
+        // root
+
+        widget_root::widget_root(const rect& viewport)
+        : widget_root(nullptr)
+        {
+            _viewport = viewport;
+            _scissor = viewport;
+            g_context.push_render_bounds({&widget_root::root_bounds_callback, this});
+        }
+
+        widget_root::~widget_root()
+        {
+            g_context.pop_render_bounds();
+        }
+
+        rect widget_root::bounds_callback(widget_base* parent, const rect& desired)
+        {
+            auto& self = *static_cast<widget_root*>(parent);
+            return self.layout.child_bounds();
+        }
+
+        rect widget_root::root_bounds_callback(widget_base* parent, const rect& desired)
+        {
+            auto& self = *static_cast<widget_root*>(parent);
+            return self._viewport;
+        }
+
         // vbox
 
         void widget_vbox::first_update_impl()
         {
-            if (g_input.get_mouse_clicked(mouse_button::left, this->scissor))
+            if (g_input.get_mouse_clicked(mouse_button::left, this->_scissor))
             {
                 this->focus_widget();
             }
@@ -173,17 +198,26 @@ namespace tabletopify
         rect widget_vbox::bounds_callback(widget_base* wb, const rect& desired)
         {
             auto& self = *static_cast<widget_vbox*>(wb);
+#if 0
             rect retval =
             {
                 {self.bounds.position.x, self.bounds.position.y + self.internal_height - self.data()->vertical_scroll},
                 {self.bounds.size.x - self.style().scrollbarSize, desired.size.y}
             };
+#endif
+
+            rect retval = self.layout.child_bounds();
+            retval.position.y += self.internal_height - self.data()->vertical_scroll;
+            retval.size.x -= self.style().scrollbarSize;
+            retval.size.y = desired.size.y;
+
             self.internal_height += desired.size.y;
             return retval;
         }
 
         void widget_vbox::last_update_impl()
         {
+            const auto bounds = layout.child_bounds();
             // height of the group
             const auto height = bounds.size.y;
             // valid scrollable range  (0 to scrollable_height)
@@ -253,7 +287,7 @@ namespace tabletopify
 
                 const auto scroll_step = this->style().scrollbarStep;
                 // handle scroll wheel
-                if (!data()->grabbing_scrollbar && point_inside_rect(current_mouse_position, this->scissor))
+                if (!data()->grabbing_scrollbar && point_inside_rect(current_mouse_position, this->_scissor))
                 {
                     data()->vertical_scroll -= g_input.get_mouse_scroll(input_frame::current).y * scroll_step;
                 }
@@ -317,11 +351,9 @@ namespace tabletopify
 
             float w = self.widths[self._index++];
 
-            rect retval =
-            {
-                {self.bounds.position.x + self._horizontal_offset, self.bounds.position.y},
-                {w, self.bounds.size.y}
-            };
+            rect retval = self.layout.child_bounds();
+            retval.position.x += self._horizontal_offset;
+            retval.size.x = w;
 
             self._horizontal_offset += w;
 
@@ -333,7 +365,7 @@ namespace tabletopify
         void widget_label::first_render_impl() const
         {
             g_nanovg.draw_text(
-                bounds,
+                layout.child_bounds(),
                 this->style().fontFamily,
                 this->style().fontSize,
                 this->style().fontColor,
@@ -358,7 +390,7 @@ namespace tabletopify
 
         void widget_button::first_update_impl()
         {
-            if (g_input.get_mouse_clicked(mouse_button::left, this->scissor))
+            if (g_input.get_mouse_clicked(mouse_button::left, this->_scissor))
             {
                 this->focus_widget();
             }
@@ -371,7 +403,7 @@ namespace tabletopify
         void widget_button::first_render_impl() const
         {
             g_nanovg.draw_text(
-                bounds,
+                this->layout.inner_bounds(),
                 this->style().fontFamily,
                 this->style().fontSize,
                 this->style().fontColor,
@@ -382,7 +414,7 @@ namespace tabletopify
 
         void widget_button::last_update_impl()
         {
-            if (g_input.get_mouse_clicked(mouse_button::left, this->scissor))
+            if (g_input.get_mouse_clicked(mouse_button::left, this->_scissor))
             {
                 this->on_click();
             }

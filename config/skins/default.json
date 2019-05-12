@@ -26,7 +26,7 @@
     },
     "hbox" : {
         "padding" : 0,
-        "borderSize" : 1
+        "borderSize" : 5
     },
     "button" : {
         "borderRadius" : [50.0, 25.0, 15.0, 0.0],
@@ -34,8 +34,7 @@
         "fontSize" : 36
     },
     "button.foo" : {
-        "backgroundColor" : "#08F",
-        "margin" : 15
+        "backgroundColor" : "#08F"
     },
     "button.foo:hover" : {
         "backgroundColor" : "#F80",
@@ -44,7 +43,6 @@
     "button.push" : {
         "borderRadius" : 0,
         "borderSize" : 10,
-        "margin" : 10,
         "borderColor" : "#F80"
     }
 }

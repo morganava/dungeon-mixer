@@ -32,7 +32,7 @@ namespace tabletopify
                     auto& currentButton = bd[idx];
 
                     lcg.update_size(width / 2.0);
-                    mxHbox(self.widths = lcg.sizes(); self.bounds.size.y = 200.0f;)
+                    mxHbox(self.widths = lcg.sizes(); self.requestHeight(200.0);)
                     {
                         currentButton.text = "button";
                         mxButton(
@@ -55,7 +55,7 @@ namespace tabletopify
                     currentLabel.text = "hello world!";
 
                     mxLabel(&currentLabel,
-                        self.bounds.size.y = 100.0f;);
+                        self.requestHeight(100.0););
                 }
             }
         }

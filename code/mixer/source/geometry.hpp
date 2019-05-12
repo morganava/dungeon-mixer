@@ -375,6 +375,11 @@ namespace tabletopify
             return rect_<T> { position, size };
         }
 
+        constexpr rect_<T> inner_bounds() const
+        {
+            return child_bounds();
+        }
+
         constexpr rect_<T> border_bounds() const
         {
             auto topLeft =

@@ -78,7 +78,6 @@ namespace tabletopify
         {
             bounds_callback_t callback = nullptr;
             widget_base* widget = nullptr;
-            rect scissor = {};
 
             rect eval(const rect& desired) const;
         };
@@ -182,14 +181,18 @@ namespace tabletopify
 
             const style_sheet* _style = nullptr;
         public:
-            /* TODO: kill bounds, use layout instead */
-            rect bounds = {};
-            rect scissor = {};
+            void requestSize(const vec2& size);
+            void requestWidth(double width);
+            void requestHeight(double height);
+            void requestPosition(const vec2& position);
+            void requestBounds(const rect& bounds);
+
             box_layout layout = {};
             array<utf8_string> tags;
 
         protected:
-
+            rect _scissor = {};
+            rect _desiredBounds;
             widget_data* _data = nullptr;
         };
 
@@ -250,7 +253,7 @@ namespace tabletopify
             void push_render_bounds()
             {
                 auto* self = static_cast<T*>(this);
-                render_bounds rb = {&T::bounds_callback, self, self->scissor};
+                render_bounds rb = {&T::bounds_callback, self};
                 g_context.push_render_bounds(rb);
             }
 
