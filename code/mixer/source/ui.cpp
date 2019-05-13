@@ -15,13 +15,7 @@ namespace tabletopify
 {
     void ui::update(float dt, int32_t width, int32_t height)
     {
-        linear_constraint_solver lcg({
-            {50.0, 500.0, 1.0},
-            {0.0, 1000000.0, 2.0},
-            {0.0, 300.0, 3.0},
-        });
-
-        lcg = {
+        hd.constraints = {
             {150.0, 500.0, 3.0},
             {0.0, 1000000.0, 2.0},
             {150.0, 300.0, 3.0},
@@ -37,8 +31,7 @@ namespace tabletopify
                     auto& currentLabel = ld[idx];
                     auto& currentButton = bd[idx];
 
-                    lcg.update_size(width / 2.0);
-                    mxHbox(self.widths = lcg.sizes(); self.requestHeight(200.0);)
+                    mxHbox(&hd, self.requestHeight(200.0);)
                     {
                         currentButton.text = "button";
                         mxButton(

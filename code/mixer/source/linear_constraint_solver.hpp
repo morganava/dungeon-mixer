@@ -14,7 +14,7 @@ namespace tabletopify
     class linear_constraint_solver
     {
     public:
-        linear_constraint_solver() = default;
+        linear_constraint_solver();
         linear_constraint_solver& operator=(linear_constraint_solver&&) = default;
 
         linear_constraint_solver(const std::initializer_list<constraint>& constraints);

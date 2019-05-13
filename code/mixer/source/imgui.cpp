@@ -93,15 +93,15 @@ namespace tabletopify
             const auto& parent_scissor = rb.widget->_scissor;
 
             // get our box layout based off type and tags
-            this->layout = *g_style_resolver.resolve_box_layout(et, this->tags);
-            layout.outerBounds = rb.eval(this->_desiredBounds);
+            this->_layout = g_style_resolver.resolve_box_layout(et, this->tags);
+            this->_layout.outerBounds = rb.eval(this->_desiredBounds);
 
             // get our style
             this->_style = g_style_resolver.resolve(et, this->tags, element_state::none);
 
             // calc the scissor geometry for widget specific contetn
             // but only scissor the rendering if we're a certain type of element
-            this->_scissor = get_intersecting_rect(parent_scissor, layout.outerBounds);
+            this->_scissor = get_intersecting_rect(parent_scissor, this->_layout.outerBounds);
             if (flag & widget_flag::scissors)
             {
                 g_context.push_scissor(this->_scissor);
@@ -114,7 +114,7 @@ namespace tabletopify
 
             if (style.borderSize > 0.0)
             {
-                auto strokeBounds = this->layout.border_bounds();
+                auto strokeBounds = this->_layout.border_bounds();
                 auto fillBounds = strokeBounds;
                 fillBounds.position += vec2{style.borderSize, style.borderSize} / 2.0;
                 fillBounds.size -= vec2{style.borderSize, style.borderSize};
@@ -124,7 +124,7 @@ namespace tabletopify
             }
             else
             {
-                auto fillBounds = this->layout.border_bounds();
+                auto fillBounds = this->_layout.border_bounds();
                 g_nanovg.fill_rounded_rect(fillBounds, style.borderRadius, style.backgroundColor);
             }
         }
@@ -172,7 +172,7 @@ namespace tabletopify
         rect widget_root::bounds_callback(widget_base* parent, const rect& desired)
         {
             auto& self = *static_cast<widget_root*>(parent);
-            return self.layout.child_bounds();
+            return self._layout.child_bounds();
         }
 
         rect widget_root::root_bounds_callback(widget_base* parent, const rect& desired)
@@ -199,7 +199,7 @@ namespace tabletopify
         {
             auto& self = *static_cast<widget_vbox*>(wb);
 
-            rect retval = self.layout.child_bounds();
+            rect retval = self._layout.child_bounds();
             retval.position.y += self.internal_height - self.data()->vertical_scroll;
             retval.size.x -= self.style().scrollbarSize;
             retval.size.y = desired.size.y;
@@ -210,7 +210,7 @@ namespace tabletopify
 
         void widget_vbox::last_update_impl()
         {
-            const auto bounds = layout.child_bounds();
+            const auto bounds = this->_layout.inner_bounds();
             // height of the group
             const auto height = bounds.size.y;
             // valid scrollable range  (0 to scrollable_height)
@@ -338,13 +338,23 @@ namespace tabletopify
 
         // Hbox
 
+        void widget_hbox::resolve_box_layout_impl(element_type_t et, widget_flag_t flag)
+        {
+            // resolve the box layout as normal
+            widget_base::resolve_box_layout_impl(et, flag);
+            // calculate child sizes ahead of time
+            auto& lcs = this->data()->constraints;
+            lcs.update_size(this->_layout.inner_bounds().width());
+            this->widths = lcs.sizes();
+        }
+
         rect widget_hbox::bounds_callback(widget_base* parent, const rect& desired)
         {
             auto& self = *static_cast<widget_hbox*>(parent);
 
             float w = self.widths[self._index++];
 
-            rect retval = self.layout.child_bounds();
+            rect retval = self._layout.child_bounds();
             retval.position.x += self._horizontal_offset;
             retval.size.x = w;
 
@@ -358,7 +368,7 @@ namespace tabletopify
         void widget_label::first_render_impl() const
         {
             g_nanovg.draw_text(
-                layout.child_bounds(),
+                this->_layout.inner_bounds(),
                 this->style().fontFamily,
                 this->style().fontSize,
                 this->style().fontColor,
@@ -373,8 +383,8 @@ namespace tabletopify
         {
             if (point_inside_rounded_rect(
                 g_input.get_mouse_position(input_frame::current),
-                layout.border_bounds(),
-                layout.borderRadius))
+                this->_layout.border_bounds(),
+                this->_layout.borderRadius))
             {
                 return element_state::hover;
             }
@@ -396,7 +406,7 @@ namespace tabletopify
         void widget_button::first_render_impl() const
         {
             g_nanovg.draw_text(
-                this->layout.inner_bounds(),
+                this->_layout.inner_bounds(),
                 this->style().fontFamily,
                 this->style().fontSize,
                 this->style().fontColor,

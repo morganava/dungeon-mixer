@@ -135,7 +135,7 @@ namespace tabletopify
         return &_rootStyle;
     }
 
-    const box_layout* style_resolver::resolve_box_layout(element_type_t type, const array<utf8_string>& tags) const
+    const box_layout& style_resolver::resolve_box_layout(element_type_t type, const array<utf8_string>& tags) const
     {
         const auto* styleSheet = resolve(type, tags, element_state::none);
         box_layout retval;
@@ -146,6 +146,6 @@ namespace tabletopify
 
         _boxLayout = retval;
 
-        return &_boxLayout;
+        return _boxLayout;
     }
 }

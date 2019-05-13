@@ -3,6 +3,7 @@
 #include "color.hpp"
 #include "array.hpp"
 #include "stylesheet.hpp"
+#include "linear_constraint_solver.hpp"
 
 namespace tabletopify
 {
@@ -187,10 +188,11 @@ namespace tabletopify
             void requestPosition(const vec2& position);
             void requestBounds(const rect& bounds);
 
-            box_layout layout = {};
             array<utf8_string> tags;
 
         protected:
+
+            box_layout _layout = {};
             rect _scissor = {};
             rect _desiredBounds;
             widget_data* _data = nullptr;
@@ -225,7 +227,7 @@ namespace tabletopify
 
             void resolve_box_layout()
             {
-                this->resolve_box_layout_impl(ELEMENT_TYPE, WIDGET_FLAGS);
+                static_cast<T*>(this)->resolve_box_layout_impl(ELEMENT_TYPE, WIDGET_FLAGS);
             }
 
             void render_box_layout() const
@@ -327,13 +329,14 @@ namespace tabletopify
 
         struct hbox_data : widget_data
         {
-
+            linear_constraint_solver constraints;
         };
 
-        struct widget_hbox : public widget<widget_hbox, element_type::hbox>
+        struct widget_hbox : public widget<widget_hbox, element_type::hbox, hbox_data, widget_flag::scissors>
         {
             using widget::widget;
 
+            void resolve_box_layout_impl(element_type_t et, widget_flag_t flags);
             static rect bounds_callback(widget_base* parent, const rect& desired);
 
             array_view<double> widths;
@@ -408,7 +411,7 @@ namespace tabletopify
 
 #define mxRoot(viewport, ...) MX_WIDGET_CODEGEN(widget_root, viewport, __VA_ARGS__)
 #define mxVbox(data, ...) MX_WIDGET_CODEGEN(widget_vbox, data, __VA_ARGS__)
-#define mxHbox(...) MX_WIDGET_CODEGEN(widget_hbox, nullptr, __VA_ARGS__)
+#define mxHbox(data, ...) MX_WIDGET_CODEGEN(widget_hbox, data, __VA_ARGS__)
 #define mxSpacer(...) MX_WIDGET_CODEGEN(widget_spacer, nullptr, __VA_ARGS__)
 #define mxDebug(...) MX_WIDGET_CODEGEN(widget_debug, nullptr, __VA_ARGS__)
 #define mxLabel(data, ...) MX_WIDGET_CODEGEN(widget_label, data, __VA_ARGS__)

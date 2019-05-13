@@ -3,6 +3,13 @@
 
 namespace tabletopify
 {
+    linear_constraint_solver::linear_constraint_solver()
+    : N(0)
+    , _min_size(0.0)
+    , _max_size(0.0)
+    , _total_size(0.0)
+    { }
+
     linear_constraint_solver::linear_constraint_solver(const std::initializer_list<constraint>& constraints)
     : N(constraints.size())
     , _min_size([&]() {double retval = 0.0; for(const auto& c : constraints) retval += c.min; return retval;}())

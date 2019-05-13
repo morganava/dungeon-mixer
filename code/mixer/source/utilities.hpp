@@ -17,7 +17,7 @@
 #define MX_THROW_MSG_IF_FALSE(X, ...) do { bool result = (X); if (!result) { throw std::runtime_error(fmt::format("Runtime Failure: " __FILE__ ":" __STR_LINE__ " " __VA_ARGS__)); } } while(0)
 
 
-#define MX_DEBUG_TRACE(...) fprintf(stderr, __FILE__"(" __STR_LINE__ "): " __VA_ARGS__); fputs("\n", stderr);
+#define MX_TRACE(...) fprintf(stderr, __FILE__"(" __STR_LINE__ "): " __VA_ARGS__); fputs("\n", stderr);
 
 // extra print operators
 std::ostream& operator<<(std::ostream& out, const sf::Vector3f& vec);
@@ -76,7 +76,7 @@ namespace tabletopify
             return begin() + size();
         }
 
-        constexpr size_t size() const 
+        constexpr size_t size() const
         {
             return _bytes;
         }
@@ -96,5 +96,5 @@ namespace std
         {
             std::fclose(file);
         }
-    }; 
+    };
 }

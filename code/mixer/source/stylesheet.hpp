@@ -92,9 +92,10 @@ namespace tabletopify
     {
     public:
         const style_sheet* resolve(element_type_t et, const array<utf8_string>& tags, element_state_t es) const;
-        const box_layout* resolve_box_layout(element_type_t et, const array<utf8_string>& tags) const;
+        const box_layout& resolve_box_layout(element_type_t et, const array<utf8_string>& tags) const;
     private:
         std::unordered_map<selector, style_declaration_set> _styleFactory;
+        /* TODO: cache these on type and tags */
         mutable style_sheet _rootStyle;
         mutable box_layout  _boxLayout;
 
