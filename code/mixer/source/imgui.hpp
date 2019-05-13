@@ -293,7 +293,7 @@ namespace tabletopify
             rect _viewport;
         };
 
-        // grouping widgets
+        // vbox
 
         struct vbox_data : widget_data
         {
@@ -304,8 +304,6 @@ namespace tabletopify
             // offset into scrollbar handle user is grabbng
             double grab_offset_y = 0.0;
         };
-
-        // vbox
 
         struct widget_vbox : public widget<widget_vbox, element_type::vbox, vbox_data, widget_flag::scissors>
         {
@@ -326,6 +324,11 @@ namespace tabletopify
         };
 
         // hbox
+
+        struct hbox_data : widget_data
+        {
+
+        };
 
         struct widget_hbox : public widget<widget_hbox, element_type::hbox>
         {

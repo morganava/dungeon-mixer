@@ -23,6 +23,7 @@ add_executable(tabletop_mixer
     json.cpp
     motley_buffer.cpp
     hash_buffer.cpp
+    linear_constraint_solver.cpp
     # main
     mixer.cpp
     # systems

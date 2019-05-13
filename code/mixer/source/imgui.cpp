@@ -198,13 +198,6 @@ namespace tabletopify
         rect widget_vbox::bounds_callback(widget_base* wb, const rect& desired)
         {
             auto& self = *static_cast<widget_vbox*>(wb);
-#if 0
-            rect retval =
-            {
-                {self.bounds.position.x, self.bounds.position.y + self.internal_height - self.data()->vertical_scroll},
-                {self.bounds.size.x - self.style().scrollbarSize, desired.size.y}
-            };
-#endif
 
             rect retval = self.layout.child_bounds();
             retval.position.y += self.internal_height - self.data()->vertical_scroll;

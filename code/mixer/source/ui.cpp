@@ -15,11 +15,17 @@ namespace tabletopify
 {
     void ui::update(float dt, int32_t width, int32_t height)
     {
-        linear_constraint_solver<3> lcg({
+        linear_constraint_solver lcg({
             {50.0, 500.0, 1.0},
             {0.0, 1000000.0, 2.0},
             {0.0, 300.0, 3.0},
         });
+
+        lcg = {
+            {150.0, 500.0, 3.0},
+            {0.0, 1000000.0, 2.0},
+            {150.0, 300.0, 3.0},
+        };
 
         rect viewport = {{0.0, 0.0}, {(double)width, (double)height}};
         mxRoot(viewport)
