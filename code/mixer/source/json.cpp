@@ -114,8 +114,8 @@ namespace tabletopify
             {"darkcyan", color::rgb(0,139,139)},
             {"darkgoldenrod", color::rgb(184,134,11)},
             {"darkgray", color::rgb(169,169,169)},
-            {"darkgrey", color::rgb(169,169,169)},
             {"darkgreen", color::rgb(0,100,0)},
+            {"darkgrey", color::rgb(169,169,169)},
             {"darkkhaki", color::rgb(189,183,107)},
             {"darkmagenta", color::rgb(139,0,139)},
             {"darkolivegreen", color::rgb(85,107,47)},
@@ -143,9 +143,9 @@ namespace tabletopify
             {"gold", color::rgb(255,215,0)},
             {"goldenrod", color::rgb(218,165,32)},
             {"gray", color::rgb(128,128,128)},
-            {"grey", color::rgb(128,128,128)},
             {"green", color::rgb(0,128,0)},
             {"greenyellow", color::rgb(173,255,47)},
+            {"grey", color::rgb(128,128,128)},
             {"honeydew", color::rgb(240,255,240)},
             {"hotpink", color::rgb(255,105,180)},
             {"indianred", color::rgb(205,92,92)},
@@ -161,8 +161,8 @@ namespace tabletopify
             {"lightcyan", color::rgb(224,255,255)},
             {"lightgoldenrodyellow", color::rgb(250,250,210)},
             {"lightgray", color::rgb(211,211,211)},
-            {"lightgrey", color::rgb(211,211,211)},
             {"lightgreen", color::rgb(144,238,144)},
+            {"lightgrey", color::rgb(211,211,211)},
             {"lightpink", color::rgb(255,182,193)},
             {"lightsalmon", color::rgb(255,160,122)},
             {"lightseagreen", color::rgb(32,178,170)},
@@ -230,7 +230,7 @@ namespace tabletopify
             {"teal", color::rgb(0,128,128)},
             {"thistle", color::rgb(216,191,216)},
             {"tomato", color::rgb(255,99,71)},
-            {"transparent", color::rgba(0,0,0,0)},
+            {"transparent", color::rgba(0,0,0,0.0)},
             {"turquoise", color::rgb(64,224,208)},
             {"violet", color::rgb(238,130,238)},
             {"wheat", color::rgb(245,222,179)},
@@ -252,7 +252,8 @@ namespace tabletopify
         }
         else
         {
-            MX_THROW_MSG("invalid color string: {}", str);
+            MX_LOG_INFO("found {}", it->first);
+            // MX_THROW_MSG("invalid color string: {}", str);
         }
     }
 

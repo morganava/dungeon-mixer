@@ -18,7 +18,7 @@
         "textHalign" : "center"
     },
     "root" : {
-        "backgroundColor" : "white"
+        "backgroundColor" : "firebrick"
     },
     "vbox" : {
         "padding" : 0,
@@ -39,7 +39,7 @@
         "backgroundColor" : "#08F"
     },
     "button.foo:hover" : {
-        "backgroundColor" : "#F80",
+        "backgroundColor" : "rgba(0,0,0,0.5)",
         "borderSize" : 10
     },
     "button.push" : {
