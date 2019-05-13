@@ -11,13 +11,14 @@
         "borderRadius" : 0.0,
         "borderColor" : "#000",
         "padding" : 0,
-        "backgroundColor" : "#FFF",
+        "backgroundColor" : "transparent",
         "fontFamily" : "DejaVuSans.ttf",
         "fontColor" : "#000",
         "fontSize" : 24.0,
         "textHalign" : "center"
     },
     "root" : {
+        "backgroundColor" : "white"
     },
     "vbox" : {
         "padding" : 0,
@@ -26,7 +27,8 @@
     },
     "hbox" : {
         "padding" : 0,
-        "borderSize" : 5
+        "borderSize" : 5,
+        "backgroundColor" : "teal"
     },
     "button" : {
         "borderRadius" : [50.0, 25.0, 15.0, 0.0],
