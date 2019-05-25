@@ -354,36 +354,6 @@ namespace tabletopify
             } horizontal, vertical;        
         };
 
-        // vbox
-
-        struct vbox_data : widget_data
-        {
-            // vertical offset down
-            double vertical_scroll = 0.0;
-            // is user grabbing scrollbar with mouse
-            bool grabbing_scrollbar = false;
-            // offset into scrollbar handle user is grabbng
-            double grab_offset_y = 0.0;
-        };
-
-        struct widget_vbox : public widget<widget_vbox, element_type::vbox, vbox_data, widget_flag::scissors>
-        {
-            using widget::widget;
-
-            void first_update_impl();
-            static rect bounds_callback(widget_base* parent, const rect& desired);
-            void last_update_impl();
-            void last_render_impl() const;
-
-        private:
-            // cumulative height of the child widgets
-            double internal_height = 0.0;
-            // area of entire scrollbar widget
-            rect scrollbar_area = {};
-            // grab area of scrollbar this frame
-            rect scrollbar_grab_area = {};
-        };
-
         // hbox
 
         struct hbox_data : widget_data
@@ -474,7 +444,6 @@ namespace tabletopify
 
 #define mxRoot(viewport, ...) MX_WIDGET_CODEGEN(widget_root, viewport, __VA_ARGS__)
 #define mxScrollArea(data, ...) MX_WIDGET_CODEGEN(widget_scroll_area, data, __VA_ARGS__)
-#define mxVbox(data, ...) MX_WIDGET_CODEGEN(widget_vbox, data, __VA_ARGS__)
 #define mxHbox(data, ...) MX_WIDGET_CODEGEN(widget_hbox, data, __VA_ARGS__)
 #define mxSpacer(...) MX_WIDGET_CODEGEN(widget_spacer, nullptr, __VA_ARGS__)
 #define mxDebug(...) MX_WIDGET_CODEGEN(widget_debug, nullptr, __VA_ARGS__)

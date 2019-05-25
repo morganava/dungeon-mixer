@@ -9,7 +9,6 @@ namespace tabletopify
         {
             "",
             "root",
-            "vbox",
             "hbox",
             "scroll_area",
             "spacer",

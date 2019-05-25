@@ -18,9 +18,9 @@
         "textHalign" : "center"
     },
     "root" : {
-        "backgroundColor" : "firebrick"
+        "backgroundColor" : "transparent"
     },
-    "vbox" : {
+    "scroll_area" : {
         "padding" : 0,
         "borderSize" : 0,
         "borderRadius" : 0
