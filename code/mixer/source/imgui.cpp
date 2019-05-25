@@ -74,7 +74,7 @@ namespace tabletopify
 
          void widget_base::unfocus_widget()
         {
-            g_context.focus_widget(this->get_widget_id());
+            g_context.unfocus_widget(this->get_widget_id());
         }
 
         bool widget_base::is_focused() const
@@ -179,6 +179,160 @@ namespace tabletopify
         {
             auto& self = *static_cast<widget_root*>(parent);
             return self._viewport;
+        }
+
+
+        // scroll_area
+        void widget_scroll_area::first_update_impl()
+        {
+            if (g_input.get_mouse_clicked(mouse_button::left, this->_scissor))
+            {
+                MX_LOG_INFO("focus?");
+                this->focus_widget();
+            }
+            else if (g_input.get_mouse_clicked(mouse_button::left))
+            {
+                this->unfocus_widget();
+            }
+        }
+
+        rect widget_scroll_area::bounds_callback(widget_base* parent, const rect& desired)
+        {
+            auto& self = *static_cast<widget_scroll_area*>(parent);
+
+            rect retval = self._layout.child_bounds();
+            retval.position.y += self.vertical.internal_size - self.data()->vertical.scroll_offset;
+            retval.size.x -= self.style().scrollbarSize;
+            retval.size.y = desired.size.y;
+
+            self.vertical.internal_size += desired.size.y;
+            return retval;
+        }
+        
+        void widget_scroll_area::last_update_impl()
+        {
+            const auto bounds = this->_layout.inner_bounds();
+            // height of the group
+            const auto height = bounds.size.y;
+            // valid scrollable range  (0 to scrollable_height)
+            const auto scrollable_height = this->vertical.internal_size - height;
+
+            // style constants
+            const auto scrollbar_width = this->style().scrollbarSize;
+            const auto min_scrollbar_height = this->style().scrollbarMinLength;
+
+            // scrollbar bg rect
+            this->vertical.scrollbar_area = {{bounds.position.x + bounds.size.x - scrollbar_width, bounds.position.y}, {scrollbar_width, height}};
+
+            // scrollbar rect
+            double scrollbar_x = bounds.position.x  + bounds.size.x - scrollbar_width;
+
+            double scrollbar_height = std::min(std::max(height*height / this->vertical.internal_size, min_scrollbar_height), height);
+            double scrollbar_y = bounds.position.y + (height - scrollbar_height) * (data()->vertical.scroll_offset / scrollable_height);
+
+            this->vertical.scrollbar_grab_area = {{scrollbar_x, scrollbar_y}, {scrollbar_width, scrollbar_height}};
+
+            if (this->vertical.internal_size < height)
+            {
+                data()->vertical.scroll_offset = 0.0;
+            }
+            else
+            {
+                auto prev_mouse_down = g_input.get_mouse_button_state(mouse_button::left, input_frame::previous);
+                auto current_mouse_down = g_input.get_mouse_button_state(mouse_button::left, input_frame::current);
+                auto current_mouse_position = g_input.get_mouse_position(input_frame::current);
+
+                // handle click and drag
+                if (!data()->vertical.grabbing)
+                {
+                    // mouse clicked
+                    if (!prev_mouse_down && current_mouse_down)
+                    {
+                        // mouse in scrollbar grab area
+                        if (point_inside_rect(current_mouse_position, this->vertical.scrollbar_grab_area))
+                        {
+                            data()->vertical.grabbing = true;
+                            data()->vertical.grab_offset = current_mouse_position.y - this->vertical.scrollbar_grab_area.position.y;
+                        }
+                        // mouse in scrollbar area
+                        else if(point_inside_rect(current_mouse_position, this->vertical.scrollbar_area))
+                        {
+                            data()->vertical.grabbing = true;
+                            data()->vertical.grab_offset = this->vertical.scrollbar_grab_area.size.y / 2.0;
+                            data()->vertical.scroll_offset = (current_mouse_position.y - bounds.position.y - data()->vertical.grab_offset) / (bounds.size.y - this->vertical.scrollbar_grab_area.size.y) * scrollable_height;
+                        }
+                    }
+                }
+                else
+                {
+                    // release scrollbar
+                    if(!current_mouse_down)
+                    {
+                        data()->vertical.grabbing = false;
+                    }
+                    // drag scroll
+                    else
+                    {
+                        data()->vertical.scroll_offset = (current_mouse_position.y - bounds.position.y - data()->vertical.grab_offset) /
+                                                (bounds.size.y - this->vertical.scrollbar_grab_area.size.y) * scrollable_height;
+                    }
+                }
+
+                const auto scroll_step = this->style().scrollbarStep;
+                // handle scroll wheel
+                if (!data()->vertical.grabbing && point_inside_rect(current_mouse_position, this->_scissor))
+                {
+                    data()->vertical.scroll_offset -= g_input.get_mouse_scroll(input_frame::current).y * scroll_step;
+                }
+
+                // handle keyboard input
+                if (this->is_focused())
+                {
+                    for(auto keycode : g_input.get_keypresses())
+                    {
+                        switch(keycode)
+                        {
+                            case GLFW_KEY_PAGE_UP:
+                                data()->vertical.scroll_offset -= 5 * scroll_step;
+                                break;
+                            case GLFW_KEY_PAGE_DOWN:
+                                data()->vertical.scroll_offset += 5 * scroll_step;
+                                break;
+                            case GLFW_KEY_UP:
+                                data()->vertical.scroll_offset -= scroll_step;
+                                break;
+                            case GLFW_KEY_DOWN:
+                                data()->vertical.scroll_offset += scroll_step;
+                                break;
+                            case GLFW_KEY_HOME:
+                                data()->vertical.scroll_offset = 0;
+                                break;
+                            case GLFW_KEY_END:
+                                data()->vertical.scroll_offset = scrollable_height;
+                                break;
+                        }
+                    }
+                }
+
+                // clamp it
+                data()->vertical.scroll_offset = clamp<double>(0, data()->vertical.scroll_offset, scrollable_height);
+            }
+        }
+        
+        void widget_scroll_area::last_render_impl() const
+        {
+            get_nanovg()->fill_rect(this->vertical.scrollbar_area, this->style().scrollbarBackColor);
+
+            corners radius = this->style().scrollbarCornerRadius;
+
+            if (data()->vertical.grabbing)
+            {
+                get_nanovg()->fill_rounded_rect(this->vertical.scrollbar_grab_area, radius, this->style().scrollbarActiveColor);
+            }
+            else
+            {
+                get_nanovg()->fill_rounded_rect(this->vertical.scrollbar_grab_area, radius, this->style().scrollbarForeColor);
+            }
         }
 
         // vbox

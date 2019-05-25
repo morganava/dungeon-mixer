@@ -252,8 +252,7 @@ namespace tabletopify
         }
         else
         {
-            MX_LOG_INFO("found {}", it->first);
-            // MX_THROW_MSG("invalid color string: {}", str);
+            MX_THROW_MSG("invalid color string: {}", str);
         }
     }
 

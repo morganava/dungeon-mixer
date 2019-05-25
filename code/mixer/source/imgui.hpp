@@ -295,6 +295,65 @@ namespace tabletopify
             rect _viewport;
         };
 
+        //
+        // Layout Widgets
+        //
+
+        /*
+        TODO:
+            flexbox with horizontal or vertical orientation
+            scroll area with horizontal or vertical orientation or both
+                vertical orientation grows down
+                horizontal orientation grows right
+                both orientation doesn't grow, just places widgest wherever they want
+        */
+
+        // scroll_area
+
+        namespace scroll_direction
+        {
+            enum values
+            {
+                none       = 0x0,
+                horizontal = 0x1,
+                vertical   = 0x2,
+                both       = horizontal | vertical,  
+            };
+        };
+        typedef scroll_direction::values scroll_direction_t;
+
+        struct scroll_area_data : widget_data
+        {
+            scroll_direction_t direction = scroll_direction::none;
+            struct
+            {
+                double scroll_offset = 0.0;
+                double grab_offset = 0.0;
+                bool grabbing = false;
+            } horizontal, vertical;
+        };
+
+        struct widget_scroll_area : public widget<widget_scroll_area, element_type::scroll_area, scroll_area_data, widget_flag::scissors>
+        {
+        public:
+            using widget::widget;
+
+            void first_update_impl();
+            static rect bounds_callback(widget_base* parent, const rect& desired);
+            void last_update_impl();
+            void last_render_impl() const;            
+        private:
+            struct
+            {
+                // cumulative size of the child widgets
+                double internal_size = 0.0;
+                // area of entire scrollbar element
+                rect scrollbar_area = {};
+                // area of 'grabable' scrollbar element
+                rect scrollbar_grab_area = {};
+            } horizontal, vertical;        
+        };
+
         // vbox
 
         struct vbox_data : widget_data
@@ -351,6 +410,10 @@ namespace tabletopify
         {
             using widget::widget;
         };
+
+        //
+        // Interaction Widgets
+        //
 
         // label
 
@@ -410,6 +473,7 @@ namespace tabletopify
         }(widget##__LINE__))
 
 #define mxRoot(viewport, ...) MX_WIDGET_CODEGEN(widget_root, viewport, __VA_ARGS__)
+#define mxScrollArea(data, ...) MX_WIDGET_CODEGEN(widget_scroll_area, data, __VA_ARGS__)
 #define mxVbox(data, ...) MX_WIDGET_CODEGEN(widget_vbox, data, __VA_ARGS__)
 #define mxHbox(data, ...) MX_WIDGET_CODEGEN(widget_hbox, data, __VA_ARGS__)
 #define mxSpacer(...) MX_WIDGET_CODEGEN(widget_spacer, nullptr, __VA_ARGS__)

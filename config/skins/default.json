@@ -40,7 +40,8 @@
     },
     "button.foo:hover" : {
         "backgroundColor" : "rgba(0,0,0,0.5)",
-        "borderSize" : 10
+        "borderSize" : 10,
+        "borderColor" : "yellow"
     },
     "button.push" : {
         "borderRadius" : 0,

@@ -15,6 +15,8 @@ namespace tabletopify
 {
     void ui::update(float dt, int32_t width, int32_t height)
     {
+        sd.direction = imgui::scroll_direction::vertical;
+
         hd.constraints = {
             {150.0, 500.0, 3.0},
             {0.0, 1000000.0, 2.0},
@@ -24,7 +26,7 @@ namespace tabletopify
         rect viewport = {{0.0, 0.0}, {(double)width, (double)height}};
         mxRoot(viewport)
         {
-            mxVbox(&gd)
+            mxScrollArea(&sd)
             {
                 for(size_t idx = 0; idx < 1; ++idx)
                 {
@@ -53,8 +55,7 @@ namespace tabletopify
                     }
                     currentLabel.text = "hello world!";
 
-                    mxLabel(&currentLabel,
-                        self.requestHeight(100.0););
+                    mxLabel(&currentLabel, self.requestHeight(100.0););
                 }
             }
         }

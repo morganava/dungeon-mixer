@@ -11,6 +11,7 @@ namespace tabletopify
     private:
         imgui::vbox_data gd;
         imgui::hbox_data hd;
+        imgui::scroll_area_data sd;
         imgui::label_data ld[20];
         imgui::button_data bd[20];
     };
