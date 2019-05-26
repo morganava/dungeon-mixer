@@ -224,7 +224,7 @@ namespace tabletopify
     {
         tabletopify::utf8_stringbuffer sb;
         sb.push_back(codepoint);
-        // MX_LOG_INFO("codepoint : {{ codepoint : 0x{:08x}, char : '{}' }}", codepoint, sb.str());
+        MX_LOG_INFO("codepoint : {{ codepoint : 0x{:08x}, char : '{}' }}", codepoint, sb.str());
 
         input_event ie;
         ie.type = codepoint_event;
@@ -234,7 +234,7 @@ namespace tabletopify
 
     void input::push_keydown(key_code_t keycode)
     {
-        // MX_LOG_INFO("keydown : {{ keycode : 0x{:08x}, key : '{}' }}", keycode, key_code_to_key_name(keycode));
+        MX_LOG_INFO("keydown : {{ keycode : 0x{:08x}, key : '{}' }}", keycode, key_code_to_key_name(keycode));
 
         input_event ie;
         ie.type = keydown_event;
@@ -244,7 +244,7 @@ namespace tabletopify
 
     void input::push_keyrepeat(key_code_t keycode)
     {
-        // MX_LOG_INFO("keyrepeat : {{ keycode : 0x{:08x}, key : '{}' }}", keycode, key_code_to_key_name(keycode));
+        MX_LOG_INFO("keyrepeat : {{ keycode : 0x{:08x}, key : '{}' }}", keycode, key_code_to_key_name(keycode));
 
         input_event ie;
         ie.type = keyrepeat_event;
@@ -254,7 +254,7 @@ namespace tabletopify
 
     void input::push_keyup(key_code_t keycode)
     {
-        // MX_LOG_INFO("keyup : {{ keycode : 0x{:08x}, key : '{}' }}", keycode, key_code_to_key_name(keycode));
+        MX_LOG_INFO("keyup : {{ keycode : 0x{:08x}, key : '{}' }}", keycode, key_code_to_key_name(keycode));
 
         input_event ie;
         ie.type = keyup_event;

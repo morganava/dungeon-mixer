@@ -209,7 +209,7 @@ namespace tabletopify
                     retval.size.x -= self.style().scrollbarSize;
                     retval.size.y = desired.size.y;
 
-                    self.vertical.internal_size += desired.size.y;                    
+                    self.vertical.internal_size += desired.size.y;
                     break;
                 }
                 case scroll_direction::horizontal:
@@ -243,6 +243,7 @@ namespace tabletopify
             // style constants
             const auto scrollbar_size = this->style().scrollbarSize;
             const auto scrollbar_min_length = this->style().scrollbarMinLength;
+            const auto scroll_step = this->style().scrollbarStep;
 
             // size: length of the scrollbar
             // view_size: length of the viewport
@@ -257,17 +258,17 @@ namespace tabletopify
 
             if (scroll_vertical)
             {
-                vsa = 
+                vsa =
                 {
                     {bounds.right() - scrollbar_size, bounds.top()},
                     {scrollbar_size, bounds.height()}
                 };
                 const double grab_length = calc_scrollbar_grab_length(vsa.height(), this->vertical.internal_size);
-                vsga = 
+                vsga =
                 {
                     {vsa.left(), vsa.top() + (vsa.height() - grab_length) * (data()->vertical.scroll_offset / scrollable_height)},
                     {vsa.width(), grab_length}
-                };    
+                };
             }
 
             // shorthand names
@@ -277,107 +278,179 @@ namespace tabletopify
 
             if (scroll_horizontal)
             {
-                hsa = 
+                hsa =
                 {
                     {bounds.left(), bounds.bottom() - scrollbar_size},
                     {bounds.width(), scrollbar_size}
                 };
                 const double grab_length = calc_scrollbar_grab_length(hsa.width(), this->horizontal.internal_size);
-                hsga = 
+                hsga =
                 {
                     {hsa.left() + (hsa.width() - grab_length) * (data()->horizontal.scroll_offset / scrollable_width), hsa.top()},
                     {grab_length, hsa.height()}
                 };
             }
-            
+
             /* handle input to adjust the scroll offset */
 
-            if (this->vertical.internal_size < vsa.height())
-            {
-                data()->vertical.scroll_offset = 0.0;
-            }
-            else
-            {
-                auto prev_mouse_down = g_input.get_mouse_button_state(mouse_button::left, input_frame::previous);
-                auto current_mouse_down = g_input.get_mouse_button_state(mouse_button::left, input_frame::current);
-                auto current_mouse_position = g_input.get_mouse_position(input_frame::current);
+            auto prev_mouse_down = g_input.get_mouse_button_state(mouse_button::left, input_frame::previous);
+            auto current_mouse_down = g_input.get_mouse_button_state(mouse_button::left, input_frame::current);
+            auto current_mouse_position = g_input.get_mouse_position(input_frame::current);
 
-                // handle click and drag
-                if (!data()->vertical.grabbing)
+            if (scroll_vertical)
+            {
+                if (this->vertical.internal_size < vsa.height())
                 {
-                    // mouse clicked
-                    if (!prev_mouse_down && current_mouse_down)
+                    data()->vertical.scroll_offset = 0.0;
+                }
+                else
+                {
+                    // handle click and drag
+                    if (!data()->vertical.grabbing)
                     {
-                        // mouse in scrollbar grab area
-                        if (point_inside_rect(current_mouse_position, vsga))
+                        // mouse clicked
+                        if (!prev_mouse_down && current_mouse_down)
                         {
-                            data()->vertical.grabbing = true;
-                            data()->vertical.grab_offset = current_mouse_position.y - vsga.top();
+                            // mouse in scrollbar grab area
+                            if (point_inside_rect(current_mouse_position, vsga))
+                            {
+                                data()->vertical.grabbing = true;
+                                data()->vertical.grab_offset = current_mouse_position.y - vsga.top();
+                            }
+                            // mouse click on scrollbar area
+                            else if(point_inside_rect(current_mouse_position, vsa))
+                            {
+                                data()->vertical.grabbing = true;
+                                data()->vertical.grab_offset = vsga.height() / 2.0;
+                                data()->vertical.scroll_offset = (current_mouse_position.y - vsa.top() - data()->vertical.grab_offset) / (vsa.height() - vsga.height()) * scrollable_height;
+                            }
                         }
-                        // mouse in scrollbar area
-                        else if(point_inside_rect(current_mouse_position, vsa))
+                    }
+                    else
+                    {
+                        // release scrollbar
+                        if(!current_mouse_down)
                         {
-                            data()->vertical.grabbing = true;
-                            data()->vertical.grab_offset = vsga.height() / 2.0;
+                            data()->vertical.grabbing = false;
+                        }
+                        // drag scroll
+                        else
+                        {
                             data()->vertical.scroll_offset = (current_mouse_position.y - vsa.top() - data()->vertical.grab_offset) / (vsa.height() - vsga.height()) * scrollable_height;
                         }
                     }
                 }
+            }
+            if (scroll_horizontal)
+            {
+                if (this->horizontal.internal_size < hsa.width())
+                {
+                    data()->horizontal.scroll_offset = 0.0;
+                }
                 else
                 {
-                    // release scrollbar
-                    if(!current_mouse_down)
+                    // handle click and drag
+                    if (!data()->horizontal.grabbing)
                     {
-                        data()->vertical.grabbing = false;
+                        // mouse clicked
+                        if(!prev_mouse_down && current_mouse_down)
+                        {
+                            // mouse in scrollbar grab area
+                            if (point_inside_rect(current_mouse_position, hsga))
+                            {
+                                data()->horizontal.grabbing = true;
+                                data()->horizontal.grab_offset = current_mouse_position.x - hsga.left();
+                            }
+                            // mouse click on scrollbar area
+                            else if (point_inside_rect(current_mouse_position, hsa))
+                            {
+                                data()->horizontal.grabbing = true;
+                                data()->horizontal.grab_offset = hsga.width() / 2.0;
+                                data()->horizontal.scroll_offset = (current_mouse_position.x - hsa.left() - data()->horizontal.grab_offset) / (hsa.width() - hsga.width()) * scrollable_width;
+                            }
+                        }
                     }
-                    // drag scroll
                     else
                     {
-                        data()->vertical.scroll_offset = (current_mouse_position.y - vsa.top() - data()->vertical.grab_offset) / (vsa.height() - vsga.height()) * scrollable_height;
+                        // release scrollbar
+                        if(!current_mouse_down)
+                        {
+                            data()->horizontal.grabbing = false;
+                        }
+                        // drag scroll
+                        else
+                        {
+                            data()->horizontal.scroll_offset = (current_mouse_position.x - hsa.left() - data()->horizontal.grab_offset) / (hsa.width() - hsga.width()) * scrollable_width;
+                        }
                     }
                 }
+            }
 
-                const auto scroll_step = this->style().scrollbarStep;
-                // handle scroll wheel
-                if (!data()->vertical.grabbing && point_inside_rect(current_mouse_position, this->_scissor))
-                {
-                    data()->vertical.scroll_offset -= g_input.get_mouse_scroll(input_frame::current).y * scroll_step;
-                }
-
+            if (scroll_horizontal || scroll_vertical)
+            {
                 // handle keyboard input
                 if (this->is_focused())
                 {
                     for(auto keycode : g_input.get_keypresses())
                     {
-                        switch(keycode)
+                        if (scroll_vertical)
                         {
-                            case GLFW_KEY_PAGE_UP:
-                                data()->vertical.scroll_offset -= 5 * scroll_step;
-                                break;
-                            case GLFW_KEY_PAGE_DOWN:
-                                data()->vertical.scroll_offset += 5 * scroll_step;
-                                break;
-                            case GLFW_KEY_UP:
-                                data()->vertical.scroll_offset -= scroll_step;
-                                break;
-                            case GLFW_KEY_DOWN:
-                                data()->vertical.scroll_offset += scroll_step;
-                                break;
-                            case GLFW_KEY_HOME:
-                                data()->vertical.scroll_offset = 0;
-                                break;
-                            case GLFW_KEY_END:
-                                data()->vertical.scroll_offset = scrollable_height;
-                                break;
+                            switch(keycode)
+                            {
+                                case GLFW_KEY_PAGE_UP:
+                                    data()->vertical.scroll_offset -= 5 * scroll_step;
+                                    break;
+                                case GLFW_KEY_PAGE_DOWN:
+                                    data()->vertical.scroll_offset += 5 * scroll_step;
+                                    break;
+                                case GLFW_KEY_UP:
+                                    data()->vertical.scroll_offset -= scroll_step;
+                                    break;
+                                case GLFW_KEY_DOWN:
+                                    data()->vertical.scroll_offset += scroll_step;
+                                    break;
+                                case GLFW_KEY_HOME:
+                                    data()->vertical.scroll_offset = 0;
+                                    break;
+                                case GLFW_KEY_END:
+                                    data()->vertical.scroll_offset = scrollable_height;
+                                    break;
+                            }
+                        }
+                        if (scroll_horizontal)
+                        {
+                            switch(keycode)
+                            {
+                                case GLFW_KEY_LEFT:
+                                    data()->horizontal.scroll_offset -= scroll_step;
+                                    break;
+                                case GLFW_KEY_RIGHT:
+                                    data()->horizontal.scroll_offset += scroll_step;
+                                    break;
+                            }
                         }
                     }
                 }
 
-                // clamp it
-                data()->vertical.scroll_offset = clamp<double>(0, data()->vertical.scroll_offset, scrollable_height);
+                // handle scroll wheel
+                if (point_inside_rect(current_mouse_position, this->_scissor))
+                {
+                    if (!data()->vertical.grabbing)
+                    {
+                        data()->vertical.scroll_offset -= g_input.get_mouse_scroll(input_frame::current).y * scroll_step;
+                    }
+                    if (!data()->horizontal.grabbing)
+                    {
+                        data()->horizontal.scroll_offset -= g_input.get_mouse_scroll(input_frame::current).x * scroll_step;
+                    }
+                }
             }
+
+             // clamp offsets
+            data()->vertical.scroll_offset = clamp<double>(0.0, data()->vertical.scroll_offset, scrollable_height);
+            data()->horizontal.scroll_offset = clamp<double>(0.0, data()->horizontal.scroll_offset, scrollable_width);
         }
-        
+
         void widget_scroll_area::last_render_impl() const
         {
             const bool scroll_vertical = this->data()->direction & scroll_direction::vertical;
@@ -398,7 +471,7 @@ namespace tabletopify
                 else
                 {
                     get_nanovg()->fill_rounded_rect(vsga, radius, this->style().scrollbarForeColor);
-                }                
+                }
             }
             if (scroll_horizontal)
             {
@@ -415,7 +488,7 @@ namespace tabletopify
                 else
                 {
                     get_nanovg()->fill_rounded_rect(hsga, radius, this->style().scrollbarForeColor);
-                }    
+                }
             }
         }
 

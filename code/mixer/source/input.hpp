@@ -122,7 +122,7 @@ namespace tabletopify
         } _modifier_keys;
 
         struct
-        {            
+        {
             struct
             {
                 vec2 position = {-1.0, -1.0};
