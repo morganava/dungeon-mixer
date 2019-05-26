@@ -212,6 +212,15 @@ namespace tabletopify
                     self.vertical.internal_size += desired.size.y;                    
                     break;
                 }
+                case scroll_direction::horizontal:
+                {
+                    retval.position.x += self.horizontal.internal_size - data.horizontal.scroll_offset;
+                    retval.size.x = desired.size.x;
+                    retval.size.y -= self.style().scrollbarSize;
+
+                    self.horizontal.internal_size += desired.size.x;
+                    break;
+                }
                 default:
                 {
                     MX_FAIL_FAST("Unhandled direction : {}", data.direction);
@@ -226,14 +235,14 @@ namespace tabletopify
             const auto bounds = this->_layout.inner_bounds();
             // valid scrollable range  (0 to scrollable_height)
             const auto scrollable_height = this->vertical.internal_size - bounds.height();
+            const auto scrollable_width = this->horizontal.internal_size - bounds.width();
+
+            const bool scroll_vertical = this->data()->direction & scroll_direction::vertical;
+            const bool scroll_horizontal = this->data()->direction & scroll_direction::horizontal;
 
             // style constants
             const auto scrollbar_size = this->style().scrollbarSize;
             const auto scrollbar_min_length = this->style().scrollbarMinLength;
-
-            // shorthand names
-            auto& vsa = this->vertical.scrollbar_area;
-            auto& vsga = this->vertical.scrollbar_grab_area;
 
             // size: length of the scrollbar
             // view_size: length of the viewport
@@ -242,7 +251,11 @@ namespace tabletopify
                 return clamp(scrollbar_min_length, size*size / view_size, size);
             };
 
-            if (this->data()->direction & scroll_direction::vertical)
+            // shorthand names
+            auto& vsa = this->vertical.scrollbar_area;
+            auto& vsga = this->vertical.scrollbar_grab_area;
+
+            if (scroll_vertical)
             {
                 vsa = 
                 {
@@ -255,6 +268,26 @@ namespace tabletopify
                     {vsa.left(), vsa.top() + (vsa.height() - grab_length) * (data()->vertical.scroll_offset / scrollable_height)},
                     {vsa.width(), grab_length}
                 };    
+            }
+
+            // shorthand names
+
+            auto& hsa = this->horizontal.scrollbar_area;
+            auto& hsga = this->horizontal.scrollbar_grab_area;
+
+            if (scroll_horizontal)
+            {
+                hsa = 
+                {
+                    {bounds.left(), bounds.bottom() - scrollbar_size},
+                    {bounds.width(), scrollbar_size}
+                };
+                const double grab_length = calc_scrollbar_grab_length(hsa.width(), this->horizontal.internal_size);
+                hsga = 
+                {
+                    {hsa.left() + (hsa.width() - grab_length) * (data()->horizontal.scroll_offset / scrollable_width), hsa.top()},
+                    {grab_length, hsa.height()}
+                };
             }
             
             /* handle input to adjust the scroll offset */
@@ -347,17 +380,42 @@ namespace tabletopify
         
         void widget_scroll_area::last_render_impl() const
         {
-            get_nanovg()->fill_rect(this->vertical.scrollbar_area, this->style().scrollbarBackColor);
+            const bool scroll_vertical = this->data()->direction & scroll_direction::vertical;
+            const bool scroll_horizontal = this->data()->direction & scroll_direction::horizontal;
 
-            corners radius = this->style().scrollbarCornerRadius;
-
-            if (data()->vertical.grabbing)
+            if (scroll_vertical)
             {
-                get_nanovg()->fill_rounded_rect(this->vertical.scrollbar_grab_area, radius, this->style().scrollbarActiveColor);
+                auto& vsa = this->vertical.scrollbar_area;
+                auto& vsga = this->vertical.scrollbar_grab_area;
+
+                get_nanovg()->fill_rect(vsa, this->style().scrollbarBackColor);
+
+                corners radius = this->style().scrollbarCornerRadius;
+                if (data()->vertical.grabbing)
+                {
+                    get_nanovg()->fill_rounded_rect(vsga, radius, this->style().scrollbarActiveColor);
+                }
+                else
+                {
+                    get_nanovg()->fill_rounded_rect(vsga, radius, this->style().scrollbarForeColor);
+                }                
             }
-            else
+            if (scroll_horizontal)
             {
-                get_nanovg()->fill_rounded_rect(this->vertical.scrollbar_grab_area, radius, this->style().scrollbarForeColor);
+                auto& hsa = this->horizontal.scrollbar_area;
+                auto& hsga = this->horizontal.scrollbar_grab_area;
+
+                get_nanovg()->fill_rect(hsa, this->style().scrollbarBackColor);
+
+                corners radius = this->style().scrollbarCornerRadius;
+                if (data()->horizontal.grabbing)
+                {
+                    get_nanovg()->fill_rounded_rect(hsga, radius, this->style().scrollbarActiveColor);
+                }
+                else
+                {
+                    get_nanovg()->fill_rounded_rect(hsga, radius, this->style().scrollbarForeColor);
+                }    
             }
         }
 

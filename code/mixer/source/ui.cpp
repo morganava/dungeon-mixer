@@ -15,7 +15,7 @@ namespace tabletopify
 {
     void ui::update(float dt, int32_t width, int32_t height)
     {
-        sd.direction = imgui::scroll_direction::vertical;
+        sd.direction = imgui::scroll_direction::horizontal;
 
         hd.constraints = {
             {150.0, 500.0, 3.0},
@@ -33,7 +33,7 @@ namespace tabletopify
                     auto& currentLabel = ld[idx];
                     auto& currentButton = bd[idx];
 
-                    mxHbox(&hd, self.requestHeight(200.0);)
+                    mxHbox(&hd, self.requestWidth(400.0);)
                     {
                         currentButton.text = "button";
                         mxButton(
@@ -54,8 +54,7 @@ namespace tabletopify
                             };);
                     }
                     currentLabel.text = "hello world!";
-
-                    mxLabel(&currentLabel, self.requestHeight(100.0););
+                    mxLabel(&currentLabel, self.requestWidth(100.0););
                 }
             }
         }
