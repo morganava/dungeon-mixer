@@ -28,7 +28,7 @@ namespace tabletopify
         {
             mxScrollArea(&sd)
             {
-                for(size_t idx = 0; idx < 1; ++idx)
+                for(size_t idx = 0; idx < 4; ++idx)
                 {
                     auto& currentLabel = ld[idx];
                     auto& currentButton = bd[idx];

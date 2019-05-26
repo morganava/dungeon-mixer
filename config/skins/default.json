@@ -1,7 +1,7 @@
 {
     "" : {
         "scrollbarSize" : 30.0,
-        "scrollbarMinLength" : 0.0,
+        "scrollbarMinLength" : 45.0,
         "scrollbarForeColor" : "#C0C0C0",
         "scrollbarActiveColor" : "#C06000",
         "scrollbarBackColor" : "#606060",
@@ -18,7 +18,7 @@
         "textHalign" : "center"
     },
     "root" : {
-        "backgroundColor" : "transparent"
+        "backgroundColor" : "firebrick"
     },
     "scroll_area" : {
         "padding" : 0,

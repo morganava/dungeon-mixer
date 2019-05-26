@@ -198,40 +198,68 @@ namespace tabletopify
         rect widget_scroll_area::bounds_callback(widget_base* parent, const rect& desired)
         {
             auto& self = *static_cast<widget_scroll_area*>(parent);
+            const auto& data = *self.data();
 
             rect retval = self._layout.child_bounds();
-            retval.position.y += self.vertical.internal_size - self.data()->vertical.scroll_offset;
-            retval.size.x -= self.style().scrollbarSize;
-            retval.size.y = desired.size.y;
+            switch(data.direction)
+            {
+                case scroll_direction::vertical:
+                {
+                    retval.position.y += self.vertical.internal_size - data.vertical.scroll_offset;
+                    retval.size.x -= self.style().scrollbarSize;
+                    retval.size.y = desired.size.y;
 
-            self.vertical.internal_size += desired.size.y;
+                    self.vertical.internal_size += desired.size.y;                    
+                    break;
+                }
+                default:
+                {
+                    MX_FAIL_FAST("Unhandled direction : {}", data.direction);
+                }
+            }
+
             return retval;
         }
-        
+
         void widget_scroll_area::last_update_impl()
         {
             const auto bounds = this->_layout.inner_bounds();
-            // height of the group
-            const auto height = bounds.size.y;
             // valid scrollable range  (0 to scrollable_height)
-            const auto scrollable_height = this->vertical.internal_size - height;
+            const auto scrollable_height = this->vertical.internal_size - bounds.height();
 
             // style constants
-            const auto scrollbar_width = this->style().scrollbarSize;
-            const auto min_scrollbar_height = this->style().scrollbarMinLength;
+            const auto scrollbar_size = this->style().scrollbarSize;
+            const auto scrollbar_min_length = this->style().scrollbarMinLength;
 
-            // scrollbar bg rect
-            this->vertical.scrollbar_area = {{bounds.position.x + bounds.size.x - scrollbar_width, bounds.position.y}, {scrollbar_width, height}};
+            // shorthand names
+            auto& vsa = this->vertical.scrollbar_area;
+            auto& vsga = this->vertical.scrollbar_grab_area;
 
-            // scrollbar rect
-            double scrollbar_x = bounds.position.x  + bounds.size.x - scrollbar_width;
+            // size: length of the scrollbar
+            // view_size: length of the viewport
+            auto calc_scrollbar_grab_length = [&](double size, double view_size) -> double
+            {
+                return clamp(scrollbar_min_length, size*size / view_size, size);
+            };
 
-            double scrollbar_height = std::min(std::max(height*height / this->vertical.internal_size, min_scrollbar_height), height);
-            double scrollbar_y = bounds.position.y + (height - scrollbar_height) * (data()->vertical.scroll_offset / scrollable_height);
+            if (this->data()->direction & scroll_direction::vertical)
+            {
+                vsa = 
+                {
+                    {bounds.right() - scrollbar_size, bounds.top()},
+                    {scrollbar_size, bounds.height()}
+                };
+                const double grab_length = calc_scrollbar_grab_length(vsa.height(), this->vertical.internal_size);
+                vsga = 
+                {
+                    {vsa.left(), vsa.top() + (vsa.height() - grab_length) * (data()->vertical.scroll_offset / scrollable_height)},
+                    {vsa.width(), grab_length}
+                };    
+            }
+            
+            /* handle input to adjust the scroll offset */
 
-            this->vertical.scrollbar_grab_area = {{scrollbar_x, scrollbar_y}, {scrollbar_width, scrollbar_height}};
-
-            if (this->vertical.internal_size < height)
+            if (this->vertical.internal_size < vsa.height())
             {
                 data()->vertical.scroll_offset = 0.0;
             }
@@ -248,17 +276,17 @@ namespace tabletopify
                     if (!prev_mouse_down && current_mouse_down)
                     {
                         // mouse in scrollbar grab area
-                        if (point_inside_rect(current_mouse_position, this->vertical.scrollbar_grab_area))
+                        if (point_inside_rect(current_mouse_position, vsga))
                         {
                             data()->vertical.grabbing = true;
-                            data()->vertical.grab_offset = current_mouse_position.y - this->vertical.scrollbar_grab_area.position.y;
+                            data()->vertical.grab_offset = current_mouse_position.y - vsga.top();
                         }
                         // mouse in scrollbar area
-                        else if(point_inside_rect(current_mouse_position, this->vertical.scrollbar_area))
+                        else if(point_inside_rect(current_mouse_position, vsa))
                         {
                             data()->vertical.grabbing = true;
-                            data()->vertical.grab_offset = this->vertical.scrollbar_grab_area.size.y / 2.0;
-                            data()->vertical.scroll_offset = (current_mouse_position.y - bounds.position.y - data()->vertical.grab_offset) / (bounds.size.y - this->vertical.scrollbar_grab_area.size.y) * scrollable_height;
+                            data()->vertical.grab_offset = vsga.height() / 2.0;
+                            data()->vertical.scroll_offset = (current_mouse_position.y - vsa.top() - data()->vertical.grab_offset) / (vsa.height() - vsga.height()) * scrollable_height;
                         }
                     }
                 }
@@ -272,8 +300,7 @@ namespace tabletopify
                     // drag scroll
                     else
                     {
-                        data()->vertical.scroll_offset = (current_mouse_position.y - bounds.position.y - data()->vertical.grab_offset) /
-                                                (bounds.size.y - this->vertical.scrollbar_grab_area.size.y) * scrollable_height;
+                        data()->vertical.scroll_offset = (current_mouse_position.y - vsa.top() - data()->vertical.grab_offset) / (vsa.height() - vsga.height()) * scrollable_height;
                     }
                 }
 

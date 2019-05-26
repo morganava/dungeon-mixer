@@ -8,6 +8,7 @@
 #define STRINGIFY(X) STRINGIFY2(X)
 #define __STR_LINE__ STRINGIFY(__LINE__)
 
+#define MX_FAIL_FAST(...) tabletopify::get_logger()->blocking_log(LogLevel_Error, "Fail Fast : " __FILE__ ":" __STR_LINE__ " " __VA_ARGS__); MX_DEBUGBREAK();
 #define MX_ASSERT(X) do {bool result = (X); if(!result) { tabletopify::get_logger()->blocking_log(LogLevel_Error, "Assertion Failure: " __FILE__ ":" __STR_LINE__ " " #X); MX_DEBUGBREAK();} } while(false);
 #define MX_STATIC_ASSERT(X) static_assert(X, STRINGIFY(X))
 #define MX_THROW_IF_FALSE(X) do {bool result = (X); if(!result) {throw std::runtime_error("Runtime Failure: " __FILE__ ":" __STR_LINE__ " " #X);} } while(0);
