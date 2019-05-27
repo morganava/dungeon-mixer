@@ -100,7 +100,6 @@ namespace tabletopify
         }
 
         element_type_t typeList[2] = {element_type::any, type};
-        const auto& tagList = tags;
         std::vector<element_state_t> stateList = {element_state::none};
         const auto& push_state = [&](element_state_t flag) -> void
         {
@@ -128,7 +127,7 @@ namespace tabletopify
                 selector s = {currentType, {}, currentState};
                 apply_style(s);
             }
-            for(const auto& currentTag : tagList)
+            for(const auto& currentTag : tags)
             {
                 for(auto currentState : stateList)
                 {

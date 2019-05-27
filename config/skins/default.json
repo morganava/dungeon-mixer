@@ -21,9 +21,11 @@
         "scrollbarBackColor" : "#606060",
         "scrollbarCornerRadius" : 0.0,
         "scrollbarStep" : 45.0,
-        "padding" : 0,
-        "borderSize" : 0,
-        "borderRadius" : 0
+        "padding" : 25,
+        "margin" : 30,
+        "borderSize" : 5,
+        "borderRadius" : 0,
+        "backgroundColor" : "green"
     },
     "hbox" : {
         "padding" : 0,
@@ -31,7 +33,7 @@
         "backgroundColor" : "teal"
     },
     "button" : {
-        "borderRadius" : [50.0, 25.0, 15.0, 0.0],
+        "borderRadius" : [100.0, 25.0, 15.0, 0.0],
         "borderSize" : 20,
         "fontSize" : 36
     },
@@ -47,6 +49,9 @@
         "borderRadius" : 0,
         "borderSize" : 10,
         "borderColor" : "#F80"
+    },
+    "button.push:hover" : {
+        "backgroundColor" : "blue"
     },
     "label" : {
         "borderSize" : 5,

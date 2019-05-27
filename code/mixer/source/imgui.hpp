@@ -160,10 +160,11 @@ namespace tabletopify
             void unfocus_widget();
             bool is_focused() const;
 
-            const style_sheet& style() const {return *_style;}
+            constexpr const style_sheet& style() const {return *_style;}
 
             // common funcs
             void resolve_box_layout_impl(element_type_t et, widget_flag_t flags);
+            void resolve_scissor_impl();
             element_state_t resolve_element_state_impl() const {return element_state::none;}
             void resolve_style_impl(element_type_t, element_state_t);
             void render_box_layout_impl() const;
@@ -174,6 +175,8 @@ namespace tabletopify
             void first_render_impl() const {}
             void last_update_impl() {}
             void last_render_impl() const {}
+
+
 
         private:
             // shared margin/border/padding rendering
@@ -187,6 +190,8 @@ namespace tabletopify
             void requestHeight(double height);
             void requestPosition(const vec2& position);
             void requestBounds(const rect& bounds);
+
+            constexpr rect scissor() const {return _scissor; }
 
             array<utf8_string> tags;
 
@@ -214,20 +219,23 @@ namespace tabletopify
             // destructor called after child widgets have been handled
             ~widget()
             {
+                if constexpr (WIDGET_FLAGS & widget_flag::scissors) {
+                    g_context.pop_scissor();
+                }
+
                 auto* self = static_cast<T*>(this);
                 self->last_update_impl();
                 self->last_render_impl();
-
-                if (WIDGET_FLAGS & widget_flag::scissors) {
-                    g_context.pop_scissor();
-                }
 
                 g_context.pop_render_bounds();
             }
 
             void resolve_box_layout()
             {
-                static_cast<T*>(this)->resolve_box_layout_impl(ELEMENT_TYPE, WIDGET_FLAGS);
+                auto* self = static_cast<T*>(this);
+                self->resolve_box_layout_impl(ELEMENT_TYPE, WIDGET_FLAGS);
+                self->resolve_scissor_impl();
+
             }
 
             void render_box_layout() const
@@ -257,6 +265,9 @@ namespace tabletopify
                 auto* self = static_cast<T*>(this);
                 render_bounds rb = {&T::bounds_callback, self};
                 g_context.push_render_bounds(rb);
+                if constexpr (WIDGET_FLAGS & widget_flag::scissors) {
+                    g_context.push_scissor(this->_scissor);
+                }
             }
 
             void last_update()
@@ -317,7 +328,7 @@ namespace tabletopify
                 none       = 0x0,
                 horizontal = 0x1,
                 vertical   = 0x2,
-                both       = horizontal | vertical,  
+                both       = horizontal | vertical,
             };
         };
         typedef scroll_direction::values scroll_direction_t;
@@ -338,10 +349,11 @@ namespace tabletopify
         public:
             using widget::widget;
 
+            void resolve_scissor_impl();
             void first_update_impl();
             static rect bounds_callback(widget_base* parent, const rect& desired);
             void last_update_impl();
-            void last_render_impl() const;            
+            void last_render_impl() const;
         private:
             struct
             {
@@ -351,7 +363,7 @@ namespace tabletopify
                 rect scrollbar_area = {};
                 // area of 'grabable' scrollbar element
                 rect scrollbar_grab_area = {};
-            } horizontal, vertical;        
+            } horizontal, vertical;
         };
 
         // hbox

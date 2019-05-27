@@ -56,7 +56,9 @@ namespace tabletopify
                     }
                     offset += 400.0;
                     currentLabel.text = "hello world!";
-                    mxLabel(&currentLabel, self.requestPosition({offset, offset}); self.requestSize({100.0, 100.0}););
+                    // mxLabel(&currentLabel, self.requestPosition({offset, offset}); self.requestSize({100.0, 100.0}););
+                    currentButton.text = "whoop whoop";
+                    mxButton(&currentButton, self.requestPosition({offset, offset}); self.requestSize({100.0, 100.0}););
                     offset += 100;
                 }
             }

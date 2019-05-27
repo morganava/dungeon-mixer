@@ -90,7 +90,6 @@ namespace tabletopify
         void widget_base::resolve_box_layout_impl(element_type_t et, widget_flag_t flag)
         {
             const auto& rb = g_context.peek_render_bounds();
-            const auto& parent_scissor = rb.widget->_scissor;
 
             // get our box layout based off type and tags
             this->_layout = g_style_resolver.resolve_box_layout(et, this->tags);
@@ -99,13 +98,16 @@ namespace tabletopify
             // get our style
             this->_style = g_style_resolver.resolve(et, this->tags, element_state::none);
 
+
+        }
+
+        void widget_base::resolve_scissor_impl()
+        {
+            const auto& rb = g_context.peek_render_bounds();
+            const auto& parent_scissor = rb.widget->_scissor;
             // calc the scissor geometry for widget specific contetn
             // but only scissor the rendering if we're a certain type of element
-            this->_scissor = get_intersecting_rect(parent_scissor, this->_layout.outerBounds);
-            if (flag & widget_flag::scissors)
-            {
-                g_context.push_scissor(this->_scissor);
-            }
+            this->_scissor = get_intersecting_rect(parent_scissor, this->_layout.inner_bounds());
         }
 
         void widget_base::render_box_layout_impl() const
@@ -160,7 +162,7 @@ namespace tabletopify
         : widget_root(nullptr)
         {
             _viewport = viewport;
-            _scissor = viewport;
+            _scissor = _viewport;
             g_context.push_render_bounds({&widget_root::root_bounds_callback, this});
         }
 
@@ -183,6 +185,30 @@ namespace tabletopify
 
 
         // scroll_area
+
+        void widget_scroll_area::resolve_scissor_impl()
+        {
+            const auto& rb = g_context.peek_render_bounds();
+            const auto& parent_scissor = rb.widget->scissor();
+            const bool scroll_vertical = this->data()->direction & scroll_direction::vertical;
+            const bool scroll_horizontal = this->data()->direction & scroll_direction::horizontal;
+            const auto scrollbar_size = this->style().scrollbarSize;
+
+            // calc the scissor geometry for widget specific contetn
+            // but only scissor the rendering if we're a certain type of element
+            auto childBounds = this->_layout.inner_bounds();
+            if (scroll_vertical)
+            {
+                childBounds.size.y -= scrollbar_size;
+            }
+            if (scroll_horizontal)
+            {
+                childBounds.size.x -= scrollbar_size;
+            }
+
+            this->_scissor = get_intersecting_rect(parent_scissor, childBounds);
+        }
+
         void widget_scroll_area::first_update_impl()
         {
             if (g_input.get_mouse_clicked(mouse_button::left, this->_scissor))
@@ -550,10 +576,15 @@ namespace tabletopify
 
         element_state_t widget_button::resolve_element_state_impl() const
         {
-            if (point_inside_rounded_rect(
-                g_input.get_mouse_position(input_frame::current),
-                this->_layout.border_bounds(),
-                this->_layout.borderRadius))
+            const auto mouse_position = g_input.get_mouse_position(input_frame::current);
+
+            if (point_inside_rect(
+                    mouse_position,
+                    this->_scissor) &&
+                point_inside_rounded_rect(
+                    mouse_position,
+                    this->_layout.border_bounds(),
+                    this->_layout.borderRadius))
             {
                 return element_state::hover;
             }
