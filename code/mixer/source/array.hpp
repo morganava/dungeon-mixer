@@ -9,6 +9,11 @@ namespace tabletopify
     {
     public:
         array() = default;
+        array(const array& that)
+        : array(that.size())
+        {
+            std::copy(that.begin(), that.end(), _data.get());
+        }
         array(array&& that)
         : _size(that._size)
         , _data(std::move(that._data))
@@ -54,12 +59,18 @@ namespace tabletopify
             return *this;
         }
 
-/*
         array& operator=(const array& that)
         {
-
+            const auto N = that.size();
+            if(this->_size != N)
+            {
+                this->_size = N;
+                this->_data = std::make_unique<T[]>(N);
+            }
+            std::copy(that.begin(), that.end(), _data.get());
+            return *this;
         }
-*/
+
         bool operator==(const array& that) const
         {
             if (this == &that) return true;

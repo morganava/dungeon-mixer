@@ -91,6 +91,14 @@ namespace tabletopify
 
     const style_sheet* style_resolver::resolve(element_type_t type, const array<utf8_string>& tags, element_state_t state) const
     {
+        // build selector and return cached version if available
+        selector sel = {type, tags, state};
+        if(auto it = _cachedStyles.find(sel); it != _cachedStyles.end())
+        {
+            const auto& style = it->second;
+            return &style;
+        }
+
         element_type_t typeList[2] = {element_type::any, type};
         const auto& tagList = tags;
         std::vector<element_state_t> stateList = {element_state::none};
@@ -129,13 +137,13 @@ namespace tabletopify
                 }
             }
         }
-        _rootStyle = retval;
 
-
-        return &_rootStyle;
+        // cache built style
+        auto pit = _cachedStyles.insert(std::make_pair(std::move(sel), retval));
+        return &pit.first->second;
     }
 
-    const box_layout& style_resolver::resolve_box_layout(element_type_t type, const array<utf8_string>& tags) const
+    box_layout style_resolver::resolve_box_layout(element_type_t type, const array<utf8_string>& tags) const
     {
         const auto* styleSheet = resolve(type, tags, element_state::none);
         box_layout retval;
@@ -144,8 +152,6 @@ namespace tabletopify
         retval.borderRadius = styleSheet->borderRadius;
         retval.padding = styleSheet->padding;
 
-        _boxLayout = retval;
-
-        return _boxLayout;
+        return retval;
     }
 }
