@@ -192,6 +192,7 @@ namespace tabletopify
             void requestBounds(const rect& bounds);
 
             constexpr rect scissor() const {return _scissor; }
+            constexpr rect childScissor() const {return _childScissor; }
 
             array<utf8_string> tags;
 
@@ -199,6 +200,7 @@ namespace tabletopify
 
             box_layout _layout = {};
             rect _scissor = {};
+            rect _childScissor = {};
             rect _desiredBounds;
             widget_data* _data = nullptr;
         };
@@ -266,7 +268,7 @@ namespace tabletopify
                 render_bounds rb = {&T::bounds_callback, self};
                 g_context.push_render_bounds(rb);
                 if constexpr (WIDGET_FLAGS & widget_flag::scissors) {
-                    g_context.push_scissor(this->_scissor);
+                    g_context.push_scissor(this->childScissor());
                 }
             }
 
@@ -420,6 +422,7 @@ namespace tabletopify
 
         struct widget_button : public widget<widget_button, element_type::button, button_data>
         {
+        public:
             using widget::widget;
 
             element_state_t resolve_element_state_impl() const;
@@ -428,6 +431,8 @@ namespace tabletopify
             void last_update_impl();
 
             callback<void> on_click;
+        private:
+            bool _clicked = false;
         };
 
     } // imgui namespace

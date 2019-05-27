@@ -539,3 +539,5 @@ namespace tabletopify
 
 std::ostream& operator<<(std::ostream&, const tabletopify::vec2&);
 std::ostream& operator<<(std::ostream&, const tabletopify::rect&);
+std::ostream& operator<<(std::ostream&, const tabletopify::corners&);
+std::ostream& operator<<(std::ostream&, const tabletopify::edges&);

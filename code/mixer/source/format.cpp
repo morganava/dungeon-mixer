@@ -42,6 +42,16 @@ ostream& operator<<(ostream& out, const rect& r)
     return out << "{ position : " << r.position << " size : " << r.size << " }";
 }
 
+ostream& operator<<(ostream& out, const corners& c)
+{
+    return out << "{ topLeft : " << c.topLeft << ", topRight : " << c.topRight << ", bottomRight : " << c.bottomRight << ", bottomLeft : " << c.bottomLeft << " }";
+}
+
+ostream& operator<<(ostream& out, const edges& e)
+{
+    return out << "{ top : " << e.top << ", right : " << e.right << ", bottom : " << e.bottom << ", left : " << e.left << " }";
+}
+
 // SFML
 ostream& operator<<(ostream& out, const sf::Vector3f& vec)
 {

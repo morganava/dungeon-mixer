@@ -97,17 +97,15 @@ namespace tabletopify
 
             // get our style
             this->_style = g_style_resolver.resolve(et, this->tags, element_state::none);
-
-
         }
 
         void widget_base::resolve_scissor_impl()
         {
             const auto& rb = g_context.peek_render_bounds();
-            const auto& parent_scissor = rb.widget->_scissor;
-            // calc the scissor geometry for widget specific contetn
-            // but only scissor the rendering if we're a certain type of element
-            this->_scissor = get_intersecting_rect(parent_scissor, this->_layout.inner_bounds());
+            const auto& scissor = rb.widget->childScissor();
+            // calc the scissor geometry for widget specific content
+            this->_scissor = get_intersecting_rect(scissor, this->_layout.outerBounds);
+            this->_childScissor = get_intersecting_rect(scissor, this->_layout.inner_bounds());
         }
 
         void widget_base::render_box_layout_impl() const
@@ -162,7 +160,8 @@ namespace tabletopify
         : widget_root(nullptr)
         {
             _viewport = viewport;
-            _scissor = _viewport;
+            _scissor = viewport;
+            _childScissor = viewport;
             g_context.push_render_bounds({&widget_root::root_bounds_callback, this});
         }
 
@@ -189,7 +188,9 @@ namespace tabletopify
         void widget_scroll_area::resolve_scissor_impl()
         {
             const auto& rb = g_context.peek_render_bounds();
-            const auto& parent_scissor = rb.widget->scissor();
+            const auto& scissor = rb.widget->scissor();
+
+            // need to exclude the scroll area's scroll bars from scissor
             const bool scroll_vertical = this->data()->direction & scroll_direction::vertical;
             const bool scroll_horizontal = this->data()->direction & scroll_direction::horizontal;
             const auto scrollbar_size = this->style().scrollbarSize;
@@ -206,12 +207,13 @@ namespace tabletopify
                 childBounds.size.x -= scrollbar_size;
             }
 
-            this->_scissor = get_intersecting_rect(parent_scissor, childBounds);
+            this->_scissor = get_intersecting_rect(scissor, this->_layout.outerBounds);
+            this->_childScissor = get_intersecting_rect(scissor, childBounds);
         }
 
         void widget_scroll_area::first_update_impl()
         {
-            if (g_input.get_mouse_clicked(mouse_button::left, this->_scissor))
+            if (g_input.get_mouse_clicked(mouse_button::left, this->childScissor()))
             {
                 this->focus_widget();
             }
@@ -476,7 +478,7 @@ namespace tabletopify
                 }
 
                 // handle scroll wheel
-                if (point_inside_rect(current_mouse_position, this->_scissor))
+                if (point_inside_rect(current_mouse_position, get_intersecting_rect(this->scissor(), this->_layout.inner_bounds())))
                 {
                     if (!data()->vertical.grabbing)
                     {
@@ -580,7 +582,7 @@ namespace tabletopify
 
             if (point_inside_rect(
                     mouse_position,
-                    this->_scissor) &&
+                    this->scissor()) &&
                 point_inside_rounded_rect(
                     mouse_position,
                     this->_layout.border_bounds(),
@@ -593,13 +595,24 @@ namespace tabletopify
 
         void widget_button::first_update_impl()
         {
-            if (g_input.get_mouse_clicked(mouse_button::left, this->_scissor))
+            if (g_input.get_mouse_clicked(mouse_button::left))
             {
-                this->focus_widget();
-            }
-            else if (g_input.get_mouse_clicked(mouse_button::left))
-            {
-                this->unfocus_widget();
+                const auto mouse_position = g_input.get_mouse_position(input_frame::current);
+                if (point_inside_rect(
+                        mouse_position,
+                        this->scissor()) &&
+                    point_inside_rounded_rect(
+                        mouse_position,
+                        this->_layout.border_bounds(),
+                        this->_layout.borderRadius))
+                {
+                    this->focus_widget();
+                    this->_clicked = true;
+                }
+                else
+                {
+                    this->unfocus_widget();
+                }
             }
         }
 
@@ -617,7 +630,7 @@ namespace tabletopify
 
         void widget_button::last_update_impl()
         {
-            if (g_input.get_mouse_clicked(mouse_button::left, this->_scissor))
+            if (this->_clicked)
             {
                 this->on_click();
             }
