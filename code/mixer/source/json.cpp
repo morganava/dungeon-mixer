@@ -458,7 +458,7 @@ namespace tabletopify
         MX_THROW_IF_FALSE(j.is_object());
 
         // iterate over each selector and build our style selector set
-        const std::regex selectorRegex("^([a-z]*)[\\.]?([a-z]*)[\\:]?([a-z]*)$");
+        const std::regex selectorRegex("^([a-zA-Z]*)[\\.]?([a-zA-Z0-9]*)[\\:]?([a-z]*)$");
         for(auto& el : j.items())
         {
             const auto& selectorString = el.key();

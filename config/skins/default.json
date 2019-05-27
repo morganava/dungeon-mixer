@@ -1,12 +1,5 @@
 {
     "" : {
-        "scrollbarSize" : 30.0,
-        "scrollbarMinLength" : 45.0,
-        "scrollbarForeColor" : "#C0C0C0",
-        "scrollbarActiveColor" : "#C06000",
-        "scrollbarBackColor" : "#606060",
-        "scrollbarCornerRadius" : 0.0,
-        "scrollbarStep" : 45.0,
         "borderSize" : 0,
         "borderRadius" : 0.0,
         "borderColor" : "#000",
@@ -20,7 +13,14 @@
     "root" : {
         "backgroundColor" : "firebrick"
     },
-    "scroll_area" : {
+    "scrollArea" : {
+        "scrollbarSize" : 30.0,
+        "scrollbarMinLength" : 45.0,
+        "scrollbarForeColor" : "#C0C0C0",
+        "scrollbarActiveColor" : "#C06000",
+        "scrollbarBackColor" : "#606060",
+        "scrollbarCornerRadius" : 0.0,
+        "scrollbarStep" : 45.0,
         "padding" : 0,
         "borderSize" : 0,
         "borderRadius" : 0
@@ -47,5 +47,9 @@
         "borderRadius" : 0,
         "borderSize" : 10,
         "borderColor" : "#F80"
+    },
+    "label" : {
+        "borderSize" : 5,
+        "borderColor" : "yellow"
     }
 }

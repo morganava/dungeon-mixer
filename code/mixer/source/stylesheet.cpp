@@ -10,7 +10,7 @@ namespace tabletopify
             "",
             "root",
             "hbox",
-            "scroll_area",
+            "scrollArea",
             "spacer",
             "button",
             "label",

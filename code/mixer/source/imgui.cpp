@@ -199,26 +199,43 @@ namespace tabletopify
         {
             auto& self = *static_cast<widget_scroll_area*>(parent);
             const auto& data = *self.data();
+            const auto inner_bounds = self._layout.inner_bounds();
+            const auto scollbar_size = self.style().scrollbarSize;
 
-            rect retval = self._layout.child_bounds();
+            rect retval;
             switch(data.direction)
             {
+                // stack vertically
                 case scroll_direction::vertical:
                 {
+                    retval = inner_bounds;
                     retval.position.y += self.vertical.internal_size - data.vertical.scroll_offset;
-                    retval.size.x -= self.style().scrollbarSize;
+                    retval.size.x -= scollbar_size;
                     retval.size.y = desired.size.y;
 
                     self.vertical.internal_size += desired.size.y;
                     break;
                 }
+                // stack horizontally
                 case scroll_direction::horizontal:
                 {
+                    retval = inner_bounds;
                     retval.position.x += self.horizontal.internal_size - data.horizontal.scroll_offset;
                     retval.size.x = desired.size.x;
-                    retval.size.y -= self.style().scrollbarSize;
+                    retval.size.y -= scollbar_size;
 
                     self.horizontal.internal_size += desired.size.x;
+                    break;
+                }
+                // place wherever desired
+                case scroll_direction::both:
+                {
+                    retval = desired;
+
+                    self.vertical.internal_size = std::max(self.vertical.internal_size, retval.bottom());
+                    self.horizontal.internal_size = std::max(self.horizontal.internal_size, retval.right());
+
+                    retval.position += inner_bounds.position - vec2{data.horizontal.scroll_offset, data.vertical.scroll_offset};
                     break;
                 }
                 default:
@@ -232,18 +249,18 @@ namespace tabletopify
 
         void widget_scroll_area::last_update_impl()
         {
-            const auto bounds = this->_layout.inner_bounds();
-            // valid scrollable range  (0 to scrollable_height)
-            const auto scrollable_height = this->vertical.internal_size - bounds.height();
-            const auto scrollable_width = this->horizontal.internal_size - bounds.width();
-
-            const bool scroll_vertical = this->data()->direction & scroll_direction::vertical;
-            const bool scroll_horizontal = this->data()->direction & scroll_direction::horizontal;
-
             // style constants
             const auto scrollbar_size = this->style().scrollbarSize;
             const auto scrollbar_min_length = this->style().scrollbarMinLength;
             const auto scroll_step = this->style().scrollbarStep;
+
+            const auto bounds = this->_layout.inner_bounds();
+            const bool scroll_vertical = this->data()->direction & scroll_direction::vertical;
+            const bool scroll_horizontal = this->data()->direction & scroll_direction::horizontal;
+
+            // valid scrollable range  (0 to scrollable_height)
+            const auto scrollable_height = this->vertical.internal_size - bounds.height() + (scroll_vertical ? scrollbar_size : 0.0);
+            const auto scrollable_width = this->horizontal.internal_size - bounds.width() + (scroll_horizontal ? scrollbar_size : 0.0);
 
             // size: length of the scrollbar
             // view_size: length of the viewport
@@ -261,7 +278,7 @@ namespace tabletopify
                 vsa =
                 {
                     {bounds.right() - scrollbar_size, bounds.top()},
-                    {scrollbar_size, bounds.height()}
+                    {scrollbar_size, bounds.height() - (scroll_horizontal ? scrollbar_size : 0.0)}
                 };
                 const double grab_length = calc_scrollbar_grab_length(vsa.height(), this->vertical.internal_size);
                 vsga =
@@ -281,7 +298,7 @@ namespace tabletopify
                 hsa =
                 {
                     {bounds.left(), bounds.bottom() - scrollbar_size},
-                    {bounds.width(), scrollbar_size}
+                    {bounds.width() - (scroll_vertical ? scrollbar_size : 0.0), scrollbar_size}
                 };
                 const double grab_length = calc_scrollbar_grab_length(hsa.width(), this->horizontal.internal_size);
                 hsga =
@@ -455,40 +472,36 @@ namespace tabletopify
         {
             const bool scroll_vertical = this->data()->direction & scroll_direction::vertical;
             const bool scroll_horizontal = this->data()->direction & scroll_direction::horizontal;
+            const auto back_color = this->style().scrollbarBackColor;
+            const auto fore_color = this->style().scrollbarForeColor;
+            const auto active_color = this->style().scrollbarActiveColor;
+            const auto corner_radius = this->style().scrollbarCornerRadius;
+
+            const auto vsa = this->vertical.scrollbar_area;
+            const auto vsga = this->vertical.scrollbar_grab_area;
+            const auto hsa = this->horizontal.scrollbar_area;
+            const auto hsga = this->horizontal.scrollbar_grab_area;
 
             if (scroll_vertical)
             {
-                auto& vsa = this->vertical.scrollbar_area;
-                auto& vsga = this->vertical.scrollbar_grab_area;
+                g_nanovg.fill_rect(vsa, back_color);
 
-                get_nanovg()->fill_rect(vsa, this->style().scrollbarBackColor);
-
-                corners radius = this->style().scrollbarCornerRadius;
-                if (data()->vertical.grabbing)
-                {
-                    get_nanovg()->fill_rounded_rect(vsga, radius, this->style().scrollbarActiveColor);
-                }
-                else
-                {
-                    get_nanovg()->fill_rounded_rect(vsga, radius, this->style().scrollbarForeColor);
-                }
+                const auto grab_color = data()->vertical.grabbing ? active_color : fore_color;
+                g_nanovg.fill_rounded_rect(vsga, corner_radius, grab_color);
             }
             if (scroll_horizontal)
             {
-                auto& hsa = this->horizontal.scrollbar_area;
-                auto& hsga = this->horizontal.scrollbar_grab_area;
+                g_nanovg.fill_rect(hsa, back_color);
 
-                get_nanovg()->fill_rect(hsa, this->style().scrollbarBackColor);
+                const auto grab_color = data()->horizontal.grabbing ? active_color : fore_color;
+                g_nanovg.fill_rounded_rect(hsga, corner_radius, grab_color);
+            }
 
-                corners radius = this->style().scrollbarCornerRadius;
-                if (data()->horizontal.grabbing)
-                {
-                    get_nanovg()->fill_rounded_rect(hsga, radius, this->style().scrollbarActiveColor);
-                }
-                else
-                {
-                    get_nanovg()->fill_rounded_rect(hsga, radius, this->style().scrollbarForeColor);
-                }
+            if(scroll_vertical && scroll_horizontal)
+            {
+                const auto scrollbar_size = this->style().scrollbarSize;
+                auto bottom_corner = rect{vsa.bottom_left(),vec2{scrollbar_size}};
+                g_nanovg.fill_rect(bottom_corner, back_color);
             }
         }
 

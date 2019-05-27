@@ -15,7 +15,7 @@ namespace tabletopify
 {
     void ui::update(float dt, int32_t width, int32_t height)
     {
-        sd.direction = imgui::scroll_direction::horizontal;
+        sd.direction = imgui::scroll_direction::both;
 
         hd.constraints = {
             {150.0, 500.0, 3.0},
@@ -24,6 +24,7 @@ namespace tabletopify
         };
 
         rect viewport = {{0.0, 0.0}, {(double)width, (double)height}};
+        double offset = 0.0;
         mxRoot(viewport)
         {
             mxScrollArea(&sd)
@@ -33,7 +34,7 @@ namespace tabletopify
                     auto& currentLabel = ld[idx];
                     auto& currentButton = bd[idx];
 
-                    mxHbox(&hd, self.requestWidth(400.0);)
+                    mxHbox(&hd, self.requestPosition({offset, offset}); self.requestSize({400.0, 400.0});)
                     {
                         currentButton.text = "button";
                         mxButton(
@@ -53,8 +54,10 @@ namespace tabletopify
                                 MX_LOG_INFO("PUSHED");
                             };);
                     }
+                    offset += 400.0;
                     currentLabel.text = "hello world!";
-                    mxLabel(&currentLabel, self.requestWidth(100.0););
+                    mxLabel(&currentLabel, self.requestPosition({offset, offset}); self.requestSize({100.0, 100.0}););
+                    offset += 100;
                 }
             }
         }
