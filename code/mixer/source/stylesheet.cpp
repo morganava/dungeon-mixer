@@ -56,7 +56,7 @@ namespace tabletopify
     {
         return this->type == that.type &&
                this->state == that.state &&
-               this->tag == that.tag;
+               this->tags == that.tags;
     }
 
     style_sheet style_declaration_set::apply(const style_sheet& base) const
@@ -117,14 +117,14 @@ namespace tabletopify
         {
             for(auto currentState : stateList)
             {
-                selector s = {currentType, "", currentState};
+                selector s = {currentType, {}, currentState};
                 apply_style(s);
             }
             for(const auto& currentTag : tagList)
             {
                 for(auto currentState : stateList)
                 {
-                    selector s = {currentType, currentTag, currentState};
+                    selector s = {currentType, {currentTag}, currentState};
                     apply_style(s);
                 }
             }

@@ -74,7 +74,7 @@ namespace tabletopify
     struct selector
     {
         element_type_t type;
-        utf8_string tag;
+        array<utf8_string> tags;
         element_state_t state;
 
         bool operator==(const selector&) const;

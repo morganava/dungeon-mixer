@@ -9,6 +9,12 @@ namespace tabletopify
     {
     public:
         array() = default;
+        array(array&& that)
+        : _size(that._size)
+        , _data(std::move(that._data))
+        {
+            that._size = 0;
+        }
 
         array(size_t N)
         : _size(N)
@@ -18,13 +24,54 @@ namespace tabletopify
         array(std::initializer_list<T> il)
         : array(il.size())
         {
-            std::copy(il.begin(), il.end(), _data.get());
+            const auto N = this->_size;
+            for(size_t i = 0; i < N; ++i)
+            {
+                this->_data[i] = std::move(il.begin()[i]);
+            }
         }
 
         array(const std::vector<T>& vec)
         : array(vec.size())
         {
             std::copy(vec.begin(), vec.end(), _data.get());
+        }
+
+        array& operator=(std::initializer_list<T> il)
+        {
+            const auto N = il.size();
+            if(N != this->_size)
+            {
+                this->_size = N;
+                this->_data = std::make_unique<T[]>(N);
+            }
+
+            for(size_t i = 0; i < N; ++i)
+            {
+                this->_data[i] = std::move(il.begin()[i]);
+            }
+
+            return *this;
+        }
+
+/*
+        array& operator=(const array& that)
+        {
+
+        }
+*/
+        bool operator==(const array& that) const
+        {
+            if (this == &that) return true;
+            const auto N = this->_size;
+            if (N != that._size) return false;
+
+            for(size_t i = 0; i < N; ++i)
+            {
+                if (this->_data[i] != that._data[i]) return false;
+            }
+
+            return true;
         }
 
         T& operator[](size_t idx)

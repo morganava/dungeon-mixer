@@ -471,9 +471,9 @@ namespace tabletopify
                 const auto& tagStr = matches[2].str();
                 const auto& stateStr = matches[3].str();
 
-                MX_LOG_INFO(" element : {}", elementStr);
-                MX_LOG_INFO(" tag : {}", tagStr);
-                MX_LOG_INFO(" state : {}", stateStr);
+                MX_LOG_INFO(" element : '{}'", elementStr);
+                MX_LOG_INFO(" tag : '{}'", tagStr);
+                MX_LOG_INFO(" state : '{}'", stateStr);
 
                 MX_LOG_INFO(" rule : {}", el.value().dump());
 
@@ -485,7 +485,8 @@ namespace tabletopify
 
                 MX_LOG_INFO(" element : {}, state : {}", (uint_fast8_t)element, (uint_fast8_t)state);
 
-                sr._styleFactory.insert({{element, tagStr, state}, sds});
+                selector sel = (tagStr == "") ? selector{element, {}, state} : selector{element, array<utf8_string>{tagStr}, state};
+                sr._styleFactory.emplace(std::make_pair(std::move(sel), sds));
             }
         }
     }
