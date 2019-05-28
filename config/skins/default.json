@@ -21,7 +21,6 @@
         "scrollbarBackColor" : "#606060",
         "scrollbarCornerRadius" : 0.0,
         "scrollbarStep" : 45.0,
-        "padding" : 25,
         "margin" : 30,
         "borderSize" : 5,
         "borderRadius" : 0,

@@ -25,6 +25,12 @@ namespace tabletopify
             return array_view<double>(_sizes.get(), _sizes.get() + N);
         }
 
+        const double sizeAt(size_t idx) const
+        {
+            MX_ASSERT(idx < N);
+            return _sizes[idx];
+        }
+
     private:
         const size_t N;
         const double _min_size;

@@ -359,7 +359,7 @@ namespace tabletopify
             } horizontal, vertical;
         };
 
-        // hbox
+        // flex box
 
         namespace layout_direction
         {
@@ -374,7 +374,6 @@ namespace tabletopify
 
         struct flex_box_data : public widget_data
         {
-            layout_direction_t direction = layout_direction::horizontal;
             linear_constraint_solver constraints;
         };
 
@@ -385,10 +384,10 @@ namespace tabletopify
             void resolve_box_layout_impl(element_type_t et, widget_flag_t flags);
             static rect bounds_callback(widget_base* parent, const rect& desired);
 
-            array_view<double> widths;
+            layout_direction_t direction;
         private:
             size_t _index = 0;
-            float _horizontal_offset = 0.0f;
+            double _offset = 0.0;
         };
 
         // spacer
@@ -465,6 +464,8 @@ namespace tabletopify
 #define mxRoot(viewport, ...) MX_WIDGET_CODEGEN(widget_root, viewport, __VA_ARGS__)
 #define mxScrollArea(data, ...) MX_WIDGET_CODEGEN(widget_scroll_area, data, __VA_ARGS__)
 #define mxFlexBox(data, ...) MX_WIDGET_CODEGEN(widget_flex_box, data, __VA_ARGS__)
+#define mxHBox(data, ...) MX_WIDGET_CODEGEN(widget_flex_box, data, self.direction = imgui::layout_direction::horizontal; __VA_ARGS__)
+#define mxVBox(data, ...) MX_WIDGET_CODEGEN(widget_flex_box, data, self.direction = imgui::layout_direction::vertical; __VA_ARGS__)
 #define mxSpacer(...) MX_WIDGET_CODEGEN(widget_spacer, nullptr, __VA_ARGS__)
 #define mxDebug(...) MX_WIDGET_CODEGEN(widget_debug, nullptr, __VA_ARGS__)
 #define mxLabel(data, ...) MX_WIDGET_CODEGEN(widget_label, data, __VA_ARGS__)

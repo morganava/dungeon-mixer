@@ -16,13 +16,8 @@ namespace tabletopify
     void ui::update(float dt, int32_t width, int32_t height)
     {
         sd.direction = imgui::scroll_direction::both;
-        fbd.direction = imgui::layout_direction::vertical;
 
-        fbd.constraints = {
-            {150.0, 500.0, 3.0},
-            {0.0, 1000000.0, 2.0},
-            {150.0, 300.0, 3.0},
-        };
+
 
         rect viewport = {{0.0, 0.0}, {(double)width, (double)height}};
         double offset = 0.0;
@@ -34,8 +29,12 @@ namespace tabletopify
                 {
                     auto& currentLabel = ld[idx];
                     auto& currentButton = bd[idx];
-
-                    mxFlexBox(&fbd, self.requestPosition({offset, offset}); self.requestSize({400.0, 400.0});)
+                    fbd[idx].constraints = {
+                        {150.0, 500.0, 3.0},
+                        {0.0, 1000000.0, 2.0},
+                        {150.0, 300.0, 3.0},
+                    };
+                    mxVBox(&fbd[idx], self.requestPosition({offset, offset}); self.requestSize({400.0, 400.0});)
                     {
                         currentButton.text = "button";
                         mxButton(

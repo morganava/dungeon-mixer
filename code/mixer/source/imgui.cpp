@@ -542,20 +542,28 @@ namespace tabletopify
             // calculate child sizes ahead of time
             auto& lcs = this->data()->constraints;
             lcs.update_size(this->_layout.inner_bounds().width());
-            this->widths = lcs.sizes();
         }
 
         rect widget_flex_box::bounds_callback(widget_base* parent, const rect& desired)
         {
             auto& self = *static_cast<widget_flex_box*>(parent);
+            auto fbd = self.data();
 
-            float w = self.widths[self._index++];
+            const float sz = fbd->constraints.sizeAt(self._index++);
 
             rect retval = self._layout.child_bounds();
-            retval.position.x += self._horizontal_offset;
-            retval.size.x = w;
+            if (self.direction == layout_direction::horizontal)
+            {
+                retval.position.x += self._offset;
+                retval.size.x = sz;
+            }
+            else if (self.direction == layout_direction::vertical)
+            {
+                retval.position.y += self._offset;
+                retval.size.y = sz;
+            }
 
-            self._horizontal_offset += w;
+            self._offset += sz;
 
             return retval;
         }
