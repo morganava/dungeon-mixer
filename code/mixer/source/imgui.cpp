@@ -533,9 +533,9 @@ namespace tabletopify
             }
         }
 
-        // Hbox
+        // Flex Box
 
-        void widget_hbox::resolve_box_layout_impl(element_type_t et, widget_flag_t flag)
+        void widget_flex_box::resolve_box_layout_impl(element_type_t et, widget_flag_t flag)
         {
             // resolve the box layout as normal
             widget_base::resolve_box_layout_impl(et, flag);
@@ -545,9 +545,9 @@ namespace tabletopify
             this->widths = lcs.sizes();
         }
 
-        rect widget_hbox::bounds_callback(widget_base* parent, const rect& desired)
+        rect widget_flex_box::bounds_callback(widget_base* parent, const rect& desired)
         {
-            auto& self = *static_cast<widget_hbox*>(parent);
+            auto& self = *static_cast<widget_flex_box*>(parent);
 
             float w = self.widths[self._index++];
 

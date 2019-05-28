@@ -27,7 +27,7 @@
         "borderRadius" : 0,
         "backgroundColor" : "green"
     },
-    "hbox" : {
+    "flexBox" : {
         "padding" : 0,
         "borderSize" : 5,
         "backgroundColor" : "teal"

@@ -9,7 +9,7 @@ namespace tabletopify
         {
             "",
             "root",
-            "hbox",
+            "flexBox",
             "scrollArea",
             "spacer",
             "button",

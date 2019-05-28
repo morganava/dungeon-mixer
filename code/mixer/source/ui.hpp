@@ -9,7 +9,7 @@ namespace tabletopify
     public:
         void update(float dt, int32_t width, int32_t height);
     private:
-        imgui::hbox_data hd;
+        imgui::flex_box_data fbd;
         imgui::scroll_area_data sd;
         imgui::label_data ld[20];
         imgui::button_data bd[20];

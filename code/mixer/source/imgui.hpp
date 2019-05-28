@@ -312,15 +312,6 @@ namespace tabletopify
         // Layout Widgets
         //
 
-        /*
-        TODO:
-            flexbox with horizontal or vertical orientation
-            scroll area with horizontal or vertical orientation or both
-                vertical orientation grows down
-                horizontal orientation grows right
-                both orientation doesn't grow, just places widgest wherever they want
-        */
-
         // scroll_area
 
         namespace scroll_direction
@@ -332,10 +323,10 @@ namespace tabletopify
                 vertical   = 0x2,
                 both       = horizontal | vertical,
             };
-        };
+        }
         typedef scroll_direction::values scroll_direction_t;
 
-        struct scroll_area_data : widget_data
+        struct scroll_area_data : public widget_data
         {
             scroll_direction_t direction = scroll_direction::none;
             struct
@@ -370,12 +361,24 @@ namespace tabletopify
 
         // hbox
 
-        struct hbox_data : widget_data
+        namespace layout_direction
         {
+            enum values
+            {
+                none       = 0x0,
+                horizontal = 0x1,
+                vertical   = 0x2,
+            };
+        }
+        typedef layout_direction::values layout_direction_t;
+
+        struct flex_box_data : public widget_data
+        {
+            layout_direction_t direction = layout_direction::horizontal;
             linear_constraint_solver constraints;
         };
 
-        struct widget_hbox : public widget<widget_hbox, element_type::hbox, hbox_data, widget_flag::scissors>
+        struct widget_flex_box : public widget<widget_flex_box, element_type::flex_box, flex_box_data, widget_flag::scissors>
         {
             using widget::widget;
 
@@ -461,7 +464,7 @@ namespace tabletopify
 
 #define mxRoot(viewport, ...) MX_WIDGET_CODEGEN(widget_root, viewport, __VA_ARGS__)
 #define mxScrollArea(data, ...) MX_WIDGET_CODEGEN(widget_scroll_area, data, __VA_ARGS__)
-#define mxHbox(data, ...) MX_WIDGET_CODEGEN(widget_hbox, data, __VA_ARGS__)
+#define mxFlexBox(data, ...) MX_WIDGET_CODEGEN(widget_flex_box, data, __VA_ARGS__)
 #define mxSpacer(...) MX_WIDGET_CODEGEN(widget_spacer, nullptr, __VA_ARGS__)
 #define mxDebug(...) MX_WIDGET_CODEGEN(widget_debug, nullptr, __VA_ARGS__)
 #define mxLabel(data, ...) MX_WIDGET_CODEGEN(widget_label, data, __VA_ARGS__)

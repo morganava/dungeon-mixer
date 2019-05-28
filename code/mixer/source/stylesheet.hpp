@@ -15,7 +15,7 @@ namespace tabletopify
         any,
 
         root,
-        hbox,
+        flex_box,
         scroll_area,
         spacer,
         button,
