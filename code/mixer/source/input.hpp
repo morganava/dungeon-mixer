@@ -39,6 +39,20 @@ namespace tabletopify
         scroll_event,
     } input_event_type_t;
 
+    namespace mouse_cursor
+    {
+        enum value
+        {
+            arrow = 0,
+            ibeam,
+            crosshair,
+            hand,
+
+            count
+        };
+    }
+    typedef mouse_cursor::value mouse_cursor_t;
+
     struct input_event
     {
         input_event_type_t type;
@@ -86,7 +100,9 @@ namespace tabletopify
         void finish();
 
         void build_key_map();
+        void init_cursors();
         void update(float dt);
+        void update_cursor();
 
         const char* key_code_to_key_name(key_code_t) const;
 
@@ -107,11 +123,13 @@ namespace tabletopify
         bool get_mouse_clicked(mouse_button_t) const;
         bool get_mouse_clicked(mouse_button_t, const rect& region) const;
 
+        void set_mouse_cursor(mouse_cursor_t cursor);
     private:
         std::map<key_code_t, utf8_string> _key_names;
         std::vector<input_event> _raw_events;
         std::vector<utf8_codepoint> _charpresses;
         std::vector<key_code_t> _keypresses;
+        GLFWcursor* _mouse_cursors[mouse_cursor::count] = {};
 
         struct
         {
@@ -133,6 +151,7 @@ namespace tabletopify
                     button_state_t right   : 1;
                     button_state_t middle  : 1;
                 };
+                mouse_cursor_t cursor;
             } current, previous;
 
             struct

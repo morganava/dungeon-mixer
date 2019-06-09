@@ -5,6 +5,8 @@
 
 namespace tabletopify
 {
+    extern GLFWwindow* g_window;
+
     void input::initialize()
     {
 
@@ -12,7 +14,18 @@ namespace tabletopify
 
     void input::finish()
     {
+        for(auto cursor : _mouse_cursors)
+        {
+            glfwDestroyCursor(cursor);
+        }
+    }
 
+    void input::init_cursors()
+    {
+        _mouse_cursors[mouse_cursor::arrow] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
+        _mouse_cursors[mouse_cursor::ibeam] = glfwCreateStandardCursor(GLFW_IBEAM_CURSOR);
+        _mouse_cursors[mouse_cursor::crosshair] = glfwCreateStandardCursor(GLFW_CROSSHAIR_CURSOR );
+        _mouse_cursors[mouse_cursor::hand] = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
     }
 
     // maps glfw 'key codes' to localized human readable names
@@ -220,6 +233,14 @@ namespace tabletopify
         _raw_events.clear();
     }
 
+    void input::update_cursor()
+    {
+        if (_mouse_state.current.cursor != _mouse_state.previous.cursor)
+        {
+            glfwSetCursor(g_window, _mouse_cursors[_mouse_state.current.cursor]);
+        }
+    }
+
     void input::push_charpress(utf8proc_int32_t codepoint)
     {
         tabletopify::utf8_stringbuffer sb;
@@ -351,5 +372,10 @@ namespace tabletopify
             }
         }
         return false;
+    }
+
+    void input::set_mouse_cursor(mouse_cursor_t cursor)
+    {
+        _mouse_state.current.cursor = cursor;
     }
 }

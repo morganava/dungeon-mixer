@@ -175,6 +175,7 @@ namespace tabletopify
             _viewport = viewport;
             _scissor = viewport;
             _childScissor = viewport;
+            g_input.set_mouse_cursor(mouse_cursor::arrow);
             g_context.push_render_bounds({&widget_root::root_bounds_callback, this});
         }
 
