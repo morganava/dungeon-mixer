@@ -43,8 +43,13 @@ namespace tabletopify
             mxLabel(&root.sidebar.playlists, self.tags = {"h2", "mediumText", "sidebarEntry"});
             mxButton(&root.sidebar.newPlaylist, self.tags = {"h2", "lightText", "sidebarEntry"};
                 self.on_click = []() -> void {MX_LOG_INFO("NEW PLAYLIST");});
+            mxButton(&root.sidebar.starred, self.tags = {"h2", "lightText", "sidebarEntry"};
+                self.on_click = []() -> void {MX_LOG_INFO("STARRED");});
+            mxButton(&root.sidebar.playing, self.tags = {"h2", "lightText", "sidebarEntry"};
+                self.on_click = []() -> void {MX_LOG_INFO("PLAYING");});
+            mxButton(&root.sidebar.all, self.tags = {"h2", "lightText", "sidebarEntry"};
+                self.on_click = []() -> void {MX_LOG_INFO("ALL");});
         }
-
     }
 
     void ui::draw_playlist(float dt)

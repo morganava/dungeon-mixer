@@ -23,17 +23,12 @@
         "scrollbarStep" : 45.0,
         "padding" : {"left" : 10, "right" : 10}
     },
+    "spacer" : {
+        "backgroundColor" : "transparent"
+    },
     "label" : {
     },
     "button" : {
-
-    },
-    ".sidebar" : {
-        "backgroundColor" : "#1a1a1a"
-    },
-    ".sidebarEntry" : {
-        "size" : [0, 150],
-        "textHalign" : "left"
     },
     ".lightText" : {
         "fontColor" : "white"
@@ -44,9 +39,6 @@
     ".darkText" : {
         "fontColor" : "black"
     },
-    "spacer" : {
-        "backgroundColor" : "transparent"
-    },
     ".h1" : {
         "fontSize" : 48
     },
@@ -55,5 +47,15 @@
     },
     ".h3" : {
         "fontSize" : 24
+    },
+    ".sidebar" : {
+        "backgroundColor" : "#1a1a1a"
+    },
+    ".sidebarEntry" : {
+        "size" : [0, 50],
+        "textHalign" : "left"
+    },
+    "button.sidebarEntry" : {
+        "margin" : {"left" : 10}
     }
 }
