@@ -370,7 +370,7 @@ namespace tabletopify
                 outerBounds.top_left() +
                 vec2_<T>{margin.left, margin.top} +
                 vec2_<T>{borderSize, borderSize} +
-                vec2_<T>{padding.left, padding.right};
+                vec2_<T>{padding.left, padding.top};
 
             auto bottomRight =
                 outerBounds.bottom_right() -
