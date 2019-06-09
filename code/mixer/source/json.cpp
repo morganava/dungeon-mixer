@@ -286,6 +286,31 @@ namespace tabletopify
 
     // Geometry
 
+    void from_json(const nl::json& j, vec2& v)
+    {
+        if (j.is_object())
+        {
+            if(auto it = j.find("x"); it != j.end())
+            {
+                MX_THROW_IF_FALSE(it->is_number());
+                v.x = it->get<double>();
+            }
+            if(auto it = j.find("y"); it != j.end())
+            {
+                MX_THROW_IF_FALSE(it->is_number());
+                v.y = it->get<double>();
+            }
+        }
+        else if(j.is_array())
+        {
+            MX_THROW_IF_FALSE(j.size() == 2);
+            MX_THROW_IF_FALSE(j[0].is_number());
+            MX_THROW_IF_FALSE(j[1].is_number());
+            v.x = j[0].get<double>();
+            v.y = j[1].get<double>();
+        }
+    }
+
     void from_json(const nl::json& j, corners& c)
     {
         if (j.is_object())

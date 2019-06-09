@@ -201,7 +201,9 @@ namespace tabletopify
             box_layout _layout = {};
             rect _scissor = {};
             rect _childScissor = {};
-            rect _desiredBounds;
+            rect _desiredBounds = {};
+            bool _desiredWidthRequested = false;
+            bool _desiredHeightRequested = false;
             widget_data* _data = nullptr;
         };
 
@@ -410,7 +412,7 @@ namespace tabletopify
         {
             utf8_string text;
             label_data() = default;
-            label_data(utf8_string&& text) : text(text) {}
+            label_data(utf8_string&& text) : text(std::move(text)) {}
         };
 
         struct widget_label : public widget<widget_label, element_type::label, label_data>
@@ -425,6 +427,8 @@ namespace tabletopify
         struct button_data : widget_data
         {
             utf8_string text;
+            button_data() = default;
+            button_data(utf8_string&& text) : text(std::move(text)) {}
         };
 
         struct widget_button : public widget<widget_button, element_type::button, button_data>

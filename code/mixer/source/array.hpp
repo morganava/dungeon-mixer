@@ -21,7 +21,7 @@ namespace tabletopify
             that._size = 0;
         }
 
-        array(size_t N)
+        explicit array(size_t N)
         : _size(N)
         , _data(std::make_unique<T[]>(N))
         { }

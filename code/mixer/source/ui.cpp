@@ -37,9 +37,12 @@ namespace tabletopify
 
     void ui::draw_sidebar(float dt)
     {
-        mxVScroll(&root.sidebar.scroll)
+        mxVScroll(&root.sidebar.scroll, self.tags = {"sidebar"})
         {
-            mxSpacer(self.tags = {"sidebar"}; self.requestHeight(200.0));
+            mxSpacer(self.requestHeight(100.0));
+            mxLabel(&root.sidebar.playlists, self.tags = {"h2", "mediumText", "sidebarEntry"});
+            mxButton(&root.sidebar.newPlaylist, self.tags = {"h2", "lightText", "sidebarEntry"};
+                self.on_click = []() -> void {MX_LOG_INFO("NEW PLAYLIST");});
         }
 
     }

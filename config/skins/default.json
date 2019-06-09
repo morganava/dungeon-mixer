@@ -1,6 +1,6 @@
 {
     "" : {
-        "borderSize" : 0,
+        "borderSize" : 2,
         "borderRadius" : 0.0,
         "borderColor" : "#000",
         "padding" : 0,
@@ -21,13 +21,39 @@
         "scrollbarBackColor" : "#606060",
         "scrollbarCornerRadius" : 0.0,
         "scrollbarStep" : 45.0,
-        "borderRadius" : 0,
-        "backgroundColor" : "green"
+        "padding" : {"left" : 10, "right" : 10}
     },
-    "spacer.sidebar" : {
-        "backgroundColor" : "brown"
+    "label" : {
     },
-    "spacer.content" : {
-        "backgroundColor" : "blue"
+    "button" : {
+
+    },
+    ".sidebar" : {
+        "backgroundColor" : "#1a1a1a"
+    },
+    ".sidebarEntry" : {
+        "size" : [0, 150],
+        "textHalign" : "left"
+    },
+    ".lightText" : {
+        "fontColor" : "white"
+    },
+    ".mediumText" : {
+        "fontColor" : "grey"
+    },
+    ".darkText" : {
+        "fontColor" : "black"
+    },
+    "spacer" : {
+        "backgroundColor" : "transparent"
+    },
+    ".h1" : {
+        "fontSize" : 48
+    },
+    ".h2" : {
+        "fontSize" : 32
+    },
+    ".h3" : {
+        "fontSize" : 24
     }
 }

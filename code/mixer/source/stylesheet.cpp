@@ -146,6 +146,7 @@ namespace tabletopify
     {
         const auto* styleSheet = resolve(type, tags, element_state::none);
         box_layout retval;
+        retval.outerBounds.size = styleSheet->size;
         retval.margin = styleSheet->margin;
         retval.borderSize = styleSheet->borderSize;
         retval.borderRadius = styleSheet->borderRadius;

@@ -37,6 +37,7 @@ namespace tabletopify
             {
                 imgui::scroll_area_data scroll;
                 imgui::label_data playlists = {"Playlists"};
+                imgui::button_data newPlaylist = {"New Playlist"};
                 imgui::label_data edit = {"Edit"};
                 imgui::label_data about = {"About"};
             } sidebar;

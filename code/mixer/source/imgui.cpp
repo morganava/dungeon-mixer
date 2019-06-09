@@ -93,7 +93,14 @@ namespace tabletopify
 
             // get our box layout based off type and tags
             this->_layout = g_style_resolver.resolve_box_layout(et, this->tags);
-            this->_layout.outerBounds = rb.eval(this->_desiredBounds);
+
+            // override size if defined in style and not explicitly requested
+            auto desiredBounds = this->_desiredBounds;
+            if (!this->_desiredWidthRequested) desiredBounds.size.x = this->_layout.outerBounds.size.x;
+            if (!this->_desiredHeightRequested) desiredBounds.size.y = this->_layout.outerBounds.size.y;
+
+            // now get our actual bounds from parent
+            this->_layout.outerBounds = rb.eval(desiredBounds);
 
             // get our style
             this->_style = g_style_resolver.resolve(et, this->tags, element_state::none);
@@ -114,7 +121,7 @@ namespace tabletopify
 
             if (style.borderSize > 0.0)
             {
-                auto strokeBounds = this->_layout.border_bounds();
+                auto strokeBounds = this->_layout.border_outer_bounds();
                 auto fillBounds = strokeBounds;
                 fillBounds.position += vec2{style.borderSize, style.borderSize} / 2.0;
                 fillBounds.size -= vec2{style.borderSize, style.borderSize};
@@ -124,7 +131,7 @@ namespace tabletopify
             }
             else
             {
-                auto fillBounds = this->_layout.border_bounds();
+                auto fillBounds = this->_layout.border_outer_bounds();
                 g_nanovg.fill_rounded_rect(fillBounds, style.borderRadius, style.backgroundColor);
             }
         }
@@ -132,16 +139,20 @@ namespace tabletopify
         void widget_base::requestSize(const vec2& size)
         {
             _desiredBounds.size = size;
+            _desiredWidthRequested = true;
+            _desiredHeightRequested = true;
         }
 
         void widget_base::requestWidth(double width)
         {
             _desiredBounds.size.x = width;
+            _desiredWidthRequested = true;
         }
 
         void widget_base::requestHeight(double height)
         {
             _desiredBounds.size.y = height;
+            _desiredHeightRequested = true;
         }
 
         void widget_base::requestPosition(const vec2& position)
@@ -152,6 +163,8 @@ namespace tabletopify
         void widget_base::requestBounds(const rect& bounds)
         {
             _desiredBounds = bounds;
+            _desiredWidthRequested = true;
+            _desiredHeightRequested = true;
         }
 
         // root
@@ -197,7 +210,13 @@ namespace tabletopify
 
             // calc the scissor geometry for widget specific contetn
             // but only scissor the rendering if we're a certain type of element
+            const auto padding = this->_layout.padding;
+            this->_layout.padding = edges{0};
             auto childBounds = this->_layout.inner_bounds();
+            this->_layout.padding = padding;
+            childBounds.position += vec2{padding.left,padding.top};
+            childBounds.size -= (vec2{padding.left,padding.top} + vec2{padding.right,padding.bottom});
+
             if (scroll_vertical)
             {
                 childBounds.size.x -= scrollbar_size;
@@ -282,7 +301,7 @@ namespace tabletopify
             const auto scrollbar_min_length = this->style().scrollbarMinLength;
             const auto scroll_step = this->style().scrollbarStep;
 
-            const auto bounds = this->_layout.inner_bounds();
+            const auto bounds = this->_layout.border_inner_bounds();
             const bool scroll_vertical = this->data()->direction & scroll_direction::vertical;
             const bool scroll_horizontal = this->data()->direction & scroll_direction::horizontal;
 
@@ -489,7 +508,7 @@ namespace tabletopify
                 }
 
                 // handle scroll wheel
-                if (point_inside_rect(current_mouse_position, get_intersecting_rect(this->scissor(), this->_layout.inner_bounds())))
+                if (point_inside_rect(current_mouse_position, get_intersecting_rect(this->scissor(), this->_layout.border_inner_bounds())))
                 {
                     if (!data()->vertical.grabbing)
                     {
@@ -604,7 +623,7 @@ namespace tabletopify
                     this->scissor()) &&
                 point_inside_rounded_rect(
                     mouse_position,
-                    this->_layout.border_bounds(),
+                    this->_layout.border_outer_bounds(),
                     this->_layout.borderRadius))
             {
                 return element_state::hover;
@@ -622,7 +641,7 @@ namespace tabletopify
                         this->scissor()) &&
                     point_inside_rounded_rect(
                         mouse_position,
-                        this->_layout.border_bounds(),
+                        this->_layout.border_outer_bounds(),
                         this->_layout.borderRadius))
                 {
                     this->focus_widget();
