@@ -71,4 +71,5 @@ namespace tabletopify
     {
         singleton<ui>::free();
     }
+    inline constexpr ui& g_ui = singleton<ui>::get();
 }

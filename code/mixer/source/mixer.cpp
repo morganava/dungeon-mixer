@@ -21,7 +21,7 @@ namespace tabletopify
         // builds map from keycodes to character name
         g_input.build_key_map();
 
-        get_nanovg()->create_context();
+        g_nanovg.create_context();
         // init renderer
         // init_renderer(ctx);
     }
@@ -42,8 +42,8 @@ namespace tabletopify
         }
 
         g_input.update(dt);
-        get_ui()->update(dt, width, height);
-        get_nanovg()->update(dt, width, height, pixel_ratio);
+        g_ui.update(dt, width, height);
+        g_nanovg.update(dt, width, height, pixel_ratio);
 
         // // draw widgets
         // // update_draw(ctx, width, height);
