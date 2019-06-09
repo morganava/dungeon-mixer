@@ -15,53 +15,37 @@ namespace tabletopify
 {
     void ui::update(float dt, int32_t width, int32_t height)
     {
-        sd.direction = imgui::scroll_direction::both;
-
-
-
-        rect viewport = {{0.0, 0.0}, {(double)width, (double)height}};
-        double offset = 0.0;
-        mxRoot(viewport)
+        mxRoot(rect(vec2::zero, vec2(width, height)))
         {
-            mxScrollArea(&sd)
+            mxHBox(&root.flex)
             {
-                for(size_t idx = 0; idx < 4; ++idx)
+                draw_sidebar(dt);
+                switch(this->currentScreen)
                 {
-                    auto& currentLabel = ld[idx];
-                    auto& currentButton = bd[idx];
-                    fbd[idx].constraints = {
-                        {150.0, 500.0, 3.0},
-                        {0.0, 1000000.0, 2.0},
-                        {150.0, 300.0, 3.0},
-                    };
-                    mxVBox(&fbd[idx], self.requestPosition({offset, offset}); self.requestSize({400.0, 400.0});)
-                    {
-                        currentButton.text = "button";
-                        mxButton(
-                            &currentButton,
-                            self.tags = {"foo"};
-                            self.on_click = [&]() -> void
-                            {
-                               MX_LOG_INFO("Clicked Button {}", idx);
-                            };);
-                        mxSpacer();
-                        currentButton.text = "push";
-                        mxButton(
-                            &currentButton,
-                            self.tags = {"push"};
-                            self.on_click = []() -> void
-                            {
-                                MX_LOG_INFO("PUSHED");
-                            };);
-                    }
-                    offset += 400.0;
-                    currentLabel.text = "hello world!";
-                    // mxLabel(&currentLabel, self.requestPosition({offset, offset}); self.requestSize({100.0, 100.0}););
-                    currentButton.text = "whoop whoop";
-                    mxButton(&currentButton, self.requestPosition({offset, offset}); self.requestSize({100.0, 100.0}););
-                    offset += 100;
+                    case Screen::Debug:
+                        draw_debug(dt); break;
+                    case Screen::Playlist:
+                        draw_playlist(dt); break;
+                    case Screen::Edit:
+                        draw_edit(dt); break;
+                    case Screen::About:
+                        draw_about(dt); break;
                 }
             }
         }
+    }
+
+    void ui::draw_sidebar(float dt)
+    {
+        mxVScroll(&root.sidebar.scroll)
+        {
+            mxSpacer(self.tags = {"sidebar"}; self.requestHeight(200.0));
+        }
+
+    }
+
+    void ui::draw_playlist(float dt)
+    {
+        mxSpacer(self.tags = {"content"});
     }
 }

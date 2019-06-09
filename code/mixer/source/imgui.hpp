@@ -375,6 +375,9 @@ namespace tabletopify
         struct flex_box_data : public widget_data
         {
             linear_constraint_solver constraints;
+
+            flex_box_data() = default;
+            flex_box_data(const std::initializer_list<constraint>& constraintList) : constraints(constraintList) { }
         };
 
         struct widget_flex_box : public widget<widget_flex_box, element_type::flex_box, flex_box_data, widget_flag::scissors>
@@ -406,6 +409,8 @@ namespace tabletopify
         struct label_data : widget_data
         {
             utf8_string text;
+            label_data() = default;
+            label_data(utf8_string&& text) : text(text) {}
         };
 
         struct widget_label : public widget<widget_label, element_type::label, label_data>
@@ -448,10 +453,11 @@ namespace tabletopify
 //  child widgets
 // widget-specific second render
 
-#define MX_WIDGET_CODEGEN(X, pdata, ...)\
-    if (imgui::X widget##__LINE__(pdata); \
+#define MX_WIDGET_CODEGEN(X, PDATA, ...)\
+    if (imgui::X widget##__LINE__(PDATA); \
         [&](auto& self) -> bool {\
             __VA_ARGS__\
+            ;\
             self.resolve_box_layout();\
             self.first_update();\
             self.resolve_style();\
@@ -461,14 +467,16 @@ namespace tabletopify
             return true;\
         }(widget##__LINE__))
 
-#define mxRoot(viewport, ...) MX_WIDGET_CODEGEN(widget_root, viewport, __VA_ARGS__)
-#define mxScrollArea(data, ...) MX_WIDGET_CODEGEN(widget_scroll_area, data, __VA_ARGS__)
-#define mxFlexBox(data, ...) MX_WIDGET_CODEGEN(widget_flex_box, data, __VA_ARGS__)
-#define mxHBox(data, ...) MX_WIDGET_CODEGEN(widget_flex_box, data, self.direction = imgui::layout_direction::horizontal; __VA_ARGS__)
-#define mxVBox(data, ...) MX_WIDGET_CODEGEN(widget_flex_box, data, self.direction = imgui::layout_direction::vertical; __VA_ARGS__)
+#define mxRoot(VIEWPORT) MX_WIDGET_CODEGEN(widget_root, VIEWPORT)
+#define mxScrollArea(DATA, ...) MX_WIDGET_CODEGEN(widget_scroll_area, DATA, __VA_ARGS__)
+#define mxHScroll(DATA, ...) MX_WIDGET_CODEGEN(widget_scroll_area, DATA, self.data()->direction = imgui::scroll_direction::horizontal; __VA_ARGS__)
+#define mxVScroll(DATA, ...) MX_WIDGET_CODEGEN(widget_scroll_area, DATA, self.data()->direction = imgui::scroll_direction::vertical; __VA_ARGS__)
+#define mxFlexBox(DATA, ...) MX_WIDGET_CODEGEN(widget_flex_box, DATA, __VA_ARGS__)
+#define mxHBox(DATA, ...) MX_WIDGET_CODEGEN(widget_flex_box, DATA, self.direction = imgui::layout_direction::horizontal; __VA_ARGS__)
+#define mxVBox(DATA, ...) MX_WIDGET_CODEGEN(widget_flex_box, DATA, self.direction = imgui::layout_direction::vertical; __VA_ARGS__)
 #define mxSpacer(...) MX_WIDGET_CODEGEN(widget_spacer, nullptr, __VA_ARGS__)
 #define mxDebug(...) MX_WIDGET_CODEGEN(widget_debug, nullptr, __VA_ARGS__)
-#define mxLabel(data, ...) MX_WIDGET_CODEGEN(widget_label, data, __VA_ARGS__)
-#define mxButton(data, ...) MX_WIDGET_CODEGEN(widget_button, data, __VA_ARGS__)
+#define mxLabel(DATA, ...) MX_WIDGET_CODEGEN(widget_label, DATA, __VA_ARGS__)
+#define mxButton(DATA, ...) MX_WIDGET_CODEGEN(widget_button, DATA, __VA_ARGS__)
 
 }

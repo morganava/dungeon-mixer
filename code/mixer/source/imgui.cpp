@@ -200,11 +200,11 @@ namespace tabletopify
             auto childBounds = this->_layout.inner_bounds();
             if (scroll_vertical)
             {
-                childBounds.size.y -= scrollbar_size;
+                childBounds.size.x -= scrollbar_size;
             }
             if (scroll_horizontal)
             {
-                childBounds.size.x -= scrollbar_size;
+                childBounds.size.y -= scrollbar_size;
             }
 
             this->_scissor = get_intersecting_rect(scissor, this->_layout.outerBounds);
@@ -294,6 +294,9 @@ namespace tabletopify
             // view_size: length of the viewport
             auto calc_scrollbar_grab_length = [&](double size, double view_size) -> double
             {
+                if (view_size == 0.0) {
+                    return size;
+                }
                 return clamp(scrollbar_min_length, size*size / view_size, size);
             };
 
@@ -510,8 +513,10 @@ namespace tabletopify
             const auto hsa = this->horizontal.scrollbar_area;
             const auto hsga = this->horizontal.scrollbar_grab_area;
 
-            if (scroll_vertical)
+            // if (scroll_vertical)
             {
+                MX_LOG_INFO("vsa: {}", vsa);
+                MX_LOG_INFO("vsga: {}", vsga);
                 g_nanovg.fill_rect(vsa, back_color);
 
                 const auto grab_color = data()->vertical.grabbing ? active_color : fore_color;
@@ -529,7 +534,8 @@ namespace tabletopify
             {
                 const auto scrollbar_size = this->style().scrollbarSize;
                 auto bottom_corner = rect{vsa.bottom_left(),vec2{scrollbar_size}};
-                g_nanovg.fill_rect(bottom_corner, back_color);
+                (void)bottom_corner;
+                // g_nanovg.fill_rect(bottom_corner, back_color);
             }
         }
 

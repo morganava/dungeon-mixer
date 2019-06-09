@@ -107,7 +107,9 @@ namespace tabletopify
         constexpr operator vec2_<float>() const
         {
             return {(float)x, (float)y};
-        };
+        }
+
+        constexpr static const vec2_ zero = {0,0};
     };
 
     template<typename T>
@@ -143,6 +145,13 @@ namespace tabletopify
     {
         vec2_<T> position;
         vec2_<T> size;
+
+        constexpr rect_() = default;
+
+        constexpr rect_(const vec2_<T>& position, const vec2_<T>& size)
+        : position(position)
+        , size(size)
+        { }
 
         constexpr T left() const
         {
