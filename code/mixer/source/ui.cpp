@@ -40,20 +40,44 @@ namespace tabletopify
         mxVScroll(&root.sidebar.scroll, self.tags = {"sidebar"})
         {
             mxSpacer(self.requestHeight(100.0));
-            mxLabel(&root.sidebar.playlists, self.tags = {"h2", "mediumText", "sidebarEntry"});
-            mxButton(&root.sidebar.newPlaylist, self.tags = {"h2", "lightText", "sidebarEntry"};
+            mxButton(&root.sidebar.playlists, self.tags = {"mediumText", "sidebarEntry"});
+            mxButton(&root.sidebar.newPlaylist, self.tags = {"lightText", "sidebarEntry", "indent"};
                 self.on_click = []() -> void {MX_LOG_INFO("NEW PLAYLIST");});
-            mxButton(&root.sidebar.starred, self.tags = {"h2", "lightText", "sidebarEntry"};
+            mxButton(&root.sidebar.starred, self.tags = {"lightText", "sidebarEntry", "indent"};
                 self.on_click = []() -> void {MX_LOG_INFO("STARRED");});
-            mxButton(&root.sidebar.playing, self.tags = {"h2", "lightText", "sidebarEntry"};
+            mxButton(&root.sidebar.playing, self.tags = {"lightText", "sidebarEntry", "indent"};
                 self.on_click = []() -> void {MX_LOG_INFO("PLAYING");});
-            mxButton(&root.sidebar.all, self.tags = {"h2", "lightText", "sidebarEntry"};
+            mxButton(&root.sidebar.all, self.tags = {"lightText", "sidebarEntry", "indent"};
                 self.on_click = []() -> void {MX_LOG_INFO("ALL");});
+            mxButton(&root.sidebar.edit, self.tags = {"mediumText", "sidebarEntry"};
+                self.on_click = []() -> void {MX_LOG_INFO("EDIT");});
+            mxButton(&root.sidebar.about, self.tags = {"mediumText", "sidebarEntry"};
+                self.on_click = []() -> void {MX_LOG_INFO("ABOUT");});
         }
     }
 
     void ui::draw_playlist(float dt)
     {
-        mxSpacer(self.tags = {"content"});
+        mxVBox(&root.playlist.vflex, self.tags = {"content"})
+        {
+            mxLabel(&root.playlist.heading, self.tags= {"header", "darkText"});
+            mxLabel(&root.playlist.title, self.tags = {"header", "title", "lightText"});
+            mxHBox(&root.playlist.buttonFlex)
+            {
+                mxButton(&root.playlist.export_,
+                    self.on_click = []() -> void {MX_LOG_INFO("EXPORT");};);
+                mxButton(&root.playlist.import,
+                    self.on_click = []() -> void {MX_LOG_INFO("IMPORT");};);
+                mxSpacer();
+                mxButton(&root.playlist.newMix,
+                    self.on_click = []() -> void {MX_LOG_INFO("NEW MIX");};);
+                mxLabel(&root.playlist.searchBox, self.tags = {"searchBox"});
+                mxSpacer();
+            }
+            mxVScroll(&root.playlist.scroll)
+            {
+
+            }
+        }
     }
 }

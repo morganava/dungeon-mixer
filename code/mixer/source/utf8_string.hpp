@@ -1,5 +1,7 @@
 #pragma once
 
+#include "utilities.hpp"
+
 namespace tabletopify
 {
     class utf8_codepoint
@@ -31,7 +33,8 @@ namespace tabletopify
         utf8_string(const char*, size_t len);
         utf8_string(const std::string&);
         template<size_t N>
-        utf8_string(const char(&str)[N]) : utf8_string(str, N) {}
+        utf8_string(const char(&str)[N]) : utf8_string(str, N)
+        { }
         utf8_string& operator=(const utf8_string&);
         utf8_string& operator=(utf8_string&&);
         utf8_string& operator=(const char*);

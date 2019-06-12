@@ -20,8 +20,7 @@
         "scrollbarActiveColor" : "#C06000",
         "scrollbarBackColor" : "#606060",
         "scrollbarCornerRadius" : 0.0,
-        "scrollbarStep" : 45.0,
-        "padding" : {"left" : 10, "right" : 10}
+        "scrollbarStep" : 45.0
     },
     "spacer" : {
         "backgroundColor" : "transparent"
@@ -29,6 +28,9 @@
     "label" : {
     },
     "button" : {
+    },
+    ".indent" : {
+        "padding" : { "left" : 32}
     },
     ".lightText" : {
         "fontColor" : "white"
@@ -39,23 +41,37 @@
     ".darkText" : {
         "fontColor" : "black"
     },
-    ".h1" : {
-        "fontSize" : 48
-    },
-    ".h2" : {
-        "fontSize" : 32
-    },
-    ".h3" : {
-        "fontSize" : 24
-    },
     ".sidebar" : {
         "backgroundColor" : "#1a1a1a"
     },
     ".sidebarEntry" : {
         "size" : [0, 50],
+        "textHalign" : "left",
+        "padding" : { "left" : 16}
+    },
+    ".content" : {
+        "backgroundColor" : "#676767",
+        "padding" : {"left" : 32}
+    },
+    "button.sidebarEntry:hover" : {
+        "backgroundColor" : "#A50",
+        "fontColor" : "black"
+    },
+    ".header" : {
         "textHalign" : "left"
     },
-    "button.sidebarEntry" : {
-        "margin" : {"left" : 10}
+    ".heading" : {
+        "fontSize" : 32
+    },
+    ".title" : {
+        "fontSize" : 80
+    },
+    "label.searchBox" :
+    {
+        "backgroundColor" : "white",
+        "textHalign" : "left",
+        "borderRadius" : 8,
+        "margin" : [2, 4, 2, 4],
+        "padding" : {"left" : 4}
     }
 }
