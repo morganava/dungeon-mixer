@@ -20,7 +20,7 @@ namespace tabletopify
         spacer,
         button,
         label,
-        debug,
+        text_box,
 
         count,
 

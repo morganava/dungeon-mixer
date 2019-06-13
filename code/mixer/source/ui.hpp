@@ -60,15 +60,15 @@ namespace tabletopify
                 {
                     constraint{128,128, 1.0},
                     constraint{128,128, 1.0},
-                    constraint{0, unconstrained, 1.0},
+                    constraint{0, unconstrained, 2.0},
                     constraint{128,128, 1.0},
-                    constraint{256,256, 1.0},
+                    constraint{256,unconstrained, 1.0},
                     constraint{32,32, 1.0},
                 };
                 imgui::button_data export_ = {"Export"};
                 imgui::button_data import = {"Import"};
                 imgui::button_data newMix = {"New Mix"};
-                imgui::label_data searchBox = {"Search"};
+                imgui::text_box_data searchBox = {"Search"};
                 imgui::button_data searchButton = {"[ ]"};
 
                 imgui::scroll_area_data scroll;

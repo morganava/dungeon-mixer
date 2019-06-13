@@ -71,8 +71,9 @@ namespace tabletopify
                 mxSpacer();
                 mxButton(&root.playlist.newMix,
                     self.on_click = []() -> void {MX_LOG_INFO("NEW MIX");};);
-                mxLabel(&root.playlist.searchBox, self.tags = {"searchBox"});
-                mxSpacer();
+                mxTextBox(&root.playlist.searchBox, self.tags = {"searchBox"});
+                mxButton(&root.playlist.searchButton,
+                    self.on_click = []() -> void {MX_LOG_INFO("SEARCH");};);
             }
             mxVScroll(&root.playlist.scroll)
             {

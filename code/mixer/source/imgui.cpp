@@ -681,5 +681,38 @@ namespace tabletopify
                 this->on_click();
             }
         }
+
+        // Text Box
+
+        void widget_text_box::first_update_impl()
+        {
+            const auto mouse_position = g_input.get_mouse_position(input_frame::current);
+            if (point_inside_rect(
+                mouse_position,
+                this->scissor()))
+            {
+                if (point_inside_rounded_rect(
+                    mouse_position,
+                    this->_layout.border_inner_bounds(),
+                    this->_layout.borderRadius - this->_layout.borderSize))
+                {
+                    g_input.set_mouse_cursor(mouse_cursor::ibeam);
+                }
+            }
+        }
+
+        void widget_text_box::first_render_impl() const
+        {
+            g_context.push_scissor(this->childScissor());
+            g_nanovg.draw_text(
+                this->_layout.inner_bounds(),
+                this->style().fontFamily,
+                this->style().fontSize,
+                this->style().fontColor,
+                this->style().textHalign,
+                this->style().textValign,
+                data()->text);
+            g_context.pop_scissor();
+        }
     }
 }

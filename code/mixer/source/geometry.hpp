@@ -291,6 +291,15 @@ namespace tabletopify
         }
         constexpr corners_& operator=(const corners_&) = default;
         constexpr corners_& operator=(corners_&&) = default;
+        constexpr corners_ operator-(T val) const
+        {
+            auto retval = *this;
+            for(auto& r : retval.raw)
+            {
+                r -= val;
+            }
+            return retval;
+        }
 
         constexpr operator corners_<float>() const
         {

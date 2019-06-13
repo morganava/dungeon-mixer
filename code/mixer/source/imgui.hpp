@@ -428,10 +428,10 @@ namespace tabletopify
         {
             utf8_string text;
             button_data() = default;
-            button_data(utf8_string&& text) : text(std::move(text)) {}
+            button_data(utf8_string text) : text(std::move(text)) {}
         };
 
-        struct widget_button : public widget<widget_button, element_type::button, button_data>
+        struct widget_button : public widget<widget_button, element_type::button, button_data, widget_flag::scissors>
         {
         public:
             using widget::widget;
@@ -444,6 +444,24 @@ namespace tabletopify
             callback<void> on_click;
         private:
             bool _clicked = false;
+        };
+
+        /// text box
+
+        struct text_box_data : widget_data
+        {
+            utf8_string text;
+            text_box_data() = default;
+            text_box_data(utf8_string text) : text(std::move(text)) {}
+        };
+
+        struct widget_text_box : public widget<widget_text_box, element_type::text_box, text_box_data>
+        {
+        public:
+            using widget::widget;
+
+            void first_update_impl();
+            void first_render_impl() const;
         };
 
     } // imgui namespace
@@ -479,8 +497,8 @@ namespace tabletopify
 #define mxHBox(DATA, ...) MX_WIDGET_CODEGEN(widget_flex_box, DATA, self.direction = imgui::layout_direction::horizontal; __VA_ARGS__)
 #define mxVBox(DATA, ...) MX_WIDGET_CODEGEN(widget_flex_box, DATA, self.direction = imgui::layout_direction::vertical; __VA_ARGS__)
 #define mxSpacer(...) MX_WIDGET_CODEGEN(widget_spacer, nullptr, __VA_ARGS__)
-#define mxDebug(...) MX_WIDGET_CODEGEN(widget_debug, nullptr, __VA_ARGS__)
 #define mxLabel(DATA, ...) MX_WIDGET_CODEGEN(widget_label, DATA, __VA_ARGS__)
 #define mxButton(DATA, ...) MX_WIDGET_CODEGEN(widget_button, DATA, __VA_ARGS__)
+#define mxTextBox(DATA, ...) MX_WIDGET_CODEGEN(widget_text_box, DATA, __VA_ARGS__)
 
 }
