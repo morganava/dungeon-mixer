@@ -687,6 +687,13 @@ namespace tabletopify
         void widget_text_box::first_update_impl()
         {
             const auto mouse_position = g_input.get_mouse_position(input_frame::current);
+            const auto mouse_clicked = g_input.get_mouse_clicked(mouse_button::left);
+
+            if(mouse_clicked)
+            {
+                this->unfocus_widget();
+            }
+
             if (point_inside_rect(
                 mouse_position,
                 this->scissor()))
@@ -697,7 +704,7 @@ namespace tabletopify
                     this->_layout.borderRadius - this->_layout.borderSize))
                 {
                     g_input.set_mouse_cursor(mouse_cursor::ibeam);
-                    if (g_input.get_mouse_clicked(mouse_button::left))
+                    if (mouse_clicked)
                     {
                         this->data()->caretIndex = g_nanovg.get_caret_position(
                             this->_layout.inner_bounds(),
