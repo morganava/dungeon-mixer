@@ -7,7 +7,9 @@ namespace tabletopify
     class utf8_codepoint
     {
     public:
+        utf8_codepoint() = default;
         utf8_codepoint(utf8proc_int32_t);
+        utf8_codepoint& operator=(const utf8_codepoint&) = default;
         bool operator==(const utf8_codepoint&) const;
         bool operator!=(const utf8_codepoint&) const;
 
@@ -129,22 +131,20 @@ namespace tabletopify
         const utf8proc_uint8_t* _end = nullptr;
     };
 
-    class utf8_stringbuffer
+    class utf8_stringbuffer : public std::vector<utf8_codepoint>
     {
     public:
-        utf8_stringbuffer();
-        utf8_stringbuffer(size_t initialSize);
+        using vector::vector;
+        using vector::operator=;
+        using vector::push_back;
+        using vector::operator[];
+        using vector::begin;
+        using vector::end;
+        using vector::size;
+
         utf8_stringbuffer(const utf8_string&);
-
-        void push_back(utf8_codepoint);
         void push_back(const utf8_string&);
-
-        // number of codepoints (excluding null terminator)
-        size_t size() const;
         utf8_string str() const;
-        void clear();
-    private:
-        std::vector<utf8_codepoint> _data;
     };
 }
 

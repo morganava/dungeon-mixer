@@ -217,7 +217,8 @@ namespace tabletopify
     std::vector<utf8_string> utf8_string::split() const
     {
         std::vector<utf8_string> retval;
-        utf8_stringbuffer sb(this->_size + 1);
+        utf8_stringbuffer sb;
+        sb.reserve(this->_size + 1);
 
         for(auto cp : *this)
         {
@@ -361,42 +362,25 @@ namespace tabletopify
 
     // UTF8 Stringbuffer
 
-    utf8_stringbuffer::utf8_stringbuffer() { }
-
-    utf8_stringbuffer::utf8_stringbuffer(size_t initialSize)
-    {
-        this->_data.reserve(initialSize);
-    }
-
     utf8_stringbuffer::utf8_stringbuffer(const utf8_string& str)
     {
         this->push_back(str);
-    }
-
-    void utf8_stringbuffer::push_back(utf8_codepoint codepoint)
-    {
-        _data.push_back(codepoint);
     }
 
     void utf8_stringbuffer::push_back(const utf8_string& str)
     {
         for(auto cp : str)
         {
-            this->_data.push_back(cp);
+            this->push_back(cp);
         }
-    }
-
-    size_t utf8_stringbuffer::size() const
-    {
-        return _data.size();
     }
 
     utf8_string utf8_stringbuffer::str() const
     {
-        char buffer[_data.size() * 4];
+        char buffer[this->size() * 4];
         utf8proc_uint8_t* head = reinterpret_cast<utf8proc_uint8_t*>(buffer);
         size_t len = 0;
-        for(auto cp : _data)
+        for(auto cp : *this)
         {
             auto cpSize = utf8proc_encode_char(cp, head);
             if (cpSize < 0)
@@ -409,11 +393,6 @@ namespace tabletopify
 
         utf8_string retval(buffer, len);
         return retval;
-    }
-
-    void utf8_stringbuffer::clear()
-    {
-        _data.clear();
     }
 
     // UTF String View

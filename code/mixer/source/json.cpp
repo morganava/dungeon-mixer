@@ -35,7 +35,9 @@ namespace tabletopify
         utf8_string str = (std::string)js;
 
         // strip out whitespace and conver it to lowercase
-        utf8_stringbuffer sb(str.size() + 1);
+        utf8_stringbuffer sb;
+        sb.reserve(str.size());
+
         for(auto cp : str)
         {
             if(!cp.is_whitespace())

@@ -749,6 +749,8 @@ namespace tabletopify
                             case GLFW_KEY_END:
                                 this->data()->caretIndex = this->data()->sb.size();
                                 break;
+                            case GLFW_KEY_DELETE:
+                                break;
                         }
                     }
                     else if(kbevent.type == keyboard_event_type::charpress)
@@ -764,9 +766,7 @@ namespace tabletopify
                     this->data()->text = this->data()->sb.str();
                 }
                 this->data()->caretIndex = clamp(0, this->data()->caretIndex, (int32_t)this->data()->sb.size());
-
             }
-
         }
 
         void widget_text_box::first_render_impl() const
