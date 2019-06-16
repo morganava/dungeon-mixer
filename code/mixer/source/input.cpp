@@ -274,6 +274,7 @@ namespace tabletopify
         input_event ie;
         ie.type = input_event_type::charpress;
         ie.charpress.codepoint = codepoint;
+        ie.charpress.modifiers = modifiers;
         _raw_events.push_back(ie);
     }
 
@@ -284,6 +285,7 @@ namespace tabletopify
         input_event ie;
         ie.type = input_event_type::keydown;
         ie.keydown.keycode = keycode;
+        ie.keydown.modifiers = modifiers;
         _raw_events.push_back(ie);
     }
 
@@ -294,6 +296,7 @@ namespace tabletopify
         input_event ie;
         ie.type = input_event_type::keyrepeat;
         ie.keyrepeat.keycode = keycode;
+        ie.keyrepeat.modifiers = modifiers;
         _raw_events.push_back(ie);
     }
 
@@ -304,6 +307,7 @@ namespace tabletopify
         input_event ie;
         ie.type = input_event_type::keyup;
         ie.keyup.keycode = keycode;
+        ie.keyup.modifiers = modifiers;
         _raw_events.push_back(ie);
     }
 
@@ -322,6 +326,7 @@ namespace tabletopify
         input_event ie;
         ie.type = input_event_type::mousedown;
         ie.mousedown.button = btn;
+        ie.mousedown.modifiers = modifiers;
         _raw_events.push_back(ie);
     }
 
@@ -331,6 +336,7 @@ namespace tabletopify
         input_event ie;
         ie.type = input_event_type::mouseup;
         ie.mouseup.button = btn;
+        ie.mouseup.modifiers = modifiers;
         _raw_events.push_back(ie);
     }
 
