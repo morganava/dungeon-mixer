@@ -18,6 +18,16 @@ namespace tabletopify
     int g_framebuffer_height = 0;
     double g_pixel_ratio = 0.0;
 
+    static modifier_keys GLFW_MOD_to_modifier_keys(int32_t mods)
+    {
+        modifier_keys retval;
+        retval.shift = mods & GLFW_MOD_SHIFT;
+        retval.control = mods & GLFW_MOD_CONTROL;
+        retval.alt = mods & GLFW_MOD_ALT;
+        retval.super = mods & GLFW_MOD_SUPER;
+        return retval;
+    }
+
     static void graphics_error_func(int error, const char* description)
     {
         MX_LOG_ERROR("GLFW Error {:08x} : {}", error, description);
@@ -28,20 +38,20 @@ namespace tabletopify
         switch(action)
         {
             case GLFW_PRESS:
-                g_input.push_keydown(key);
+                g_input.push_keydown(key, GLFW_MOD_to_modifier_keys(mods));
                 break;
             case GLFW_REPEAT:
-                g_input.push_keyrepeat(key);
+                g_input.push_keyrepeat(key, GLFW_MOD_to_modifier_keys(mods));
                 break;
             case GLFW_RELEASE:
-                g_input.push_keyup(key);
+                g_input.push_keyup(key, GLFW_MOD_to_modifier_keys(mods));
                 break;
         }
     }
 
     static void graphics_charmods_func(GLFWwindow*, uint32_t codepoint, int32_t mods)
     {
-        g_input.push_charpress(codepoint);
+        g_input.push_charpress(codepoint, GLFW_MOD_to_modifier_keys(mods));
     }
 
     static void graphics_cursor_pos_func(GLFWwindow* window, double xpos, double ypos)
@@ -54,10 +64,10 @@ namespace tabletopify
         switch(action)
         {
             case GLFW_PRESS:
-                g_input.push_mousedown(static_cast<mouse_button_t>(button));
+                g_input.push_mousedown(static_cast<mouse_button_t>(button), GLFW_MOD_to_modifier_keys(mods));
                 break;
             case GLFW_RELEASE:
-                g_input.push_mouseup(static_cast<mouse_button_t>(button));
+                g_input.push_mouseup(static_cast<mouse_button_t>(button), GLFW_MOD_to_modifier_keys(mods));
                 break;
         }
     }

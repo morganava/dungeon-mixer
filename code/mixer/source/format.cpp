@@ -31,6 +31,39 @@ ostream& operator<<(ostream& out, mouse_button_t btn)
     }
 }
 
+// modifier_keys
+ostream& operator<<(ostream& out, modifier_keys mod)
+{
+    out << "[";
+    const char* comma = ", ";
+    const char* delimit = " ";
+    if (mod.shift)
+    {
+        out << delimit << "shift";
+        delimit = comma;
+    }
+
+    if (mod.control)
+    {
+        out << delimit << "control";
+        delimit = comma;
+    }
+
+    if (mod.alt)
+    {
+        out << delimit << "alt";
+        delimit = comma;
+    }
+
+    if (mod.super)
+    {
+        out << delimit << "super";
+    }
+
+    out << " ]";
+    return out;
+}
+
 //  geometry
 
 // ostream& operator<<(ostream& out, const vec2& v)

@@ -196,7 +196,6 @@ namespace tabletopify
             return self._viewport;
         }
 
-
         // scroll_area
 
         void widget_scroll_area::resolve_scissor_impl()
@@ -467,42 +466,47 @@ namespace tabletopify
                 // handle keyboard input
                 if (this->is_focused())
                 {
-                    for(auto keycode : g_input.get_keypresses())
+                    for(auto kbevent : g_input.get_keyevents())
                     {
-                        if (scroll_vertical)
+                        if (kbevent.type == keyboard_event_type::keydown ||
+                            kbevent.type == keyboard_event_type::keyrepeat)
                         {
-                            switch(keycode)
+                            const auto keycode = kbevent.keycode;
+                            if (scroll_vertical)
                             {
-                                case GLFW_KEY_PAGE_UP:
-                                    data()->vertical.scroll_offset -= 5 * scroll_step;
-                                    break;
-                                case GLFW_KEY_PAGE_DOWN:
-                                    data()->vertical.scroll_offset += 5 * scroll_step;
-                                    break;
-                                case GLFW_KEY_UP:
-                                    data()->vertical.scroll_offset -= scroll_step;
-                                    break;
-                                case GLFW_KEY_DOWN:
-                                    data()->vertical.scroll_offset += scroll_step;
-                                    break;
-                                case GLFW_KEY_HOME:
-                                    data()->vertical.scroll_offset = 0;
-                                    break;
-                                case GLFW_KEY_END:
-                                    data()->vertical.scroll_offset = scrollable_height;
-                                    break;
+                                switch(keycode)
+                                {
+                                    case GLFW_KEY_PAGE_UP:
+                                        data()->vertical.scroll_offset -= 5 * scroll_step;
+                                        break;
+                                    case GLFW_KEY_PAGE_DOWN:
+                                        data()->vertical.scroll_offset += 5 * scroll_step;
+                                        break;
+                                    case GLFW_KEY_UP:
+                                        data()->vertical.scroll_offset -= scroll_step;
+                                        break;
+                                    case GLFW_KEY_DOWN:
+                                        data()->vertical.scroll_offset += scroll_step;
+                                        break;
+                                    case GLFW_KEY_HOME:
+                                        data()->vertical.scroll_offset = 0;
+                                        break;
+                                    case GLFW_KEY_END:
+                                        data()->vertical.scroll_offset = scrollable_height;
+                                        break;
+                                }
                             }
-                        }
-                        if (scroll_horizontal)
-                        {
-                            switch(keycode)
+                            if (scroll_horizontal)
                             {
-                                case GLFW_KEY_LEFT:
-                                    data()->horizontal.scroll_offset -= scroll_step;
-                                    break;
-                                case GLFW_KEY_RIGHT:
-                                    data()->horizontal.scroll_offset += scroll_step;
-                                    break;
+                                switch(keycode)
+                                {
+                                    case GLFW_KEY_LEFT:
+                                        data()->horizontal.scroll_offset -= scroll_step;
+                                        break;
+                                    case GLFW_KEY_RIGHT:
+                                        data()->horizontal.scroll_offset += scroll_step;
+                                        break;
+                                }
                             }
                         }
                     }
@@ -731,7 +735,7 @@ namespace tabletopify
 
         void widget_text_box::first_render_impl() const
         {
-            g_context.push_scissor(this->childScissor());
+            g_context.push_scissor(this->_layout.border_inner_bounds());
             if (this->is_focused())
             {
                g_nanovg.draw_text_with_caret(

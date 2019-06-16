@@ -252,7 +252,7 @@ namespace tabletopify
 
                     // check of at the end of the string
                     if (caretIndex == glyphCount) {
-                        caretBounds.position.x = glyphPositions[caretIndex - 1].maxx - caretWidth;
+                        caretBounds.position.x = glyphPositions[caretIndex - 1].maxx;
                     }
                     // in between glyphs
                     else {

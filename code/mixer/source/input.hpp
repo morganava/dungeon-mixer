@@ -26,18 +26,98 @@ namespace tabletopify
         constexpr button_state_t released = false;;
     }
 
-    typedef enum
+    struct modifier_keys
     {
-        invalid_event = -1,
-        codepoint_event,
-        keydown_event,
-        keyrepeat_event,
-        keyup_event,
-        mousemove_event,
-        mousedown_event,
-        mouseup_event,
-        scroll_event,
+        button_state_t shift     : 1;
+        button_state_t control   : 1;
+        button_state_t alt       : 1;
+        button_state_t super     : 1;
+    };
+
+    typedef enum class input_event_type
+    {
+        invalid = -1,
+        charpress,
+        keydown,
+        keyrepeat,
+        keyup,
+        mousemove,
+        mousedown,
+        mouseup,
+        scroll,
     } input_event_type_t;
+
+    struct input_event
+    {
+        input_event_type_t type;
+        union
+        {
+            struct {
+            } invalid;
+            struct {
+                utf8_codepoint codepoint;
+                modifier_keys modifiers;
+            } charpress;
+            struct {
+                key_code_t keycode;
+                modifier_keys modifiers;
+            } keydown;
+            struct {
+                key_code_t keycode;
+                modifier_keys modifiers;
+            } keyrepeat;
+            struct {
+                key_code_t keycode;
+                modifier_keys modifiers;
+            } keyup;
+            struct {
+                vec2 position;
+            } mousemove;
+            struct {
+                mouse_button_t button;
+                modifier_keys modifiers;
+            } mousedown;
+            struct {
+                mouse_button_t button;
+                modifier_keys modifiers;
+            } mouseup;
+            struct {
+                double scroll_x;
+                double scroll_y;
+            } scroll;
+        };
+
+        input_event()
+        : type(input_event_type::invalid)
+        , invalid({})
+        { }
+    };
+    typedef enum class keyboard_event_type
+    {
+        invalid = -1,
+        charpress,
+        keydown,
+        keyrepeat,
+        keyup,
+    } keyboard_event_type_t;
+
+    struct keyboard_event
+    {
+        keyboard_event_type_t type;
+        union
+        {
+            struct {
+            } invalid;
+            utf8_codepoint codepoint;
+            key_code_t keycode;
+        };
+        modifier_keys modifiers;
+
+        keyboard_event()
+        : type(keyboard_event_type::invalid)
+        , invalid({})
+        { }
+    };
 
     namespace mouse_cursor
     {
@@ -53,46 +133,6 @@ namespace tabletopify
     }
     typedef mouse_cursor::value mouse_cursor_t;
 
-    struct input_event
-    {
-        input_event_type_t type;
-        union
-        {
-            struct {
-            } invalid;
-            struct {
-                utf8_codepoint codepoint;
-            } charpress;
-            struct {
-                key_code_t keycode;
-            } keydown;
-            struct {
-                key_code_t keycode;
-            } keyrepeat;
-            struct {
-                key_code_t keycode;
-            } keyup;
-            struct {
-                vec2 position;
-            } mousemove;
-            struct {
-                mouse_button_t button;
-            } mousedown;
-            struct {
-                mouse_button_t button;
-            } mouseup;
-            struct {
-                double scroll_x;
-                double scroll_y;
-            } scroll;
-        };
-
-        input_event()
-        : type(invalid_event)
-        , invalid({})
-        { }
-    };
-
     class input
     {
     public:
@@ -106,20 +146,19 @@ namespace tabletopify
 
         const char* key_code_to_key_name(key_code_t) const;
 
-        void push_charpress(utf8proc_int32_t codepoint);
-        void push_keydown(key_code_t);
-        void push_keyrepeat(key_code_t);
-        void push_keyup(key_code_t);
+        void push_charpress(utf8proc_int32_t, modifier_keys);
+        void push_keydown(key_code_t, modifier_keys);
+        void push_keyrepeat(key_code_t, modifier_keys);
+        void push_keyup(key_code_t, modifier_keys);
         void push_mousemove(const vec2& pos);
-        void push_mousedown(mouse_button_t btn);
-        void push_mouseup(mouse_button_t btn);
+        void push_mousedown(mouse_button_t btn, modifier_keys);
+        void push_mouseup(mouse_button_t btn, modifier_keys);
         void push_scroll(double scroll_x, double scroll_y);
 
         vec2 get_mouse_position(input_frame_t frame) const;
         vec2 get_mouse_scroll(input_frame_t frame) const;
         button_state_t get_mouse_button_state(mouse_button_t, input_frame_t frame) const;
-        constexpr const std::vector<utf8_codepoint>& get_charpresses() const { return _charpresses; }
-        constexpr const std::vector<key_code_t>& get_keypresses() const { return _keypresses; }
+        constexpr const std::vector<keyboard_event>& get_keyevents() const { return _key_events; }
         bool get_mouse_clicked(mouse_button_t) const;
         bool get_mouse_clicked(mouse_button_t, const rect& region) const;
 
@@ -127,17 +166,8 @@ namespace tabletopify
     private:
         std::map<key_code_t, utf8_string> _key_names;
         std::vector<input_event> _raw_events;
-        std::vector<utf8_codepoint> _charpresses;
-        std::vector<key_code_t> _keypresses;
+        std::vector<keyboard_event> _key_events;
         GLFWcursor* _mouse_cursors[mouse_cursor::count] = {};
-
-        struct
-        {
-            button_state_t shift   : 1;
-            button_state_t control : 1;
-            button_state_t alt     : 1;
-            button_state_t super   : 1;
-        } _modifier_keys;
 
         struct
         {
@@ -151,6 +181,7 @@ namespace tabletopify
                     button_state_t right   : 1;
                     button_state_t middle  : 1;
                 };
+                modifier_keys modifiers;
                 mouse_cursor_t cursor;
             } current, previous;
 
@@ -183,3 +214,4 @@ namespace tabletopify
 }
 
 std::ostream& operator<<(std::ostream&, tabletopify::mouse_button_t);
+std::ostream& operator<<(std::ostream&, tabletopify::modifier_keys);
