@@ -707,15 +707,27 @@ namespace tabletopify
                             this->style().textValign,
                             data()->text,
                             mouse_position);
+
+                        this->focus_widget();
                     }
                 }
+            }
+        }
+
+        void widget_text_box::last_update_impl()
+        {
+            if (this->is_focused())
+            {
+                // handle keyboard input
             }
         }
 
         void widget_text_box::first_render_impl() const
         {
             g_context.push_scissor(this->childScissor());
-            g_nanovg.draw_text_with_caret(
+            if (this->is_focused())
+            {
+               g_nanovg.draw_text_with_caret(
                 this->_layout.inner_bounds(),
                 this->style().fontFamily,
                 this->style().fontSize,
@@ -726,6 +738,18 @@ namespace tabletopify
                 this->data()->caretIndex,
                 2.0f,
                 color::rgb(0,0,0));
+            }
+            else
+            {
+               g_nanovg.draw_text(
+                this->_layout.inner_bounds(),
+                this->style().fontFamily,
+                this->style().fontSize,
+                this->style().fontColor,
+                this->style().textHalign,
+                this->style().textValign,
+                data()->text);
+            }
             g_context.pop_scissor();
         }
     }
