@@ -241,23 +241,30 @@ namespace tabletopify
                     nvgFillColor(_ctx, fontColor);
                     nvgText(_ctx, startPosition.x, startPosition.y, str.begin(), str.end());
 
-                    // glyph positions
-                    const auto caretCount = caretIndex + 1;
-                    NVGglyphPosition glyphPositions[caretCount];
-                    const auto glyphCount = nvgTextGlyphPositions(_ctx, startPosition.x, startPosition.y, str.begin(), str.end(), glyphPositions, caretCount);
-
+                    // calculate caret geometry
+                    rectf caretBounds;
                     float lineHeight;
                     nvgTextMetrics(_ctx, nullptr, nullptr, &lineHeight);
 
-                    rectf caretBounds;
+                    if (caretIndex > 0)
+                    {
+                        // glyph positions
+                        const auto caretCount = caretIndex + 1;
+                        NVGglyphPosition glyphPositions[caretCount];
+                        const auto glyphCount = nvgTextGlyphPositions(_ctx, startPosition.x, startPosition.y, str.begin(), str.end(), glyphPositions, caretCount);
 
-                    // check of at the end of the string
-                    if (caretIndex == glyphCount) {
-                        caretBounds.position.x = glyphPositions[caretIndex - 1].maxx;
+                        // check of at the end of the string
+                        if (caretIndex == glyphCount) {
+                            caretBounds.position.x = glyphPositions[caretIndex - 1].maxx;
+                        }
+                        // in between glyphs
+                        else {
+                            caretBounds.position.x = glyphPositions[caretIndex].minx;
+                        }
                     }
-                    // in between glyphs
-                    else {
-                        caretBounds.position.x = glyphPositions[caretIndex].minx;
+                    else
+                    {
+                        caretBounds.position.x = startPosition.x;
                     }
                     caretBounds.position.x = std::round(caretBounds.position.x);
 
