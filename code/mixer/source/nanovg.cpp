@@ -397,7 +397,7 @@ namespace tabletopify
             for(int i = 0; i < positions; ++i)
             {
                 const auto& gp = glyphPositions[i];
-                if (x < gp.maxx)
+                if (2.0f * x < (gp.maxx + gp.minx))
                 {
                     break;
                 }
@@ -407,7 +407,6 @@ namespace tabletopify
                 }
             }
         }
-
         return index;
     }
 
