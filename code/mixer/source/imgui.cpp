@@ -740,10 +740,20 @@ namespace tabletopify
                         switch(kbevent.keycode)
                         {
                             case GLFW_KEY_LEFT:
-                                caretIndex--;
+                                if (kbevent.modifiers.control) {
+                                    caretIndex = 0;
+                                }
+                                else {
+                                    caretIndex--;
+                                }
                                 break;
                             case GLFW_KEY_RIGHT:
-                                caretIndex++;
+                                if (kbevent.modifiers.control) {
+                                    caretIndex = sb.size();
+                                }
+                                else {
+                                    caretIndex++;
+                                }
                                 break;
                             case GLFW_KEY_HOME:
                                 caretIndex = 0;
