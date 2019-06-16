@@ -729,8 +729,34 @@ namespace tabletopify
         {
             if (this->is_focused())
             {
-                // handle keyboard input
+                for(auto kbevent : g_input.get_keyevents())
+                {
+                    if (kbevent.type == keyboard_event_type::keydown ||
+                        kbevent.type == keyboard_event_type::keyrepeat)
+                    {
+                        switch(kbevent.keycode)
+                        {
+                            case GLFW_KEY_LEFT:
+                                this->data()->caretIndex--;
+                                break;
+                            case GLFW_KEY_RIGHT:
+                                this->data()->caretIndex++;
+                                break;
+                            case GLFW_KEY_HOME:
+                                this->data()->caretIndex = 0;
+                                break;
+                            case GLFW_KEY_END:
+                                this->data()->caretIndex = this->data()->glyphCount;
+                                break;
+                        }
+                    }
+                    else if(kbevent.type == keyboard_event_type::charpress)
+                    {
+
+                    }
+                }
             }
+            this->data()->caretIndex = clamp(0, this->data()->caretIndex, this->data()->glyphCount);
         }
 
         void widget_text_box::first_render_impl() const

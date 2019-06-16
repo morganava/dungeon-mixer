@@ -451,7 +451,8 @@ namespace tabletopify
         struct text_box_data : widget_data
         {
             utf8_string text;
-            int32_t caretIndex = -1;
+            int32_t glyphCount = 6;
+            int32_t caretIndex = 0;
             text_box_data() = default;
             text_box_data(utf8_string text) : text(std::move(text)) {}
         };
