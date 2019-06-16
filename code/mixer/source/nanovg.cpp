@@ -78,7 +78,8 @@ namespace tabletopify
         fill_rounded_rect,
         stroke_rect,
         stroke_rounded_rect,
-        draw_text
+        draw_text,
+        draw_text_with_caret,
     } draw_command_t;
 
     void nanovg::update(float dt, double window_width, double window_height, double pixel_ratio)
@@ -183,18 +184,14 @@ namespace tabletopify
                 break;
                 case draw_command::draw_text:
                 {
-                    float pos_x, pos_y, size_x, size_y;
-                    MX_THROW_IF_FALSE(cq.next(pos_x));
-                    MX_THROW_IF_FALSE(cq.next(pos_y));
-                    MX_THROW_IF_FALSE(cq.next(size_x));
-                    MX_THROW_IF_FALSE(cq.next(size_y));
-
+                    rectf bounds;
                     font_id font;
                     float size;
                     color col;
                     halign_t halign;
                     valign_t valign;
                     utf8_string_view str;
+                    MX_THROW_IF_FALSE(cq.next(bounds));
                     MX_THROW_IF_FALSE(cq.next(font));
                     MX_THROW_IF_FALSE(cq.next(size));
                     MX_THROW_IF_FALSE(cq.next(col));
@@ -202,45 +199,85 @@ namespace tabletopify
                     MX_THROW_IF_FALSE(cq.next(valign));
                     MX_THROW_IF_FALSE(cq.next(str));
 
+                    auto pos = text_bounds_to_start_position(bounds, halign, valign);
+
                     nvgFontFaceId(_ctx, _nvg_font_faces[font]);
-                    nvgFontBlur(_ctx, 0.0);
                     nvgFontSize(_ctx, size);
+                    nvgTextAlign(_ctx, static_cast<int>(halign) | static_cast<int>(valign));
+                    nvgFillColor(_ctx, col);
+                    nvgText(_ctx, pos.x, pos.y, str.begin(), str.end());
+                }
+                break;
+                case draw_command::draw_text_with_caret:
+                {
+                    rectf bounds;
+                    font_id font;
+                    float fontSize;
+                    color fontColor;
+                    halign_t halign;
+                    valign_t valign;
+                    utf8_string_view str;
+                    int32_t caretIndex;
+                    float caretWidth;
+                    color caretColor;
 
-                    float x = 0.0f;
-                    float y = 0.0f;
-                    int align = static_cast<int>(halign);
+                    MX_THROW_IF_FALSE(cq.next(bounds));
+                    MX_THROW_IF_FALSE(cq.next(font));
+                    MX_THROW_IF_FALSE(cq.next(fontSize));
+                    MX_THROW_IF_FALSE(cq.next(fontColor));
+                    MX_THROW_IF_FALSE(cq.next(halign));
+                    MX_THROW_IF_FALSE(cq.next(valign));
+                    MX_THROW_IF_FALSE(cq.next(str));
+                    MX_THROW_IF_FALSE(cq.next(caretIndex));
+                    MX_THROW_IF_FALSE(cq.next(caretWidth));
+                    MX_THROW_IF_FALSE(cq.next(caretColor));
 
-                    switch(halign)
-                    {
-                        case halign::left:
-                            x = pos_x;
-                            break;
-                        case halign::center:
-                            x = (pos_x + pos_x + size_x) / 2.0f;
-                            break;
-                        case halign::right:
-                            x = pos_x + size_x;
-                            break;
+                    MX_LOG_INFO("caretIndex : {}", caretIndex);
+                    auto startPosition = text_bounds_to_start_position(bounds, halign, valign);
+
+                    nvgFontFaceId(_ctx, _nvg_font_faces[font]);
+                    nvgFontSize(_ctx, fontSize);
+                    nvgTextAlign(_ctx, static_cast<int>(halign) | static_cast<int>(valign));
+                    nvgFillColor(_ctx, fontColor);
+                    nvgText(_ctx, startPosition.x, startPosition.y, str.begin(), str.end());
+
+                    const auto caretCount = caretIndex + 1;
+                    NVGglyphPosition glyphPositions[caretCount];
+                    const auto glyphCount = nvgTextGlyphPositions(_ctx, startPosition.x, startPosition.y, str.begin(), str.end(), glyphPositions, caretCount);
+
+                    float lineHeight;
+                    nvgTextMetrics(_ctx, nullptr, nullptr, &lineHeight);
+
+                    rectf caretBounds;
+
+                    // check of at the end of the string
+                    if (caretIndex == glyphCount) {
+                        caretBounds.position.x = glyphPositions[caretIndex - 1].maxx - caretWidth;
                     }
-
-                    align |= static_cast<int>(valign);
+                    // in between glyphs
+                    else {
+                        caretBounds.position.x = glyphPositions[caretIndex].minx;
+                    }
+                    caretBounds.position.x = std::round(caretBounds.position.x);
 
                     switch(valign)
                     {
                         case valign::top:
-                            y = pos_y;
+                            caretBounds.position.y = bounds.top();
                             break;
                         case valign::middle:
-                            y = (pos_y + pos_y + size_y) / 2.0f;
+                            caretBounds.position.y = (bounds.top() + bounds.bottom()) / 2.0f - lineHeight / 2.0f;
                             break;
                         case valign::bottom:
-                            y = pos_y + size_y;
+                            caretBounds.position.y = bounds.bottom() - lineHeight;
                             break;
                     }
+                    caretBounds.size = {caretWidth, lineHeight};
 
-                    nvgTextAlign(_ctx, align);
-                    nvgFillColor(_ctx, col);
-                    nvgText(_ctx, x, y, str.begin(), str.end());
+                    nvgBeginPath(_ctx);
+                    nvgRect(_ctx, caretBounds.position.x, caretBounds.position.y, caretBounds.size.x, caretBounds.size.y);
+                    nvgFillColor(_ctx, caretColor);
+                    nvgFill(_ctx);
                 }
                 break;
             }
@@ -294,7 +331,7 @@ namespace tabletopify
         cq.push_back(col);
     }
 
-    void nanovg::draw_text(const rectf& bounds, font_id font, float size, const color& col, halign_t halign, valign_t valign, const utf8_string& str)
+    void nanovg::draw_text(const rectf& bounds, font_id font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const utf8_string& str)
     {
         if (font == font_id::invalid) {
             return;
@@ -304,10 +341,109 @@ namespace tabletopify
         cq.push_back(draw_command::draw_text);
         cq.push_back(bounds);
         cq.push_back(font);
-        cq.push_back(size);
-        cq.push_back(col);
+        cq.push_back(fontSize);
+        cq.push_back(fontColor);
         cq.push_back(halign);
         cq.push_back(valign);
         cq.push_back(str);
+    }
+
+    void nanovg::draw_text_with_caret(const rectf& bounds, font_id font, float fontSize, const color& fontColor,halign_t halign, valign_t valign, const utf8_string& str, int32_t caretIndex, float caretWidth, const color& caretColor)
+    {
+        if (font == font_id::invalid) {
+            return;
+        }
+
+        auto& cq = _command_queue.current;
+        if (caretIndex < 0)
+        {
+            draw_text(bounds, font, fontSize, fontColor, halign, valign, str);
+        }
+        else
+        {
+            cq.push_back(draw_command::draw_text_with_caret);
+            cq.push_back(bounds);
+            cq.push_back(font);
+            cq.push_back(fontSize);
+            cq.push_back(fontColor);
+            cq.push_back(halign);
+            cq.push_back(valign);
+            cq.push_back(str);
+            cq.push_back(caretIndex);
+            cq.push_back(caretWidth);
+            cq.push_back(caretColor);
+        }
+    }
+
+    int32_t nanovg::get_caret_position(const rectf& bounds, font_id font, float size, halign_t halign, valign_t valign, const utf8_string& str, const vec2f& clickPoint)
+    {
+        // TODO: take y into account or is the assumption of this function that a click has happened?
+        if (font == font_id::invalid) {
+            return -1;
+        }
+
+        auto startPosition = text_bounds_to_start_position(bounds, halign, valign);
+        nvgFontFaceId(_ctx, _nvg_font_faces[font]);
+        nvgFontSize(_ctx, size);
+        nvgTextAlign(_ctx, static_cast<int>(halign) | static_cast<int>(valign));
+
+        NVGglyphPosition glyphPositions[str.size()];
+        int positions = nvgTextGlyphPositions(_ctx, startPosition.x, startPosition.y, str.begin(), str.end(), glyphPositions, str.size());
+
+        const float x = clickPoint.x;
+        int32_t index = 0;
+        if (x > glyphPositions[0].minx)
+        {
+            for(int i = 0; i < positions; ++i)
+            {
+                const auto& gp = glyphPositions[i];
+                if (x < gp.maxx)
+                {
+                    break;
+                }
+                else
+                {
+                    index++;
+                }
+            }
+        }
+
+        return index;
+    }
+
+    vec2f nanovg::text_bounds_to_start_position(const rectf& bounds, halign_t halign, valign_t valign)
+    {
+        const vec2f& pos = bounds.position;
+        const vec2f& size = bounds.size;
+        float x = 0.0f;
+        float y = 0.0f;
+
+        switch(halign)
+        {
+            case halign::left:
+                x = pos.x;
+                break;
+            case halign::center:
+                x = (pos.x + pos.x + size.x) / 2.0f;
+                break;
+            case halign::right:
+                x = pos.x + size.x;
+                break;
+        }
+
+        switch(valign)
+        {
+            case valign::top:
+                y = pos.y;
+                break;
+            case valign::middle:
+                y = (pos.y + pos.y + size.y) / 2.0f;
+                break;
+            case valign::bottom:
+                y = pos.y + size.y;
+                break;
+        }
+
+        return vec2f{x, y};
     }
 }

@@ -697,6 +697,17 @@ namespace tabletopify
                     this->_layout.borderRadius - this->_layout.borderSize))
                 {
                     g_input.set_mouse_cursor(mouse_cursor::ibeam);
+                    if (g_input.get_mouse_clicked(mouse_button::left))
+                    {
+                        this->data()->caretIndex = g_nanovg.get_caret_position(
+                            this->_layout.inner_bounds(),
+                            this->style().fontFamily,
+                            this->style().fontSize,
+                            this->style().textHalign,
+                            this->style().textValign,
+                            data()->text,
+                            mouse_position);
+                    }
                 }
             }
         }
@@ -704,14 +715,17 @@ namespace tabletopify
         void widget_text_box::first_render_impl() const
         {
             g_context.push_scissor(this->childScissor());
-            g_nanovg.draw_text(
+            g_nanovg.draw_text_with_caret(
                 this->_layout.inner_bounds(),
                 this->style().fontFamily,
                 this->style().fontSize,
                 this->style().fontColor,
                 this->style().textHalign,
                 this->style().textValign,
-                data()->text);
+                data()->text,
+                this->data()->caretIndex,
+                2.0f,
+                color::rgb(0,0,0));
             g_context.pop_scissor();
         }
     }

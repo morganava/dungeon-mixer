@@ -51,7 +51,7 @@ namespace tabletopify
                 {
                     constraint{35, 35, 1.0},
                     constraint{70, 70, 1.0},
-                    constraint{35, 35, 1.0},
+                    constraint{100, 100, 1.0},
                     constraint{0.0, 60000, 2.0},
                 };
                 imgui::label_data heading = {"Playlist"};

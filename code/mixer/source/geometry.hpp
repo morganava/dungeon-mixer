@@ -573,7 +573,11 @@ namespace tabletopify
     }
 }
 
-std::ostream& operator<<(std::ostream&, const tabletopify::vec2&);
+template<typename T>
+std::ostream& operator<<(std::ostream& out, const tabletopify::vec2_<T>& v)
+{
+    return out << "{ x : " << v.x << ", y : " << v.y << " }";
+}
 std::ostream& operator<<(std::ostream&, const tabletopify::rect&);
 std::ostream& operator<<(std::ostream&, const tabletopify::corners&);
 std::ostream& operator<<(std::ostream&, const tabletopify::edges&);

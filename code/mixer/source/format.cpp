@@ -32,10 +32,11 @@ ostream& operator<<(ostream& out, mouse_button_t btn)
 }
 
 //  geometry
-ostream& operator<<(ostream& out, const vec2& v)
-{
-    return out << "{ x : " << v.x << ", y : " << v.y << " }";
-}
+
+// ostream& operator<<(ostream& out, const vec2& v)
+// {
+//     return out << "{ x : " << v.x << ", y : " << v.y << " }";
+// }
 
 ostream& operator<<(ostream& out, const rect& r)
 {

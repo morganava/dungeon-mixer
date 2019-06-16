@@ -66,7 +66,11 @@ namespace tabletopify
         void fill_rounded_rect(const rectf&, const cornersf&, const color&);
         void stroke_rect(const rectf&, float strokeWidth, const color&);
         void stroke_rounded_rect(const rectf&, const cornersf&, float strokeWidth, const color&);
-        void draw_text(const rectf& bounds, font_id font, float size, const color& col,halign_t halign, valign_t valign, const utf8_string& str);
+        void draw_text(const rectf& bounds, font_id font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const utf8_string& str);
+        void draw_text_with_caret(const rectf& bounds, font_id font, float fontSize, const color& fontColor,halign_t halign, valign_t valign, const utf8_string& str, int32_t caretIndex, float caretWidth, const color& caretColor);
+
+        // immediate methods
+        int32_t get_caret_position(const rectf& bounds, font_id font, float fontSize, halign_t halign, valign_t valign, const utf8_string& str, const vec2f& clickPoint);
     private:
         NVGcontext* _ctx = nullptr;
         size_t _same_frames = 0;
@@ -79,6 +83,8 @@ namespace tabletopify
 
         bool early_exit();
         void swap_buffers();
+
+        static vec2f text_bounds_to_start_position(const rectf& bounds, halign_t halign, valign_t valign);
 
         struct
         {
