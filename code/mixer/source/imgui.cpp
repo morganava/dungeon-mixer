@@ -730,6 +730,8 @@ namespace tabletopify
             if (this->is_focused())
             {
                 bool textDirty = false;
+                auto& sb = this->data()->sb;
+                auto& caretIndex = this->data()->caretIndex;
                 for(auto kbevent : g_input.get_keyevents())
                 {
                     if (kbevent.type == keyboard_event_type::keydown ||
@@ -738,34 +740,47 @@ namespace tabletopify
                         switch(kbevent.keycode)
                         {
                             case GLFW_KEY_LEFT:
-                                this->data()->caretIndex--;
+                                caretIndex--;
                                 break;
                             case GLFW_KEY_RIGHT:
-                                this->data()->caretIndex++;
+                                caretIndex++;
                                 break;
                             case GLFW_KEY_HOME:
-                                this->data()->caretIndex = 0;
+                                caretIndex = 0;
                                 break;
                             case GLFW_KEY_END:
-                                this->data()->caretIndex = this->data()->sb.size();
+                                caretIndex = sb.size();
                                 break;
                             case GLFW_KEY_DELETE:
+                                if (caretIndex < (int32_t)sb.size())
+                                {
+                                    sb.erase(sb.begin() + caretIndex);
+                                    textDirty = true;
+                                }
                                 break;
+                            case GLFW_KEY_BACKSPACE:
+                                if (caretIndex > 0)
+                                {
+                                    sb.erase(sb.begin() + caretIndex - 1);
+                                    textDirty = true;
+                                    caretIndex--;
+                                }
                         }
                     }
                     else if(kbevent.type == keyboard_event_type::charpress)
                     {
                         textDirty = true;
-                        this->data()->sb.push_back(kbevent.codepoint);
+                        sb.insert(sb.begin() + caretIndex, kbevent.codepoint);
+                        caretIndex++;
                     }
                 }
 
                 // re-export text from buffer
                 if(textDirty)
                 {
-                    this->data()->text = this->data()->sb.str();
+                    this->data()->text = sb.str();
                 }
-                this->data()->caretIndex = clamp(0, this->data()->caretIndex, (int32_t)this->data()->sb.size());
+                caretIndex = clamp(0, caretIndex, (int32_t)sb.size());
             }
         }
 
