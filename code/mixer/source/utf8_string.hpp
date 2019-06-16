@@ -135,12 +135,7 @@ namespace tabletopify
     {
     public:
         using vector::vector;
-        using vector::operator=;
         using vector::push_back;
-        using vector::operator[];
-        using vector::begin;
-        using vector::end;
-        using vector::size;
 
         utf8_stringbuffer(const utf8_string&);
         void push_back(const utf8_string&);

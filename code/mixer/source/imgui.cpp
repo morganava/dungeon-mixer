@@ -769,7 +769,35 @@ namespace tabletopify
                                 }
                                 break;
                             case GLFW_KEY_BACKSPACE:
-                                if (caretIndex > 0)
+                                if (kbevent.modifiers.control && caretIndex> 0)
+                                {
+                                    bool foundNonWhitespace = false;
+                                    auto it = sb.begin() + caretIndex - 1;
+                                    while(it > sb.begin())
+                                    {
+                                        if (foundNonWhitespace)
+                                        {
+                                            if (it->is_whitespace())
+                                            {
+                                                ++it;
+                                                break;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            if (!it->is_whitespace())
+                                            {
+                                                foundNonWhitespace = true;
+                                            }
+                                        }
+                                        --it;
+                                    }
+                                    const auto newCaretIndex = (int32_t)(it - sb.begin());
+                                    sb.erase(it, sb.begin() + caretIndex);
+                                    caretIndex = newCaretIndex;
+                                    textDirty = true;
+                                }
+                                else if (caretIndex > 0)
                                 {
                                     sb.erase(sb.begin() + caretIndex - 1);
                                     textDirty = true;
