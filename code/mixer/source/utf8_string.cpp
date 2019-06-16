@@ -368,29 +368,22 @@ namespace tabletopify
         this->_data.reserve(initialSize);
     }
 
+    utf8_stringbuffer::utf8_stringbuffer(const utf8_string& str)
+    {
+        this->push_back(str);
+    }
+
     void utf8_stringbuffer::push_back(utf8_codepoint codepoint)
     {
-        char buffer[4] = {0};
-        auto codepointSize = utf8proc_encode_char(codepoint, (utf8proc_uint8_t*)buffer);
-        if(codepointSize < 0)
-        {
-            MX_THROW_MSG("{}", utf8proc_errmsg(codepointSize));
-        }
-
-        for(decltype(codepointSize) k = 0; k < codepointSize; ++k)
-        {
-            _data.push_back(buffer[k]);
-        }
+        _data.push_back(codepoint);
     }
 
     void utf8_stringbuffer::push_back(const utf8_string& str)
     {
-        _data.insert(_data.end(), str.c_str(), str.c_str() + str.size());
-    }
-
-    void utf8_stringbuffer::push_back(const std::string& str)
-    {
-        _data.insert(_data.end(), str.c_str(), str.c_str() + str.size());
+        for(auto cp : str)
+        {
+            this->_data.push_back(cp);
+        }
     }
 
     size_t utf8_stringbuffer::size() const
@@ -400,8 +393,22 @@ namespace tabletopify
 
     utf8_string utf8_stringbuffer::str() const
     {
-        utf8_string result(reinterpret_cast<const char*>(_data.data()), _data.size());
-        return result;
+        char buffer[_data.size() * 4];
+        utf8proc_uint8_t* head = reinterpret_cast<utf8proc_uint8_t*>(buffer);
+        size_t len = 0;
+        for(auto cp : _data)
+        {
+            auto cpSize = utf8proc_encode_char(cp, head);
+            if (cpSize < 0)
+            {
+                MX_THROW_MSG("{}", utf8proc_errmsg(cpSize));
+            }
+            head += cpSize;
+            len += cpSize;
+        }
+
+        utf8_string retval(buffer, len);
+        return retval;
     }
 
     void utf8_stringbuffer::clear()

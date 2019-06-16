@@ -729,6 +729,7 @@ namespace tabletopify
         {
             if (this->is_focused())
             {
+                bool textDirty = false;
                 for(auto kbevent : g_input.get_keyevents())
                 {
                     if (kbevent.type == keyboard_event_type::keydown ||
@@ -746,17 +747,26 @@ namespace tabletopify
                                 this->data()->caretIndex = 0;
                                 break;
                             case GLFW_KEY_END:
-                                this->data()->caretIndex = this->data()->glyphCount;
+                                this->data()->caretIndex = this->data()->sb.size();
                                 break;
                         }
                     }
                     else if(kbevent.type == keyboard_event_type::charpress)
                     {
-
+                        textDirty = true;
+                        this->data()->sb.push_back(kbevent.codepoint);
                     }
                 }
+
+                // re-export text from buffer
+                if(textDirty)
+                {
+                    this->data()->text = this->data()->sb.str();
+                }
+                this->data()->caretIndex = clamp(0, this->data()->caretIndex, (int32_t)this->data()->sb.size());
+
             }
-            this->data()->caretIndex = clamp(0, this->data()->caretIndex, this->data()->glyphCount);
+
         }
 
         void widget_text_box::first_render_impl() const

@@ -232,15 +232,16 @@ namespace tabletopify
                     MX_THROW_IF_FALSE(cq.next(caretWidth));
                     MX_THROW_IF_FALSE(cq.next(caretColor));
 
-                    MX_LOG_INFO("caretIndex : {}", caretIndex);
                     auto startPosition = text_bounds_to_start_position(bounds, halign, valign);
 
+                    // draw the text
                     nvgFontFaceId(_ctx, _nvg_font_faces[font]);
                     nvgFontSize(_ctx, fontSize);
                     nvgTextAlign(_ctx, static_cast<int>(halign) | static_cast<int>(valign));
                     nvgFillColor(_ctx, fontColor);
                     nvgText(_ctx, startPosition.x, startPosition.y, str.begin(), str.end());
 
+                    // glyph positions
                     const auto caretCount = caretIndex + 1;
                     NVGglyphPosition glyphPositions[caretCount];
                     const auto glyphCount = nvgTextGlyphPositions(_ctx, startPosition.x, startPosition.y, str.begin(), str.end(), glyphPositions, caretCount);
@@ -274,6 +275,7 @@ namespace tabletopify
                     }
                     caretBounds.size = {caretWidth, lineHeight};
 
+                    // draw caret
                     nvgBeginPath(_ctx);
                     nvgRect(_ctx, caretBounds.position.x, caretBounds.position.y, caretBounds.size.x, caretBounds.size.y);
                     nvgFillColor(_ctx, caretColor);

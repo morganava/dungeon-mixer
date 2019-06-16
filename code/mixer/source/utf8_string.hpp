@@ -134,24 +134,17 @@ namespace tabletopify
     public:
         utf8_stringbuffer();
         utf8_stringbuffer(size_t initialSize);
+        utf8_stringbuffer(const utf8_string&);
 
         void push_back(utf8_codepoint);
         void push_back(const utf8_string&);
-        void push_back(const std::string&);
-        template<size_t N>
-        void push_back(const char(&str)[N])
-        {
-            for(size_t i = 0; i < N - 1; ++i) {
-                _data.push_back(str[i]);
-            }
-        }
 
-        // number of bytes (excluding null terminator)
+        // number of codepoints (excluding null terminator)
         size_t size() const;
         utf8_string str() const;
         void clear();
     private:
-        mutable std::vector<utf8proc_uint8_t> _data;
+        std::vector<utf8_codepoint> _data;
     };
 }
 
