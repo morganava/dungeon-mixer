@@ -269,7 +269,7 @@ namespace tabletopify
     {
         tabletopify::utf8_stringbuffer sb;
         sb.push_back(codepoint);
-        MX_LOG_INFO("codepoint : {{ codepoint : 0x{:08x}, char : '{}', modifier_keys : {} }}", codepoint, sb.str(), modifiers);
+        // MX_LOG_INFO("codepoint : {{ codepoint : 0x{:08x}, char : '{}', modifier_keys : {} }}", codepoint, sb.str(), modifiers);
 
         input_event ie;
         ie.type = input_event_type::charpress;
@@ -280,7 +280,7 @@ namespace tabletopify
 
     void input::push_keydown(key_code_t keycode, modifier_keys modifiers)
     {
-        MX_LOG_INFO("keydown : {{ keycode : 0x{:08x}, key : '{}', modifier_keys : {} }}", keycode, key_code_to_key_name(keycode), modifiers);
+        // MX_LOG_INFO("keydown : {{ keycode : 0x{:08x}, key : '{}', modifier_keys : {} }}", keycode, key_code_to_key_name(keycode), modifiers);
 
         input_event ie;
         ie.type = input_event_type::keydown;
@@ -291,7 +291,7 @@ namespace tabletopify
 
     void input::push_keyrepeat(key_code_t keycode, modifier_keys modifiers)
     {
-        MX_LOG_INFO("keyrepeat : {{ keycode : 0x{:08x}, key : '{}', modifier_keys : {} }}", keycode, key_code_to_key_name(keycode), modifiers);
+        // MX_LOG_INFO("keyrepeat : {{ keycode : 0x{:08x}, key : '{}', modifier_keys : {} }}", keycode, key_code_to_key_name(keycode), modifiers);
 
         input_event ie;
         ie.type = input_event_type::keyrepeat;
@@ -302,7 +302,7 @@ namespace tabletopify
 
     void input::push_keyup(key_code_t keycode, modifier_keys modifiers)
     {
-        MX_LOG_INFO("keyup : {{ keycode : 0x{:08x}, key : '{}', modifier_keys : {} }}", keycode, key_code_to_key_name(keycode), modifiers);
+        // MX_LOG_INFO("keyup : {{ keycode : 0x{:08x}, key : '{}', modifier_keys : {} }}", keycode, key_code_to_key_name(keycode), modifiers);
 
         input_event ie;
         ie.type = input_event_type::keyup;
@@ -322,7 +322,7 @@ namespace tabletopify
 
     void input::push_mousedown(mouse_button_t btn, modifier_keys modifiers)
     {
-        MX_LOG_INFO("mousedown : {{ button : {}, modifier_keys : {} }}", btn, modifiers);
+        // MX_LOG_INFO("mousedown : {{ button : {}, modifier_keys : {} }}", btn, modifiers);
         input_event ie;
         ie.type = input_event_type::mousedown;
         ie.mousedown.button = btn;
@@ -332,7 +332,7 @@ namespace tabletopify
 
     void input::push_mouseup(mouse_button_t btn, modifier_keys modifiers)
     {
-        MX_LOG_INFO("mouseup : {{ button : {}, modifier_keys : {} }}", btn, modifiers);
+        // MX_LOG_INFO("mouseup : {{ button : {}, modifier_keys : {} }}", btn, modifiers);
         input_event ie;
         ie.type = input_event_type::mouseup;
         ie.mouseup.button = btn;

@@ -318,6 +318,11 @@ namespace tabletopify
                     MX_THROW_IF_FALSE(cq.next(selectedFontColor));
                     MX_THROW_IF_FALSE(cq.next(selectionColor));
 
+                    MX_LOG_VAR(selectBegin);
+                    MX_LOG_VAR(selectEnd);
+
+                    MX_THROW_IF_FALSE(selectEnd > selectBegin);
+
                     auto startPosition = text_bounds_to_start_position(bounds, halign, valign);
 
                     // draw the text
@@ -333,13 +338,16 @@ namespace tabletopify
                     selectBegin = clamp(0, selectBegin, glyphCount);
                     selectEnd = clamp(0, selectEnd, glyphCount);
 
+                    float selectBeginX = glyphPositions[selectBegin].minx;
+                    float selectEndX = glyphPositions[selectEnd - 1].maxx;
+
                     // draw left unselected text
-                    if (currentScissor.left() < glyphPositions[selectBegin].minx)
+                    if (currentScissor.left() < selectBeginX)
                     {
                         rectf leftScissor = currentScissor;
                         {
                             float left = currentScissor.left();
-                            float right = glyphPositions[selectBegin].minx;
+                            float right = selectBeginX;
                             leftScissor.position.x = left;
                             leftScissor.size.x = right - left;
                         }
@@ -348,11 +356,11 @@ namespace tabletopify
                     }
 
                     // draw right unselected text
-                    if (currentScissor.right() > glyphPositions[selectEnd].maxx)
+                    if (currentScissor.right() > selectEndX)
                     {
                         rectf rightScissor = currentScissor;
                         {
-                            float left = glyphPositions[selectEnd].maxx;
+                            float left = selectEndX;
                             float right = currentScissor.right();
                             rightScissor.position.x = left;
                             rightScissor.size.x = right - left;
@@ -369,7 +377,7 @@ namespace tabletopify
                         nvgTextMetrics(_ctx, nullptr, nullptr, &lineHeight);
 
                         rectf selectionBounds;
-                        selectionBounds.position.x = glyphPositions[selectBegin].minx;
+                        selectionBounds.position.x = selectBeginX;
                         switch(valign)
                         {
                             case valign::top:
@@ -383,7 +391,7 @@ namespace tabletopify
                                 break;
                         }
                         selectionBounds.size = {
-                            glyphPositions[selectEnd].maxx - glyphPositions[selectBegin].minx,
+                            selectEndX - selectBeginX,
                             lineHeight
                         };
 

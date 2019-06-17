@@ -718,8 +718,10 @@ namespace tabletopify
                             this->style().textValign,
                             data()->text,
                             mouse_position);
+                        this->data()->selectBegin = this->data()->selectEnd = this->data()->caretIndex;
 
                         this->focus_widget();
+
                     }
                 }
             }
@@ -732,34 +734,45 @@ namespace tabletopify
                 bool textDirty = false;
                 auto& sb = this->data()->sb;
                 auto& caretIndex = this->data()->caretIndex;
+                auto& selectBegin = this->data()->selectBegin;
+                auto& selectEnd = this->data()->selectEnd;
+
                 for(auto kbevent : g_input.get_keyevents())
                 {
                     if (kbevent.type == keyboard_event_type::keydown ||
                         kbevent.type == keyboard_event_type::keyrepeat)
                     {
+                        const auto prevCaretIndex = caretIndex;
+                        bool cursorLeft = false;
+                        bool cursorRight = false;
                         switch(kbevent.keycode)
                         {
                             case GLFW_KEY_LEFT:
                                 if (kbevent.modifiers.control) {
-                                    caretIndex = 0;
+                                    caretIndex = -1;
                                 }
                                 else {
                                     caretIndex--;
                                 }
+                                cursorLeft = true;
                                 break;
                             case GLFW_KEY_RIGHT:
                                 if (kbevent.modifiers.control) {
-                                    caretIndex = sb.size();
+                                    caretIndex = sb.size() + 1;
                                 }
                                 else {
                                     caretIndex++;
                                 }
+
+                                cursorRight = true;
                                 break;
                             case GLFW_KEY_HOME:
-                                caretIndex = 0;
+                                caretIndex = -1;
+                                cursorLeft = true;
                                 break;
                             case GLFW_KEY_END:
-                                caretIndex = sb.size();
+                                caretIndex = sb.size() + 1;
+                                cursorRight = true;
                                 break;
                             case GLFW_KEY_DELETE:
                                 if (caretIndex < (int32_t)sb.size())
@@ -804,6 +817,51 @@ namespace tabletopify
                                     caretIndex--;
                                 }
                         }
+
+                        // cursor moves left
+                        if (cursorLeft)
+                        {
+                            if (kbevent.modifiers.shift)
+                            {
+                                if (prevCaretIndex == selectEnd)
+                                {
+                                    selectEnd = caretIndex;
+                                    if (selectBegin > selectEnd) {
+                                        std::swap(selectBegin, selectEnd);
+                                    }
+                                }
+                                else
+                                {
+                                    selectBegin = caretIndex;
+                                }
+                            }
+                            else
+                            {
+                                selectBegin = selectEnd = caretIndex;
+                            }
+                        }
+                        //cursor moves right
+                        else if(cursorRight)
+                        {
+                            if (kbevent.modifiers.shift)
+                            {
+                                if (prevCaretIndex == selectBegin)
+                                {
+                                    selectBegin = caretIndex;
+                                    if (selectBegin > selectEnd) {
+                                        std::swap(selectBegin, selectEnd);
+                                    }
+                                }
+                                else
+                                {
+                                    selectEnd = caretIndex;
+                                }
+                            }
+                            else
+                            {
+                                selectBegin = selectEnd = caretIndex;
+                            }
+                        }
                     }
                     else if(kbevent.type == keyboard_event_type::charpress)
                     {
@@ -819,6 +877,8 @@ namespace tabletopify
                     this->data()->text = sb.str();
                 }
                 caretIndex = clamp(0, caretIndex, (int32_t)sb.size());
+                selectBegin = clamp(0, selectBegin, (int32_t)sb.size());
+                selectEnd = clamp(0, selectEnd, (int32_t)sb.size());
             }
         }
 
@@ -827,21 +887,38 @@ namespace tabletopify
             g_context.push_scissor(this->_layout.border_inner_bounds());
             if (this->is_focused())
             {
-                g_nanovg.draw_text_with_caret(
-                    this->_layout.inner_bounds(),
-                    this->style().fontFamily,
-                    this->style().fontSize,
-                    this->style().fontColor,
-                    this->style().textHalign,
-                    this->style().textValign,
-                    data()->text,
-                    this->data()->caretIndex,
-                    2.0f, // TODO: get from style
-                    color::rgb(0,0,0));
+                if (this->data()->selectBegin == this->data()->selectEnd)
+                {
+                    g_nanovg.draw_text_with_caret(
+                        this->_layout.inner_bounds(),
+                        this->style().fontFamily,
+                        this->style().fontSize,
+                        this->style().fontColor,
+                        this->style().textHalign,
+                        this->style().textValign,
+                        data()->text,
+                        this->data()->caretIndex,
+                        2.0f, // TODO: get from style
+                        color::rgb(0,0,0));
+                }
+                else
+                {
+                    g_nanovg.draw_text_with_selection(
+                        this->_layout.inner_bounds(),
+                        this->style().fontFamily,
+                        this->style().fontSize,
+                        this->style().fontColor,
+                        this->style().textHalign,
+                        this->style().textValign,
+                        data()->text,
+                        this->data()->selectBegin,
+                        this->data()->selectEnd,
+                        color::rgb(0xFF,0xFF,0xFF),
+                        color::rgb(0xFF,0x88,0x00));
+                }
             }
             else
             {
-#if 0
                 g_nanovg.draw_text(
                 this->_layout.inner_bounds(),
                 this->style().fontFamily,
@@ -850,20 +927,6 @@ namespace tabletopify
                 this->style().textHalign,
                 this->style().textValign,
                 data()->text);
-#endif
-                g_nanovg.draw_text_with_selection(
-                    this->_layout.inner_bounds(),
-                    this->style().fontFamily,
-                    this->style().fontSize,
-                    this->style().fontColor,
-                    this->style().textHalign,
-                    this->style().textValign,
-                    data()->text,
-                    2,
-                    4,
-                    color::rgb(0xFF,0xFF,0xFF),
-                    color::rgb(0xFF,0x88,0x00));
-
             }
             g_context.pop_scissor();
         }
