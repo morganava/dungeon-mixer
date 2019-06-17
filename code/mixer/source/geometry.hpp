@@ -560,7 +560,8 @@ namespace tabletopify
         return true;
     }
 
-    constexpr rect get_intersecting_rect(const rect& r1, const rect& r2)
+    template<typename T>
+    constexpr rect_<T> get_intersecting_rect(const rect_<T>& r1, const rect_<T>& r2)
     {
         if (!rect_intersects_rect(r1, r2)) return {};
 
@@ -578,6 +579,10 @@ std::ostream& operator<<(std::ostream& out, const tabletopify::vec2_<T>& v)
 {
     return out << "{ x : " << v.x << ", y : " << v.y << " }";
 }
-std::ostream& operator<<(std::ostream&, const tabletopify::rect&);
+template<typename T>
+std::ostream& operator<<(std::ostream& out, const tabletopify::rect_<T>& r)
+{
+    return out << "{ position : " << r.position << " size : " << r.size << " }";
+}
 std::ostream& operator<<(std::ostream&, const tabletopify::corners&);
 std::ostream& operator<<(std::ostream&, const tabletopify::edges&);

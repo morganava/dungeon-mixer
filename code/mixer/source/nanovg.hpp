@@ -67,7 +67,8 @@ namespace tabletopify
         void stroke_rect(const rectf&, float strokeWidth, const color&);
         void stroke_rounded_rect(const rectf&, const cornersf&, float strokeWidth, const color&);
         void draw_text(const rectf& bounds, font_id font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const utf8_string& str);
-        void draw_text_with_caret(const rectf& bounds, font_id font, float fontSize, const color& fontColor,halign_t halign, valign_t valign, const utf8_string& str, int32_t caretIndex, float caretWidth, const color& caretColor);
+        void draw_text_with_caret(const rectf& bounds, font_id font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const utf8_string& str, int32_t caretIndex, float caretWidth, const color& caretColor);
+        void draw_text_with_selection(const rectf& bounds, font_id font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const utf8_string& str, int32_t selectBegin, int32_t selectEnd, const color& selectedFontColor, const color& selectionColor);
 
         // immediate methods
         int32_t get_caret_position(const rectf& bounds, font_id font, float fontSize, halign_t halign, valign_t valign, const utf8_string& str, const vec2f& clickPoint);

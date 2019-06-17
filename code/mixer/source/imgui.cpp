@@ -827,21 +827,22 @@ namespace tabletopify
             g_context.push_scissor(this->_layout.border_inner_bounds());
             if (this->is_focused())
             {
-               g_nanovg.draw_text_with_caret(
-                this->_layout.inner_bounds(),
-                this->style().fontFamily,
-                this->style().fontSize,
-                this->style().fontColor,
-                this->style().textHalign,
-                this->style().textValign,
-                data()->text,
-                this->data()->caretIndex,
-                2.0f,
-                color::rgb(0,0,0));
+                g_nanovg.draw_text_with_caret(
+                    this->_layout.inner_bounds(),
+                    this->style().fontFamily,
+                    this->style().fontSize,
+                    this->style().fontColor,
+                    this->style().textHalign,
+                    this->style().textValign,
+                    data()->text,
+                    this->data()->caretIndex,
+                    2.0f, // TODO: get from style
+                    color::rgb(0,0,0));
             }
             else
             {
-               g_nanovg.draw_text(
+#if 0
+                g_nanovg.draw_text(
                 this->_layout.inner_bounds(),
                 this->style().fontFamily,
                 this->style().fontSize,
@@ -849,6 +850,20 @@ namespace tabletopify
                 this->style().textHalign,
                 this->style().textValign,
                 data()->text);
+#endif
+                g_nanovg.draw_text_with_selection(
+                    this->_layout.inner_bounds(),
+                    this->style().fontFamily,
+                    this->style().fontSize,
+                    this->style().fontColor,
+                    this->style().textHalign,
+                    this->style().textValign,
+                    data()->text,
+                    2,
+                    4,
+                    color::rgb(0xFF,0xFF,0xFF),
+                    color::rgb(0xFF,0x88,0x00));
+
             }
             g_context.pop_scissor();
         }

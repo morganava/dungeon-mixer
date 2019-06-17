@@ -80,6 +80,7 @@ namespace tabletopify
         stroke_rounded_rect,
         draw_text,
         draw_text_with_caret,
+        draw_text_with_selection,
     } draw_command_t;
 
     void nanovg::update(float dt, double window_width, double window_height, double pixel_ratio)
@@ -97,6 +98,7 @@ namespace tabletopify
         draw_command_t cmd;
         auto& cq = _command_queue.current;
 
+        rectf currentScissor;
         while(cq.next<draw_command_t>(cmd))
         {
             switch(cmd)
@@ -106,6 +108,7 @@ namespace tabletopify
                     rectf r;
                     MX_THROW_IF_FALSE(cq.next(r));
 
+                    currentScissor = r;
                     nvgScissor(_ctx, r.position.x, r.position.y, r.size.x, r.size.y);
                 }
                 break;
@@ -289,6 +292,119 @@ namespace tabletopify
                     nvgFill(_ctx);
                 }
                 break;
+                case draw_command::draw_text_with_selection:
+                {
+                    rectf bounds;
+                    font_id font;
+                    float fontSize;
+                    color fontColor;
+                    halign_t halign;
+                    valign_t valign;
+                    utf8_string_view str;
+                    int32_t selectBegin;
+                    int32_t selectEnd;
+                    color selectedFontColor;
+                    color selectionColor;
+
+                    MX_THROW_IF_FALSE(cq.next(bounds));
+                    MX_THROW_IF_FALSE(cq.next(font));
+                    MX_THROW_IF_FALSE(cq.next(fontSize));
+                    MX_THROW_IF_FALSE(cq.next(fontColor));
+                    MX_THROW_IF_FALSE(cq.next(halign));
+                    MX_THROW_IF_FALSE(cq.next(valign));
+                    MX_THROW_IF_FALSE(cq.next(str));
+                    MX_THROW_IF_FALSE(cq.next(selectBegin));
+                    MX_THROW_IF_FALSE(cq.next(selectEnd));
+                    MX_THROW_IF_FALSE(cq.next(selectedFontColor));
+                    MX_THROW_IF_FALSE(cq.next(selectionColor));
+
+                    auto startPosition = text_bounds_to_start_position(bounds, halign, valign);
+
+                    // draw the text
+                    nvgFontFaceId(_ctx, _nvg_font_faces[font]);
+                    nvgFontSize(_ctx, fontSize);
+                    nvgTextAlign(_ctx, static_cast<int>(halign) | static_cast<int>(valign));
+                    nvgFillColor(_ctx, fontColor);
+
+                    // glyph positions
+                    const auto maxGlyphCount = (int32_t)str.size();
+                    NVGglyphPosition glyphPositions[maxGlyphCount];
+                    const auto glyphCount = nvgTextGlyphPositions(_ctx, startPosition.x, startPosition.y, str.begin(), str.end(), glyphPositions, maxGlyphCount);
+                    selectBegin = clamp(0, selectBegin, glyphCount);
+                    selectEnd = clamp(0, selectEnd, glyphCount);
+
+                    // draw left unselected text
+                    if (currentScissor.left() < glyphPositions[selectBegin].minx)
+                    {
+                        rectf leftScissor = currentScissor;
+                        {
+                            float left = currentScissor.left();
+                            float right = glyphPositions[selectBegin].minx;
+                            leftScissor.position.x = left;
+                            leftScissor.size.x = right - left;
+                        }
+                        nvgScissor(_ctx, leftScissor.position.x, leftScissor.position.y, leftScissor.size.x, leftScissor.size.y);
+                        nvgText(_ctx, startPosition.x, startPosition.y, str.begin(), str.end());
+                    }
+
+                    // draw right unselected text
+                    if (currentScissor.right() > glyphPositions[selectEnd].maxx)
+                    {
+                        rectf rightScissor = currentScissor;
+                        {
+                            float left = glyphPositions[selectEnd].maxx;
+                            float right = currentScissor.right();
+                            rightScissor.position.x = left;
+                            rightScissor.size.x = right - left;
+                        }
+                        nvgScissor(_ctx, rightScissor.position.x, rightScissor.position.y, rightScissor.size.x, rightScissor.size.y);
+                        nvgText(_ctx, startPosition.x, startPosition.y, str.begin(), str.end());
+                    }
+
+
+                    // draw selection
+                    if (selectBegin != selectEnd)
+                    {
+                        float lineHeight;
+                        nvgTextMetrics(_ctx, nullptr, nullptr, &lineHeight);
+
+                        rectf selectionBounds;
+                        selectionBounds.position.x = glyphPositions[selectBegin].minx;
+                        switch(valign)
+                        {
+                            case valign::top:
+                                selectionBounds.position.y = bounds.top();
+                                break;
+                            case valign::middle:
+                                selectionBounds.position.y = (bounds.top() + bounds.bottom()) / 2.0f - lineHeight / 2.0f;
+                                break;
+                            case valign::bottom:
+                                selectionBounds.position.y = bounds.bottom() - lineHeight;
+                                break;
+                        }
+                        selectionBounds.size = {
+                            glyphPositions[selectEnd].maxx - glyphPositions[selectBegin].minx,
+                            lineHeight
+                        };
+
+                        // draw selection background adn selected text
+                        nvgScissor(_ctx, selectionBounds.position.x, selectionBounds.position.y, selectionBounds.size.x, selectionBounds.size.y);
+
+                        // background
+                        nvgBeginPath(_ctx);
+                        nvgRect(_ctx, selectionBounds.position.x, selectionBounds.position.y, selectionBounds.size.x, selectionBounds.size.y);
+                        nvgFillColor(_ctx, selectionColor);
+                        nvgFill(_ctx);
+
+                        // text
+                        nvgFillColor(_ctx, fontColor);
+                        nvgText(_ctx, startPosition.x, startPosition.y, str.begin(), str.end());
+
+                        // restore scissor
+                        nvgScissor(_ctx, currentScissor.position.x, currentScissor.position.y, currentScissor.size.x, currentScissor.size.y);
+                    }
+                }
+                break;
             }
         }
 
@@ -357,7 +473,7 @@ namespace tabletopify
         cq.push_back(str);
     }
 
-    void nanovg::draw_text_with_caret(const rectf& bounds, font_id font, float fontSize, const color& fontColor,halign_t halign, valign_t valign, const utf8_string& str, int32_t caretIndex, float caretWidth, const color& caretColor)
+    void nanovg::draw_text_with_caret(const rectf& bounds, font_id font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const utf8_string& str, int32_t caretIndex, float caretWidth, const color& caretColor)
     {
         if (font == font_id::invalid) {
             return;
@@ -381,6 +497,34 @@ namespace tabletopify
             cq.push_back(caretIndex);
             cq.push_back(caretWidth);
             cq.push_back(caretColor);
+        }
+    }
+
+    void nanovg::draw_text_with_selection(const rectf& bounds, font_id font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const utf8_string& str, int32_t selectBegin, int32_t selectEnd, const color& selectedFontColor, const color& selectionColor)
+    {
+        if (font == font_id::invalid) {
+            return;
+        }
+
+        auto& cq = _command_queue.current;
+        if (selectBegin == selectEnd)
+        {
+            draw_text(bounds, font, fontSize, fontColor, halign, valign, str);
+        }
+        else
+        {
+            cq.push_back(draw_command::draw_text_with_selection);
+            cq.push_back(bounds);
+            cq.push_back(font);
+            cq.push_back(fontSize);
+            cq.push_back(fontColor);
+            cq.push_back(halign);
+            cq.push_back(valign);
+            cq.push_back(str);
+            cq.push_back(selectBegin);
+            cq.push_back(selectEnd);
+            cq.push_back(selectedFontColor);
+            cq.push_back(selectionColor);
         }
     }
 
