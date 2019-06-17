@@ -318,9 +318,6 @@ namespace tabletopify
                     MX_THROW_IF_FALSE(cq.next(selectedFontColor));
                     MX_THROW_IF_FALSE(cq.next(selectionColor));
 
-                    MX_LOG_VAR(selectBegin);
-                    MX_LOG_VAR(selectEnd);
-
                     MX_THROW_IF_FALSE(selectEnd > selectBegin);
 
                     auto startPosition = text_bounds_to_start_position(bounds, halign, valign);

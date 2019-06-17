@@ -763,7 +763,6 @@ namespace tabletopify
                                 else {
                                     caretIndex++;
                                 }
-
                                 cursorRight = true;
                                 break;
                             case GLFW_KEY_HOME:
@@ -775,14 +774,26 @@ namespace tabletopify
                                 cursorRight = true;
                                 break;
                             case GLFW_KEY_DELETE:
-                                if (caretIndex < (int32_t)sb.size())
+                                if (selectEnd > selectBegin)
                                 {
-                                    sb.erase(sb.begin() + caretIndex);
-                                    textDirty = true;
+                                    sb.erase(sb.begin() + selectBegin, sb.begin() + selectEnd);
                                 }
+                                else if((int32_t)sb.size() > selectBegin)
+                                {
+                                    sb.erase(sb.begin() + selectBegin);
+                                }
+                                textDirty = true;
+                                caretIndex = selectEnd = selectBegin;
+
                                 break;
                             case GLFW_KEY_BACKSPACE:
-                                if (kbevent.modifiers.control && caretIndex> 0)
+                                if (selectEnd > selectBegin)
+                                {
+                                    sb.erase(sb.begin() + selectBegin, sb.begin() + selectEnd);
+                                    textDirty = true;
+                                    caretIndex = selectEnd = selectBegin;
+                                }
+                                else if (kbevent.modifiers.control && caretIndex > 0)
                                 {
                                     bool foundNonWhitespace = false;
                                     auto it = sb.begin() + caretIndex - 1;
