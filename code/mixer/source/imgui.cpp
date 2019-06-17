@@ -879,6 +879,7 @@ namespace tabletopify
                         textDirty = true;
                         sb.insert(sb.begin() + caretIndex, kbevent.codepoint);
                         caretIndex++;
+                        selectBegin = selectEnd = caretIndex;
                     }
                 }
 
