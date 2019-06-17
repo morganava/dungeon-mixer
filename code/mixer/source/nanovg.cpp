@@ -393,7 +393,14 @@ namespace tabletopify
                         };
 
                         // draw selection background adn selected text
-                        nvgScissor(_ctx, selectionBounds.position.x, selectionBounds.position.y, selectionBounds.size.x, selectionBounds.size.y);
+                        rectf centerScissor = currentScissor;
+                        {
+                            float left = std::max(selectBeginX, centerScissor.left());
+                            float right = std::min(selectEndX, centerScissor.right());
+                            centerScissor.position.x = left;
+                            centerScissor.size.x = right -  left;
+                        }
+                        nvgScissor(_ctx, centerScissor.position.x, centerScissor.position.y, centerScissor.size.x, centerScissor.size.y);
 
                         // background
                         nvgBeginPath(_ctx);
@@ -402,11 +409,11 @@ namespace tabletopify
                         nvgFill(_ctx);
 
                         // text
-                        nvgFillColor(_ctx, fontColor);
+                        nvgFillColor(_ctx, selectedFontColor);
                         nvgText(_ctx, startPosition.x, startPosition.y, str.begin(), str.end());
 
-                        // restore scissor
-                        nvgScissor(_ctx, currentScissor.position.x, currentScissor.position.y, currentScissor.size.x, currentScissor.size.y);
+                        // restore current scissor
+                        nvgScissor(_ctx, centerScissor.position.x, centerScissor.position.y, centerScissor.size.x, centerScissor.size.y);
                     }
                 }
                 break;
