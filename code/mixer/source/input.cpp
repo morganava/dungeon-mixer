@@ -7,6 +7,74 @@ namespace tabletopify
 {
     extern GLFWwindow* g_window;
 
+    void double_click_detector::update(float dt, button_state_t currentState)
+    {
+        if (this->double_clicked())
+        {
+            this->reset();
+        }
+
+        if (currentState != _states[0])
+        {
+            for(auto i = 3; i > 0; --i)
+            {
+
+                const auto curr = i - 1;
+                const auto prev = i;
+                _times[prev] = _times[curr];
+                _frameCount[prev] = _frameCount[curr];
+                _states[prev] = _states[curr];
+            }
+
+            _times[0] = dt;
+            _states[0] = currentState;
+            _frameCount[0] = 1;
+        }
+        else
+        {
+            _times[0] += dt;
+            _frameCount[0] += 1;
+        }
+    }
+
+    bool double_click_detector::double_clicked() const
+    {
+        if (_states[0] == button_state::pressed &&
+            _states[1] == button_state::released &&
+            _states[2] == button_state::pressed)
+        {
+            // trigger on the first frame
+            if (_frameCount[0] == 1)
+            {
+                // released time needs to be less than double click time
+                if (_times[1] <= _doubleClickTime)
+                {
+                    // pressed needs to be less than the click time
+                    if (_times[2] <= _clickTime)
+                    {
+                        // don't trigger on spamming click
+                        if (_times[3] > 0.25f * _clickTime)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    void double_click_detector::reset()
+    {
+        for(auto i = 0 ; i < 4; ++i)
+        {
+            _times[i] = 0.0f;
+            _frameCount[i] = 0;
+            _states[i] = button_state::released;
+        }
+    }
+
     void input::initialize()
     {
 
@@ -208,6 +276,8 @@ namespace tabletopify
                 break;
                 case input_event_type::mousemove:
                     _mouse_state.current.position = ie.mousemove.position;
+                    // reset double click detector on mouse move
+                    _doubleClickDetector.reset();
                     break;
                 case input_event_type::mousedown:
                     switch(ie.mousedown.button)
@@ -253,8 +323,9 @@ namespace tabletopify
                     break;
             }
         }
-
         _raw_events.clear();
+
+        _doubleClickDetector.update(dt, _mouse_state.current.left);
     }
 
     void input::update_cursor()
@@ -402,6 +473,16 @@ namespace tabletopify
             }
         }
         return false;
+    }
+
+    bool input::get_mouse_double_clicked() const
+    {
+        return _doubleClickDetector.double_clicked();
+    }
+
+    bool input::get_mouse_double_clicked(const rect& region) const
+    {
+        return get_mouse_double_clicked() && point_inside_rect(_mouse_state.current.position, region);
     }
 
     void input::set_mouse_cursor(mouse_cursor_t cursor)

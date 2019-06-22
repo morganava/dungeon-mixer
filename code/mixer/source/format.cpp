@@ -66,11 +66,6 @@ ostream& operator<<(ostream& out, modifier_keys mod)
 
 //  geometry
 
-// ostream& operator<<(ostream& out, const vec2& v)
-// {
-//     return out << "{ x : " << v.x << ", y : " << v.y << " }";
-// }
-
 ostream& operator<<(ostream& out, const rect& r)
 {
     return out << "{ position : " << r.position << " size : " << r.size << " }";
