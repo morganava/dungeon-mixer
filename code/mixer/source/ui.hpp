@@ -68,7 +68,7 @@ namespace tabletopify
                 imgui::button_data export_ = {"Export"};
                 imgui::button_data import = {"Import"};
                 imgui::button_data newMix = {"New Mix"};
-                imgui::text_box_data searchBox = {"Search"};
+                imgui::text_box_data searchBox = {"Search Box"};
                 imgui::button_data searchButton = {"[ ]"};
 
                 imgui::scroll_area_data scroll;

@@ -690,39 +690,95 @@ namespace tabletopify
 
         void widget_text_box::first_update_impl()
         {
-            const auto mouse_position = g_input.get_mouse_position(input_frame::current);
-            const auto mouse_clicked = g_input.get_mouse_clicked(mouse_button::left);
+            const auto mousePosition = g_input.get_mouse_position(input_frame::current);
+            const auto mouseClicked = g_input.get_mouse_clicked(mouse_button::left);
 
-            if(mouse_clicked)
+            if(mouseClicked)
             {
                 this->unfocus_widget();
             }
 
             if (point_inside_rect(
-                mouse_position,
+                mousePosition,
                 this->scissor()))
             {
                 if (point_inside_rounded_rect(
-                    mouse_position,
+                    mousePosition,
                     this->_layout.border_inner_bounds(),
                     this->_layout.borderRadius - this->_layout.borderSize))
                 {
                     g_input.set_mouse_cursor(mouse_cursor::ibeam);
-                    if (mouse_clicked)
+                    const auto mouseDoubleClicked = g_input.get_mouse_double_clicked(mouse_button::left);
+
+                    if (mouseClicked || mouseDoubleClicked)
                     {
-                        this->data()->caretIndex = g_nanovg.get_caret_position(
-                            this->_layout.inner_bounds(),
-                            this->style().fontFamily,
-                            this->style().fontSize,
-                            this->style().textHalign,
-                            this->style().textValign,
-                            data()->text,
-                            mouse_position);
-                        this->data()->selectBegin = this->data()->selectEnd = this->data()->caretIndex;
-
-
                         this->focus_widget();
+                        const auto caretPosition = this->data()->caretIndex = g_nanovg.get_caret_position(
+                                this->_layout.inner_bounds(),
+                                this->style().fontFamily,
+                                this->style().fontSize,
+                                this->style().textHalign,
+                                this->style().textValign,
+                                data()->text,
+                                mousePosition);
 
+                        auto& sb = this->data()->sb;
+                        auto& caretIndex = this->data()->caretIndex;
+                        auto& selectBegin = this->data()->selectBegin;
+                        auto& selectEnd = this->data()->selectEnd;
+
+                        // select entire word
+                        if (mouseDoubleClicked)
+                        {
+                            caretIndex = caretPosition;
+                            auto calcSelectRange = [&](auto&& shouldInclude) -> void
+                            {
+                                // find select begin
+                                for(auto it = sb.begin() + caretPosition; it >= sb.begin(); --it)
+                                {
+                                    if (!shouldInclude(*it))
+                                    {
+                                        selectBegin= (int32_t)(it + 1 - sb.begin());
+                                        break;
+                                    }
+                                    else if (it == sb.begin())
+                                    {
+                                        selectBegin = 0;
+                                        break;
+                                    }
+                                }
+                                // find select end
+                                for(auto it = sb.begin() + caretPosition; it < sb.end(); ++it)
+                                {
+                                    if (!shouldInclude(*it))
+                                    {
+                                        selectEnd = (int32_t)(it - sb.begin());
+                                        break;
+                                    }
+                                    else if (it == (sb.end() - 1))
+                                    {
+                                        selectEnd = (int32_t)(sb.end() - sb.begin());
+                                        break;
+                                    }
+                                }
+                            };
+
+                            // select contiguous whitespace
+                            if ((sb.begin() + caretIndex)->is_whitespace())
+                            {
+                                calcSelectRange([](utf8_codepoint cp) -> bool {return cp.is_whitespace();});
+                            }
+                            // select contiguous not whitespace
+                            else
+                            {
+                                calcSelectRange([](utf8_codepoint cp) -> bool {return !cp.is_whitespace();});
+                            }
+                        }
+                        // put cursor under mouse
+                        else if(mouseClicked)
+                        {
+                            caretIndex = selectBegin = selectEnd = caretPosition;
+                        }
                     }
                 }
             }
