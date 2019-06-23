@@ -839,10 +839,12 @@ namespace tabletopify
                                 cursorRight = true;
                                 break;
                             case GLFW_KEY_HOME:
+                            case GLFW_KEY_UP:
                                 caretIndex = -1;
                                 cursorLeft = true;
                                 break;
                             case GLFW_KEY_END:
+                            case GLFW_KEY_DOWN:
                                 caretIndex = sb.size() + 1;
                                 cursorRight = true;
                                 break;
