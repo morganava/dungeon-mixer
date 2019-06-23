@@ -47,18 +47,20 @@ namespace tabletopify
         scroll,
     } input_event_type_t;
 
-    struct double_click_detector
+    class click_detector
     {
+    public:
         void update(float dt, button_state_t currentState);
+        bool single_clicked() const;
         bool double_clicked() const;
         void reset();
-
+    private:
+        constexpr static int32_t BUCKET_COUNT = 6;
         // TODO: get these constants from window manager
-        const float _clickTime = 0.5f;
         const float _doubleClickTime = 0.5f;
-        mutable float _times[4];
-        mutable uint32_t _frameCount[4];
-        mutable button_state_t _states[4];
+        float _times[BUCKET_COUNT];
+        uint32_t _frameCount[BUCKET_COUNT];
+        button_state_t _states[BUCKET_COUNT];
     };
 
     struct input_event
@@ -175,6 +177,8 @@ namespace tabletopify
         constexpr const std::vector<keyboard_event>& get_keyevents() const { return _key_events; }
         bool get_mouse_clicked(mouse_button_t) const;
         bool get_mouse_clicked(mouse_button_t, const rect& region) const;
+
+        bool get_mouse_single_clicked() const;
         bool get_mouse_double_clicked() const;
         bool get_mouse_double_clicked(const rect& region) const;
 
@@ -215,7 +219,7 @@ namespace tabletopify
                 vec2 middle = {-1.0, -1.0};
             } up_position;
         } _mouse_state;
-        double_click_detector _doubleClickDetector;
+        click_detector _clickDetector;
     };
 
     inline constexpr input& g_input = singleton<input>::get();

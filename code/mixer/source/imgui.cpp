@@ -720,6 +720,7 @@ namespace tabletopify
                             mouse_position);
                         this->data()->selectBegin = this->data()->selectEnd = this->data()->caretIndex;
 
+
                         this->focus_widget();
 
                     }
