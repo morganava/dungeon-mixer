@@ -810,6 +810,9 @@ namespace tabletopify
                         bool cursorRight = false;
                         switch(kbevent.keycode)
                         {
+                            //
+                            // Navigation
+                            //
                             case GLFW_KEY_LEFT:
                                 if (kbevent.modifiers.control) {
                                     caretIndex = -1;
@@ -848,6 +851,9 @@ namespace tabletopify
                                 caretIndex = sb.size() + 1;
                                 cursorRight = true;
                                 break;
+                            //
+                            // Deletion
+                            //
                             case GLFW_KEY_DELETE:
                                 if (selectEnd > selectBegin)
                                 {
@@ -902,6 +908,24 @@ namespace tabletopify
                                     textDirty = true;
                                     caretIndex--;
                                 }
+                            //
+                            // Submit
+                            //
+                            case GLFW_KEY_ENTER:
+                            case GLFW_KEY_KP_ENTER:
+                                this->on_submit(sb.str());
+                                break;
+                            //
+                            // Keyboard Shortcuts
+                            //
+                            case GLFW_KEY_A:
+                                if (kbevent.modifiers.control)
+                                {
+                                    caretIndex = 0;
+                                    selectBegin = 0;
+                                    selectEnd = (int32_t)(sb.end() - sb.begin());
+                                }
+                                break;
                         }
 
                         // cursor moves left
@@ -952,6 +976,8 @@ namespace tabletopify
                     else if(kbevent.type == keyboard_event_type::charpress)
                     {
                         textDirty = true;
+                        sb.erase(sb.begin() + selectBegin, sb.begin() + selectEnd);
+                        caretIndex = selectBegin;
                         sb.insert(sb.begin() + caretIndex, kbevent.codepoint);
                         caretIndex++;
                         selectBegin = selectEnd = caretIndex;

@@ -479,6 +479,8 @@ namespace tabletopify
             void first_update_impl();
             void last_update_impl();
             void first_render_impl() const;
+
+            callback<const utf8_string&> on_submit;
         };
 
     } // imgui namespace
