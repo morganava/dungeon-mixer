@@ -37,11 +37,11 @@ namespace tabletopify
 
     void ui::draw_sidebar(float dt)
     {
-        if (g_input.get_mouse_single_clicked())
+        if (g_input.get_mouse_clicked(mouse_button::left))
         {
             MX_LOG_INFO("SINGLE CLICK");
         }
-        if (g_input.get_mouse_double_clicked())
+        if (g_input.get_mouse_double_clicked(mouse_button::left))
         {
             MX_LOG_INFO("DOUBLE CLICK");
         }

@@ -47,11 +47,10 @@ namespace tabletopify
         scroll,
     } input_event_type_t;
 
-    class click_detector
+    class double_click_detector
     {
     public:
         void update(float dt, button_state_t currentState);
-        bool single_clicked() const;
         bool double_clicked() const;
         void reset();
     private:
@@ -178,9 +177,8 @@ namespace tabletopify
         bool get_mouse_clicked(mouse_button_t) const;
         bool get_mouse_clicked(mouse_button_t, const rect& region) const;
 
-        bool get_mouse_single_clicked() const;
-        bool get_mouse_double_clicked() const;
-        bool get_mouse_double_clicked(const rect& region) const;
+        bool get_mouse_double_clicked(mouse_button_t) const;
+        bool get_mouse_double_clicked(mouse_button_t, const rect& region) const;
 
         void set_mouse_cursor(mouse_cursor_t cursor);
     private:
@@ -218,8 +216,15 @@ namespace tabletopify
                 vec2 right = {-1.0, -1.0};
                 vec2 middle = {-1.0, -1.0};
             } up_position;
+
+            struct
+            {
+                double_click_detector left;
+                double_click_detector right;
+                double_click_detector middle;
+            } mouse_buttons;
         } _mouse_state;
-        click_detector _clickDetector;
+
     };
 
     inline constexpr input& g_input = singleton<input>::get();

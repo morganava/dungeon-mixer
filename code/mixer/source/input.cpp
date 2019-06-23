@@ -7,13 +7,12 @@ namespace tabletopify
 {
     extern GLFWwindow* g_window;
 
-    void click_detector::update(float dt, button_state_t currentState)
+    void double_click_detector::update(float dt, button_state_t currentState)
     {
         if (currentState != _states[0])
         {
             for(auto i = BUCKET_COUNT - 1; i > 0; --i)
             {
-
                 const auto curr = i - 1;
                 const auto prev = i;
                 _times[prev] = _times[curr];
@@ -32,23 +31,7 @@ namespace tabletopify
         }
     }
 
-    bool click_detector::single_clicked() const
-    {
-        if(this->double_clicked())
-        {
-            return false;
-        }
-
-        if(_states[0] == button_state::released &&
-           _states[1] == button_state::pressed &&
-           _frameCount[0] == 1)
-        {
-            return true;
-        }
-        return false;
-    }
-
-    bool click_detector::double_clicked() const
+    bool double_click_detector::double_clicked() const
     {
         if (_states[0] == button_state::released &&
             _states[1] == button_state::pressed &&
@@ -70,7 +53,7 @@ namespace tabletopify
         return false;
     }
 
-    void click_detector::reset()
+    void double_click_detector::reset()
     {
         for(auto i = 0 ; i < BUCKET_COUNT; ++i)
         {
@@ -282,7 +265,9 @@ namespace tabletopify
                 case input_event_type::mousemove:
                     _mouse_state.current.position = ie.mousemove.position;
                     // reset double click detector on mouse move
-                    _clickDetector.reset();
+                    _mouse_state.mouse_buttons.left.reset();
+                    _mouse_state.mouse_buttons.right.reset();
+                    _mouse_state.mouse_buttons.middle.reset();
                     break;
                 case input_event_type::mousedown:
                     switch(ie.mousedown.button)
@@ -330,7 +315,10 @@ namespace tabletopify
         }
         _raw_events.clear();
 
-        _clickDetector.update(dt, _mouse_state.current.left);
+        _mouse_state.mouse_buttons.left.update(dt, _mouse_state.current.left);
+        _mouse_state.mouse_buttons.right.update(dt, _mouse_state.current.right);
+        _mouse_state.mouse_buttons.middle.update(dt, _mouse_state.current.middle);
+
     }
 
     void input::update_cursor()
@@ -480,19 +468,23 @@ namespace tabletopify
         return false;
     }
 
-    bool input::get_mouse_single_clicked() const
+    bool input::get_mouse_double_clicked(mouse_button_t btn) const
     {
-        return _clickDetector.single_clicked();
+        switch(btn)
+        {
+            case mouse_button::left:
+                return _mouse_state.mouse_buttons.left.double_clicked();
+            case mouse_button::right:
+                return _mouse_state.mouse_buttons.right.double_clicked();
+            case mouse_button::middle:
+                return _mouse_state.mouse_buttons.middle.double_clicked();
+        }
+        return false;
     }
 
-    bool input::get_mouse_double_clicked() const
+    bool input::get_mouse_double_clicked(mouse_button_t btn, const rect& region) const
     {
-        return _clickDetector.double_clicked();
-    }
-
-    bool input::get_mouse_double_clicked(const rect& region) const
-    {
-        return get_mouse_double_clicked() && point_inside_rect(_mouse_state.current.position, region);
+        return point_inside_rect(_mouse_state.current.position, region) && get_mouse_double_clicked(btn);
     }
 
     void input::set_mouse_cursor(mouse_cursor_t cursor)
