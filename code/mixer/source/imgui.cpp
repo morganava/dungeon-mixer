@@ -814,8 +814,13 @@ namespace tabletopify
                                 if (kbevent.modifiers.control) {
                                     caretIndex = -1;
                                 }
-                                else {
+                                // no current selection
+                                else if (selectBegin == selectEnd) {
                                     caretIndex--;
+                                }
+                                // set caret to begining of selection and end selection
+                                else {
+                                    caretIndex = selectEnd = selectBegin;
                                 }
                                 cursorLeft = true;
                                 break;
@@ -823,8 +828,13 @@ namespace tabletopify
                                 if (kbevent.modifiers.control) {
                                     caretIndex = sb.size() + 1;
                                 }
-                                else {
+                                // no current selection
+                                else if (selectBegin == selectEnd) {
                                     caretIndex++;
+                                }
+                                // set caret to end of selection and end selection
+                                else {
+                                    caretIndex = selectBegin = selectEnd;
                                 }
                                 cursorRight = true;
                                 break;
