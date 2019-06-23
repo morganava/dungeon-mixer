@@ -37,6 +37,26 @@ namespace tabletopify
 
     void ui::draw_sidebar(float dt)
     {
+        if (g_input.get_mouse_clicked(mouse_button::left) ||
+            g_input.get_mouse_double_clicked(mouse_button::left) ||
+            g_input.get_mouse_triple_clicked(mouse_button::left))
+        {
+            MX_LOG_INFO("------");
+        }
+
+        if (g_input.get_mouse_clicked(mouse_button::left))
+        {
+            MX_LOG_INFO("SINGLE CLICK");
+        }
+        if (g_input.get_mouse_double_clicked(mouse_button::left))
+        {
+            MX_LOG_INFO("DOUBLE CLICK");
+        }
+        if (g_input.get_mouse_triple_clicked(mouse_button::left))
+        {
+            MX_LOG_INFO("TRIPLE CLICK");
+        }
+
         mxVScroll(&root.sidebar.scroll, self.tags = {"sidebar"})
         {
             mxSpacer(self.requestHeight(100.0));

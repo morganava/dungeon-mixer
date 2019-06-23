@@ -7,7 +7,7 @@ namespace tabletopify
 {
     extern GLFWwindow* g_window;
 
-    void double_click_detector::update(float dt, button_state_t currentState)
+    void click_detector::update(float dt, button_state_t currentState)
     {
         if (currentState != _states[0])
         {
@@ -31,7 +31,7 @@ namespace tabletopify
         }
     }
 
-    bool double_click_detector::double_clicked() const
+    bool click_detector::double_clicked() const
     {
         if (_states[0] == button_state::released &&
             _states[1] == button_state::pressed &&
@@ -41,7 +41,8 @@ namespace tabletopify
             // trigger on the first frame
             if (_frameCount[0] == 1)
             {
-                if ( (_times[1] + _times[2] + _times[3]) < _doubleClickTime)
+                float timeSum = _times[1] + _times[2] + _times[3];
+                if ( timeSum < _doubleClickTime)
                 {
                     if ( _times[4] >= 0.5f * _doubleClickTime)
                     {
@@ -53,7 +54,32 @@ namespace tabletopify
         return false;
     }
 
-    void double_click_detector::reset()
+    bool click_detector::triple_clicked() const
+    {
+        if (_states[0] == button_state::released &&
+            _states[1] == button_state::pressed &&
+            _states[2] == button_state::released &&
+            _states[3] == button_state::pressed &&
+            _states[4] == button_state::released &&
+            _states[5] == button_state::pressed)
+        {
+            // trigger on the first frame
+            if (_frameCount[0] == 1)
+            {
+                float timeSum = _times[1] + _times[2] + _times[3] + _times[4] + _times[5];
+                if (timeSum < 2.0 * _doubleClickTime)
+                {
+                    if (_times[6] >= 0.5f * _doubleClickTime)
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    void click_detector::reset()
     {
         for(auto i = 0 ; i < BUCKET_COUNT; ++i)
         {
@@ -485,6 +511,25 @@ namespace tabletopify
     bool input::get_mouse_double_clicked(mouse_button_t btn, const rect& region) const
     {
         return point_inside_rect(_mouse_state.current.position, region) && get_mouse_double_clicked(btn);
+    }
+
+    bool input::get_mouse_triple_clicked(mouse_button_t btn) const
+    {
+        switch(btn)
+        {
+            case mouse_button::left:
+                return _mouse_state.mouse_buttons.left.triple_clicked();
+            case mouse_button::right:
+                return _mouse_state.mouse_buttons.right.triple_clicked();
+            case mouse_button::middle:
+                return _mouse_state.mouse_buttons.middle.triple_clicked();
+        }
+        return false;
+    }
+
+    bool input::get_mouse_triple_clicked(mouse_button_t btn, const rect& region) const
+    {
+        return point_inside_rect(_mouse_state.current.position, region) && get_mouse_triple_clicked(btn);
     }
 
     void input::set_mouse_cursor(mouse_cursor_t cursor)

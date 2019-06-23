@@ -47,14 +47,15 @@ namespace tabletopify
         scroll,
     } input_event_type_t;
 
-    class double_click_detector
+    class click_detector
     {
     public:
         void update(float dt, button_state_t currentState);
         bool double_clicked() const;
+        bool triple_clicked() const;
         void reset();
     private:
-        constexpr static int32_t BUCKET_COUNT = 6;
+        constexpr static int32_t BUCKET_COUNT = 7;
         // TODO: get these constants from window manager
         const float _doubleClickTime = 0.5f;
         float _times[BUCKET_COUNT];
@@ -180,6 +181,9 @@ namespace tabletopify
         bool get_mouse_double_clicked(mouse_button_t) const;
         bool get_mouse_double_clicked(mouse_button_t, const rect& region) const;
 
+        bool get_mouse_triple_clicked(mouse_button_t) const;
+        bool get_mouse_triple_clicked(mouse_button_t, const rect& region) const;
+
         void set_mouse_cursor(mouse_cursor_t cursor);
     private:
         std::map<key_code_t, utf8_string> _key_names;
@@ -219,9 +223,9 @@ namespace tabletopify
 
             struct
             {
-                double_click_detector left;
-                double_click_detector right;
-                double_click_detector middle;
+                click_detector left;
+                click_detector right;
+                click_detector middle;
             } mouse_buttons;
         } _mouse_state;
 
