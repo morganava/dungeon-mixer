@@ -1,7 +1,7 @@
 #pragma once
 
 namespace tabletopify
-{ 
+{
     template<typename TYPE>
     class singleton
     {
@@ -34,7 +34,12 @@ namespace tabletopify
         static constexpr void free()
         {
             data.value.~TYPE();
-            data.assigned = false;            
+            data.assigned = false;
+        }
+
+        static constexpr bool assigned()
+        {
+            return data.assigned;
         }
 
     private:

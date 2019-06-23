@@ -10,16 +10,19 @@ namespace tabletopify
     // immmediate mode gui
     namespace imgui
     {
-        template<typename RETVAL, typename... ARGS>
+        template<typename... ARGS>
         class callback
         {
         public:
             ~callback()
             {
-                delete_func();
+                if (delete_func != nullptr)
+                {
+                    delete_func();
+                }
             }
 
-            constexpr callback& operator=(RETVAL(*function)(ARGS...))
+            constexpr callback& operator=(void(*function)(ARGS...))
             {
                 exec_func = function;
                 delete_func = [](){};
@@ -29,47 +32,53 @@ namespace tabletopify
             template<typename FUNCTOR>
             callback& operator=(FUNCTOR&& functor)
             {
-                singleton<FUNCTOR>::construct(std::move(functor));
-                set_callbacks<FUNCTOR>();
+                // convertble to a raw function pointer
+                if constexpr (std::is_convertible<FUNCTOR, void(*)(ARGS...)>::value)
+                {
+                    this->exec_func = static_cast<void(*)(ARGS...)>(functor);
+                    this->delete_func = nullptr;
+                }
+                // functor object
+                else
+                {
+                    // ensure we'r enot overriding a callback somehow
+                    MX_ASSERT(singleton<FUNCTOR>::assigned() == false);
+
+                    // move to static storge
+                    singleton<FUNCTOR>::move(std::move(functor));
+
+                    this->exec_func = [](ARGS... args) -> void
+                    {
+                        singleton<FUNCTOR>::get()(std::forward<ARGS>(args)...);
+                    };
+                    this->delete_func = &singleton<FUNCTOR>::free;
+                }
+
                 return *this;
             }
 
-            constexpr RETVAL operator()(ARGS... args)
+            constexpr void operator()(ARGS&&... args)
             {
-                return exec_func(std::forward<ARGS>(args)...);
+                if (exec_func)
+                {
+                    exec_func(std::forward<ARGS>(args)...);
+                }
             }
         private:
 
             template<typename FUNCTOR>
             constexpr void set_callbacks()
             {
-                delete_func = []() -> void
+                delete_func = &singleton<FUNCTOR>::free;
+                exec_func = [](ARGS... args) -> void
                 {
-                    singleton<FUNCTOR>::free();
-                };
-
-                exec_func = [](ARGS... args) -> RETVAL
-                {
-                    return singleton<FUNCTOR>::get()(args...);
+                    singleton<FUNCTOR>::get()(args...);
                 };
             }
 
-            void(*delete_func)() = [](){};
-            RETVAL(*exec_func)(ARGS...) = [](ARGS...) -> RETVAL {return RETVAL();};
+            void(*delete_func)() = nullptr;
+            void(*exec_func)(ARGS...) = nullptr;
         };
-
-        template<typename Return, typename... Args>
-        auto make_callback_impl(Return(*)(Args...))
-        {
-            return callback<Return,Args...>();
-        }
-
-        template<typename Func>
-        auto make_callback()
-        {
-            Func* func = nullptr;
-            return make_callback_impl(func);
-        }
 
         struct widget_base;
 
@@ -441,7 +450,7 @@ namespace tabletopify
             void first_render_impl() const;
             void last_update_impl();
 
-            callback<void> on_click;
+            callback<> on_click;
         private:
             bool _clicked = false;
         };

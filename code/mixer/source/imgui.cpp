@@ -986,7 +986,7 @@ namespace tabletopify
                         data()->text,
                         this->data()->caretIndex,
                         2.0f, // TODO: get from style
-                        color::rgb(0,0,0));
+                        color::rgb(0,0,0));  // TODO: get from style
                 }
                 else
                 {
@@ -1000,8 +1000,8 @@ namespace tabletopify
                         data()->text,
                         this->data()->selectBegin,
                         this->data()->selectEnd,
-                        color::rgb(0xFF,0xFF,0xFF),
-                        color::rgb(0xFF,0x88,0x00));
+                        color::rgb(0xFF,0xFF,0xFF),  // TODO: get from style
+                        color::rgb(0xFF,0x88,0x00));  // TODO: get from style
                 }
             }
             else

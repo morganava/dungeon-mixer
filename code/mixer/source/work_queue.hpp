@@ -13,11 +13,11 @@ namespace tabletopify
         run_once_task(run_once_task&& that)
         {
             *this = std::move(that);
-        }    
+        }
         run_once_task& operator=(run_once_task&& that)
         {
             std::memcpy(this, &that, sizeof(*this));
-            std::memset(&that, 0x00, sizeof(that));        
+            std::memset(&that, 0x00, sizeof(that));
             return *this;
         }
 
@@ -38,7 +38,7 @@ namespace tabletopify
                     auto* plambda = reinterpret_cast<func_t*>(&self->_callable);
                     (*plambda)();
                     plambda->~func_t();
-                };            
+                };
             }
             // new heap copy
             else
@@ -50,7 +50,7 @@ namespace tabletopify
                     (*plambda)();
                     delete plambda;
                 };
-            }        
+            }
         }
 
         void operator()()
@@ -70,10 +70,9 @@ namespace tabletopify
     struct work_item
     {
         // work to do
-        // std::function<void(void)> func;
         run_once_task func;
         // consumer sets to true when finished
-        volatile bool* finished;
+        volatile bool* finished;    // TODO: get rid of volatile
     };
 
     enum worker_id
