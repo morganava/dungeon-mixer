@@ -708,9 +708,8 @@ namespace tabletopify
                     this->_layout.borderRadius - this->_layout.borderSize))
                 {
                     g_input.set_mouse_cursor(mouse_cursor::ibeam);
-                    const auto mouseDoubleClicked = g_input.get_mouse_double_clicked(mouse_button::left);
 
-                    if (mouseClicked || mouseDoubleClicked)
+                    if (mouseClicked)
                     {
                         this->focus_widget();
                         const auto caretPosition = this->data()->caretIndex = g_nanovg.get_caret_position(
@@ -727,8 +726,15 @@ namespace tabletopify
                         auto& selectBegin = this->data()->selectBegin;
                         auto& selectEnd = this->data()->selectEnd;
 
+                        // select everything
+                        if(g_input.get_mouse_triple_clicked(mouse_button::left))
+                        {
+                            caretIndex = caretPosition;
+                            selectBegin = 0;
+                            selectEnd = (int32_t)(sb.end() - sb.begin());
+                        }
                         // select entire word
-                        if (mouseDoubleClicked)
+                        else if (g_input.get_mouse_double_clicked(mouse_button::left))
                         {
                             caretIndex = caretPosition;
                             auto calcSelectRange = [&](auto&& shouldInclude) -> void
@@ -775,7 +781,7 @@ namespace tabletopify
                             }
                         }
                         // put cursor under mouse
-                        else if(mouseClicked)
+                        else
                         {
                             caretIndex = selectBegin = selectEnd = caretPosition;
                         }
