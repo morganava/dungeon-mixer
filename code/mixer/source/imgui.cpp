@@ -790,6 +790,7 @@ namespace tabletopify
             }
         }
 
+        // TODO: refactor to make caretIndex same as selectEnd s
         void widget_text_box::last_update_impl()
         {
             if (this->is_focused())
@@ -853,13 +854,14 @@ namespace tabletopify
                                         }
                                     }
                                 }
+                                // move to begin of selection
+                                else if(selectBegin < selectEnd)
+                                {
+                                    caretIndex = selectEnd = selectBegin;
+                                }
                                 // no select, move cursor
                                 else
                                 {
-                                    if (selectBegin < selectEnd)
-                                    {
-                                        caretIndex = selectEnd = selectBegin;
-                                    }
                                     caretIndex = selectBegin = selectEnd = std::max(0, caretIndex - 1);
                                 }
                                 break;
@@ -905,23 +907,42 @@ namespace tabletopify
                                         }
                                     }
                                 }
+                                // move to end of selection
+                                else if(selectBegin < selectEnd)
+                                {
+                                    caretIndex = selectBegin = selectEnd;
+                                }
                                 // no select, move cursor
                                 else
                                 {
-                                    if (selectBegin < selectEnd)
-                                    {
-                                        caretIndex = selectBegin = selectEnd;
-                                    }
                                     caretIndex = selectBegin = selectEnd = std::min((int32_t)sb.size(), caretIndex + 1);
                                 }
                                 break;
                             case GLFW_KEY_UP:
                             case GLFW_KEY_HOME:
-                                MX_LOG_INFO("HOME");
+                                caretIndex = 0;
+                                if (kbevent.modifiers.shift)
+                                {
+                                    selectEnd = selectBegin;
+                                    selectBegin = caretIndex;
+                                }
+                                else
+                                {
+                                    selectBegin = selectEnd = caretIndex;
+                                }
                                 break;
                             case GLFW_KEY_DOWN:
                             case GLFW_KEY_END:
-                                MX_LOG_INFO("END");
+                                caretIndex = (int32_t)sb.size();
+                                if (kbevent.modifiers.shift)
+                                {
+                                    selectBegin = selectEnd;
+                                    selectEnd = caretIndex;
+                                }
+                                else
+                                {
+                                    selectBegin = selectEnd = caretIndex;
+                                }
                                 break;
                             //
                             // Deletion
@@ -996,6 +1017,7 @@ namespace tabletopify
                             //
                             // Keyboard Shortcuts
                             //
+                            // Select All
                             case GLFW_KEY_A:
                                 if (kbevent.modifiers.control)
                                 {
@@ -1004,53 +1026,42 @@ namespace tabletopify
                                     selectEnd = (int32_t)(sb.end() - sb.begin());
                                 }
                                 break;
+                            // Cut
+                            case GLFW_KEY_X:
+                                if (kbevent.modifiers.control)
+                                {
+                                    const auto str = sb.str(sb.begin() + selectBegin, sb.begin() + selectEnd);
+                                    g_input.set_clipboard_string(str);
+                                    sb.erase(sb.begin() + selectBegin, sb.begin() + selectEnd);
+                                    caretIndex = selectEnd = selectBegin;
+                                    textDirty = true;
+                                }
+                                break;
+                            // Copy
+                            case GLFW_KEY_C:
+                                if (kbevent.modifiers.control)
+                                {
+                                    const auto str = sb.str(sb.begin() + selectBegin, sb.begin() + selectEnd);
+                                    g_input.set_clipboard_string(str);
+                                }
+                                break;
+                            // Paste
+                            case GLFW_KEY_V:
+                                if (kbevent.modifiers.control)
+                                {
+                                    // remove selected text
+                                    sb.erase(sb.begin() + selectBegin, sb.begin() + selectEnd);
+                                    // paste into sb
+                                    auto initSize = sb.size();
+                                    sb.insert(sb.begin() + selectBegin, g_input.get_clipboard_string());
+                                    auto finalSize = sb.size();
+
+                                    caretIndex = selectBegin + (int32_t)(finalSize - initSize);
+                                    selectEnd = selectBegin = caretIndex;
+                                    textDirty = true;
+                                }
+                                break;
                         }
-#if 0
-                        // cursor moves left
-                        if (cursorLeft)
-                        {
-                            if (kbevent.modifiers.shift)
-                            {
-                                if (prevCaretIndex == selectEnd)
-                                {
-                                    selectEnd = caretIndex;
-                                    if (selectBegin > selectEnd) {
-                                        std::swap(selectBegin, selectEnd);
-                                    }
-                                }
-                                else
-                                {
-                                    selectBegin = caretIndex;
-                                }
-                            }
-                            else
-                            {
-                                selectBegin = selectEnd = caretIndex;
-                            }
-                        }
-                        //cursor moves right
-                        else if(cursorRight)
-                        {
-                            if (kbevent.modifiers.shift)
-                            {
-                                if (prevCaretIndex == selectBegin)
-                                {
-                                    selectBegin = caretIndex;
-                                    if (selectBegin > selectEnd) {
-                                        std::swap(selectBegin, selectEnd);
-                                    }
-                                }
-                                else
-                                {
-                                    selectEnd = caretIndex;
-                                }
-                            }
-                            else
-                            {
-                                selectBegin = selectEnd = caretIndex;
-                            }
-                        }
-#endif
                     }
                     else if(kbevent.type == keyboard_event_type::charpress)
                     {

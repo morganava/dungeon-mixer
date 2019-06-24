@@ -536,4 +536,21 @@ namespace tabletopify
     {
         _mouse_state.current.cursor = cursor;
     }
+
+    utf8_string input::get_clipboard_string() const
+    {
+        auto retval = glfwGetClipboardString(g_window);
+        MX_LOG_INFO("Get clipboard : '{}'", retval ? retval : "(null)");
+        if (retval != nullptr)
+        {
+            return retval;
+        }
+        return "";
+    }
+
+    void input::set_clipboard_string(const utf8_string& str)
+    {
+        MX_LOG_INFO("Set clipboard : '{}'", str);
+        glfwSetClipboardString(g_window, str.c_str());
+    }
 }

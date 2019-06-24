@@ -360,6 +360,18 @@ namespace tabletopify
         return utf8_codepoint(_codepoint);
     }
 
+    // UTF String View
+
+    utf8_string_iterator utf8_string_view::begin() const
+    {
+        return utf8_string_iterator(_begin, _end);
+    }
+
+    utf8_string_iterator utf8_string_view::end() const
+    {
+        return utf8_string_iterator(_end, _end);
+    }
+
     // UTF8 Stringbuffer
 
     utf8_stringbuffer::utf8_stringbuffer(const utf8_string& str)
@@ -375,14 +387,28 @@ namespace tabletopify
         }
     }
 
+    void utf8_stringbuffer::insert(const_iterator position, const utf8_string& str)
+    {
+        for(auto cp : str)
+        {
+            position = this->insert(position, cp) + 1;
+        }
+    }
+
     utf8_string utf8_stringbuffer::str() const
     {
-        char buffer[this->size() * 4];
+        return str(this->begin(), this->end());
+    }
+
+    utf8_string utf8_stringbuffer::str(const_iterator from, const_iterator to) const
+    {
+        MX_ASSERT(to >= from);
+        char buffer[(int32_t)(to - from) * 4];
         utf8proc_uint8_t* head = reinterpret_cast<utf8proc_uint8_t*>(buffer);
         size_t len = 0;
-        for(auto cp : *this)
+        for(auto it = from; it < to; ++it)
         {
-            auto cpSize = utf8proc_encode_char(cp, head);
+            auto cpSize = utf8proc_encode_char(*it, head);
             if (cpSize < 0)
             {
                 MX_THROW_MSG("{}", utf8proc_errmsg(cpSize));
@@ -393,17 +419,5 @@ namespace tabletopify
 
         utf8_string retval(buffer, len);
         return retval;
-    }
-
-    // UTF String View
-
-    utf8_string_iterator utf8_string_view::begin() const
-    {
-        return utf8_string_iterator(_begin, _end);
-    }
-
-    utf8_string_iterator utf8_string_view::end() const
-    {
-        return utf8_string_iterator(_end, _end);
     }
 }

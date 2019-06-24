@@ -136,10 +136,13 @@ namespace tabletopify
     public:
         using vector::vector;
         using vector::push_back;
+        using vector::insert;
 
         utf8_stringbuffer(const utf8_string&);
         void push_back(const utf8_string&);
+        void insert(const_iterator position, const utf8_string& str);
         utf8_string str() const;
+        utf8_string str(const_iterator from, const_iterator to) const;
     };
 }
 

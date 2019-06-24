@@ -185,6 +185,9 @@ namespace tabletopify
         bool get_mouse_triple_clicked(mouse_button_t, const rect& region) const;
 
         void set_mouse_cursor(mouse_cursor_t cursor);
+
+        utf8_string get_clipboard_string() const;
+        void set_clipboard_string(const utf8_string& str);
     private:
         std::map<key_code_t, utf8_string> _key_names;
         std::vector<input_event> _raw_events;
