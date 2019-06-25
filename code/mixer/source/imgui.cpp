@@ -712,7 +712,7 @@ namespace tabletopify
                     if (mouseClicked)
                     {
                         this->focus_widget();
-                        const auto caretPosition = this->data()->caretIndex = g_nanovg.get_caret_position(
+                        const auto caretPosition = g_nanovg.get_caret_position(
                                 this->_layout.inner_bounds(),
                                 this->style().fontFamily,
                                 this->style().fontSize,
@@ -722,55 +722,52 @@ namespace tabletopify
                                 mousePosition);
 
                         auto& sb = this->data()->sb;
-                        auto& caretIndex = this->data()->caretIndex;
                         auto& selectBegin = this->data()->selectBegin;
                         auto& selectEnd = this->data()->selectEnd;
 
                         // select everything
                         if(g_input.get_mouse_triple_clicked(mouse_button::left))
                         {
-                            caretIndex = caretPosition;
                             selectBegin = 0;
                             selectEnd = (int32_t)(sb.end() - sb.begin());
                         }
                         // select entire word
                         else if (g_input.get_mouse_double_clicked(mouse_button::left))
                         {
-                            caretIndex = caretPosition;
                             auto calcSelectRange = [&](auto&& shouldInclude) -> void
                             {
-                                // find select begin
+                                // find select end (front of selection)
                                 for(auto it = sb.begin() + caretPosition; it >= sb.begin(); --it)
                                 {
                                     if (!shouldInclude(*it))
                                     {
-                                        selectBegin= (int32_t)(it + 1 - sb.begin());
+                                        selectEnd = (int32_t)(it + 1 - sb.begin());
                                         break;
                                     }
                                     else if (it == sb.begin())
                                     {
-                                        selectBegin = 0;
+                                        selectEnd = 0;
                                         break;
                                     }
                                 }
-                                // find select end
+                                // find select begin (back of selection)
                                 for(auto it = sb.begin() + caretPosition; it < sb.end(); ++it)
                                 {
                                     if (!shouldInclude(*it))
                                     {
-                                        selectEnd = (int32_t)(it - sb.begin());
+                                        selectBegin = (int32_t)(it - sb.begin());
                                         break;
                                     }
                                     else if (it == (sb.end() - 1))
                                     {
-                                        selectEnd = (int32_t)(sb.end() - sb.begin());
+                                        selectBegin = (int32_t)(sb.end() - sb.begin());
                                         break;
                                     }
                                 }
                             };
 
                             // select contiguous whitespace
-                            if ((sb.begin() + caretIndex)->is_whitespace())
+                            if ((sb.begin() + caretPosition)->is_whitespace())
                             {
                                 calcSelectRange([](utf8_codepoint cp) -> bool {return cp.is_whitespace();});
                             }
@@ -783,7 +780,7 @@ namespace tabletopify
                         // put cursor under mouse
                         else
                         {
-                            caretIndex = selectBegin = selectEnd = caretPosition;
+                            selectBegin = selectEnd = caretPosition;
                         }
                     }
                 }
@@ -797,151 +794,108 @@ namespace tabletopify
             {
                 bool textDirty = false;
                 auto& sb = this->data()->sb;
-                auto& caretIndex = this->data()->caretIndex;
                 auto& selectBegin = this->data()->selectBegin;
                 auto& selectEnd = this->data()->selectEnd;
 
                 for(auto kbevent : g_input.get_keyevents())
                 {
+                    const bool textSelected = (selectBegin != selectEnd);
+                    const auto from = std::min(selectBegin, selectEnd);
+                    const auto to = std::max(selectBegin, selectEnd);
                     if (kbevent.type == keyboard_event_type::keydown ||
                         kbevent.type == keyboard_event_type::keyrepeat)
                     {
-                        const auto prevCaretIndex = caretIndex;
                         switch(kbevent.keycode)
                         {
                             //
                             // Navigation
                             //
                             case GLFW_KEY_LEFT:
-                                // skip to begining of current line
+                                // skip to begining of current word
                                 if (kbevent.modifiers.control)
                                 {
-                                    // select
-                                    if (kbevent.modifiers.shift)
+                                    selectEnd = 0;
+                                    if (!kbevent.modifiers.shift)
                                     {
-                                        if (prevCaretIndex != 0)
-                                        {
-                                            selectEnd = selectBegin;
-                                            caretIndex = selectBegin = 0;
-                                        }
-                                    }
-                                    // move cursor
-                                    else
-                                    {
-                                        caretIndex = selectBegin = selectEnd = 0;
+                                        selectBegin = selectEnd;
                                     }
                                 }
-                                // move select
-                                else if (kbevent.modifiers.shift)
-                                {
-                                    if (prevCaretIndex > 0)
-                                    {
-                                        caretIndex--;
-                                        // no selection, grow left
-                                        if (prevCaretIndex == selectBegin && prevCaretIndex == selectEnd)
-                                        {
-                                            selectBegin = caretIndex;
-                                        }
-                                        // some selection, grow left
-                                        else if (prevCaretIndex == selectBegin)
-                                        {
-                                            selectBegin = caretIndex;
-                                        }
-                                        // shrink selection from right
-                                        else if(prevCaretIndex == selectEnd)
-                                        {
-                                            selectEnd = caretIndex;
-                                        }
-                                    }
-                                }
-                                // move to begin of selection
-                                else if(selectBegin < selectEnd)
-                                {
-                                    caretIndex = selectEnd = selectBegin;
-                                }
-                                // no select, move cursor
                                 else
                                 {
-                                    caretIndex = selectBegin = selectEnd = std::max(0, caretIndex - 1);
+                                    if (textSelected)
+                                    {
+                                        if (kbevent.modifiers.shift)
+                                        {
+                                            selectEnd = std::max(selectEnd - 1, size_t(0));
+                                        }
+                                        else
+                                        {
+                                            selectBegin = std::min(selectBegin, selectEnd);
+                                            selectEnd = selectBegin;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        // move left 1
+                                        selectEnd = std::max(selectEnd - 1, size_t(0));
+                                        if (!kbevent.modifiers.shift)
+                                        {
+                                            selectBegin = selectEnd;
+                                        }
+                                    }
                                 }
                                 break;
                             case GLFW_KEY_RIGHT:
-                                // skip to begining of current line
+                                // skip to end of current word
                                 if (kbevent.modifiers.control)
                                 {
-                                    // select
-                                    if (kbevent.modifiers.shift)
+                                    selectEnd = sb.size();
+                                    if (!kbevent.modifiers.shift)
                                     {
-                                        if (prevCaretIndex != (int32_t)sb.size())
-                                        {
-                                            selectBegin = selectEnd;
-                                            caretIndex = selectEnd = (int32_t)sb.size();
-                                        }
-                                    }
-                                    // move cursor
-                                    else
-                                    {
-                                        caretIndex = selectBegin = selectEnd = (int32_t)sb.size();
+                                        selectBegin = selectEnd;
                                     }
                                 }
-                                // move select
-                                else if (kbevent.modifiers.shift)
-                                {
-                                    if (prevCaretIndex < (int32_t)sb.size())
-                                    {
-                                        caretIndex++;
-                                        // no selection, grow right
-                                        if (prevCaretIndex == selectBegin && prevCaretIndex == selectEnd)
-                                        {
-                                            selectEnd = caretIndex;
-                                        }
-                                        // some selection, grow right
-                                        else if (prevCaretIndex == selectEnd)
-                                        {
-                                            selectEnd = caretIndex;
-                                        }
-                                        // shrink selection from left
-                                        else if(prevCaretIndex == selectBegin)
-                                        {
-                                            selectBegin = caretIndex;
-                                        }
-                                    }
-                                }
-                                // move to end of selection
-                                else if(selectBegin < selectEnd)
-                                {
-                                    caretIndex = selectBegin = selectEnd;
-                                }
-                                // no select, move cursor
                                 else
                                 {
-                                    caretIndex = selectBegin = selectEnd = std::min((int32_t)sb.size(), caretIndex + 1);
+                                    if (textSelected)
+                                    {
+                                        if (kbevent.modifiers.shift)
+                                        {
+                                            selectEnd = std::min(selectEnd + 1, sb.size());
+                                        }
+                                        else
+                                        {
+                                            selectBegin = std::max(selectBegin, selectEnd);
+                                            selectEnd = selectBegin;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        // move right 1
+                                        selectEnd = std::min(selectEnd + 1, sb.size());
+                                        if (!kbevent.modifiers.shift)
+                                        {
+                                            selectBegin = selectEnd;
+                                        }
+                                    }
                                 }
                                 break;
                             case GLFW_KEY_UP:
                             case GLFW_KEY_HOME:
-                                caretIndex = 0;
-                                if (kbevent.modifiers.shift)
+                                // begin of line
+                                selectEnd = 0;
+                                if (!kbevent.modifiers.shift)
                                 {
-                                    selectEnd = selectBegin;
-                                    selectBegin = caretIndex;
-                                }
-                                else
-                                {
-                                    selectBegin = selectEnd = caretIndex;
+                                    selectBegin = selectEnd;
                                 }
                                 break;
                             case GLFW_KEY_DOWN:
                             case GLFW_KEY_END:
-                                caretIndex = (int32_t)sb.size();
-                                if (kbevent.modifiers.shift)
+                                // end of line
+                                selectEnd = sb.size();
+                                if (!kbevent.modifiers.shift)
                                 {
                                     selectBegin = selectEnd;
-                                    selectEnd = caretIndex;
-                                }
-                                else
-                                {
-                                    selectBegin = selectEnd = caretIndex;
                                 }
                                 break;
                             //
@@ -949,30 +903,31 @@ namespace tabletopify
                             //
                             case GLFW_KEY_DELETE:
                                 // delete selected text
-                                if (selectEnd > selectBegin)
+                                if (textSelected)
                                 {
-                                    sb.erase(sb.begin() + selectBegin, sb.begin() + selectEnd);
+                                    textDirty = true;
+                                    sb.erase(sb.begin() + from, sb.begin() + to);
+                                    selectBegin = selectEnd = from;
                                 }
-                                else if(selectBegin < (int32_t)sb.size())
+                                else if (selectEnd < sb.size())
                                 {
-                                    sb.erase(sb.begin() + selectBegin);
+                                    textDirty = true;
+                                    sb.erase(sb.begin() + selectEnd);
                                 }
-                                textDirty = true;
-                                caretIndex = selectEnd = selectBegin;
                                 break;
                             case GLFW_KEY_BACKSPACE:
                                 // delete selected text
-                                if (selectEnd > selectBegin)
+                                if (textSelected)
                                 {
-                                    sb.erase(sb.begin() + selectBegin, sb.begin() + selectEnd);
                                     textDirty = true;
-                                    caretIndex = selectEnd = selectBegin;
+                                    sb.erase(sb.begin() + from, sb.begin() + to);
+                                    selectBegin = selectEnd = from;
                                 }
                                 // delete previous word
-                                else if (kbevent.modifiers.control && caretIndex > 0)
+                                else if (kbevent.modifiers.control && selectEnd > 0)
                                 {
                                     bool foundNonWhitespace = false;
-                                    auto it = sb.begin() + caretIndex - 1;
+                                    auto it = sb.begin() + selectEnd - 1;
                                     while(it > sb.begin())
                                     {
                                         if (foundNonWhitespace)
@@ -992,20 +947,17 @@ namespace tabletopify
                                         }
                                         --it;
                                     }
-                                    const auto newCaretIndex = (int32_t)(it - sb.begin());
-                                    sb.erase(it, sb.begin() + caretIndex);
-                                    caretIndex = newCaretIndex;
+                                    sb.erase(it, sb.begin() + selectEnd);
+                                    selectBegin = selectEnd = (it - sb.begin());
                                     textDirty = true;
                                 }
                                 // backspace from caret
-                                else if (caretIndex > 0)
+                                else if (selectEnd > 0)
                                 {
-                                    sb.erase(sb.begin() + caretIndex - 1);
+                                    sb.erase(sb.begin() + selectEnd - 1);
+                                    selectBegin = selectEnd = selectEnd - 1;
                                     textDirty = true;
-                                    caretIndex--;
                                 }
-                                // reset selection
-                                selectBegin = selectEnd = caretIndex;
                                 break;
                             //
                             // Submit
@@ -1021,7 +973,6 @@ namespace tabletopify
                             case GLFW_KEY_A:
                                 if (kbevent.modifiers.control)
                                 {
-                                    caretIndex = 0;
                                     selectBegin = 0;
                                     selectEnd = (int32_t)(sb.end() - sb.begin());
                                 }
@@ -1030,10 +981,11 @@ namespace tabletopify
                             case GLFW_KEY_X:
                                 if (kbevent.modifiers.control)
                                 {
-                                    const auto str = sb.str(sb.begin() + selectBegin, sb.begin() + selectEnd);
+                                    const auto str = sb.str(sb.begin() + from, sb.begin() + to);
                                     g_input.set_clipboard_string(str);
-                                    sb.erase(sb.begin() + selectBegin, sb.begin() + selectEnd);
-                                    caretIndex = selectEnd = selectBegin;
+                                    sb.erase(sb.begin() + from, sb.begin() + to);
+
+                                    selectEnd = selectBegin = from;
                                     textDirty = true;
                                 }
                                 break;
@@ -1041,7 +993,7 @@ namespace tabletopify
                             case GLFW_KEY_C:
                                 if (kbevent.modifiers.control)
                                 {
-                                    const auto str = sb.str(sb.begin() + selectBegin, sb.begin() + selectEnd);
+                                    const auto str = sb.str(sb.begin() + from, sb.begin() + to);
                                     g_input.set_clipboard_string(str);
                                 }
                                 break;
@@ -1050,14 +1002,13 @@ namespace tabletopify
                                 if (kbevent.modifiers.control)
                                 {
                                     // remove selected text
-                                    sb.erase(sb.begin() + selectBegin, sb.begin() + selectEnd);
+                                    sb.erase(sb.begin() + from, sb.begin() + to);
                                     // paste into sb
                                     auto initSize = sb.size();
-                                    sb.insert(sb.begin() + selectBegin, g_input.get_clipboard_string());
+                                    sb.insert(sb.begin() + from, g_input.get_clipboard_string());
                                     auto finalSize = sb.size();
 
-                                    caretIndex = selectBegin + (int32_t)(finalSize - initSize);
-                                    selectEnd = selectBegin = caretIndex;
+                                    selectEnd = selectBegin = (int32_t)(finalSize - initSize);
                                     textDirty = true;
                                 }
                                 break;
@@ -1066,16 +1017,14 @@ namespace tabletopify
                     else if(kbevent.type == keyboard_event_type::charpress)
                     {
                         textDirty = true;
-                        sb.erase(sb.begin() + selectBegin, sb.begin() + selectEnd);
-                        caretIndex = selectBegin;
-                        sb.insert(sb.begin() + caretIndex, kbevent.codepoint);
-                        caretIndex++;
-                        selectBegin = selectEnd = caretIndex;
-                    }
+                        if (textSelected)
+                        {
+                            sb.erase(sb.begin() + from, sb.begin() + to);
+                        }
 
-                    caretIndex = clamp(0, caretIndex, (int32_t)sb.size());
-                    selectBegin = clamp(0, selectBegin, (int32_t)sb.size());
-                    selectEnd = clamp(0, selectEnd, (int32_t)sb.size());
+                        sb.insert(sb.begin() + selectEnd, kbevent.codepoint);
+                        selectBegin = ++selectEnd;
+                    }
                 }
 
                 // re-export text from buffer
@@ -1101,7 +1050,7 @@ namespace tabletopify
                         this->style().textHalign,
                         this->style().textValign,
                         data()->text,
-                        this->data()->caretIndex,
+                        this->data()->selectBegin,
                         2.0f, // TODO: get from style
                         color::rgb(0,0,0));  // TODO: get from style
                 }
@@ -1115,8 +1064,8 @@ namespace tabletopify
                         this->style().textHalign,
                         this->style().textValign,
                         data()->text,
-                        this->data()->selectBegin,
-                        this->data()->selectEnd,
+                        std::min(this->data()->selectBegin, this->data()->selectEnd),
+                        std::max(this->data()->selectBegin, this->data()->selectEnd),
                         color::rgb(0xFF,0xFF,0xFF),  // TODO: get from style
                         color::rgb(0xFF,0x88,0x00));  // TODO: get from style
                 }

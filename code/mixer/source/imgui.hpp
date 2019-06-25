@@ -461,9 +461,8 @@ namespace tabletopify
         {
             utf8_stringbuffer sb;
             utf8_string text;
-            int32_t caretIndex = 0;
-            int32_t selectBegin = -1;
-            int32_t selectEnd = -1;
+            size_t selectBegin = 0;
+            size_t selectEnd = 0;
             text_box_data() = default;
             text_box_data(utf8_string text)
             : sb(text)
