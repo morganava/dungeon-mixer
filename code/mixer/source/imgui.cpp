@@ -802,6 +802,57 @@ namespace tabletopify
                     const bool textSelected = (selectBegin != selectEnd);
                     const auto from = std::min(selectBegin, selectEnd);
                     const auto to = std::max(selectBegin, selectEnd);
+
+                    auto findWordBegin = [&]()
+                    {
+                        bool foundNonWhitespace = false;
+                        auto it = sb.begin() + selectEnd;
+                        while(it > sb.begin())
+                        {
+                            --it;
+                            if (foundNonWhitespace)
+                            {
+                                if (it->is_whitespace())
+                                {
+                                    ++it;
+                                    break;
+                                }
+                            }
+                            else
+                            {
+                                if (!it->is_whitespace())
+                                {
+                                    foundNonWhitespace = true;
+                                }
+                            }
+                        }
+                        return it;
+                    };
+                    auto findWordEnd = [&]()
+                    {
+                        bool foundNonWhitespace = false;
+                        auto it = sb.begin() + selectEnd;
+                        while (it < sb.end())
+                        {
+                            if (foundNonWhitespace)
+                            {
+                                if (it->is_whitespace())
+                                {
+                                    break;
+                                }
+                            }
+                            else
+                            {
+                                if (!it->is_whitespace())
+                                {
+                                    foundNonWhitespace = true;
+                                }
+                            }
+                            ++it;
+                        }
+                        return it;
+                    };
+
                     if (kbevent.type == keyboard_event_type::keydown ||
                         kbevent.type == keyboard_event_type::keyrepeat)
                     {
@@ -814,7 +865,8 @@ namespace tabletopify
                                 // skip to begining of current word
                                 if (kbevent.modifiers.control)
                                 {
-                                    selectEnd = 0;
+                                    auto it = findWordBegin();
+                                    selectEnd = (it - sb.begin());
                                     if (!kbevent.modifiers.shift)
                                     {
                                         selectBegin = selectEnd;
@@ -849,7 +901,8 @@ namespace tabletopify
                                 // skip to end of current word
                                 if (kbevent.modifiers.control)
                                 {
-                                    selectEnd = sb.size();
+                                    auto it = findWordEnd();
+                                    selectEnd = (it - sb.begin());
                                     if (!kbevent.modifiers.shift)
                                     {
                                         selectBegin = selectEnd;
@@ -909,6 +962,14 @@ namespace tabletopify
                                     sb.erase(sb.begin() + from, sb.begin() + to);
                                     selectBegin = selectEnd = from;
                                 }
+                                // delete next word
+                                else if (kbevent.modifiers.control && selectEnd < sb.size())
+                                {
+                                    auto it = findWordEnd();
+                                    sb.erase(sb.begin() + selectEnd, it);
+                                    selectBegin = selectEnd;
+                                    textDirty = true;
+                                }
                                 else if (selectEnd < sb.size())
                                 {
                                     textDirty = true;
@@ -926,27 +987,7 @@ namespace tabletopify
                                 // delete previous word
                                 else if (kbevent.modifiers.control && selectEnd > 0)
                                 {
-                                    bool foundNonWhitespace = false;
-                                    auto it = sb.begin() + selectEnd - 1;
-                                    while(it > sb.begin())
-                                    {
-                                        if (foundNonWhitespace)
-                                        {
-                                            if (it->is_whitespace())
-                                            {
-                                                ++it;
-                                                break;
-                                            }
-                                        }
-                                        else
-                                        {
-                                            if (!it->is_whitespace())
-                                            {
-                                                foundNonWhitespace = true;
-                                            }
-                                        }
-                                        --it;
-                                    }
+                                    auto it = findWordBegin();
                                     sb.erase(it, sb.begin() + selectEnd);
                                     selectBegin = selectEnd = (it - sb.begin());
                                     textDirty = true;
