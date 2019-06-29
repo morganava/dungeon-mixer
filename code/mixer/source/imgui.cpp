@@ -886,7 +886,7 @@ namespace tabletopify
                                             selectEnd = selectBegin;
                                         }
                                     }
-                                    else
+                                    else if (selectEnd > 0)
                                     {
                                         // move left 1
                                         selectEnd = std::max(selectEnd - 1, size_t(0));
@@ -922,7 +922,7 @@ namespace tabletopify
                                             selectEnd = selectBegin;
                                         }
                                     }
-                                    else
+                                    else if (selectEnd < sb.size())
                                     {
                                         // move right 1
                                         selectEnd = std::min(selectEnd + 1, sb.size());
@@ -1049,7 +1049,7 @@ namespace tabletopify
                                     sb.insert(sb.begin() + from, g_input.get_clipboard_string());
                                     auto finalSize = sb.size();
 
-                                    selectEnd = selectBegin = (int32_t)(finalSize - initSize);
+                                    selectEnd = selectBegin = selectEnd + (int32_t)(finalSize - initSize);
                                     textDirty = true;
                                 }
                                 break;
@@ -1073,6 +1073,43 @@ namespace tabletopify
                 {
                     this->data()->text = sb.str();
                 }
+
+                // update text offset                
+                if (g_input.get_keyevents().size() > 0)
+                {
+                    const auto innerBounds = this->_layout.inner_bounds();
+                    auto& textOffset = this->data()->textOffset;
+                    const auto caretOffset = g_nanovg.get_caret_offset(
+                            this->_layout.inner_bounds(),
+                            this->style().fontFamily,
+                            this->style().fontSize,
+                            this->style().textHalign,
+                            this->style().textValign,
+                            data()->text,
+                            selectEnd);  
+                    MX_LOG_VAR(innerBounds.width());
+                    MX_LOG_VAR(caretOffset);  
+
+                    if (caretOffset >= textOffset && caretOffset <= (textOffset + innerBounds.width()))
+                    {
+                        MX_LOG_INFO("In View");
+                        // do nothing text offset is fine
+                    }
+                    else if (caretOffset < textOffset)
+                    {
+                        MX_LOG_INFO("Before View");
+                        // caret to left of view window
+                        textOffset = caretOffset;
+                    }
+                    else
+                    {
+                        MX_LOG_INFO("After View");
+                        // caret to right of view window
+                        textOffset = caretOffset - innerBounds.width();
+                    }
+                    MX_LOG_VAR(textOffset);
+                    textOffset = std::max(0.0, textOffset);
+                }
             }
         }
 
@@ -1085,6 +1122,7 @@ namespace tabletopify
                 {
                     g_nanovg.draw_text_with_caret(
                         this->_layout.inner_bounds(),
+                        this->data()->textOffset,
                         this->style().fontFamily,
                         this->style().fontSize,
                         this->style().fontColor,

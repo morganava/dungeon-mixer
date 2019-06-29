@@ -214,6 +214,7 @@ namespace tabletopify
                 case draw_command::draw_text_with_caret:
                 {
                     rectf bounds;
+                    float textOffset;
                     font_id font;
                     float fontSize;
                     color fontColor;
@@ -225,6 +226,7 @@ namespace tabletopify
                     color caretColor;
 
                     MX_THROW_IF_FALSE(cq.next(bounds));
+                    MX_THROW_IF_FALSE(cq.next(textOffset));
                     MX_THROW_IF_FALSE(cq.next(font));
                     MX_THROW_IF_FALSE(cq.next(fontSize));
                     MX_THROW_IF_FALSE(cq.next(fontColor));
@@ -236,6 +238,7 @@ namespace tabletopify
                     MX_THROW_IF_FALSE(cq.next(caretColor));
 
                     auto startPosition = text_bounds_to_start_position(bounds, halign, valign);
+                    startPosition.x -= textOffset;
 
                     // draw the text
                     nvgFontFaceId(_ctx, _nvg_font_faces[font]);
@@ -485,7 +488,7 @@ namespace tabletopify
         cq.push_back(str);
     }
 
-    void nanovg::draw_text_with_caret(const rectf& bounds, font_id font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const utf8_string& str, int32_t caretIndex, float caretWidth, const color& caretColor)
+    void nanovg::draw_text_with_caret(const rectf& bounds, float textOffset, font_id font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const utf8_string& str, int32_t caretIndex, float caretWidth, const color& caretColor)
     {
         if (font == font_id::invalid) {
             return;
@@ -500,6 +503,7 @@ namespace tabletopify
         {
             cq.push_back(draw_command::draw_text_with_caret);
             cq.push_back(bounds);
+            cq.push_back(textOffset);
             cq.push_back(font);
             cq.push_back(fontSize);
             cq.push_back(fontColor);
@@ -540,7 +544,7 @@ namespace tabletopify
         }
     }
 
-    int32_t nanovg::get_caret_position(const rectf& bounds, font_id font, float size, halign_t halign, valign_t valign, const utf8_string& str, const vec2f& clickPoint)
+    int32_t nanovg::get_caret_position(const rectf& bounds, font_id font, float fontSize, halign_t halign, valign_t valign, const utf8_string& str, const vec2f& clickPoint)
     {
         // TODO: take y into account or is the assumption of this function that a click has happened?
         if (font == font_id::invalid) {
@@ -549,7 +553,7 @@ namespace tabletopify
 
         auto startPosition = text_bounds_to_start_position(bounds, halign, valign);
         nvgFontFaceId(_ctx, _nvg_font_faces[font]);
-        nvgFontSize(_ctx, size);
+        nvgFontSize(_ctx, fontSize);
         nvgTextAlign(_ctx, static_cast<int>(halign) | static_cast<int>(valign));
 
         NVGglyphPosition glyphPositions[str.size()];
@@ -573,6 +577,33 @@ namespace tabletopify
             }
         }
         return index;
+    }
+
+    float nanovg::get_caret_offset(const rectf& bounds, font_id font, float fontSize, halign_t halign, valign_t valign, const utf8_string& str, size_t caretPosition)
+    {
+        if (font == font_id::invalid) {
+            return 0.0f;
+        }
+
+        auto startPosition = text_bounds_to_start_position(bounds, halign, valign);
+        nvgFontFaceId(_ctx, _nvg_font_faces[font]);
+        nvgFontSize(_ctx, fontSize);
+        nvgTextAlign(_ctx, static_cast<int>(halign) | static_cast<int>(valign));
+
+        NVGglyphPosition glyphPositions[str.size()];
+        size_t positions = (size_t)nvgTextGlyphPositions(_ctx, startPosition.x, startPosition.y, str.begin(), str.end(), glyphPositions, str.size());
+
+        MX_ASSERT(caretPosition <= positions);
+        if (positions == 0)
+        {
+            MX_ASSERT(caretPosition == 0);
+            return 0.0f;
+        }
+        else if(caretPosition == positions)
+        {
+            return glyphPositions[positions - 1].maxx - glyphPositions[0].minx;
+        }
+        return glyphPositions[caretPosition].minx - glyphPositions[0].minx;
     }
 
     vec2f nanovg::text_bounds_to_start_position(const rectf& bounds, halign_t halign, valign_t valign)
