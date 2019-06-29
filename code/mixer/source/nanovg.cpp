@@ -552,7 +552,7 @@ namespace tabletopify
         }
     }
 
-    int32_t nanovg::get_caret_position(const rectf& bounds, font_id font, float fontSize, halign_t halign, valign_t valign, const utf8_string& str, const vec2f& clickPoint)
+    int32_t nanovg::get_caret_position(const rectf& bounds, float textOffset, font_id font, float fontSize, halign_t halign, valign_t valign, const utf8_string& str, const vec2f& clickPoint)
     {
         // TODO: take y into account or is the assumption of this function that a click has happened?
         if (font == font_id::invalid) {
@@ -567,7 +567,7 @@ namespace tabletopify
         NVGglyphPosition glyphPositions[str.size()];
         int positions = nvgTextGlyphPositions(_ctx, startPosition.x, startPosition.y, str.begin(), str.end(), glyphPositions, str.size());
 
-        const float x = clickPoint.x;
+        const float x = clickPoint.x + textOffset;
         int32_t index = 0;
         if (x > glyphPositions[0].minx)
         {

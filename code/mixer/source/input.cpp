@@ -370,7 +370,7 @@ namespace tabletopify
 
     void input::push_keydown(key_code_t keycode, modifier_keys modifiers)
     {
-        // MX_LOG_INFO("keydown : {{ keycode : 0x{:08x}, key : '{}', modifier_keys : {} }}", keycode, key_code_to_key_name(keycode), modifiers);
+        MX_LOG_INFO("keydown : {{ keycode : 0x{:08x}, key : '{}', modifier_keys : {} }}", keycode, key_code_to_key_name(keycode), modifiers);
 
         input_event ie;
         ie.type = input_event_type::keydown;
@@ -381,7 +381,7 @@ namespace tabletopify
 
     void input::push_keyrepeat(key_code_t keycode, modifier_keys modifiers)
     {
-        // MX_LOG_INFO("keyrepeat : {{ keycode : 0x{:08x}, key : '{}', modifier_keys : {} }}", keycode, key_code_to_key_name(keycode), modifiers);
+        MX_LOG_INFO("keyrepeat : {{ keycode : 0x{:08x}, key : '{}', modifier_keys : {} }}", keycode, key_code_to_key_name(keycode), modifiers);
 
         input_event ie;
         ie.type = input_event_type::keyrepeat;

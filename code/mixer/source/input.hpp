@@ -32,6 +32,7 @@ namespace tabletopify
         button_state_t control   : 1;
         button_state_t alt       : 1;
         button_state_t super     : 1;
+        button_state_t num_lock  : 1;
     };
 
     typedef enum class input_event_type

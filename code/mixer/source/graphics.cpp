@@ -25,6 +25,7 @@ namespace tabletopify
         retval.control = mods & GLFW_MOD_CONTROL;
         retval.alt = mods & GLFW_MOD_ALT;
         retval.super = mods & GLFW_MOD_SUPER;
+        retval.num_lock = mods & GLFW_MOD_NUM_LOCK;
         return retval;
     }
 
@@ -35,6 +36,12 @@ namespace tabletopify
 
     static void graphics_key_func(GLFWwindow*, int32_t key, int32_t scancode, int32_t action, int32_t mods)
     {
+        // handle num lock keys
+        if (mods & GLFW_MOD_NUM_LOCK)
+        {
+            // MX_LOG_INFO("NUM LOCK");
+        }
+
         switch(action)
         {
             case GLFW_PRESS:
@@ -143,6 +150,7 @@ namespace tabletopify
             MX_THROW_IF_NOT_NULL(glfwSetMouseButtonCallback(g_window, &graphics_mouse_button_func));
             MX_THROW_IF_NOT_NULL(glfwSetCursorEnterCallback(g_window, &graphics_mouse_enter_func));
             MX_THROW_IF_NOT_NULL(glfwSetScrollCallback(g_window, &graphics_scroll_func));
+            glfwSetInputMode(g_window, GLFW_LOCK_KEY_MODS, GLFW_TRUE);
 
             // graphics callbacks
             MX_THROW_IF_NOT_NULL(glfwSetWindowSizeCallback(g_window, &graphics_window_size_func));

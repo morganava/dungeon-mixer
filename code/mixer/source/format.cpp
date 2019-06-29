@@ -58,6 +58,12 @@ ostream& operator<<(ostream& out, modifier_keys mod)
     if (mod.super)
     {
         out << delimit << "super";
+        delimit = comma;
+    }
+
+    if (mod.num_lock)
+    {
+        out << delimit << "num_lock";
     }
 
     out << " ]";

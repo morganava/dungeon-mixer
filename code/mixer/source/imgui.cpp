@@ -716,6 +716,7 @@ namespace tabletopify
                         this->focus_widget();
                         const auto caretPosition = g_nanovg.get_caret_position(
                                 this->_layout.inner_bounds(),
+                                this->data()->textOffset,
                                 this->style().fontFamily,
                                 this->style().fontSize,
                                 this->style().textHalign,
@@ -789,7 +790,6 @@ namespace tabletopify
             }
         }
 
-        // TODO: refactor to make caretIndex same as selectEnd s
         void widget_text_box::last_update_impl()
         {
             if (this->is_focused())
@@ -1089,27 +1089,21 @@ namespace tabletopify
                             this->style().textValign,
                             data()->text,
                             selectEnd);  
-                    MX_LOG_VAR(innerBounds.width());
-                    MX_LOG_VAR(caretOffset);  
 
                     if (caretOffset >= textOffset && caretOffset <= (textOffset + innerBounds.width()))
                     {
-                        MX_LOG_INFO("In View");
                         // do nothing text offset is fine
                     }
                     else if (caretOffset < textOffset)
                     {
-                        MX_LOG_INFO("Before View");
                         // caret to left of view window
                         textOffset = caretOffset;
                     }
                     else
                     {
-                        MX_LOG_INFO("After View");
                         // caret to right of view window
                         textOffset = caretOffset - innerBounds.width();
                     }
-                    MX_LOG_VAR(textOffset);
                     textOffset = std::max(0.0, textOffset);
                 }
             }

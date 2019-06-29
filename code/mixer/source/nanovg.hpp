@@ -71,7 +71,7 @@ namespace tabletopify
         void draw_text_with_selection(const rectf& bounds, float textOffset, font_id font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const utf8_string& str, int32_t selectBegin, int32_t selectEnd, const color& selectedFontColor, const color& selectionColor);
 
         // gets the index into the underlying string buffer clickPoint would be closest to
-        int32_t get_caret_position(const rectf& bounds, font_id font, float fontSize, halign_t halign, valign_t valign, const utf8_string& str, const vec2f& clickPoint);
+        int32_t get_caret_position(const rectf& bounds, float textOffset, font_id font, float fontSize, halign_t halign, valign_t valign, const utf8_string& str, const vec2f& clickPoint);
 
         // gets the offset from bounds beginning of caret
         float get_caret_offset(const rectf& bounds, font_id font, float fontSize, halign_t halign, valign_t valign, const utf8_string& str, size_t caretPosition);
