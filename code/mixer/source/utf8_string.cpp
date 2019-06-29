@@ -286,14 +286,14 @@ namespace tabletopify
     // Iterator Getters
     utf8_string_iterator utf8_string::begin() const
     {
-        utf8proc_uint8_t* head = this->_data.get();
+        utf8proc_uint8_t* head = reinterpret_cast<utf8proc_uint8_t*>(const_cast<char*>(this->c_str()));
         auto tail = head + this->_size;
         return utf8_string_iterator(head, tail);
     }
 
     utf8_string_iterator utf8_string::end() const
     {
-        utf8proc_uint8_t* head = this->_data.get();
+        utf8proc_uint8_t* head = reinterpret_cast<utf8proc_uint8_t*>(const_cast<char*>(this->c_str()));
         auto tail = head + this->_size;
         return utf8_string_iterator(tail, tail);
     }
