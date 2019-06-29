@@ -1,4 +1,3 @@
-find_package(glfw3 3.2 REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(SFML 2.4 REQUIRED COMPONENTS audio)
@@ -63,6 +62,7 @@ target_link_libraries(tabletop_mixer ${GTK3_LIBRARIES})
 target_link_libraries(tabletop_mixer pthread)
 target_link_libraries(tabletop_mixer stdc++fs)
 
+include_directories(../../glfw/include)
 include_directories(../../utf8proc/include)
 include_directories(../../xxhash/include)
 include_directories(../../json/include)
