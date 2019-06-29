@@ -616,6 +616,7 @@ namespace tabletopify
         {
             g_nanovg.draw_text(
                 this->_layout.inner_bounds(),
+                0.0f,
                 this->style().fontFamily,
                 this->style().fontSize,
                 this->style().fontColor,
@@ -670,6 +671,7 @@ namespace tabletopify
         {
             g_nanovg.draw_text(
                 this->_layout.inner_bounds(),
+                0.0f,
                 this->style().fontFamily,
                 this->style().fontSize,
                 this->style().fontColor,
@@ -1137,6 +1139,7 @@ namespace tabletopify
                 {
                     g_nanovg.draw_text_with_selection(
                         this->_layout.inner_bounds(),
+                        this->data()->textOffset,
                         this->style().fontFamily,
                         this->style().fontSize,
                         this->style().fontColor,
@@ -1153,6 +1156,7 @@ namespace tabletopify
             {
                 g_nanovg.draw_text(
                 this->_layout.inner_bounds(),
+                this->data()->textOffset,
                 this->style().fontFamily,
                 this->style().fontSize,
                 this->style().fontColor,

@@ -188,6 +188,7 @@ namespace tabletopify
                 case draw_command::draw_text:
                 {
                     rectf bounds;
+                    float textOffset;
                     font_id font;
                     float size;
                     color col;
@@ -195,6 +196,7 @@ namespace tabletopify
                     valign_t valign;
                     utf8_string_view str;
                     MX_THROW_IF_FALSE(cq.next(bounds));
+                    MX_THROW_IF_FALSE(cq.next(textOffset));
                     MX_THROW_IF_FALSE(cq.next(font));
                     MX_THROW_IF_FALSE(cq.next(size));
                     MX_THROW_IF_FALSE(cq.next(col));
@@ -202,13 +204,14 @@ namespace tabletopify
                     MX_THROW_IF_FALSE(cq.next(valign));
                     MX_THROW_IF_FALSE(cq.next(str));
 
-                    auto pos = text_bounds_to_start_position(bounds, halign, valign);
+                    auto startPosition = text_bounds_to_start_position(bounds, halign, valign);
+                    startPosition.x -= textOffset;
 
                     nvgFontFaceId(_ctx, _nvg_font_faces[font]);
                     nvgFontSize(_ctx, size);
                     nvgTextAlign(_ctx, static_cast<int>(halign) | static_cast<int>(valign));
                     nvgFillColor(_ctx, col);
-                    nvgText(_ctx, pos.x, pos.y, str.begin(), str.end());
+                    nvgText(_ctx, startPosition.x, startPosition.y, str.begin(), str.end());
                 }
                 break;
                 case draw_command::draw_text_with_caret:
@@ -298,6 +301,7 @@ namespace tabletopify
                 case draw_command::draw_text_with_selection:
                 {
                     rectf bounds;
+                    float textOffset;
                     font_id font;
                     float fontSize;
                     color fontColor;
@@ -310,6 +314,7 @@ namespace tabletopify
                     color selectionColor;
 
                     MX_THROW_IF_FALSE(cq.next(bounds));
+                    MX_THROW_IF_FALSE(cq.next(textOffset));
                     MX_THROW_IF_FALSE(cq.next(font));
                     MX_THROW_IF_FALSE(cq.next(fontSize));
                     MX_THROW_IF_FALSE(cq.next(fontColor));
@@ -324,6 +329,7 @@ namespace tabletopify
                     MX_THROW_IF_FALSE(selectEnd > selectBegin);
 
                     auto startPosition = text_bounds_to_start_position(bounds, halign, valign);
+                    startPosition.x -= textOffset;
 
                     // draw the text
                     nvgFontFaceId(_ctx, _nvg_font_faces[font]);
@@ -471,7 +477,7 @@ namespace tabletopify
         cq.push_back(col);
     }
 
-    void nanovg::draw_text(const rectf& bounds, font_id font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const utf8_string& str)
+    void nanovg::draw_text(const rectf& bounds, float textOffset, font_id font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const utf8_string& str)
     {
         if (font == font_id::invalid) {
             return;
@@ -480,6 +486,7 @@ namespace tabletopify
         auto& cq = _command_queue.current;
         cq.push_back(draw_command::draw_text);
         cq.push_back(bounds);
+        cq.push_back(textOffset);
         cq.push_back(font);
         cq.push_back(fontSize);
         cq.push_back(fontColor);
@@ -497,7 +504,7 @@ namespace tabletopify
         auto& cq = _command_queue.current;
         if (caretIndex < 0)
         {
-            draw_text(bounds, font, fontSize, fontColor, halign, valign, str);
+            draw_text(bounds, textOffset, font, fontSize, fontColor, halign, valign, str);
         }
         else
         {
@@ -516,7 +523,7 @@ namespace tabletopify
         }
     }
 
-    void nanovg::draw_text_with_selection(const rectf& bounds, font_id font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const utf8_string& str, int32_t selectBegin, int32_t selectEnd, const color& selectedFontColor, const color& selectionColor)
+    void nanovg::draw_text_with_selection(const rectf& bounds, float textOffset, font_id font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const utf8_string& str, int32_t selectBegin, int32_t selectEnd, const color& selectedFontColor, const color& selectionColor)
     {
         if (font == font_id::invalid) {
             return;
@@ -525,12 +532,13 @@ namespace tabletopify
         auto& cq = _command_queue.current;
         if (selectBegin == selectEnd)
         {
-            draw_text(bounds, font, fontSize, fontColor, halign, valign, str);
+            draw_text(bounds, textOffset, font, fontSize, fontColor, halign, valign, str);
         }
         else
         {
             cq.push_back(draw_command::draw_text_with_selection);
             cq.push_back(bounds);
+            cq.push_back(textOffset);
             cq.push_back(font);
             cq.push_back(fontSize);
             cq.push_back(fontColor);
