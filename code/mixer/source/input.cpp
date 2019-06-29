@@ -359,7 +359,7 @@ namespace tabletopify
     {
         tabletopify::utf8_stringbuffer sb;
         sb.push_back(codepoint);
-        // MX_LOG_INFO("codepoint : {{ codepoint : 0x{:08x}, char : '{}', modifier_keys : {} }}", codepoint, sb.str(), modifiers);
+        MX_LOG_INFO("codepoint : {{ codepoint : 0x{:08x}, char : '{}', modifier_keys : {} }}", codepoint, sb.str(), modifiers);
 
         input_event ie;
         ie.type = input_event_type::charpress;
@@ -368,9 +368,38 @@ namespace tabletopify
         _raw_events.push_back(ie);
     }
 
+    constexpr static key_code_t convert_num_pad_keycode(key_code_t keycode)
+    {
+        if(keycode>= GLFW_KEY_KP_0 && keycode <= GLFW_KEY_KP_DECIMAL)
+        {
+            constexpr key_code_t numpadKeys[] =
+            {
+                GLFW_KEY_INSERT,
+                GLFW_KEY_END,
+                GLFW_KEY_DOWN,
+                GLFW_KEY_PAGE_DOWN,
+                GLFW_KEY_LEFT,
+                GLFW_KEY_KP_5,
+                GLFW_KEY_RIGHT,
+                GLFW_KEY_HOME,
+                GLFW_KEY_UP,
+                GLFW_KEY_PAGE_UP,
+                GLFW_KEY_DELETE,
+            };
+
+            keycode = numpadKeys[keycode - GLFW_KEY_KP_0];
+        }
+        return keycode;
+    }
+
     void input::push_keydown(key_code_t keycode, modifier_keys modifiers)
     {
-        MX_LOG_INFO("keydown : {{ keycode : 0x{:08x}, key : '{}', modifier_keys : {} }}", keycode, key_code_to_key_name(keycode), modifiers);
+        if (!modifiers.num_lock)
+        {
+            keycode = convert_num_pad_keycode(keycode);
+        }
+
+        // MX_LOG_INFO("keydown : {{ keycode : 0x{:08x}, key : '{}', modifier_keys : {} }}", keycode, key_code_to_key_name(keycode), modifiers);
 
         input_event ie;
         ie.type = input_event_type::keydown;
@@ -381,7 +410,12 @@ namespace tabletopify
 
     void input::push_keyrepeat(key_code_t keycode, modifier_keys modifiers)
     {
-        MX_LOG_INFO("keyrepeat : {{ keycode : 0x{:08x}, key : '{}', modifier_keys : {} }}", keycode, key_code_to_key_name(keycode), modifiers);
+        if (!modifiers.num_lock)
+        {
+            keycode = convert_num_pad_keycode(keycode);
+        }
+
+        // MX_LOG_INFO("keyrepeat : {{ keycode : 0x{:08x}, key : '{}', modifier_keys : {} }}", keycode, key_code_to_key_name(keycode), modifiers);
 
         input_event ie;
         ie.type = input_event_type::keyrepeat;
@@ -392,6 +426,11 @@ namespace tabletopify
 
     void input::push_keyup(key_code_t keycode, modifier_keys modifiers)
     {
+        if (!modifiers.num_lock)
+        {
+            keycode = convert_num_pad_keycode(keycode);
+        }
+
         // MX_LOG_INFO("keyup : {{ keycode : 0x{:08x}, key : '{}', modifier_keys : {} }}", keycode, key_code_to_key_name(keycode), modifiers);
 
         input_event ie;

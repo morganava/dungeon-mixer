@@ -61,7 +61,7 @@ namespace tabletopify
 
         // double buffering means we need at least 2 same frames
         // before we can start ignoring draw commands
-        return (_same_frames >= 2);
+        return (_same_frames >= 3);
     }
 
     void nanovg::swap_buffers()
