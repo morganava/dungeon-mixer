@@ -700,100 +700,109 @@ namespace tabletopify
 
         void widget_text_box::first_update_impl()
         {
-            const auto mousePosition = g_input.get_mouse_position(input_frame::current);
-            const auto mouseClicked = g_input.get_mouse_single_clicked(mouse_button::left);
+            modifier_keys mods;
+            vec2 pressPosition, releasePosition;
 
-            if(mouseClicked)
+            const auto point_in_textarea = [&](vec2 position) -> bool
+            {
+                // return point_inside_rect
+                return point_inside_rect(position, scissor()) &&
+                       point_inside_rounded_rect(position, 
+                                                 _layout.border_inner_bounds(),
+                                                 _layout.borderRadius - _layout.borderSize);
+            };
+
+            auto& sb = this->data()->sb;
+            auto& selectBegin = this->data()->selectBegin;
+            auto& selectEnd = this->data()->selectEnd;
+
+            if (g_input.get_mouse_single_clicked(mouse_button::left, mods, pressPosition, releasePosition))
             {
                 this->unfocus_widget();
-            }
-
-            if (point_inside_rect(
-                mousePosition,
-                this->scissor()))
-            {
-                if (point_inside_rounded_rect(
-                    mousePosition,
-                    this->_layout.border_inner_bounds(),
-                    this->_layout.borderRadius - this->_layout.borderSize))
+                if (point_in_textarea(releasePosition) && point_in_textarea(pressPosition))
                 {
-                    g_input.set_mouse_cursor(mouse_cursor::ibeam);
+                    this->focus_widget();
+                    const auto caretPosition = g_nanovg.get_caret_position(
+                        this->_layout.inner_bounds(),
+                        this->data()->textOffset,
+                        this->style().fontFamily,
+                        this->style().fontSize,
+                        this->style().textHalign,
+                        this->style().textValign,
+                        data()->text,
+                        releasePosition);
 
-                    if (mouseClicked)
+                        selectBegin = selectEnd = caretPosition;                    
+                }
+            }
+            else if (g_input.get_mouse_double_clicked(mouse_button::left, mods, releasePosition))
+            {
+                this->unfocus_widget();
+                if (point_in_textarea(releasePosition))
+                {
+                    this->focus_widget();
+                    const auto caretPosition = g_nanovg.get_caret_position(
+                        this->_layout.inner_bounds(),
+                        this->data()->textOffset,
+                        this->style().fontFamily,
+                        this->style().fontSize,
+                        this->style().textHalign,
+                        this->style().textValign,
+                        data()->text,
+                        releasePosition);
+
+                    auto calcSelectRange = [&](auto&& shouldInclude) -> void
                     {
-                        this->focus_widget();
-                        const auto caretPosition = g_nanovg.get_caret_position(
-                                this->_layout.inner_bounds(),
-                                this->data()->textOffset,
-                                this->style().fontFamily,
-                                this->style().fontSize,
-                                this->style().textHalign,
-                                this->style().textValign,
-                                data()->text,
-                                mousePosition);
-
-                        auto& sb = this->data()->sb;
-                        auto& selectBegin = this->data()->selectBegin;
-                        auto& selectEnd = this->data()->selectEnd;
-
-                        // select everything
-                        if(g_input.get_mouse_triple_clicked(mouse_button::left))
+                        // find select end (front of selection)
+                        for(auto it = sb.begin() + caretPosition; it >= sb.begin(); --it)
                         {
-                            selectBegin = 0;
-                            selectEnd = (int32_t)(sb.end() - sb.begin());
-                        }
-                        // select entire word
-                        else if (g_input.get_mouse_double_clicked(mouse_button::left))
-                        {
-                            auto calcSelectRange = [&](auto&& shouldInclude) -> void
+                            if (!shouldInclude(*it))
                             {
-                                // find select end (front of selection)
-                                for(auto it = sb.begin() + caretPosition; it >= sb.begin(); --it)
-                                {
-                                    if (!shouldInclude(*it))
-                                    {
-                                        selectEnd = (int32_t)(it + 1 - sb.begin());
-                                        break;
-                                    }
-                                    else if (it == sb.begin())
-                                    {
-                                        selectEnd = 0;
-                                        break;
-                                    }
-                                }
-                                // find select begin (back of selection)
-                                for(auto it = sb.begin() + caretPosition; it < sb.end(); ++it)
-                                {
-                                    if (!shouldInclude(*it))
-                                    {
-                                        selectBegin = (int32_t)(it - sb.begin());
-                                        break;
-                                    }
-                                    else if (it == (sb.end() - 1))
-                                    {
-                                        selectBegin = (int32_t)(sb.end() - sb.begin());
-                                        break;
-                                    }
-                                }
-                            };
-
-                            // select contiguous whitespace
-                            if ((sb.begin() + caretPosition)->is_whitespace())
-                            {
-                                calcSelectRange([](utf8_codepoint cp) -> bool {return cp.is_whitespace();});
+                                selectEnd = (int32_t)(it + 1 - sb.begin());
+                                break;
                             }
-                            // select contiguous not whitespace
-                            else
+                            else if (it == sb.begin())
                             {
-                                calcSelectRange([](utf8_codepoint cp) -> bool {return !cp.is_whitespace();});
+                                selectEnd = 0;
+                                break;
                             }
                         }
-                        // put cursor under mouse
-                        else
+                        // find select begin (back of selection)
+                        for(auto it = sb.begin() + caretPosition; it < sb.end(); ++it)
                         {
-                            selectBegin = selectEnd = caretPosition;
+                            if (!shouldInclude(*it))
+                            {
+                                selectBegin = (int32_t)(it - sb.begin());
+                                break;
+                            }
+                            else if (it == (sb.end() - 1))
+                            {
+                                selectBegin = (int32_t)(sb.end() - sb.begin());
+                                break;
+                            }
                         }
+                    };
+
+                    // select contiguous whitespace
+                    if ((sb.begin() + caretPosition)->is_whitespace())
+                    {
+                        calcSelectRange([](utf8_codepoint cp) -> bool {return cp.is_whitespace();});
                     }
+                    // select contiguous not whitespace
+                    else
+                    {
+                        calcSelectRange([](utf8_codepoint cp) -> bool {return !cp.is_whitespace();});
+                    }                        
+                }
+            }
+            else if( g_input.get_mouse_triple_clicked(mouse_button::left, mods, releasePosition))
+            {
+                this->unfocus_widget();
+                if (point_in_textarea(releasePosition))
+                {
+                    this->focus_widget();
+                    selectBegin = 0;
+                    selectEnd = (int32_t)(sb.end() - sb.begin());                    
                 }
             }
         }

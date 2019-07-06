@@ -55,7 +55,6 @@ namespace tabletopify
         bool single_clicked(modifier_keys& mods, vec2& pressPosition, vec2& releasePosition) const;
         bool double_clicked(modifier_keys& mods, vec2& position) const;
         bool triple_clicked(modifier_keys& mods, vec2& position) const;
-        void reset();
     private:
         bool single_clicked_impl() const;
         bool double_clicked_impl() const;
@@ -234,9 +233,11 @@ namespace tabletopify
 
         bool get_mouse_double_clicked(mouse_button_t) const;
         bool get_mouse_double_clicked(mouse_button_t, const rect& region) const;
+        bool get_mouse_double_clicked(mouse_button_t, modifier_keys& mods, vec2& releasePosition);
 
         bool get_mouse_triple_clicked(mouse_button_t) const;
         bool get_mouse_triple_clicked(mouse_button_t, const rect& region) const;
+        bool get_mouse_triple_clicked(mouse_button_t, modifier_keys& mods, vec2& releasePosition);
 
         void set_mouse_cursor(mouse_cursor_t cursor);
 
