@@ -7,7 +7,19 @@ namespace tabletopify
 {
     extern GLFWwindow* g_window;
 
-    void click_detector::update(float dt, button_state_t currentState)
+    constexpr modifier_keys operator&(const modifier_keys& left, const modifier_keys& right)
+    {
+        return 
+        {
+            left.shift & right.shift,
+            left.control & right.control,
+            left.alt & right.alt,
+            left.super & right.super,
+            left.num_lock & right.num_lock
+        };
+    }
+
+    void click_detector::update(float dt, button_state_t currentState, vec2 position, modifier_keys modifiers)
     {
         if (currentState != _states[0])
         {
@@ -18,11 +30,15 @@ namespace tabletopify
                 _times[prev] = _times[curr];
                 _frameCount[prev] = _frameCount[curr];
                 _states[prev] = _states[curr];
+                _positions[prev] = _positions[curr];
+                _modifiers[prev] = _modifiers[curr];
             }
 
             _times[0] = dt;
             _states[0] = currentState;
             _frameCount[0] = 1;
+            _positions[0] = position;
+            _modifiers[0] = modifiers;
         }
         else
         {
@@ -31,7 +47,55 @@ namespace tabletopify
         }
     }
 
-    bool click_detector::double_clicked() const
+    bool click_detector::single_clicked(modifier_keys& mods, vec2& pressPosition, vec2& releasePosition) const
+    {
+        // if (!double_clicked_impl() && single_clicked_impl())
+        if (single_clicked_impl())
+        {
+            pressPosition = _positions[1];
+            releasePosition = _positions[0];
+            mods = _modifiers[1] & _modifiers[0];
+            return true;
+        }
+        return false;
+    }
+
+    bool click_detector::double_clicked(modifier_keys& mods, vec2& position) const
+    {
+        if (!triple_clicked_impl() && double_clicked_impl())
+        {
+            position = _positions[0];
+            mods = _modifiers[3] & _modifiers[2] & _modifiers[1] & _modifiers[0];
+            return true;
+        }
+        return false;
+    }
+
+    bool click_detector::triple_clicked(modifier_keys& mods, vec2& position) const
+    {
+        if (triple_clicked_impl())
+        {
+            position = _positions[0];
+            mods = _modifiers[5] & _modifiers[4] & _modifiers[3] & _modifiers[2] & _modifiers[1] & _modifiers[0];
+            return true;
+        }
+        return false;
+    }
+
+    bool click_detector::single_clicked_impl() const
+    {
+        if (_states[0] == button_state::released &&
+            _states[1] == button_state::pressed)
+        {
+            if (_frameCount[0] == 1)
+            {
+                return true;    
+            }
+        }
+        return false;
+    }
+
+    bool click_detector::double_clicked_impl() const
     {
         if (_states[0] == button_state::released &&
             _states[1] == button_state::pressed &&
@@ -54,7 +118,7 @@ namespace tabletopify
         return false;
     }
 
-    bool click_detector::triple_clicked() const
+    bool click_detector::triple_clicked_impl() const
     {
         if (_states[0] == button_state::released &&
             _states[1] == button_state::pressed &&
@@ -246,6 +310,7 @@ namespace tabletopify
         // reset
         _mouse_state.current.scroll = {0.0, 0.0};
         _key_events.clear();
+        _mouse_events.clear();
 
         // consume events
         for(const auto& ie : _raw_events)
@@ -294,6 +359,14 @@ namespace tabletopify
                     _mouse_state.mouse_buttons.left.reset();
                     _mouse_state.mouse_buttons.right.reset();
                     _mouse_state.mouse_buttons.middle.reset();
+                    // mouse event
+                    {
+                        mouse_event me;
+                        me.type = mouse_event_type::mouse_move;
+                        me.mouse_move.previousPosition = _mouse_state.previous.position;
+                        me.mouse_move.position = _mouse_state.current.position;
+                        _mouse_events.push_back(me);
+                    }
                     break;
                 case input_event_type::mousedown:
                     switch(ie.mousedown.button)
@@ -314,6 +387,16 @@ namespace tabletopify
                             _mouse_state.up_position.middle = {-1.0, -1.0};
                             break;
                     }
+                    _mouse_state.current.modifiers = ie.mousedown.modifiers;
+                    // mouse event
+                    {
+                        mouse_event me;
+                        me.type = mouse_event_type::mouse_down;
+                        me.mouse_down.position = _mouse_state.current.position;
+                        me.mouse_down.button = ie.mousedown.button;
+                        me.mouse_down.modifiers = ie.mousedown.modifiers;
+                        _mouse_events.push_back(me);
+                    }
                     break;
                 case input_event_type::mouseup:
                     switch(ie.mouseup.button)
@@ -331,6 +414,16 @@ namespace tabletopify
                             _mouse_state.up_position.middle = _mouse_state.current.position;
                             break;
                     }
+                    _mouse_state.current.modifiers = ie.mousedown.modifiers;
+                    // mouse event
+                    {
+                        mouse_event me;
+                        me.type = mouse_event_type::mouse_up;
+                        me.mouse_up.position = _mouse_state.current.position;
+                        me.mouse_up.button = ie.mousedown.button;
+                        me.mouse_up.modifiers = ie.mousedown.modifiers;
+                        _mouse_events.push_back(me);
+                    }                    
                     break;
                 case input_event_type::scroll:
                     _mouse_state.current.scroll = {ie.scroll.scroll_x, ie.scroll.scroll_y};
@@ -341,9 +434,9 @@ namespace tabletopify
         }
         _raw_events.clear();
 
-        _mouse_state.mouse_buttons.left.update(dt, _mouse_state.current.left);
-        _mouse_state.mouse_buttons.right.update(dt, _mouse_state.current.right);
-        _mouse_state.mouse_buttons.middle.update(dt, _mouse_state.current.middle);
+        _mouse_state.mouse_buttons.left.update(dt, _mouse_state.current.left, _mouse_state.current.position, {});
+        _mouse_state.mouse_buttons.right.update(dt, _mouse_state.current.right, _mouse_state.current.position, {});
+        _mouse_state.mouse_buttons.middle.update(dt, _mouse_state.current.middle, _mouse_state.current.position, {});
 
     }
 
@@ -507,42 +600,48 @@ namespace tabletopify
         return button_state::released;
     }
 
-    bool input::get_mouse_clicked(mouse_button_t btn) const
+    bool input::get_mouse_single_clicked(mouse_button_t btn) const
     {
-        return (get_mouse_button_state(btn, input_frame::current) == button_state::released) &&
-               (get_mouse_button_state(btn, input_frame::previous) == button_state::pressed);
+        modifier_keys mf;
+        vec2 pressed, released;
+        switch(btn)
+        {
+            case mouse_button::left:
+                return _mouse_state.mouse_buttons.left.single_clicked(mf, pressed, released);
+            case mouse_button::right:
+                return _mouse_state.mouse_buttons.right.single_clicked(mf, pressed, released);
+            case mouse_button::middle:
+                return _mouse_state.mouse_buttons.middle.single_clicked(mf, pressed, released);
+        }
+        return false;
     }
 
-    bool input::get_mouse_clicked(mouse_button_t btn, const rect& region) const
+    bool input::get_mouse_single_clicked(mouse_button_t btn, modifier_keys& mods, vec2& pressPosition, vec2& releasePosition) const
     {
-        if (get_mouse_clicked(btn))
+        switch(btn)
         {
-            switch(btn)
-            {
-                case mouse_button::left:
-                    return point_inside_rect(_mouse_state.down_position.left, region) &&
-                           point_inside_rect(_mouse_state.up_position.left, region);
-                case mouse_button::right:
-                    return point_inside_rect(_mouse_state.down_position.right, region) &&
-                           point_inside_rect(_mouse_state.up_position.right, region);
-                case mouse_button::middle:
-                    return point_inside_rect(_mouse_state.down_position.middle, region) &&
-                           point_inside_rect(_mouse_state.up_position.middle, region);
-            }
+            case mouse_button::left:
+                return _mouse_state.mouse_buttons.left.single_clicked(mods, pressPosition, releasePosition);
+            case mouse_button::right:
+                return _mouse_state.mouse_buttons.right.single_clicked(mods, pressPosition, releasePosition);
+            case mouse_button::middle:
+                return _mouse_state.mouse_buttons.middle.single_clicked(mods, pressPosition, releasePosition);
         }
         return false;
     }
 
     bool input::get_mouse_double_clicked(mouse_button_t btn) const
     {
+        modifier_keys mf;
+        vec2 clicked;
         switch(btn)
         {
             case mouse_button::left:
-                return _mouse_state.mouse_buttons.left.double_clicked();
+                return _mouse_state.mouse_buttons.left.double_clicked(mf, clicked);
             case mouse_button::right:
-                return _mouse_state.mouse_buttons.right.double_clicked();
+                return _mouse_state.mouse_buttons.right.double_clicked(mf, clicked);
             case mouse_button::middle:
-                return _mouse_state.mouse_buttons.middle.double_clicked();
+                return _mouse_state.mouse_buttons.middle.double_clicked(mf, clicked);
         }
         return false;
     }
@@ -554,14 +653,16 @@ namespace tabletopify
 
     bool input::get_mouse_triple_clicked(mouse_button_t btn) const
     {
+        modifier_keys mf;
+        vec2 clicked;
         switch(btn)
         {
             case mouse_button::left:
-                return _mouse_state.mouse_buttons.left.triple_clicked();
+                return _mouse_state.mouse_buttons.left.triple_clicked(mf, clicked);
             case mouse_button::right:
-                return _mouse_state.mouse_buttons.right.triple_clicked();
+                return _mouse_state.mouse_buttons.right.triple_clicked(mf, clicked);
             case mouse_button::middle:
-                return _mouse_state.mouse_buttons.middle.triple_clicked();
+                return _mouse_state.mouse_buttons.middle.triple_clicked(mf, clicked);
         }
         return false;
     }

@@ -232,11 +232,17 @@ namespace tabletopify
 
         void widget_scroll_area::first_update_impl()
         {
-            if (g_input.get_mouse_clicked(mouse_button::left, this->childScissor()))
+            modifier_keys mods;
+            vec2 pressPosition, releasePosition;
+            // if (g_input.get_mouse_single_clicked(mouse_button::left, this->childScissor()))
+            if (g_input.get_mouse_single_clicked(mouse_button::left, mods, pressPosition, releasePosition))
             {
-                this->focus_widget();
+                if (point_inside_rect(pressPosition, this->childScissor()) && point_inside_rect(releasePosition, this->childScissor()))
+                {
+                    this->focus_widget();
+                }
             }
-            else if (g_input.get_mouse_clicked(mouse_button::left))
+            else if (g_input.get_mouse_single_clicked(mouse_button::left))
             {
                 this->unfocus_widget();
             }
@@ -646,16 +652,18 @@ namespace tabletopify
 
         void widget_button::first_update_impl()
         {
-            if (g_input.get_mouse_clicked(mouse_button::left))
+            modifier_keys mods;
+            vec2 pressPosition, releasePosition;
+            if (g_input.get_mouse_single_clicked(mouse_button::left, mods, pressPosition, releasePosition))
             {
-                const auto mouse_position = g_input.get_mouse_position(input_frame::current);
-                if (point_inside_rect(
-                        mouse_position,
-                        this->scissor()) &&
-                    point_inside_rounded_rect(
-                        mouse_position,
-                        this->_layout.border_outer_bounds(),
-                        this->_layout.borderRadius))
+                if (point_inside_rect(pressPosition, this->scissor()) && 
+                    point_inside_rect(releasePosition, this->scissor()) &&
+                    point_inside_rounded_rect(pressPosition, 
+                                              this->_layout.border_outer_bounds(),
+                                              this->_layout.borderRadius) &&
+                    point_inside_rounded_rect(releasePosition, 
+                                              this->_layout.border_outer_bounds(),
+                                              this->_layout.borderRadius))
                 {
                     this->focus_widget();
                     this->_clicked = true;
@@ -693,7 +701,7 @@ namespace tabletopify
         void widget_text_box::first_update_impl()
         {
             const auto mousePosition = g_input.get_mouse_position(input_frame::current);
-            const auto mouseClicked = g_input.get_mouse_clicked(mouse_button::left);
+            const auto mouseClicked = g_input.get_mouse_single_clicked(mouse_button::left);
 
             if(mouseClicked)
             {

@@ -36,12 +36,6 @@ namespace tabletopify
 
     static void graphics_key_func(GLFWwindow*, int32_t key, int32_t scancode, int32_t action, int32_t mods)
     {
-        // handle num lock keys
-        if (mods & GLFW_MOD_NUM_LOCK)
-        {
-            // MX_LOG_INFO("NUM LOCK");
-        }
-
         switch(action)
         {
             case GLFW_PRESS:

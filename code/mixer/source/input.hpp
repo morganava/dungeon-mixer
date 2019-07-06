@@ -51,17 +51,23 @@ namespace tabletopify
     class click_detector
     {
     public:
-        void update(float dt, button_state_t currentState);
-        bool double_clicked() const;
-        bool triple_clicked() const;
+        void update(float dt, button_state_t currentState, vec2 position, modifier_keys modifiers);
+        bool single_clicked(modifier_keys& mods, vec2& pressPosition, vec2& releasePosition) const;
+        bool double_clicked(modifier_keys& mods, vec2& position) const;
+        bool triple_clicked(modifier_keys& mods, vec2& position) const;
         void reset();
     private:
+        bool single_clicked_impl() const;
+        bool double_clicked_impl() const;
+        bool triple_clicked_impl() const;
         constexpr static int32_t BUCKET_COUNT = 7;
-        // TODO: get these constants from window manager
+        // TODO: get this constant from window manager
         const float _doubleClickTime = 0.5f;
         float _times[BUCKET_COUNT];
         uint32_t _frameCount[BUCKET_COUNT];
         button_state_t _states[BUCKET_COUNT];
+        vec2 _positions[BUCKET_COUNT];
+        modifier_keys _modifiers[BUCKET_COUNT];
     };
 
     struct input_event
@@ -136,6 +142,53 @@ namespace tabletopify
         { }
     };
 
+    typedef enum class mouse_event_type
+    {
+        invalid = -1,
+        mouse_move,
+        mouse_down,
+        mouse_up,
+        mouse_click,
+        mouse_single_click = mouse_click,
+        mouse_double_click,
+        mouse_triple_click,
+    } mouse_event_type_t;
+
+    struct mouse_event
+    {
+        mouse_event_type_t type;
+        struct {} invalid;
+        struct {
+            vec2 previousPosition;
+            vec2 position;
+        } mouse_move;
+        struct {
+            vec2 position;
+            mouse_button_t button;
+            modifier_keys modifiers;
+        } mouse_down;
+        struct {
+            vec2 position;
+            mouse_button_t button;
+            modifier_keys modifiers;
+        } mouse_up;
+        struct {
+            vec2 position;
+            mouse_button_t button;
+            modifier_keys modifiers;
+        } mouse_click;
+        struct {
+            vec2 position;
+            mouse_button_t button;
+            modifier_keys modifiers;
+        } mouse_double_click;
+        struct {
+            vec2 position;
+            mouse_button_t button;
+            modifier_keys modifiers;
+        } mouse_triple_click;
+    };
+
     namespace mouse_cursor
     {
         enum value
@@ -176,8 +229,8 @@ namespace tabletopify
         vec2 get_mouse_scroll(input_frame_t frame) const;
         button_state_t get_mouse_button_state(mouse_button_t, input_frame_t frame) const;
         constexpr const std::vector<keyboard_event>& get_keyevents() const { return _key_events; }
-        bool get_mouse_clicked(mouse_button_t) const;
-        bool get_mouse_clicked(mouse_button_t, const rect& region) const;
+        bool get_mouse_single_clicked(mouse_button_t) const;
+        bool get_mouse_single_clicked(mouse_button_t, modifier_keys& mods, vec2& pressPosition, vec2& releasePosition) const;
 
         bool get_mouse_double_clicked(mouse_button_t) const;
         bool get_mouse_double_clicked(mouse_button_t, const rect& region) const;
@@ -193,6 +246,7 @@ namespace tabletopify
         std::map<key_code_t, utf8_string> _key_names;
         std::vector<input_event> _raw_events;
         std::vector<keyboard_event> _key_events;
+        std::vector<mouse_event> _mouse_events;
         GLFWcursor* _mouse_cursors[mouse_cursor::count] = {};
 
         struct
