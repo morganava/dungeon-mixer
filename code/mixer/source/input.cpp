@@ -39,12 +39,16 @@ namespace tabletopify
             _frameCount[0] = 1;
             _positions[0] = position;
             _modifiers[0] = modifiers;
+            MX_LOG_VAR(modifiers);
         }
         else
         {
             _times[0] += dt;
             _frameCount[0] += 1;
         }
+
+        /* TODO: precalculate the click state so that single/double/triple clicked are just getters
+          add click handled method to reset this */
     }
 
     bool click_detector::single_clicked(modifier_keys& mods, vec2& pressPosition, vec2& releasePosition) const
@@ -419,9 +423,9 @@ namespace tabletopify
         }
         _raw_events.clear();
 
-        _mouse_state.mouse_buttons.left.update(dt, _mouse_state.current.left, _mouse_state.current.position, {});
-        _mouse_state.mouse_buttons.right.update(dt, _mouse_state.current.right, _mouse_state.current.position, {});
-        _mouse_state.mouse_buttons.middle.update(dt, _mouse_state.current.middle, _mouse_state.current.position, {});
+        _mouse_state.mouse_buttons.left.update(dt, _mouse_state.current.left, _mouse_state.current.position, _mouse_state.current.modifiers);
+        _mouse_state.mouse_buttons.right.update(dt, _mouse_state.current.right, _mouse_state.current.position, _mouse_state.current.modifiers);
+        _mouse_state.mouse_buttons.middle.update(dt, _mouse_state.current.middle, _mouse_state.current.position, _mouse_state.current.modifiers);
 
     }
 

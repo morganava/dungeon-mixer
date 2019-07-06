@@ -732,7 +732,16 @@ namespace tabletopify
                         data()->text,
                         releasePosition);
 
-                        selectBegin = selectEnd = caretPosition;                    
+                        MX_LOG_VAR(mods);
+
+                        if (mods.shift)
+                        {
+                            selectEnd = caretPosition;
+                        }
+                        else
+                        {
+                            selectBegin = selectEnd = caretPosition;    
+                        }
                 }
             }
             else if (g_input.get_mouse_double_clicked(mouse_button::left, mods, releasePosition))
