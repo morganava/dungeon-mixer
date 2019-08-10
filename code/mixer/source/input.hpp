@@ -51,10 +51,14 @@ namespace tabletopify
     class click_detector
     {
     public:
-        void update(float dt, button_state_t currentState, vec2 position, modifier_keys modifiers);
+        void update(float dt);
+        void push_state(button_state_t buttonState, modifier_keys modifiers);
+        void push_position(vec2 position);
         bool single_clicked(modifier_keys& mods, vec2& pressPosition, vec2& releasePosition) const;
         bool double_clicked(modifier_keys& mods, vec2& position) const;
         bool triple_clicked(modifier_keys& mods, vec2& position) const;
+
+        void reset();
     private:
         bool single_clicked_impl() const;
         bool double_clicked_impl() const;
@@ -147,8 +151,7 @@ namespace tabletopify
         mouse_move,
         mouse_down,
         mouse_up,
-        mouse_click,
-        mouse_single_click = mouse_click,
+        mouse_single_click,
         mouse_double_click,
         mouse_triple_click,
     } mouse_event_type_t;
@@ -172,10 +175,11 @@ namespace tabletopify
             modifier_keys modifiers;
         } mouse_up;
         struct {
-            vec2 position;
+            vec2 pressPosition;
+            vec2 releasePosition;
             mouse_button_t button;
             modifier_keys modifiers;
-        } mouse_click;
+        } mouse_single_click;
         struct {
             vec2 position;
             mouse_button_t button;
@@ -228,16 +232,17 @@ namespace tabletopify
         vec2 get_mouse_scroll(input_frame_t frame) const;
         button_state_t get_mouse_button_state(mouse_button_t, input_frame_t frame) const;
         constexpr const std::vector<keyboard_event>& get_keyevents() const { return _key_events; }
+        constexpr const std::vector<mouse_event>& get_mouse_events() const { return _mouse_events; }
         bool get_mouse_single_clicked(mouse_button_t) const;
         bool get_mouse_single_clicked(mouse_button_t, modifier_keys& mods, vec2& pressPosition, vec2& releasePosition) const;
 
         bool get_mouse_double_clicked(mouse_button_t) const;
         bool get_mouse_double_clicked(mouse_button_t, const rect& region) const;
-        bool get_mouse_double_clicked(mouse_button_t, modifier_keys& mods, vec2& releasePosition);
+        bool get_mouse_double_clicked(mouse_button_t, modifier_keys& mods, vec2& releasePosition) const;
 
         bool get_mouse_triple_clicked(mouse_button_t) const;
         bool get_mouse_triple_clicked(mouse_button_t, const rect& region) const;
-        bool get_mouse_triple_clicked(mouse_button_t, modifier_keys& mods, vec2& releasePosition);
+        bool get_mouse_triple_clicked(mouse_button_t, modifier_keys& mods, vec2& releasePosition) const;
 
         void set_mouse_cursor(mouse_cursor_t cursor);
 
