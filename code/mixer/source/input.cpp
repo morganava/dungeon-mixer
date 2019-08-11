@@ -333,8 +333,8 @@ namespace tabletopify
                     ke.codepoint = ie.charpress.codepoint;
                     ke.modifiers = ie.charpress.modifiers;
                     _key_events.push_back(ke);
+                    break;
                 }
-                break;
                 case input_event_type::keydown:
                 {
                     keyboard_event ke;
@@ -342,8 +342,8 @@ namespace tabletopify
                     ke.keycode = ie.keydown.keycode;
                     ke.modifiers = ie.keydown.modifiers;
                     _key_events.push_back(ke);
+                    break;
                 }
-                break;
                 case input_event_type::keyrepeat:
                 {
                     keyboard_event ke;
@@ -351,8 +351,8 @@ namespace tabletopify
                     ke.keycode = ie.keyrepeat.keycode;
                     ke.modifiers = ie.keyrepeat.modifiers;
                     _key_events.push_back(ke);
+                    break;
                 }
-                break;
                 case input_event_type::keyup:
                 {
                     keyboard_event ke;
@@ -360,87 +360,95 @@ namespace tabletopify
                     ke.keycode = ie.keyup.keycode;
                     ke.modifiers = ie.keyup.modifiers;
                     _key_events.push_back(ke);
+                    break;
                 }
-                break;
                 // mouse events
                 case input_event_type::mousemove:
-                    _mouse_state.current.position = ie.mousemove.position;
-                    // mouse event
-                    {
-                        mouse_event me;
-                        me.type = mouse_event_type::mouse_move;
-                        me.mouse_move.previousPosition = _mouse_state.previous.position;
-                        me.mouse_move.position = _mouse_state.current.position;
-                        _mouse_events.push_back(me);
+                {
+                    const auto position = ie.mousemove.position;
+                    const auto prevPosition = _mouse_state.current.position;
 
-                        _mouse_state.mouse_buttons[mouse_button::left].push_position(_mouse_state.current.position);
-                        _mouse_state.mouse_buttons[mouse_button::right].push_position(_mouse_state.current.position);
-                        _mouse_state.mouse_buttons[mouse_button::middle].push_position(_mouse_state.current.position);
-                    }
+                    _mouse_state.current.position = position;
+
+                    _mouse_state.mouse_buttons[mouse_button::left].push_position(position);
+                    _mouse_state.mouse_buttons[mouse_button::right].push_position(position);
+                    _mouse_state.mouse_buttons[mouse_button::middle].push_position(position);
+
+                    mouse_event me;
+                    me.type = mouse_event_type::mouse_move;
+                    me.mouse_move.previousPosition = prevPosition;
+                    me.mouse_move.position = position;
+                    _mouse_events.push_back(me);
+
                     break;
+                }
                 case input_event_type::mousedown:
-                    _mouse_state.mouse_buttons[ie.mousedown.button].push_state(button_state::pressed, ie.mousedown.modifiers);
-                    _mouse_state.current.buttons[ie.mousedown.button] = button_state::pressed;
-                    // mouse event
+                {
+                    const auto button = ie.mousedown.button;
+                    MX_ASSERT(button >= mouse_button::left && button < mouse_button::count);
+                    const auto modifiers = ie.mousedown.modifiers;
+                    const auto position = _mouse_state.current.position;
+
+                    _mouse_state.mouse_buttons[button].push_state(button_state::pressed, modifiers);
+                    _mouse_state.current.buttons[button] = button_state::pressed;
+
+                    mouse_event me;
+                    me.type = mouse_event_type::mouse_down;
+                    me.mouse_down.position = position;
+                    me.mouse_down.button = button;
+                    me.mouse_down.modifiers = modifiers;
+                    _mouse_events.push_back(me);
+
+                    break;
+                }
+                case input_event_type::mouseup:
+                {
+                    const auto button = ie.mouseup.button;
+                    MX_ASSERT(button >= mouse_button::left && button < mouse_button::count);
+                    const auto modifiers = ie.mousedown.modifiers;
+                    const auto position = _mouse_state.current.position;
+
+                    _mouse_state.current.buttons[button] = button_state::released;
+                    auto& cd = _mouse_state.mouse_buttons[button];
+
+                    cd.push_state(button_state::released, modifiers);
+
+                    // single click event
+                    if (mouse_event me; cd.single_clicked(me.mouse_single_click.modifiers, me.mouse_single_click.pressPosition, me.mouse_single_click.releasePosition))
                     {
-                        mouse_event me;
-                        me.type = mouse_event_type::mouse_down;
-                        me.mouse_down.position = _mouse_state.current.position;
-                        me.mouse_down.button = ie.mousedown.button;
-                        me.mouse_down.modifiers = ie.mousedown.modifiers;
+                        me.type = mouse_event_type::mouse_single_click;
+                        me.mouse_single_click.button = button;
                         _mouse_events.push_back(me);
                     }
-                    break;
-                case input_event_type::mouseup:
+                    // double click event
+                    else if (mouse_event me; cd.double_clicked(me.mouse_double_click.modifiers, me.mouse_double_click.position))
                     {
-                        const auto button = ie.mouseup.button;
-                        const auto modifiers = ie.mousedown.modifiers;
-
-                        _mouse_state.current.buttons[button] = button_state::released;
-                        auto& cd = _mouse_state.mouse_buttons[button];
-
-                        cd.push_state(button_state::released, modifiers);
-
-                        // single click event
-                        if (mouse_event me; cd.single_clicked(me.mouse_single_click.modifiers, me.mouse_single_click.pressPosition, me.mouse_single_click.releasePosition))
-                        {
-                            me.type = mouse_event_type::mouse_single_click;
-                            me.mouse_single_click.button = button;
-
-                            MX_LOG_INFO("SINGLE CLICK {}", button);
-                            _mouse_events.push_back(me);
-                        }
-                        // double click event
-                        else if (mouse_event me; cd.double_clicked(me.mouse_double_click.modifiers, me.mouse_double_click.position))
-                        {
-                            me.type = mouse_event_type::mouse_double_click;
-                            me.mouse_double_click.button = button;
-
-                            MX_LOG_INFO("DOUBLE CLICK {}", button);
-                            _mouse_events.push_back(me);
-                        }
-                        // triple click event
-                        else if (mouse_event me; cd.triple_clicked(me.mouse_triple_click.modifiers, me.mouse_triple_click.position))
-                        {
-                            me.type = mouse_event_type::mouse_triple_click;
-                            me.mouse_triple_click.button = button;
-
-                            _mouse_events.push_back(me);
-                            MX_LOG_INFO("TRIPLE CLICK {}", ie.mouseup.button);
-                            cd.reset();
-                        }
-
-                        // mouse down event
-                        mouse_event me;
-                        me.type = mouse_event_type::mouse_up;
-                        me.mouse_down.position = _mouse_state.current.position;
-
+                        me.type = mouse_event_type::mouse_double_click;
+                        me.mouse_double_click.button = button;
                         _mouse_events.push_back(me);
-                    }                 
+                    }
+                    // triple click event
+                    else if (mouse_event me; cd.triple_clicked(me.mouse_triple_click.modifiers, me.mouse_triple_click.position))
+                    {
+                        me.type = mouse_event_type::mouse_triple_click;
+                        me.mouse_triple_click.button = button;
+                        _mouse_events.push_back(me);
+                        cd.reset();
+                    }
+
+                    // mouse down event
+                    mouse_event me;
+                    me.type = mouse_event_type::mouse_up;
+                    me.mouse_down.position = position;
+                    _mouse_events.push_back(me);
+
                     break;
+                }                 
                 case input_event_type::scroll:
+                {
                     _mouse_state.current.scroll += {ie.scroll.scroll_x, ie.scroll.scroll_y};
                     break;
+                }
                 default:
                     break;
             }
