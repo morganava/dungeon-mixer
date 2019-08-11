@@ -379,7 +379,6 @@ namespace tabletopify
                     }
                     break;
                 case input_event_type::mousedown:
-                    _mouse_state.current.modifiers = ie.mousedown.modifiers;
                     _mouse_state.mouse_buttons[ie.mousedown.button].push_state(button_state::pressed, ie.mousedown.modifiers);
                     _mouse_state.current.buttons[ie.mousedown.button] = button_state::pressed;
                     // mouse event
@@ -397,7 +396,6 @@ namespace tabletopify
                         const auto button = ie.mouseup.button;
                         const auto modifiers = ie.mousedown.modifiers;
 
-                        _mouse_state.current.modifiers = modifiers;
                         _mouse_state.current.buttons[button] = button_state::released;
                         auto& cd = _mouse_state.mouse_buttons[button];
 

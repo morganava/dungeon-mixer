@@ -268,7 +268,6 @@ namespace tabletopify
                 vec2 position = {-1.0, -1.0};
                 vec2 scroll = {0.0, 0.0};
                 button_state_t buttons[mouse_button::count];
-                modifier_keys modifiers;
                 mouse_cursor_t cursor;
             } current, previous;
 
