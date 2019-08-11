@@ -380,21 +380,8 @@ namespace tabletopify
                     break;
                 case input_event_type::mousedown:
                     _mouse_state.current.modifiers = ie.mousedown.modifiers;
-                    switch(ie.mousedown.button)
-                    {
-                        case mouse_button::left:
-                            _mouse_state.current.left = button_state::pressed;
-                            _mouse_state.mouse_buttons[mouse_button::left].push_state(button_state::pressed, ie.mousedown.modifiers);
-                            break;
-                        case mouse_button::right:
-                            _mouse_state.current.right = button_state::pressed;
-                            _mouse_state.mouse_buttons[mouse_button::right].push_state(button_state::pressed, ie.mousedown.modifiers);
-                            break;
-                        case mouse_button::middle:
-                            _mouse_state.current.middle = button_state::pressed;
-                            _mouse_state.mouse_buttons[mouse_button::middle].push_state(button_state::pressed, ie.mousedown.modifiers);
-                            break;
-                    }
+                    _mouse_state.mouse_buttons[ie.mousedown.button].push_state(button_state::pressed, ie.mousedown.modifiers);
+                    _mouse_state.current.buttons[ie.mousedown.button] = button_state::pressed;
                     // mouse event
                     {
                         mouse_event me;
@@ -407,41 +394,54 @@ namespace tabletopify
                     break;
                 case input_event_type::mouseup:
                     {
-                        _mouse_state.current.modifiers = ie.mousedown.modifiers;
-                        auto& cd = [&]() -> click_detector&
-                        {
-                            return _mouse_state.mouse_buttons[ie.mouseup.button];
-                        }();
-                        cd.push_state(button_state::released, ie.mousedown.modifiers);
+                        const auto button = ie.mouseup.button;
+                        const auto modifiers = ie.mousedown.modifiers;
+
+                        _mouse_state.current.modifiers = modifiers;
+                        _mouse_state.current.buttons[button] = button_state::released;
+                        auto& cd = _mouse_state.mouse_buttons[button];
+
+                        cd.push_state(button_state::released, modifiers);
+
+                        // single click event
                         if (mouse_event me; cd.single_clicked(me.mouse_single_click.modifiers, me.mouse_single_click.pressPosition, me.mouse_single_click.releasePosition))
                         {
                             me.type = mouse_event_type::mouse_single_click;
-                            me.mouse_single_click.button = mouse_button::left;
+                            me.mouse_single_click.button = button;
 
-                            MX_LOG_INFO("SINGLE CLICK {}", ie.mouseup.button);
+                            MX_LOG_INFO("SINGLE CLICK {}", button);
                             _mouse_events.push_back(me);
                         }
+                        // double click event
                         else if (mouse_event me; cd.double_clicked(me.mouse_double_click.modifiers, me.mouse_double_click.position))
                         {
                             me.type = mouse_event_type::mouse_double_click;
-                            me.mouse_double_click.button = mouse_button::left;
+                            me.mouse_double_click.button = button;
 
-                            MX_LOG_INFO("DOUBLE CLICK {}", ie.mouseup.button);
+                            MX_LOG_INFO("DOUBLE CLICK {}", button);
                             _mouse_events.push_back(me);
                         }
+                        // triple click event
                         else if (mouse_event me; cd.triple_clicked(me.mouse_triple_click.modifiers, me.mouse_triple_click.position))
                         {
                             me.type = mouse_event_type::mouse_triple_click;
-                            me.mouse_triple_click.button = mouse_button::left;
+                            me.mouse_triple_click.button = button;
 
                             _mouse_events.push_back(me);
                             MX_LOG_INFO("TRIPLE CLICK {}", ie.mouseup.button);
                             cd.reset();
                         }
+
+                        // mouse down event
+                        mouse_event me;
+                        me.type = mouse_event_type::mouse_up;
+                        me.mouse_down.position = _mouse_state.current.position;
+
+                        _mouse_events.push_back(me);
                     }                 
                     break;
                 case input_event_type::scroll:
-                    _mouse_state.current.scroll = {ie.scroll.scroll_x, ie.scroll.scroll_y};
+                    _mouse_state.current.scroll += {ie.scroll.scroll_x, ie.scroll.scroll_y};
                     break;
                 default:
                     break;
@@ -594,20 +594,9 @@ namespace tabletopify
 
     button_state_t input::get_mouse_button_state(mouse_button_t btn, input_frame_t frame) const
     {
+        MX_ASSERT(btn >= mouse_button::left && btn < mouse_button::count);
         auto& mouse_state = frame == input_frame::previous ? _mouse_state.previous : _mouse_state.current;
-        switch(btn)
-        {
-            case mouse_button::left:
-                return mouse_state.left;
-                break;
-            case mouse_button::right:
-                return mouse_state.right;
-                break;
-            case mouse_button::middle:
-                return mouse_state.middle;
-                break;
-        }
-        return button_state::released;
+        return mouse_state.buttons[btn];
     }
 
     bool input::get_mouse_single_clicked(mouse_button_t btn) const

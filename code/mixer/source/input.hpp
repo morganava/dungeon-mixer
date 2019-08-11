@@ -8,11 +8,13 @@ namespace tabletopify
 
     namespace mouse_button
     {
-        enum  value
+        enum value
         {
             left   = GLFW_MOUSE_BUTTON_LEFT,
             right  = GLFW_MOUSE_BUTTON_RIGHT,
-            middle = GLFW_MOUSE_BUTTON_MIDDLE
+            middle = GLFW_MOUSE_BUTTON_MIDDLE,
+
+            count
         };
     }
     typedef mouse_button::value mouse_button_t;
@@ -265,25 +267,12 @@ namespace tabletopify
             {
                 vec2 position = {-1.0, -1.0};
                 vec2 scroll = {0.0, 0.0};
-                struct
-                {
-                    button_state_t left    : 1;
-                    button_state_t right   : 1;
-                    button_state_t middle  : 1;
-                };
+                button_state_t buttons[mouse_button::count];
                 modifier_keys modifiers;
                 mouse_cursor_t cursor;
             } current, previous;
 
-#if 0
-            struct
-            {
-                click_detector left;
-                click_detector right;
-                click_detector middle;
-            } mouse_buttons;
-#endif
-            click_detector mouse_buttons[3];
+            click_detector mouse_buttons[mouse_button::count];
         } _mouse_state;
 
     };
