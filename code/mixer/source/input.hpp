@@ -6,12 +6,16 @@ namespace tabletopify
 {
     typedef int32_t key_code_t;
 
-    typedef enum class mouse_button : int_fast8_t
+    namespace mouse_button
     {
-        left   = GLFW_MOUSE_BUTTON_LEFT,
-        right  = GLFW_MOUSE_BUTTON_RIGHT,
-        middle = GLFW_MOUSE_BUTTON_MIDDLE
-    } mouse_button_t;
+        enum  value
+        {
+            left   = GLFW_MOUSE_BUTTON_LEFT,
+            right  = GLFW_MOUSE_BUTTON_RIGHT,
+            middle = GLFW_MOUSE_BUTTON_MIDDLE
+        };
+    }
+    typedef mouse_button::value mouse_button_t;
 
     typedef enum class input_frame : int_fast8_t
     {
@@ -271,26 +275,15 @@ namespace tabletopify
                 mouse_cursor_t cursor;
             } current, previous;
 
-            struct
-            {
-                vec2 left = {-1.0, -1.0};
-                vec2 right = {-1.0, -1.0};
-                vec2 middle = {-1.0, -1.0};
-            } down_position;
-
-            struct
-            {
-                vec2 left = {-1.0, -1.0};
-                vec2 right = {-1.0, -1.0};
-                vec2 middle = {-1.0, -1.0};
-            } up_position;
-
+#if 0
             struct
             {
                 click_detector left;
                 click_detector right;
                 click_detector middle;
             } mouse_buttons;
+#endif
+            click_detector mouse_buttons[3];
         } _mouse_state;
 
     };

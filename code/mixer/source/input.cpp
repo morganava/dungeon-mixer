@@ -316,9 +316,9 @@ namespace tabletopify
         _key_events.clear();
         _mouse_events.clear();
 
-        _mouse_state.mouse_buttons.left.update(dt);
-        _mouse_state.mouse_buttons.right.update(dt);
-        _mouse_state.mouse_buttons.middle.update(dt);
+        _mouse_state.mouse_buttons[mouse_button::left].update(dt);
+        _mouse_state.mouse_buttons[mouse_button::right].update(dt);
+        _mouse_state.mouse_buttons[mouse_button::middle].update(dt);
 
         // consume events
         for(const auto& ie : _raw_events)
@@ -373,9 +373,9 @@ namespace tabletopify
                         me.mouse_move.position = _mouse_state.current.position;
                         _mouse_events.push_back(me);
 
-                        _mouse_state.mouse_buttons.left.push_position(_mouse_state.current.position);
-                        _mouse_state.mouse_buttons.right.push_position(_mouse_state.current.position);
-                        _mouse_state.mouse_buttons.middle.push_position(_mouse_state.current.position);
+                        _mouse_state.mouse_buttons[mouse_button::left].push_position(_mouse_state.current.position);
+                        _mouse_state.mouse_buttons[mouse_button::right].push_position(_mouse_state.current.position);
+                        _mouse_state.mouse_buttons[mouse_button::middle].push_position(_mouse_state.current.position);
                     }
                     break;
                 case input_event_type::mousedown:
@@ -384,21 +384,15 @@ namespace tabletopify
                     {
                         case mouse_button::left:
                             _mouse_state.current.left = button_state::pressed;
-                            _mouse_state.down_position.left = _mouse_state.current.position;
-                            _mouse_state.up_position.left = {-1.0, -1.0};
-                            _mouse_state.mouse_buttons.left.push_state(button_state::pressed, ie.mousedown.modifiers);
+                            _mouse_state.mouse_buttons[mouse_button::left].push_state(button_state::pressed, ie.mousedown.modifiers);
                             break;
                         case mouse_button::right:
                             _mouse_state.current.right = button_state::pressed;
-                            _mouse_state.down_position.right = _mouse_state.current.position;
-                            _mouse_state.up_position.right = {-1.0, -1.0};
-                            _mouse_state.mouse_buttons.right.push_state(button_state::pressed, ie.mousedown.modifiers);
+                            _mouse_state.mouse_buttons[mouse_button::right].push_state(button_state::pressed, ie.mousedown.modifiers);
                             break;
                         case mouse_button::middle:
                             _mouse_state.current.middle = button_state::pressed;
-                            _mouse_state.down_position.middle = _mouse_state.current.position;
-                            _mouse_state.up_position.middle = {-1.0, -1.0};
-                            _mouse_state.mouse_buttons.middle.push_state(button_state::pressed, ie.mousedown.modifiers);
+                            _mouse_state.mouse_buttons[mouse_button::middle].push_state(button_state::pressed, ie.mousedown.modifiers);
                             break;
                     }
                     // mouse event
@@ -416,13 +410,7 @@ namespace tabletopify
                         _mouse_state.current.modifiers = ie.mousedown.modifiers;
                         auto& cd = [&]() -> click_detector&
                         {
-                            switch(ie.mouseup.button)
-                            {
-                                case mouse_button::left: return _mouse_state.mouse_buttons.left;
-                                case mouse_button::right: return _mouse_state.mouse_buttons.right;
-                                case mouse_button::middle: return _mouse_state.mouse_buttons.middle;
-                                default: throw;
-                            }
+                            return _mouse_state.mouse_buttons[ie.mouseup.button];
                         }();
                         cd.push_state(button_state::released, ie.mousedown.modifiers);
                         if (mouse_event me; cd.single_clicked(me.mouse_single_click.modifiers, me.mouse_single_click.pressPosition, me.mouse_single_click.releasePosition))
@@ -460,10 +448,6 @@ namespace tabletopify
             }
         }
         _raw_events.clear();
-
-        
-        // _mouse_state.mouse_buttons.right.push_state(_mouse_state.current.right, _mouse_state.current.modifiers);
-        // _mouse_state.mouse_buttons.middle.push_state(_mouse_state.current.middle, _mouse_state.current.modifiers);
     }
 
     void input::update_cursor()
