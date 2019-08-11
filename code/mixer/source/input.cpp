@@ -64,22 +64,24 @@ namespace tabletopify
         return false;
     }
 
-    bool click_detector::double_clicked(modifier_keys& mods, vec2& position) const
+    bool click_detector::double_clicked(modifier_keys& mods, vec2& beginPosition, vec2& endPosition) const
     {
         if (!triple_clicked_impl() && double_clicked_impl())
         {
-            position = _positions[0];
+            beginPosition = _positions[3];
+            endPosition = _positions[0];
             mods = _modifiers[3] & _modifiers[2] & _modifiers[1] & _modifiers[0];
             return true;
         }
         return false;
     }
 
-    bool click_detector::triple_clicked(modifier_keys& mods, vec2& position) const
+    bool click_detector::triple_clicked(modifier_keys& mods, vec2& beginPosition, vec2& endPosition) const
     {
         if (triple_clicked_impl())
         {
-            position = _positions[0];
+            beginPosition = _positions[5];
+            endPosition = _positions[0];
             mods = _modifiers[5] & _modifiers[4] & _modifiers[3] & _modifiers[2] & _modifiers[1] & _modifiers[0];
             return true;
         }
@@ -414,21 +416,21 @@ namespace tabletopify
                     cd.push_state(button_state::released, modifiers);
 
                     // single click event
-                    if (mouse_event me; cd.single_clicked(me.mouse_single_click.modifiers, me.mouse_single_click.pressPosition, me.mouse_single_click.releasePosition))
+                    if (mouse_event me; cd.single_clicked(me.mouse_single_click.modifiers, me.mouse_single_click.beginPosition, me.mouse_single_click.endPosition))
                     {
                         me.type = mouse_event_type::mouse_single_click;
                         me.mouse_single_click.button = button;
                         _mouse_events.push_back(me);
                     }
                     // double click event
-                    else if (mouse_event me; cd.double_clicked(me.mouse_double_click.modifiers, me.mouse_double_click.position))
+                    else if (mouse_event me; cd.double_clicked(me.mouse_double_click.modifiers, me.mouse_double_click.beginPosition, me.mouse_double_click.endPosition))
                     {
                         me.type = mouse_event_type::mouse_double_click;
                         me.mouse_double_click.button = button;
                         _mouse_events.push_back(me);
                     }
                     // triple click event
-                    else if (mouse_event me; cd.triple_clicked(me.mouse_triple_click.modifiers, me.mouse_triple_click.position))
+                    else if (mouse_event me; cd.triple_clicked(me.mouse_triple_click.modifiers,  me.mouse_triple_click.beginPosition, me.mouse_triple_click.endPosition))
                     {
                         me.type = mouse_event_type::mouse_triple_click;
                         me.mouse_triple_click.button = button;
@@ -612,15 +614,15 @@ namespace tabletopify
         return this->get_mouse_single_clicked(btn, mods, press, release);
     }
 
-    bool input::get_mouse_single_clicked(mouse_button_t btn, modifier_keys& mods, vec2& pressPosition, vec2& releasePosition) const
+    bool input::get_mouse_single_clicked(mouse_button_t btn, modifier_keys& mods, vec2& beginPosition, vec2& endPosition) const
     {
         for (auto& me : this->_mouse_events)
         {
             if (me.type == mouse_event_type::mouse_single_click && me.mouse_single_click.button == btn)
             {
                 mods = me.mouse_single_click.modifiers;
-                pressPosition = me.mouse_single_click.pressPosition;
-                releasePosition = me.mouse_single_click.releasePosition;
+                beginPosition = me.mouse_single_click.beginPosition;
+                endPosition = me.mouse_single_click.endPosition;
                 return true;
             }
         }
@@ -630,8 +632,8 @@ namespace tabletopify
     bool input::get_mouse_double_clicked(mouse_button_t btn) const
     {
         modifier_keys mods;
-        vec2 position;
-        return this->get_mouse_double_clicked(btn, mods, position);
+        vec2 beginPosition, endPosition;;
+        return this->get_mouse_double_clicked(btn, mods, beginPosition, endPosition);
     }
 
     bool input::get_mouse_double_clicked(mouse_button_t btn, const rect& region) const
@@ -639,14 +641,15 @@ namespace tabletopify
         return point_inside_rect(_mouse_state.current.position, region) && get_mouse_double_clicked(btn);
     }
 
-    bool input::get_mouse_double_clicked(mouse_button_t btn, modifier_keys& mods, vec2& releasePosition) const
+    bool input::get_mouse_double_clicked(mouse_button_t btn, modifier_keys& mods, vec2& beginPosition, vec2& endPosition) const
     {
         for (auto& me : this->_mouse_events)
         {
             if (me.type == mouse_event_type::mouse_double_click && me.mouse_double_click.button == btn)
             {
                 mods = me.mouse_double_click.modifiers;
-                releasePosition = me.mouse_double_click.position;
+                beginPosition = me.mouse_double_click.beginPosition;
+                endPosition = me.mouse_double_click.endPosition;
                 return true;
             }
         }
@@ -656,8 +659,8 @@ namespace tabletopify
     bool input::get_mouse_triple_clicked(mouse_button_t btn) const
     {
         modifier_keys mods;
-        vec2 position;
-        return this->get_mouse_triple_clicked(btn, mods, position);
+        vec2 beginPosition, endPosition;
+        return this->get_mouse_triple_clicked(btn, mods, beginPosition, endPosition);
     }
 
     bool input::get_mouse_triple_clicked(mouse_button_t btn, const rect& region) const
@@ -665,14 +668,15 @@ namespace tabletopify
         return point_inside_rect(_mouse_state.current.position, region) && get_mouse_triple_clicked(btn);
     }
 
-    bool input::get_mouse_triple_clicked(mouse_button_t btn, modifier_keys& mods, vec2& releasePosition) const
+    bool input::get_mouse_triple_clicked(mouse_button_t btn, modifier_keys& mods, vec2& beginPosition, vec2& endPosition) const
     {
         for (auto& me : this->_mouse_events)
         {
             if (me.type == mouse_event_type::mouse_triple_click && me.mouse_triple_click.button == btn)
             {
                 mods = me.mouse_triple_click.modifiers;
-                releasePosition = me.mouse_triple_click.position;
+                beginPosition = me.mouse_triple_click.beginPosition;
+                endPosition = me.mouse_triple_click.endPosition;
                 return true;
             }
         }

@@ -744,10 +744,10 @@ namespace tabletopify
                         }
                 }
             }
-            else if (g_input.get_mouse_double_clicked(mouse_button::left, mods, releasePosition))
+            else if (g_input.get_mouse_double_clicked(mouse_button::left, mods, pressPosition, releasePosition))
             {
                 this->unfocus_widget();
-                if (point_in_textarea(releasePosition))
+                if (point_in_textarea(pressPosition) && point_in_textarea(releasePosition))
                 {
                     this->focus_widget();
                     const auto caretPosition = g_nanovg.get_caret_position(
@@ -804,10 +804,10 @@ namespace tabletopify
                     }                        
                 }
             }
-            else if( g_input.get_mouse_triple_clicked(mouse_button::left, mods, releasePosition))
+            else if( g_input.get_mouse_triple_clicked(mouse_button::left, mods, pressPosition, releasePosition))
             {
                 this->unfocus_widget();
-                if (point_in_textarea(releasePosition))
+                if (point_in_textarea(pressPosition) && point_in_textarea(releasePosition))
                 {
                     this->focus_widget();
                     selectBegin = 0;
