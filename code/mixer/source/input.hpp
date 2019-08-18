@@ -41,19 +41,6 @@ namespace tabletopify
         button_state_t num_lock  : 1;
     };
 
-    typedef enum class input_event_type
-    {
-        invalid = -1,
-        charpress,
-        keydown,
-        keyrepeat,
-        keyup,
-        mousemove,
-        mousedown,
-        mouseup,
-        scroll,
-    } input_event_type_t;
-
     class click_detector
     {
     public:
@@ -79,9 +66,23 @@ namespace tabletopify
         modifier_keys _modifiers[BUCKET_COUNT];
     };
 
-    struct input_event
+    // raw events from glfw
+    typedef enum class raw_input_event_type
     {
-        input_event_type_t type;
+        invalid = -1,
+        charpress,
+        keydown,
+        keyrepeat,
+        keyup,
+        mousemove,
+        mousedown,
+        mouseup,
+        scroll,
+    } raw_input_event_type_t;
+
+    struct raw_input_event
+    {
+        raw_input_event_type_t type;
         union
         {
             struct {
@@ -119,85 +120,117 @@ namespace tabletopify
             } scroll;
         };
 
-        input_event()
-        : type(input_event_type::invalid)
+        raw_input_event()
+        : type(raw_input_event_type::invalid)
         , invalid({})
         { }
     };
-    typedef enum class keyboard_event_type
-    {
-        invalid = -1,
-        charpress,
-        keydown,
-        keyrepeat,
-        keyup,
-    } keyboard_event_type_t;
 
-    struct keyboard_event
+    namespace input_event_type
     {
-        keyboard_event_type_t type;
+        enum value
+        {
+            invalid = -1,
+            // keyboard
+            charpress,
+            keydown,
+            keyrepeat,
+            keyup,
+            // mouse   
+            mouse_move,
+            mouse_down,
+            mouse_up,
+            mouse_single_click,
+            mouse_double_click,
+            mouse_triple_click,
+            mouse_scroll,    
+        };
+    };
+    typedef input_event_type::value input_event_type_t;
+    
+    constexpr bool is_keyboard_event(input_event_type_t evt)
+    {
+        return evt >= input_event_type::charpress &&
+               evt <= input_event_type::keyup;
+    }
+
+    constexpr bool is_mouse_event(input_event_type_t evt)
+    {
+        return evt >= input_event_type::mouse_move &&
+               evt <= input_event_type::mouse_scroll;
+    }
+
+    class input_event
+    {
+    public:
+        input_event() 
+        : _type(input_event_type::invalid)
+        { }
+
+        input_event_type_t type() const
+        {
+            return _type;
+        }
+
+        utf8_codepoint codepoint() const
+        {
+            MX_ASSERT(is_keyboard_event(_type));
+            return _keyboard.codepoint;
+        }
+
+        key_code_t keycode() const
+        {
+            MX_ASSERT(is_keyboard_event(_type));
+            return _keyboard.keycode;
+        }
+
+        mouse_button_t mouse_button() const
+        {
+            MX_ASSERT(is_mouse_event(_type));
+            return _mouse.button;   
+        }
+
+        vec2 prev_position() const
+        {
+            MX_ASSERT(is_mouse_event(_type));
+            return _mouse.prevPosition;
+        }
+
+        vec2 position() const
+        {
+            MX_ASSERT(is_mouse_event(_type));
+            return _mouse.position;
+        }
+
+        modifier_keys modifiers() const
+        {
+            return _modifiers;
+        }
+
+        vec2 scroll() const
+        {
+            MX_ASSERT(_type == input_event_type::mouse_scroll);
+            return _scroll;
+        }
+    private:
+        input_event_type_t _type;
         union
         {
             struct {
-            } invalid;
-            utf8_codepoint codepoint;
-            key_code_t keycode;
+                utf8_codepoint codepoint;
+                key_code_t keycode;
+            } _keyboard;
+            struct {
+                mouse_button_t button;
+                vec2 prevPosition;
+                vec2 position;
+            } _mouse;
         };
-        modifier_keys modifiers;
+        modifier_keys _modifiers;
+        vec2 _scroll;
+        friend class input;
 
-        keyboard_event()
-        : type(keyboard_event_type::invalid)
-        , invalid({})
-        { }
-    };
 
-    typedef enum class mouse_event_type
-    {
-        invalid = -1,
-        mouse_move,
-        mouse_down,
-        mouse_up,
-        mouse_single_click,
-        mouse_double_click,
-        mouse_triple_click,
-    } mouse_event_type_t;
-
-    struct mouse_event
-    {
-        mouse_event_type_t type;
-        struct {} invalid;
-        struct {
-            vec2 previousPosition;
-            vec2 position;
-        } mouse_move;
-        struct {
-            vec2 position;
-            mouse_button_t button;
-            modifier_keys modifiers;
-        } mouse_down;
-        struct {
-            vec2 position;
-            mouse_button_t button;
-            modifier_keys modifiers;
-        } mouse_up;
-        struct {
-            vec2 beginPosition;
-            vec2 endPosition;
-            mouse_button_t button;
-            modifier_keys modifiers;
-        } mouse_single_click;
-        struct {
-            vec2 beginPosition;
-            vec2 endPosition;
-            mouse_button_t button;
-            modifier_keys modifiers;
-        } mouse_double_click;
-        struct {
-            vec2 beginPosition;
-            vec2 endPosition;
-            mouse_button_t button;
-            modifier_keys modifiers;
-        } mouse_triple_click;
     };
 
     namespace mouse_cursor
@@ -239,8 +272,8 @@ namespace tabletopify
         vec2 get_mouse_position(input_frame_t frame) const;
         vec2 get_mouse_scroll(input_frame_t frame) const;
         button_state_t get_mouse_button_state(mouse_button_t, input_frame_t frame) const;
-        constexpr const std::vector<keyboard_event>& get_keyevents() const { return _key_events; }
-        constexpr const std::vector<mouse_event>& get_mouse_events() const { return _mouse_events; }
+        constexpr const std::vector<input_event>& get_input_events() const { return _input_events; }
+
         bool get_mouse_single_clicked(mouse_button_t) const;
         bool get_mouse_single_clicked(mouse_button_t, modifier_keys& mods, vec2& beginPosition, vec2& endPosition) const;
 
@@ -258,9 +291,8 @@ namespace tabletopify
         void set_clipboard_string(const utf8_string& str);
     private:
         std::map<key_code_t, utf8_string> _key_names;
-        std::vector<input_event> _raw_events;
-        std::vector<keyboard_event> _key_events;
-        std::vector<mouse_event> _mouse_events;
+        std::vector<raw_input_event> _raw_events;
+        std::vector<input_event> _input_events;
         GLFWcursor* _mouse_cursors[mouse_cursor::count] = {};
 
         struct
@@ -275,7 +307,6 @@ namespace tabletopify
 
             click_detector mouse_buttons[mouse_button::count];
         } _mouse_state;
-
     };
 
     inline constexpr input& g_input = singleton<input>::get();

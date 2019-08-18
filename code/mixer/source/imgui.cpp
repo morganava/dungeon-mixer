@@ -472,12 +472,12 @@ namespace tabletopify
                 // handle keyboard input
                 if (this->is_focused())
                 {
-                    for(auto kbevent : g_input.get_keyevents())
+                    for(auto evt : g_input.get_input_events())
                     {
-                        if (kbevent.type == keyboard_event_type::keydown ||
-                            kbevent.type == keyboard_event_type::keyrepeat)
+                        if (evt.type() == input_event_type::keydown ||
+                            evt.type() == input_event_type::keyrepeat)
                         {
-                            const auto keycode = kbevent.keycode;
+                            const auto keycode = evt.keycode();
                             if (scroll_vertical)
                             {
                                 switch(keycode)
@@ -825,7 +825,7 @@ namespace tabletopify
                 auto& selectBegin = this->data()->selectBegin;
                 auto& selectEnd = this->data()->selectEnd;
 
-                for(auto kbevent : g_input.get_keyevents())
+                for(auto evt : g_input.get_input_events())
                 {
                     const bool textSelected = (selectBegin != selectEnd);
                     const auto from = std::min(selectBegin, selectEnd);
@@ -881,21 +881,21 @@ namespace tabletopify
                         return it;
                     };
 
-                    if (kbevent.type == keyboard_event_type::keydown ||
-                        kbevent.type == keyboard_event_type::keyrepeat)
+                    if (evt.type() == input_event_type::keydown ||
+                        evt.type() == input_event_type::keyrepeat)
                     {
-                        switch(kbevent.keycode)
+                        switch(evt.keycode())
                         {
                             //
                             // Navigation
                             //
                             case GLFW_KEY_LEFT:
                                 // skip to begining of current word
-                                if (kbevent.modifiers.control)
+                                if (evt.modifiers().control)
                                 {
                                     auto it = findWordBegin();
                                     selectEnd = (it - sb.begin());
-                                    if (!kbevent.modifiers.shift)
+                                    if (!evt.modifiers().shift)
                                     {
                                         selectBegin = selectEnd;
                                     }
@@ -904,7 +904,7 @@ namespace tabletopify
                                 {
                                     if (textSelected)
                                     {
-                                        if (kbevent.modifiers.shift)
+                                        if (evt.modifiers().shift)
                                         {
                                             selectEnd = std::max(selectEnd - 1, size_t(0));
                                         }
@@ -918,7 +918,7 @@ namespace tabletopify
                                     {
                                         // move left 1
                                         selectEnd = std::max(selectEnd - 1, size_t(0));
-                                        if (!kbevent.modifiers.shift)
+                                        if (!evt.modifiers().shift)
                                         {
                                             selectBegin = selectEnd;
                                         }
@@ -927,11 +927,11 @@ namespace tabletopify
                                 break;
                             case GLFW_KEY_RIGHT:
                                 // skip to end of current word
-                                if (kbevent.modifiers.control)
+                                if (evt.modifiers().control)
                                 {
                                     auto it = findWordEnd();
                                     selectEnd = (it - sb.begin());
-                                    if (!kbevent.modifiers.shift)
+                                    if (!evt.modifiers().shift)
                                     {
                                         selectBegin = selectEnd;
                                     }
@@ -940,7 +940,7 @@ namespace tabletopify
                                 {
                                     if (textSelected)
                                     {
-                                        if (kbevent.modifiers.shift)
+                                        if (evt.modifiers().shift)
                                         {
                                             selectEnd = std::min(selectEnd + 1, sb.size());
                                         }
@@ -954,7 +954,7 @@ namespace tabletopify
                                     {
                                         // move right 1
                                         selectEnd = std::min(selectEnd + 1, sb.size());
-                                        if (!kbevent.modifiers.shift)
+                                        if (!evt.modifiers().shift)
                                         {
                                             selectBegin = selectEnd;
                                         }
@@ -965,7 +965,7 @@ namespace tabletopify
                             case GLFW_KEY_HOME:
                                 // begin of line
                                 selectEnd = 0;
-                                if (!kbevent.modifiers.shift)
+                                if (!evt.modifiers().shift)
                                 {
                                     selectBegin = selectEnd;
                                 }
@@ -974,7 +974,7 @@ namespace tabletopify
                             case GLFW_KEY_END:
                                 // end of line
                                 selectEnd = sb.size();
-                                if (!kbevent.modifiers.shift)
+                                if (!evt.modifiers().shift)
                                 {
                                     selectBegin = selectEnd;
                                 }
@@ -991,7 +991,7 @@ namespace tabletopify
                                     selectBegin = selectEnd = from;
                                 }
                                 // delete next word
-                                else if (kbevent.modifiers.control && selectEnd < sb.size())
+                                else if (evt.modifiers().control && selectEnd < sb.size())
                                 {
                                     auto it = findWordEnd();
                                     sb.erase(sb.begin() + selectEnd, it);
@@ -1013,7 +1013,7 @@ namespace tabletopify
                                     selectBegin = selectEnd = from;
                                 }
                                 // delete previous word
-                                else if (kbevent.modifiers.control && selectEnd > 0)
+                                else if (evt.modifiers().control && selectEnd > 0)
                                 {
                                     auto it = findWordBegin();
                                     sb.erase(it, sb.begin() + selectEnd);
@@ -1040,7 +1040,7 @@ namespace tabletopify
                             //
                             // Select All
                             case GLFW_KEY_A:
-                                if (kbevent.modifiers.control)
+                                if (evt.modifiers().control)
                                 {
                                     selectBegin = 0;
                                     selectEnd = (int32_t)(sb.end() - sb.begin());
@@ -1048,7 +1048,7 @@ namespace tabletopify
                                 break;
                             // Cut
                             case GLFW_KEY_X:
-                                if (kbevent.modifiers.control)
+                                if (evt.modifiers().control)
                                 {
                                     const auto str = sb.str(sb.begin() + from, sb.begin() + to);
                                     g_input.set_clipboard_string(str);
@@ -1060,7 +1060,7 @@ namespace tabletopify
                                 break;
                             // Copy
                             case GLFW_KEY_C:
-                                if (kbevent.modifiers.control)
+                                if (evt.modifiers().control)
                                 {
                                     const auto str = sb.str(sb.begin() + from, sb.begin() + to);
                                     g_input.set_clipboard_string(str);
@@ -1068,7 +1068,7 @@ namespace tabletopify
                                 break;
                             // Paste
                             case GLFW_KEY_V:
-                                if (kbevent.modifiers.control)
+                                if (evt.modifiers().control)
                                 {
                                     // remove selected text
                                     sb.erase(sb.begin() + from, sb.begin() + to);
@@ -1083,7 +1083,7 @@ namespace tabletopify
                                 break;
                         }
                     }
-                    else if(kbevent.type == keyboard_event_type::charpress)
+                    else if(evt.type() == input_event_type::charpress)
                     {
                         textDirty = true;
                         if (textSelected)
@@ -1091,7 +1091,7 @@ namespace tabletopify
                             sb.erase(sb.begin() + from, sb.begin() + to);
                         }
 
-                        sb.insert(sb.begin() + selectEnd, kbevent.codepoint);
+                        sb.insert(sb.begin() + selectEnd, evt.codepoint());
                         selectBegin = ++selectEnd;
                     }
                 }
@@ -1103,7 +1103,7 @@ namespace tabletopify
                 }
 
                 // update text offset                
-                if (g_input.get_keyevents().size() > 0)
+                if (g_input.get_input_events().size() > 0)
                 {
                     const auto innerBounds = this->_layout.inner_bounds();
                     auto& textOffset = this->data()->textOffset;
