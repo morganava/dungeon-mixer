@@ -327,53 +327,53 @@ namespace tabletopify
             switch(ie.type)
             {
                 // keyboard events
-                case raw_input_event_type::charpress:
+                case raw_input_event_type::char_press:
                 {
                     input_event evt;
-                    evt._type = input_event_type::charpress;
+                    evt._type = input_event_type::char_press;
                     evt._keyboard.codepoint = ie.charpress.codepoint;
                     evt._modifiers = ie.charpress.modifiers;
                     _input_events.push_back(evt);
                     break;
                 }
-                case raw_input_event_type::keydown:
+                case raw_input_event_type::key_down:
                 {
                     input_event evt;
-                    evt._type = input_event_type::keydown;
+                    evt._type = input_event_type::key_down;
                     evt._keyboard.keycode = ie.keydown.keycode;
                     evt._modifiers = ie.keydown.modifiers;
                     _input_events.push_back(evt);
                     break;
                 }
-                case raw_input_event_type::keyrepeat:
+                case raw_input_event_type::key_repeat:
                 {
                     input_event evt;
-                    evt._type = input_event_type::keyrepeat;
+                    evt._type = input_event_type::key_repeat;
                     evt._keyboard.keycode = ie.keyrepeat.keycode;
                     evt._modifiers = ie.keyrepeat.modifiers;
                     _input_events.push_back(evt);
                     break;
                 }
-                case raw_input_event_type::keyup:
+                case raw_input_event_type::key_up:
                 {
                     input_event evt;
-                    evt._type = input_event_type::keyup;
+                    evt._type = input_event_type::key_up;
                     evt._keyboard.keycode = ie.keyup.keycode;
                     evt._modifiers = ie.keyup.modifiers;
                     _input_events.push_back(evt);
                     break;
                 }
                 // mouse events
-                case raw_input_event_type::mousemove:
+                case raw_input_event_type::mouse_move:
                 {
                     const auto position = ie.mousemove.position;
                     const auto prevPosition = _mouse_state.current.position;
 
                     _mouse_state.current.position = position;
 
-                    _mouse_state.mouse_buttons[mouse_button::left].push_position(position);
-                    _mouse_state.mouse_buttons[mouse_button::right].push_position(position);
-                    _mouse_state.mouse_buttons[mouse_button::middle].push_position(position);
+                    _mouse_state.mouse_buttons[mouse_button::left].reset();
+                    _mouse_state.mouse_buttons[mouse_button::right].reset();
+                    _mouse_state.mouse_buttons[mouse_button::middle].reset();
 
                     input_event evt;
                     evt._type = input_event_type::mouse_move;
@@ -383,7 +383,7 @@ namespace tabletopify
 
                     break;
                 }
-                case raw_input_event_type::mousedown:
+                case raw_input_event_type::mouse_down:
                 {
                     const auto button = ie.mousedown.button;
                     MX_ASSERT(button >= mouse_button::left && button < mouse_button::count);
@@ -391,6 +391,7 @@ namespace tabletopify
                     const auto position = _mouse_state.current.position;
 
                     _mouse_state.mouse_buttons[button].push_state(button_state::pressed, modifiers);
+                    _mouse_state.mouse_buttons[button].push_position(position);
                     _mouse_state.current.buttons[button] = button_state::pressed;
 
                     input_event evt;
@@ -401,7 +402,7 @@ namespace tabletopify
 
                     break;
                 }
-                case raw_input_event_type::mouseup:
+                case raw_input_event_type::mouse_up:
                 {
                     const auto button = ie.mouseup.button;
                     MX_ASSERT(button >= mouse_button::left && button < mouse_button::count);
@@ -412,6 +413,7 @@ namespace tabletopify
                     auto& cd = _mouse_state.mouse_buttons[button];
 
                     cd.push_state(button_state::released, modifiers);
+                    cd.push_position(position);
 
                     // single click event
                     if (input_event evt; cd.single_clicked(evt._modifiers, evt._mouse.prevPosition, evt._mouse.position))
@@ -473,7 +475,7 @@ namespace tabletopify
         MX_LOG_INFO("codepoint : {{ codepoint : 0x{:08x}, char : '{}', modifier_keys : {} }}", codepoint, sb.str(), modifiers);
 
         raw_input_event ie;
-        ie.type = raw_input_event_type::charpress;
+        ie.type = raw_input_event_type::char_press;
         ie.charpress.codepoint = codepoint;
         ie.charpress.modifiers = modifiers;
         _raw_events.push_back(ie);
@@ -513,7 +515,7 @@ namespace tabletopify
         // MX_LOG_INFO("keydown : {{ keycode : 0x{:08x}, key : '{}', modifier_keys : {} }}", keycode, key_code_to_key_name(keycode), modifiers);
 
         raw_input_event ie;
-        ie.type = raw_input_event_type::keydown;
+        ie.type = raw_input_event_type::key_down;
         ie.keydown.keycode = keycode;
         ie.keydown.modifiers = modifiers;
         _raw_events.push_back(ie);
@@ -529,7 +531,7 @@ namespace tabletopify
         // MX_LOG_INFO("keyrepeat : {{ keycode : 0x{:08x}, key : '{}', modifier_keys : {} }}", keycode, key_code_to_key_name(keycode), modifiers);
 
         raw_input_event ie;
-        ie.type = raw_input_event_type::keyrepeat;
+        ie.type = raw_input_event_type::key_repeat;
         ie.keyrepeat.keycode = keycode;
         ie.keyrepeat.modifiers = modifiers;
         _raw_events.push_back(ie);
@@ -545,7 +547,7 @@ namespace tabletopify
         // MX_LOG_INFO("keyup : {{ keycode : 0x{:08x}, key : '{}', modifier_keys : {} }}", keycode, key_code_to_key_name(keycode), modifiers);
 
         raw_input_event ie;
-        ie.type = raw_input_event_type::keyup;
+        ie.type = raw_input_event_type::key_up;
         ie.keyup.keycode = keycode;
         ie.keyup.modifiers = modifiers;
         _raw_events.push_back(ie);
@@ -555,7 +557,7 @@ namespace tabletopify
     {
         // MX_LOG_INFO("mousemove : {{ position : {} }}", pos);
         raw_input_event ie;
-        ie.type = raw_input_event_type::mousemove;
+        ie.type = raw_input_event_type::mouse_move;
         ie.mousemove.position = pos;
         _raw_events.push_back(ie);
     }
@@ -564,7 +566,7 @@ namespace tabletopify
     {
         // MX_LOG_INFO("mousedown : {{ button : {}, modifier_keys : {} }}", btn, modifiers);
         raw_input_event ie;
-        ie.type = raw_input_event_type::mousedown;
+        ie.type = raw_input_event_type::mouse_down;
         ie.mousedown.button = btn;
         ie.mousedown.modifiers = modifiers;
         _raw_events.push_back(ie);
@@ -574,7 +576,7 @@ namespace tabletopify
     {
         // MX_LOG_INFO("mouseup : {{ button : {}, modifier_keys : {} }}", btn, modifiers);
         raw_input_event ie;
-        ie.type = raw_input_event_type::mouseup;
+        ie.type = raw_input_event_type::mouse_up;
         ie.mouseup.button = btn;
         ie.mouseup.modifiers = modifiers;
         _raw_events.push_back(ie);

@@ -181,11 +181,10 @@ namespace tabletopify
             // widget interface methods
             static rect bounds_callback(widget_base* wb, const rect& desired) {  MX_ASSERT(!"Empty bounds callback, widget should not have children"); return {};}
             void first_update_impl() {}
+            void middle_update_impl() {}
             void first_render_impl() const {}
             void last_update_impl() {}
             void last_render_impl() const {}
-
-
 
         private:
             // shared margin/border/padding rendering
@@ -271,6 +270,11 @@ namespace tabletopify
             void first_render() const
             {
                 static_cast<const T*>(this)->first_render_impl();
+            }
+
+            void middle_update()
+            {
+                static_cast<T*>(this)->middle_update_impl();
             }
 
             void push_render_bounds()
@@ -476,8 +480,7 @@ namespace tabletopify
         public:
             using widget::widget;
 
-            void first_update_impl();
-            void last_update_impl();
+            void middle_update_impl();
             void first_render_impl() const;
 
             callback<const utf8_string&> on_submit;
@@ -499,11 +502,12 @@ namespace tabletopify
         [&](auto& self) -> bool {\
             __VA_ARGS__\
             ;\
-            self.resolve_box_layout();\
-            self.first_update();\
-            self.resolve_style();\
-            self.render_box_layout();\
-            self.first_render();\
+            self.resolve_box_layout(); /* for click detection */\
+            self.first_update(); /* post geometry but pre style */\
+            self.resolve_style(); /* get the style */\
+            self.middle_update(); /* post style resolution but pre render */\
+            self.render_box_layout(); /* common box layout rendering */\
+            self.first_render(); /* widget specific rendering */\
             self.push_render_bounds();\
             return true;\
         }(widget##__LINE__))

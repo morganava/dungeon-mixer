@@ -474,8 +474,8 @@ namespace tabletopify
                 {
                     for(auto evt : g_input.get_input_events())
                     {
-                        if (evt.type() == input_event_type::keydown ||
-                            evt.type() == input_event_type::keyrepeat)
+                        if (evt.type() == input_event_type::key_down ||
+                            evt.type() == input_event_type::key_repeat)
                         {
                             const auto keycode = evt.keycode();
                             if (scroll_vertical)
@@ -652,25 +652,26 @@ namespace tabletopify
 
         void widget_button::first_update_impl()
         {
-            modifier_keys mods;
-            vec2 pressPosition, releasePosition;
-            if (g_input.get_mouse_single_clicked(mouse_button::left, mods, pressPosition, releasePosition))
+            for(auto evt : g_input.get_input_events())
             {
-                if (point_inside_rect(pressPosition, this->scissor()) && 
-                    point_inside_rect(releasePosition, this->scissor()) &&
-                    point_inside_rounded_rect(pressPosition, 
-                                              this->_layout.border_outer_bounds(),
-                                              this->_layout.borderRadius) &&
-                    point_inside_rounded_rect(releasePosition, 
-                                              this->_layout.border_outer_bounds(),
-                                              this->_layout.borderRadius))
+                if (evt.type() == input_event_type::mouse_single_click)
                 {
-                    this->focus_widget();
-                    this->_clicked = true;
-                }
-                else
-                {
-                    this->unfocus_widget();
+                    if (point_inside_rect(evt.position(), this->scissor()) &&
+                        point_inside_rect(evt.prev_position(), this->scissor()) &&
+                        point_inside_rounded_rect(evt.position(),
+                                                  this->_layout.border_outer_bounds(),
+                                                  this->_layout.borderRadius) &&
+                        point_inside_rounded_rect(evt.prev_position(),
+                                                  this->_layout.border_outer_bounds(),
+                                                  this->_layout.borderRadius))
+                    {
+                        this->focus_widget();
+                        this->_clicked = true;
+                    }
+                    else
+                    {
+                        this->unfocus_widget();
+                    }
                 }
             }
         }
@@ -698,10 +699,12 @@ namespace tabletopify
 
         // Text Box
 
-        void widget_text_box::first_update_impl()
+        void widget_text_box::middle_update_impl()
         {
-            modifier_keys mods;
-            vec2 pressPosition, releasePosition;
+            bool textDirty = false;
+            auto& sb = this->data()->sb;
+            auto& selectBegin = this->data()->selectBegin;
+            auto& selectEnd = this->data()->selectEnd;
 
             const auto point_in_textarea = [&](vec2 position) -> bool
             {
@@ -711,179 +714,177 @@ namespace tabletopify
                                                  _layout.border_inner_bounds(),
                                                  _layout.borderRadius - _layout.borderSize);
             };
-
-            auto& sb = this->data()->sb;
-            auto& selectBegin = this->data()->selectBegin;
-            auto& selectEnd = this->data()->selectEnd;
-
-            if (g_input.get_mouse_single_clicked(mouse_button::left, mods, pressPosition, releasePosition))
+            const auto findWordBegin = [&]()
             {
-                this->unfocus_widget();
-                if (point_in_textarea(releasePosition) && point_in_textarea(pressPosition))
+                bool foundNonWhitespace = false;
+                auto it = sb.begin() + selectEnd;
+                while(it > sb.begin())
                 {
-                    this->focus_widget();
-                    const auto caretPosition = g_nanovg.get_caret_position(
-                        this->_layout.inner_bounds(),
-                        this->data()->textOffset,
-                        this->style().fontFamily,
-                        this->style().fontSize,
-                        this->style().textHalign,
-                        this->style().textValign,
-                        data()->text,
-                        releasePosition);
-
-                        MX_LOG_VAR(mods);
-
-                        if (mods.shift)
+                    --it;
+                    if (foundNonWhitespace)
+                    {
+                        if (it->is_whitespace())
                         {
-                            selectEnd = caretPosition;
+                            ++it;
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        if (!it->is_whitespace())
+                        {
+                            foundNonWhitespace = true;
+                        }
+                    }
+                }
+                return it;
+            };
+            const auto findWordEnd = [&]()
+            {
+                bool foundNonWhitespace = false;
+                auto it = sb.begin() + selectEnd;
+                while (it < sb.end())
+                {
+                    if (foundNonWhitespace)
+                    {
+                        if (it->is_whitespace())
+                        {
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        if (!it->is_whitespace())
+                        {
+                            foundNonWhitespace = true;
+                        }
+                    }
+                    ++it;
+                }
+                return it;
+            };
+
+            for (auto evt : g_input.get_input_events())
+            {
+                const bool textSelected = (selectBegin != selectEnd);
+                const auto from = std::min(selectBegin, selectEnd);
+                const auto to = std::max(selectBegin, selectEnd);
+
+                switch(evt.type())
+                {
+                    case input_event_type::mouse_single_click:
+                    {
+                        if (point_in_textarea(evt.position()) && point_in_textarea(evt.prev_position()))
+                        {
+                            this->focus_widget();
+                            const auto caretPosition = g_nanovg.get_caret_position(
+                                this->_layout.inner_bounds(),
+                                this->data()->textOffset,
+                                this->style().fontFamily,
+                                this->style().fontSize,
+                                this->style().textHalign,
+                                this->style().textValign,
+                                data()->text,
+                                evt.position());
+
+                            if (evt.modifiers().shift)
+                            {
+                                selectEnd = caretPosition;
+                            }
+                            else
+                            {
+                                selectBegin = selectEnd = caretPosition;
+                            }
                         }
                         else
                         {
-                            selectBegin = selectEnd = caretPosition;    
+                            this->unfocus_widget();
                         }
-                }
-            }
-            else if (g_input.get_mouse_double_clicked(mouse_button::left, mods, pressPosition, releasePosition))
-            {
-                this->unfocus_widget();
-                if (point_in_textarea(pressPosition) && point_in_textarea(releasePosition))
-                {
-                    this->focus_widget();
-                    const auto caretPosition = g_nanovg.get_caret_position(
-                        this->_layout.inner_bounds(),
-                        this->data()->textOffset,
-                        this->style().fontFamily,
-                        this->style().fontSize,
-                        this->style().textHalign,
-                        this->style().textValign,
-                        data()->text,
-                        releasePosition);
-
-                    auto calcSelectRange = [&](auto&& shouldInclude) -> void
-                    {
-                        // find select end (front of selection)
-                        for(auto it = sb.begin() + caretPosition; it >= sb.begin(); --it)
-                        {
-                            if (!shouldInclude(*it))
-                            {
-                                selectEnd = (int32_t)(it + 1 - sb.begin());
-                                break;
-                            }
-                            else if (it == sb.begin())
-                            {
-                                selectEnd = 0;
-                                break;
-                            }
-                        }
-                        // find select begin (back of selection)
-                        for(auto it = sb.begin() + caretPosition; it < sb.end(); ++it)
-                        {
-                            if (!shouldInclude(*it))
-                            {
-                                selectBegin = (int32_t)(it - sb.begin());
-                                break;
-                            }
-                            else if (it == (sb.end() - 1))
-                            {
-                                selectBegin = (int32_t)(sb.end() - sb.begin());
-                                break;
-                            }
-                        }
-                    };
-
-                    // select contiguous whitespace
-                    if ((sb.begin() + caretPosition)->is_whitespace())
-                    {
-                        calcSelectRange([](utf8_codepoint cp) -> bool {return cp.is_whitespace();});
+                        break;
                     }
-                    // select contiguous not whitespace
-                    else
+                    case input_event_type::mouse_double_click:
                     {
-                        calcSelectRange([](utf8_codepoint cp) -> bool {return !cp.is_whitespace();});
-                    }                        
-                }
-            }
-            else if( g_input.get_mouse_triple_clicked(mouse_button::left, mods, pressPosition, releasePosition))
-            {
-                this->unfocus_widget();
-                if (point_in_textarea(pressPosition) && point_in_textarea(releasePosition))
-                {
-                    this->focus_widget();
-                    selectBegin = 0;
-                    selectEnd = (int32_t)(sb.end() - sb.begin());                    
-                }
-            }
-        }
-
-        void widget_text_box::last_update_impl()
-        {
-            if (this->is_focused())
-            {
-                bool textDirty = false;
-                auto& sb = this->data()->sb;
-                auto& selectBegin = this->data()->selectBegin;
-                auto& selectEnd = this->data()->selectEnd;
-
-                for(auto evt : g_input.get_input_events())
-                {
-                    const bool textSelected = (selectBegin != selectEnd);
-                    const auto from = std::min(selectBegin, selectEnd);
-                    const auto to = std::max(selectBegin, selectEnd);
-
-                    auto findWordBegin = [&]()
-                    {
-                        bool foundNonWhitespace = false;
-                        auto it = sb.begin() + selectEnd;
-                        while(it > sb.begin())
+                        if (point_in_textarea(evt.position()) && point_in_textarea(evt.prev_position()))
                         {
-                            --it;
-                            if (foundNonWhitespace)
+                            this->focus_widget();
+                            const auto caretPosition = g_nanovg.get_caret_position(
+                                this->_layout.inner_bounds(),
+                                this->data()->textOffset,
+                                this->style().fontFamily,
+                                this->style().fontSize,
+                                this->style().textHalign,
+                                this->style().textValign,
+                                data()->text,
+                                evt.position());
+
+                            auto calcSelectRange = [&](auto&& shouldInclude) -> void
                             {
-                                if (it->is_whitespace())
+                                // find select end (front of selection)
+                                for(auto it = sb.begin() + caretPosition; it >= sb.begin(); --it)
                                 {
-                                    ++it;
-                                    break;
+                                    if (!shouldInclude(*it))
+                                    {
+                                        selectEnd = (int32_t)(it + 1 - sb.begin());
+                                        break;
+                                    }
+                                    else if (it == sb.begin())
+                                    {
+                                        selectEnd = 0;
+                                        break;
+                                    }
                                 }
+                                // find select begin (back of selection)
+                                for(auto it = sb.begin() + caretPosition; it < sb.end(); ++it)
+                                {
+                                    if (!shouldInclude(*it))
+                                    {
+                                        selectBegin = (int32_t)(it - sb.begin());
+                                        break;
+                                    }
+                                    else if (it == (sb.end() - 1))
+                                    {
+                                        selectBegin = (int32_t)(sb.end() - sb.begin());
+                                        break;
+                                    }
+                                }
+                            };
+
+                            // select contiguous whitespace
+                            if ((sb.begin() + caretPosition)->is_whitespace())
+                            {
+                                calcSelectRange([](utf8_codepoint cp) -> bool {return cp.is_whitespace();});
                             }
+                            // select contiguous not whitespace
                             else
                             {
-                                if (!it->is_whitespace())
-                                {
-                                    foundNonWhitespace = true;
-                                }
+                                calcSelectRange([](utf8_codepoint cp) -> bool {return !cp.is_whitespace();});
                             }
                         }
-                        return it;
-                    };
-                    auto findWordEnd = [&]()
-                    {
-                        bool foundNonWhitespace = false;
-                        auto it = sb.begin() + selectEnd;
-                        while (it < sb.end())
+                        else
                         {
-                            if (foundNonWhitespace)
-                            {
-                                if (it->is_whitespace())
-                                {
-                                    break;
-                                }
-                            }
-                            else
-                            {
-                                if (!it->is_whitespace())
-                                {
-                                    foundNonWhitespace = true;
-                                }
-                            }
-                            ++it;
+                            this->unfocus_widget();
                         }
-                        return it;
-                    };
-
-                    if (evt.type() == input_event_type::keydown ||
-                        evt.type() == input_event_type::keyrepeat)
+                        break;
+                    }
+                    case input_event_type::mouse_triple_click:
                     {
+                        if (point_in_textarea(evt.position()) && point_in_textarea(evt.prev_position()))
+                        {
+                            this->focus_widget();
+                            selectBegin = 0;
+                            selectEnd = (int32_t)(sb.end() - sb.begin());
+                        }
+                        else
+                        {
+                            this->unfocus_widget();
+                        }
+                        break;
+                    }
+                    case input_event_type::key_down:
+                    case input_event_type::key_repeat:
+                    {
+                        if (!this->is_focused()) break;
+
                         switch(evt.keycode())
                         {
                             //
@@ -1082,9 +1083,12 @@ namespace tabletopify
                                 }
                                 break;
                         }
+                        break;
                     }
-                    else if(evt.type() == input_event_type::charpress)
+                    case input_event_type::char_press:
                     {
+                        if (!this->is_focused()) break;
+
                         textDirty = true;
                         if (textSelected)
                         {
@@ -1093,45 +1097,48 @@ namespace tabletopify
 
                         sb.insert(sb.begin() + selectEnd, evt.codepoint());
                         selectBegin = ++selectEnd;
+                        break;
                     }
+                    default:
+                        break;
                 }
+            }
 
-                // re-export text from buffer
-                if(textDirty)
+            // re-export text from buffer
+            if(textDirty)
+            {
+                this->data()->text = sb.str();
+            }
+
+            // update text offset
+            if (g_input.get_input_events().size() > 0)
+            {
+                const auto innerBounds = this->_layout.inner_bounds();
+                auto& textOffset = this->data()->textOffset;
+                const auto caretOffset = g_nanovg.get_caret_offset(
+                        this->_layout.inner_bounds(),
+                        this->style().fontFamily,
+                        this->style().fontSize,
+                        this->style().textHalign,
+                        this->style().textValign,
+                        data()->text,
+                        selectEnd);
+
+                if (caretOffset >= textOffset && caretOffset <= (textOffset + innerBounds.width()))
                 {
-                    this->data()->text = sb.str();
+                    // do nothing text offset is fine
                 }
-
-                // update text offset                
-                if (g_input.get_input_events().size() > 0)
+                else if (caretOffset < textOffset)
                 {
-                    const auto innerBounds = this->_layout.inner_bounds();
-                    auto& textOffset = this->data()->textOffset;
-                    const auto caretOffset = g_nanovg.get_caret_offset(
-                            this->_layout.inner_bounds(),
-                            this->style().fontFamily,
-                            this->style().fontSize,
-                            this->style().textHalign,
-                            this->style().textValign,
-                            data()->text,
-                            selectEnd);  
-
-                    if (caretOffset >= textOffset && caretOffset <= (textOffset + innerBounds.width()))
-                    {
-                        // do nothing text offset is fine
-                    }
-                    else if (caretOffset < textOffset)
-                    {
-                        // caret to left of view window
-                        textOffset = caretOffset;
-                    }
-                    else
-                    {
-                        // caret to right of view window
-                        textOffset = caretOffset - innerBounds.width();
-                    }
-                    textOffset = std::max(0.0, textOffset);
+                    // caret to left of view window
+                    textOffset = caretOffset;
                 }
+                else
+                {
+                    // caret to right of view window
+                    textOffset = caretOffset - innerBounds.width();
+                }
+                textOffset = std::max(0.0, textOffset);
             }
         }
 

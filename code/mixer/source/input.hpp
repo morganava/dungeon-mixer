@@ -70,13 +70,13 @@ namespace tabletopify
     typedef enum class raw_input_event_type
     {
         invalid = -1,
-        charpress,
-        keydown,
-        keyrepeat,
-        keyup,
-        mousemove,
-        mousedown,
-        mouseup,
+        char_press,
+        key_down,
+        key_repeat,
+        key_up,
+        mouse_move,
+        mouse_down,
+        mouse_up,
         scroll,
     } raw_input_event_type_t;
 
@@ -132,10 +132,10 @@ namespace tabletopify
         {
             invalid = -1,
             // keyboard
-            charpress,
-            keydown,
-            keyrepeat,
-            keyup,
+            char_press,
+            key_down,
+            key_repeat,
+            key_up,
             // mouse   
             mouse_move,
             mouse_down,
@@ -150,8 +150,8 @@ namespace tabletopify
     
     constexpr bool is_keyboard_event(input_event_type_t evt)
     {
-        return evt >= input_event_type::charpress &&
-               evt <= input_event_type::keyup;
+        return evt >= input_event_type::char_press &&
+               evt <= input_event_type::key_up;
     }
 
     constexpr bool is_mouse_event(input_event_type_t evt)
