@@ -232,20 +232,21 @@ namespace tabletopify
 
         void widget_scroll_area::first_update_impl()
         {
-            modifier_keys mods;
-            vec2 pressPosition, releasePosition;
-            // if (g_input.get_mouse_single_clicked(mouse_button::left, this->childScissor()))
-            if (g_input.get_mouse_single_clicked(mouse_button::left, mods, pressPosition, releasePosition))
+            for(auto evt : g_input.get_input_events())
             {
-                if (point_inside_rect(pressPosition, this->childScissor()) && point_inside_rect(releasePosition, this->childScissor()))
+                if (evt.type() == input_event_type::mouse_single_click)
                 {
-                    this->focus_widget();
+                    if (point_inside_rect(evt.position(), this->childScissor()) &&
+                        point_inside_rect(evt.prev_position(), this->childScissor()))
+                    {
+                        this->focus_widget();
+                    }
+                    else
+                    {
+                        this->unfocus_widget();
+                    }
                 }
-            }
-            else if (g_input.get_mouse_single_clicked(mouse_button::left))
-            {
-                this->unfocus_widget();
-            }
+            }            
         }
 
         rect widget_scroll_area::bounds_callback(widget_base* parent, const rect& desired)

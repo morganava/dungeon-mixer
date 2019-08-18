@@ -274,17 +274,6 @@ namespace tabletopify
         button_state_t get_mouse_button_state(mouse_button_t, input_frame_t frame) const;
         constexpr const std::vector<input_event>& get_input_events() const { return _input_events; }
 
-        bool get_mouse_single_clicked(mouse_button_t) const;
-        bool get_mouse_single_clicked(mouse_button_t, modifier_keys& mods, vec2& beginPosition, vec2& endPosition) const;
-
-        bool get_mouse_double_clicked(mouse_button_t) const;
-        bool get_mouse_double_clicked(mouse_button_t, const rect& region) const;
-        bool get_mouse_double_clicked(mouse_button_t, modifier_keys& mods, vec2& beginPosition, vec2& endPosition) const;
-
-        bool get_mouse_triple_clicked(mouse_button_t) const;
-        bool get_mouse_triple_clicked(mouse_button_t, const rect& region) const;
-        bool get_mouse_triple_clicked(mouse_button_t, modifier_keys& mods, vec2& beginPosition, vec2& endPosition) const;
-
         void set_mouse_cursor(mouse_cursor_t cursor);
 
         utf8_string get_clipboard_string() const;

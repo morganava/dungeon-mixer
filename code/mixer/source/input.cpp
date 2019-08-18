@@ -472,7 +472,7 @@ namespace tabletopify
     {
         tabletopify::utf8_stringbuffer sb;
         sb.push_back(codepoint);
-        MX_LOG_INFO("codepoint : {{ codepoint : 0x{:08x}, char : '{}', modifier_keys : {} }}", codepoint, sb.str(), modifiers);
+        // MX_LOG_INFO("codepoint : {{ codepoint : 0x{:08x}, char : '{}', modifier_keys : {} }}", codepoint, sb.str(), modifiers);
 
         raw_input_event ie;
         ie.type = raw_input_event_type::char_press;
@@ -607,82 +607,6 @@ namespace tabletopify
         MX_ASSERT(btn >= mouse_button::left && btn < mouse_button::count);
         auto& mouse_state = frame == input_frame::previous ? _mouse_state.previous : _mouse_state.current;
         return mouse_state.buttons[btn];
-    }
-
-    bool input::get_mouse_single_clicked(mouse_button_t btn) const
-    {
-        modifier_keys mods;
-        vec2 press, release;
-        return this->get_mouse_single_clicked(btn, mods, press, release);
-    }
-
-    bool input::get_mouse_single_clicked(mouse_button_t btn, modifier_keys& mods, vec2& beginPosition, vec2& endPosition) const
-    {
-        for (auto& evt : this->_input_events)
-        {
-            if (evt._type == input_event_type::mouse_single_click && evt._mouse.button == btn)
-            {
-                mods = evt._modifiers;
-                beginPosition = evt._mouse.prevPosition;
-                endPosition = evt._mouse.position;
-                return true;
-            }
-        }
-        return false;
-    }
-
-    bool input::get_mouse_double_clicked(mouse_button_t btn) const
-    {
-        modifier_keys mods;
-        vec2 beginPosition, endPosition;;
-        return this->get_mouse_double_clicked(btn, mods, beginPosition, endPosition);
-    }
-
-    bool input::get_mouse_double_clicked(mouse_button_t btn, const rect& region) const
-    {
-        return point_inside_rect(_mouse_state.current.position, region) && get_mouse_double_clicked(btn);
-    }
-
-    bool input::get_mouse_double_clicked(mouse_button_t btn, modifier_keys& mods, vec2& beginPosition, vec2& endPosition) const
-    {
-        for (auto& evt : this->_input_events)
-        {
-            if (evt._type == input_event_type::mouse_double_click && evt._mouse.button == btn)
-            {
-                mods = evt._modifiers;
-                beginPosition = evt._mouse.prevPosition;
-                endPosition = evt._mouse.position;
-                return true;
-            }
-        }
-        return false;
-    }
-
-    bool input::get_mouse_triple_clicked(mouse_button_t btn) const
-    {
-        modifier_keys mods;
-        vec2 beginPosition, endPosition;
-        return this->get_mouse_triple_clicked(btn, mods, beginPosition, endPosition);
-    }
-
-    bool input::get_mouse_triple_clicked(mouse_button_t btn, const rect& region) const
-    {
-        return point_inside_rect(_mouse_state.current.position, region) && get_mouse_triple_clicked(btn);
-    }
-
-    bool input::get_mouse_triple_clicked(mouse_button_t btn, modifier_keys& mods, vec2& beginPosition, vec2& endPosition) const
-    {
-        for (auto& evt : this->_input_events)
-        {
-            if (evt._type == input_event_type::mouse_triple_click && evt._mouse.button == btn)
-            {
-                mods = evt._modifiers;
-                beginPosition = evt._mouse.prevPosition;
-                endPosition = evt._mouse.position;
-                return true;
-            }
-        }
-        return false;
     }
 
     void input::set_mouse_cursor(mouse_cursor_t cursor)
