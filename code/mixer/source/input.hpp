@@ -143,7 +143,11 @@ namespace tabletopify
             mouse_single_click,
             mouse_double_click,
             mouse_triple_click,
-            mouse_scroll,    
+            mouse_drag_begin,
+            mouse_drag,
+            mouse_drag_end,
+            // scroll
+            wheel_scroll,
         };
     };
     typedef input_event_type::value input_event_type_t;
@@ -157,7 +161,7 @@ namespace tabletopify
     constexpr bool is_mouse_event(input_event_type_t evt)
     {
         return evt >= input_event_type::mouse_move &&
-               evt <= input_event_type::mouse_scroll;
+               evt <= input_event_type::mouse_drag_end;
     }
 
     class input_event
@@ -209,7 +213,7 @@ namespace tabletopify
 
         vec2 scroll() const
         {
-            MX_ASSERT(_type == input_event_type::mouse_scroll);
+            MX_ASSERT(_type == input_event_type::wheel_scroll);
             return _scroll;
         }
     private:
@@ -229,8 +233,6 @@ namespace tabletopify
         modifier_keys _modifiers;
         vec2 _scroll;
         friend class input;
-
-
     };
 
     namespace mouse_cursor

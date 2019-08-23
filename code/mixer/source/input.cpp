@@ -398,6 +398,7 @@ namespace tabletopify
                     evt._type = input_event_type::mouse_down;
                     evt._mouse.prevPosition = position;
                     evt._mouse.position = position;
+                    evt._modifiers = modifiers;
                     _input_events.push_back(evt);
 
                     break;

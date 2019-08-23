@@ -773,6 +773,13 @@ namespace tabletopify
 
                 switch(evt.type())
                 {
+                    // case input_event_type::mouse_down:
+                    // {
+                    //     if (point_in_textarea(evt.position()))
+                    //     {
+                    //         MX_LOG_INFO("MOUSE DOWN");
+                    //     }
+                    // }
                     case input_event_type::mouse_single_click:
                     {
                         if (point_in_textarea(evt.position()) && point_in_textarea(evt.prev_position()))
@@ -787,6 +794,8 @@ namespace tabletopify
                                 this->style().textValign,
                                 data()->text,
                                 evt.position());
+
+                            MX_LOG_VAR(evt.modifiers());
 
                             if (evt.modifiers().shift)
                             {
