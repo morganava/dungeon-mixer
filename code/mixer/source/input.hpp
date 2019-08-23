@@ -47,18 +47,19 @@ namespace tabletopify
         void update(float dt);
         void push_state(button_state_t buttonState, modifier_keys modifiers);
         void push_position(vec2 position);
-        bool single_clicked(modifier_keys& mods, vec2& beginPosition, vec2& endPosition) const;
-        bool double_clicked(modifier_keys& mods, vec2& beginPosition, vec2& endPosition) const;
-        bool triple_clicked(modifier_keys& mods, vec2& beginPosition, vec2& endPosition) const;
 
         void reset();
+
+        bool get_input_event(class input_event& evt) const;
+
     private:
         bool single_clicked_impl() const;
         bool double_clicked_impl() const;
         bool triple_clicked_impl() const;
-        constexpr static int32_t BUCKET_COUNT = 7;
+        constexpr static int32_t BUCKET_COUNT = 6;
         // TODO: get this constant from window manager
         const float _doubleClickTime = 0.5f;
+        // TODO: add a 'jiggle' amount of allowed movement
         float _times[BUCKET_COUNT];
         uint32_t _frameCount[BUCKET_COUNT];
         button_state_t _states[BUCKET_COUNT];
@@ -233,6 +234,7 @@ namespace tabletopify
         modifier_keys _modifiers;
         vec2 _scroll;
         friend class input;
+        friend class click_detector;
     };
 
     namespace mouse_cursor

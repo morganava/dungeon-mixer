@@ -52,42 +52,6 @@ namespace tabletopify
         _positions[0] = position;
     }
 
-    bool click_detector::single_clicked(modifier_keys& mods, vec2& pressPosition, vec2& releasePosition) const
-    {
-        if (single_clicked_impl() && !double_clicked_impl() && !triple_clicked_impl())
-        {
-            pressPosition = _positions[1];
-            releasePosition = _positions[0];
-            mods = _modifiers[1] & _modifiers[0];
-            return true;
-        }
-        return false;
-    }
-
-    bool click_detector::double_clicked(modifier_keys& mods, vec2& beginPosition, vec2& endPosition) const
-    {
-        if (!triple_clicked_impl() && double_clicked_impl())
-        {
-            beginPosition = _positions[3];
-            endPosition = _positions[0];
-            mods = _modifiers[3] & _modifiers[2] & _modifiers[1] & _modifiers[0];
-            return true;
-        }
-        return false;
-    }
-
-    bool click_detector::triple_clicked(modifier_keys& mods, vec2& beginPosition, vec2& endPosition) const
-    {
-        if (triple_clicked_impl())
-        {
-            beginPosition = _positions[5];
-            endPosition = _positions[0];
-            mods = _modifiers[5] & _modifiers[4] & _modifiers[3] & _modifiers[2] & _modifiers[1] & _modifiers[0];
-            return true;
-        }
-        return false;
-    }
-
     void click_detector::reset()
     {
         for(size_t i = 1; i < BUCKET_COUNT; ++i)
@@ -98,6 +62,36 @@ namespace tabletopify
             _positions[i] = vec2::zero;
             _modifiers[i] = {};
         }
+    }
+
+    bool click_detector::get_input_event(input_event& evt) const
+    {
+        if (this->triple_clicked_impl())
+        {
+            evt._type = input_event_type::mouse_triple_click;
+            evt._mouse.prevPosition = _positions[5];
+            evt._mouse.position = _positions[0];
+            evt._modifiers = _modifiers[5] & _modifiers[4] & _modifiers[3] & _modifiers[2] & _modifiers[1] & _modifiers[0];
+            return true;
+        }
+        else if (this->double_clicked_impl())
+        {
+            evt._type = input_event_type::mouse_double_click;
+            evt._mouse.prevPosition = _positions[3];
+            evt._mouse.position = _positions[0];
+            evt._modifiers = _modifiers[3] & _modifiers[2] & _modifiers[1] & _modifiers[0];
+            return true;
+        }
+        else if (this->single_clicked_impl())
+        {
+            evt._type = input_event_type::mouse_single_click;
+            evt._mouse.prevPosition = _positions[1];
+            evt._mouse.position = _positions[0];
+            evt._modifiers = _modifiers[1] & _modifiers[0];
+            return true;
+        }
+
+        return false;
     }
 
     bool click_detector::single_clicked_impl() const
@@ -416,27 +410,14 @@ namespace tabletopify
                     cd.push_state(button_state::released, modifiers);
                     cd.push_position(position);
 
-                    // single click event
-                    if (input_event evt; cd.single_clicked(evt._modifiers, evt._mouse.prevPosition, evt._mouse.position))
+                    if (input_event evt; cd.get_input_event(evt))
                     {
-                        evt._type = input_event_type::mouse_single_click;
+                        MX_LOG_INFO("input event type: {}", evt.type());
                         evt._mouse.button = button;
                         _input_events.push_back(evt);
-                    }
-                    // double click event
-                    else if (input_event evt; cd.double_clicked(evt._modifiers, evt._mouse.prevPosition, evt._mouse.position))
-                    {
-                        evt._type= input_event_type::mouse_double_click;
-                        evt._mouse.button = button;
-                        _input_events.push_back(evt);
-                    }
-                    // triple click event
-                    else if (input_event evt; cd.triple_clicked(evt._modifiers, evt._mouse.prevPosition, evt._mouse.position))
-                    {
-                        evt._type = input_event_type::mouse_triple_click;
-                        evt._mouse.button = button;
-                        _input_events.push_back(evt);
-                        cd.reset();
+                        if (evt.type() == input_event_type::mouse_triple_click) {
+                            cd.reset();
+                        }
                     }
 
                     // mouse down event
