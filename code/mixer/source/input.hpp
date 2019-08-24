@@ -57,6 +57,7 @@ namespace tabletopify
         bool double_clicked_impl() const;
         bool triple_clicked_impl() const;
         bool drag_begin_impl() const;
+        bool drag_impl() const;
         bool drag_end_impl() const;
 
         double squared_movement_past_n_buckets(int32_t bucketCount) const;

@@ -106,6 +106,13 @@ namespace tabletopify
             evt._modifiers = _modifiers[0];
             return true;
         }
+        else if (this->drag_impl())
+        {
+            evt._type = input_event_type::mouse_drag;
+            evt._mouse.position = _endPositions[0];
+            evt._modifiers = _modifiers[0];
+            return true;
+        }
         else if (this->drag_end_impl())
         {
             evt._type = input_event_type::mouse_drag_end;
@@ -193,6 +200,19 @@ namespace tabletopify
         {
             // trigger on second update after press (for a move)
             if (_frameCount[0] == 1)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    bool click_detector::drag_impl() const
+    {
+        if (_states[0] == button_state::pressed &&
+            _states[1] == button_state::released)
+        {
+            if (_frameCount[0] > 0)
             {
                 return true;
             }
