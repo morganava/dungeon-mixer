@@ -795,8 +795,6 @@ namespace tabletopify
                                 data()->text,
                                 evt.position());
 
-                            MX_LOG_VAR(evt.modifiers());
-
                             if (evt.modifiers().shift)
                             {
                                 selectEnd = caretPosition;

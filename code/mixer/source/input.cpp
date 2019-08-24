@@ -22,7 +22,7 @@ namespace tabletopify
     void click_detector::update(float dt)
     {
         _times[0] += dt;
-        _frameCount[0] += 1;
+        // _frameCount[0] += 1;
     }
 
     void click_detector::push_state(button_state_t buttonState, modifier_keys modifiers)
@@ -33,23 +33,35 @@ namespace tabletopify
             {
                 const auto curr = i - 1;
                 const auto prev = i;
+
                 _times[prev] = _times[curr];
                 _frameCount[prev] = _frameCount[curr];
                 _states[prev] = _states[curr];
-                _positions[prev] = _positions[curr];
+                _startPositions[prev] = _startPositions[curr];
+                _endPositions[prev] = _endPositions[curr];
                 _modifiers[prev] = _modifiers[curr];
             }
 
             _times[0] = 0.0f;
             _states[0] = buttonState;
+            _startPositions[0] = _endPositions[1];
+            _endPositions[0] = _endPositions[1];
             _frameCount[0] = 0;
+        }
+        else
+        {
+            _frameCount[0] += 1;
         }
         _modifiers[0] = modifiers;            
     }
 
     void click_detector::push_position(vec2 position)
     {
-        _positions[0] = position;
+        if (position != _endPositions[0])
+        {
+            _endPositions[0] = position;
+            _frameCount[0] += 1;
+        }
     }
 
     void click_detector::reset()
@@ -59,7 +71,8 @@ namespace tabletopify
             _times[i] = 0.0f;
             _frameCount[i] = 0;
             _states[i] = button_state::released;
-            _positions[i] = vec2::zero;
+            _startPositions[i] = vec2::zero;
+            _endPositions[i] = vec2::zero;
             _modifiers[i] = {};
         }
     }
@@ -69,24 +82,39 @@ namespace tabletopify
         if (this->triple_clicked_impl())
         {
             evt._type = input_event_type::mouse_triple_click;
-            evt._mouse.prevPosition = _positions[5];
-            evt._mouse.position = _positions[0];
+            evt._mouse.prevPosition = _startPositions[5];
+            evt._mouse.position = _endPositions[0];
             evt._modifiers = _modifiers[5] & _modifiers[4] & _modifiers[3] & _modifiers[2] & _modifiers[1] & _modifiers[0];
             return true;
         }
         else if (this->double_clicked_impl())
         {
             evt._type = input_event_type::mouse_double_click;
-            evt._mouse.prevPosition = _positions[3];
-            evt._mouse.position = _positions[0];
+            evt._mouse.prevPosition = _startPositions[3];
+            evt._mouse.position = _endPositions[0];
             evt._modifiers = _modifiers[3] & _modifiers[2] & _modifiers[1] & _modifiers[0];
             return true;
         }
         else if (this->single_clicked_impl())
         {
             evt._type = input_event_type::mouse_single_click;
-            evt._mouse.prevPosition = _positions[1];
-            evt._mouse.position = _positions[0];
+            evt._mouse.prevPosition = _startPositions[1];
+            evt._mouse.position = _endPositions[0];
+            evt._modifiers = _modifiers[1] & _modifiers[0];
+            return true;
+        }
+        else if (this->drag_begin_impl())
+        {
+            evt._type = input_event_type::mouse_drag_begin;
+            evt._mouse.prevPosition = _startPositions[0];
+            evt._mouse.position = _endPositions[0];
+            evt._modifiers = _modifiers[0];
+            return true;
+        }
+        else if (this->drag_end_impl())
+        {
+            evt._type = input_event_type::mouse_drag_end;
+            evt._mouse.position = _endPositions[0];
             evt._modifiers = _modifiers[1] & _modifiers[0];
             return true;
         }
@@ -99,9 +127,14 @@ namespace tabletopify
         if (_states[0] == button_state::released &&
             _states[1] == button_state::pressed)
         {
+            // trigger on the first update after release
             if (_frameCount[0] == 0)
             {
-                return true;    
+                if (_startPositions[1] == _endPositions[1] &&
+                    _startPositions[0] == _endPositions[1])
+                {
+                    return true;
+                }
             }
         }
         return false;
@@ -114,12 +147,22 @@ namespace tabletopify
             _states[2] == button_state::released &&
             _states[3] == button_state::pressed)
         {
-            // trigger on the first frame
+            // trigger on the first update after release
             if (_frameCount[0] == 0)
             {
                 float timeSum = _times[1] + _times[2] + _times[3];
                 if ( timeSum < _doubleClickTime)
                 {
+                    for (auto i = 1; i < 3; ++i)
+                    {
+                        if (_startPositions[i-1] !=_endPositions[i] ||
+                            _startPositions[i] != _endPositions[i])
+                        {
+                            return false;
+                        }
+                    }
+
+
                     return true;
                 }
             }
@@ -136,7 +179,7 @@ namespace tabletopify
             _states[4] == button_state::released &&
             _states[5] == button_state::pressed)
         {
-            // triggger on the first frame
+            // triggger on the first update after release
             if (_frameCount[0] == 0)
             {
                 float timeSum = _times[1] + _times[2] + _times[3];
@@ -147,6 +190,38 @@ namespace tabletopify
                     {
                         return true;
                     }
+                }
+            }
+        }
+        return false;
+    }
+
+    bool click_detector::drag_begin_impl() const
+    {
+        if (_states[0] == button_state::pressed &&
+            _states[1] == button_state::released)
+        {
+            // trigger on second update after press (for a move)
+            if (_frameCount[0] == 1)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    bool click_detector::drag_end_impl() const
+    {
+        if (_states[0] == button_state::released &&
+            _states[1] == button_state::pressed &&
+            _states[2] == button_state::released)
+        {
+            // triggger on the first update after release
+            if (_frameCount[0] == 0)
+            {
+                if (_startPositions[1] != _endPositions[1])
+                {
+                    return true;
                 }
             }
         }
@@ -365,9 +440,19 @@ namespace tabletopify
 
                     _mouse_state.current.position = position;
 
-                    _mouse_state.mouse_buttons[mouse_button::left].reset();
-                    _mouse_state.mouse_buttons[mouse_button::right].reset();
-                    _mouse_state.mouse_buttons[mouse_button::middle].reset();
+                    for(auto btn = 0; btn < mouse_button::count; ++btn)
+                    {
+                        auto& cd = _mouse_state.mouse_buttons[btn];
+                        cd.push_position(position);
+                        if (input_event evt; cd.get_input_event(evt))
+                        {
+                            evt._mouse.button = static_cast<mouse_button_t>(btn);
+                            _input_events.push_back(evt);
+                            if (evt.type() == input_event_type::mouse_triple_click) {
+                                cd.reset();
+                            }
+                       }
+                    }
 
                     input_event evt;
                     evt._type = input_event_type::mouse_move;
@@ -408,11 +493,10 @@ namespace tabletopify
                     auto& cd = _mouse_state.mouse_buttons[button];
 
                     cd.push_state(button_state::released, modifiers);
-                    cd.push_position(position);
+                    // cd.push_position(position);
 
                     if (input_event evt; cd.get_input_event(evt))
                     {
-                        MX_LOG_INFO("input event type: {}", evt.type());
                         evt._mouse.button = button;
                         _input_events.push_back(evt);
                         if (evt.type() == input_event_type::mouse_triple_click) {
@@ -439,6 +523,17 @@ namespace tabletopify
                     break;
             }
         }
+
+        if (_input_events.size())
+        {
+            MX_LOG_INFO("--- BEGIN ---");
+            for(auto& evt : _input_events)
+            {
+                MX_LOG_INFO("{}", evt);
+            }
+            MX_LOG_INFO("--- END ---");
+        }
+
         _raw_events.clear();
     }
 

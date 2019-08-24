@@ -31,6 +31,36 @@ ostream& operator<<(ostream& out, mouse_button_t btn)
     }
 }
 
+ostream& operator<<(ostream& out, input_event_type_t et)
+{
+#define MX_INPUT_EVENT_ENTRY(X) case input_event_type::X: return out << #X;
+    switch(et)
+    {
+        MX_INPUT_EVENT_ENTRY(invalid);
+        MX_INPUT_EVENT_ENTRY(char_press);
+        MX_INPUT_EVENT_ENTRY(key_down);
+        MX_INPUT_EVENT_ENTRY(key_repeat);
+        MX_INPUT_EVENT_ENTRY(key_up);
+        MX_INPUT_EVENT_ENTRY(mouse_move);
+        MX_INPUT_EVENT_ENTRY(mouse_down);
+        MX_INPUT_EVENT_ENTRY(mouse_up);
+        MX_INPUT_EVENT_ENTRY(mouse_single_click);
+        MX_INPUT_EVENT_ENTRY(mouse_double_click);
+        MX_INPUT_EVENT_ENTRY(mouse_triple_click);
+        MX_INPUT_EVENT_ENTRY(mouse_drag_begin);
+        MX_INPUT_EVENT_ENTRY(mouse_drag);
+        MX_INPUT_EVENT_ENTRY(mouse_drag_end);
+        MX_INPUT_EVENT_ENTRY(wheel_scroll);
+        default: return out << "(unknown)";
+    }
+#undef MX_INPUT_EVENT_ENTRY
+}
+
+ostream& operator<<(ostream& out, input_event evt)
+{
+    return out << "{ type : " << evt.type() << " } ";
+}
+
 // modifier_keys
 ostream& operator<<(ostream& out, modifier_keys mod)
 {

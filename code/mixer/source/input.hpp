@@ -56,6 +56,9 @@ namespace tabletopify
         bool single_clicked_impl() const;
         bool double_clicked_impl() const;
         bool triple_clicked_impl() const;
+        bool drag_begin_impl() const;
+        bool drag_end_impl() const;
+
         constexpr static int32_t BUCKET_COUNT = 6;
         // TODO: get this constant from window manager
         const float _doubleClickTime = 0.5f;
@@ -63,7 +66,8 @@ namespace tabletopify
         float _times[BUCKET_COUNT];
         uint32_t _frameCount[BUCKET_COUNT];
         button_state_t _states[BUCKET_COUNT];
-        vec2 _positions[BUCKET_COUNT];
+        vec2 _startPositions[BUCKET_COUNT];
+        vec2 _endPositions[BUCKET_COUNT];
         modifier_keys _modifiers[BUCKET_COUNT];
     };
 
@@ -194,7 +198,7 @@ namespace tabletopify
             MX_ASSERT(is_mouse_event(_type));
             return _mouse.button;   
         }
-
+        // TODO: nuke this method and associated data
         vec2 prev_position() const
         {
             MX_ASSERT(is_mouse_event(_type));
@@ -314,5 +318,7 @@ namespace tabletopify
     }
 }
 
+std::ostream& operator<<(std::ostream&, tabletopify::input_event_type_t);
+std::ostream& operator<<(std::ostream&, tabletopify::input_event);
 std::ostream& operator<<(std::ostream&, tabletopify::mouse_button_t);
 std::ostream& operator<<(std::ostream&, tabletopify::modifier_keys);
