@@ -768,13 +768,46 @@ namespace tabletopify
 
                 switch(evt.type())
                 {
-                    // case input_event_type::mouse_down:
-                    // {
-                    //     if (point_in_textarea(evt.position()))
-                    //     {
-                    //         MX_LOG_INFO("MOUSE DOWN");
-                    //     }
-                    // }
+                    case input_event_type::mouse_drag_begin:
+                    {
+                        if (point_in_textarea(evt.position()))
+                        {
+                            this->focus_widget();
+                            const auto caretPosition = g_nanovg.get_caret_position(
+                                this->_layout.inner_bounds(),
+                                this->data()->textOffset,
+                                this->style().fontFamily,
+                                this->style().fontSize,
+                                this->style().textHalign,
+                                this->style().textValign,
+                                data()->text,
+                                evt.position());
+
+                            selectBegin = selectEnd = caretPosition;
+                        }
+                        else
+                        {
+                            this->unfocus_widget();
+                        }
+                        break;
+                    }
+                    case input_event_type::mouse_drag:
+                    {
+                        if (this->is_focused())
+                        {
+                            const auto caretPosition = g_nanovg.get_caret_position(
+                                this->_layout.inner_bounds(),
+                                this->data()->textOffset,
+                                this->style().fontFamily,
+                                this->style().fontSize,
+                                this->style().textHalign,
+                                this->style().textValign,
+                                data()->text,
+                                evt.position());
+                            selectEnd = caretPosition;
+                        }
+                        break;
+                    }
                     case input_event_type::mouse_single_click:
                     {
                         if (point_in_textarea(evt.position()))
