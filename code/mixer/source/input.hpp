@@ -59,10 +59,14 @@ namespace tabletopify
         bool drag_begin_impl() const;
         bool drag_end_impl() const;
 
+        double squared_movement_past_n_buckets(int32_t bucketCount) const;
+
         constexpr static int32_t BUCKET_COUNT = 6;
         // TODO: get this constant from window manager
-        const float _doubleClickTime = 0.5f;
-        // TODO: add a 'jiggle' amount of allowed movement
+        constexpr static double DOUBLE_CLICK_TIME = 0.5f;
+        // TODO: add a 'jiggle' amount of allowed movement (in pixels)
+        constexpr static double MOVEMENT_THRESHOLD = 10;
+        constexpr static double SQUARED_MOVEMENT_THRESHOLD = MOVEMENT_THRESHOLD*MOVEMENT_THRESHOLD;
         float _times[BUCKET_COUNT];
         uint32_t _frameCount[BUCKET_COUNT];
         button_state_t _states[BUCKET_COUNT];
@@ -198,12 +202,6 @@ namespace tabletopify
             MX_ASSERT(is_mouse_event(_type));
             return _mouse.button;   
         }
-        // TODO: nuke this method and associated data
-        vec2 prev_position() const
-        {
-            MX_ASSERT(is_mouse_event(_type));
-            return _mouse.prevPosition;
-        }
 
         vec2 position() const
         {
@@ -231,12 +229,11 @@ namespace tabletopify
             } _keyboard;
             struct {
                 mouse_button_t button;
-                vec2 prevPosition;
                 vec2 position;
             } _mouse;
         };
-        modifier_keys _modifiers;
         vec2 _scroll;
+        modifier_keys _modifiers;
         friend class input;
         friend class click_detector;
     };
@@ -277,9 +274,11 @@ namespace tabletopify
         void push_mouseup(mouse_button_t btn, modifier_keys);
         void push_scroll(double scroll_x, double scroll_y);
 
+        // TODO: kill these getters
         vec2 get_mouse_position(input_frame_t frame) const;
         vec2 get_mouse_scroll(input_frame_t frame) const;
         button_state_t get_mouse_button_state(mouse_button_t, input_frame_t frame) const;
+        // TODO: but leave this one obviously
         constexpr const std::vector<input_event>& get_input_events() const { return _input_events; }
 
         void set_mouse_cursor(mouse_cursor_t cursor);

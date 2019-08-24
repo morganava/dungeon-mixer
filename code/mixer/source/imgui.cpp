@@ -236,8 +236,7 @@ namespace tabletopify
             {
                 if (evt.type() == input_event_type::mouse_single_click)
                 {
-                    if (point_inside_rect(evt.position(), this->childScissor()) &&
-                        point_inside_rect(evt.prev_position(), this->childScissor()))
+                    if (point_inside_rect(evt.position(), this->childScissor()))
                     {
                         this->focus_widget();
                     }
@@ -658,11 +657,7 @@ namespace tabletopify
                 if (evt.type() == input_event_type::mouse_single_click)
                 {
                     if (point_inside_rect(evt.position(), this->scissor()) &&
-                        point_inside_rect(evt.prev_position(), this->scissor()) &&
                         point_inside_rounded_rect(evt.position(),
-                                                  this->_layout.border_outer_bounds(),
-                                                  this->_layout.borderRadius) &&
-                        point_inside_rounded_rect(evt.prev_position(),
                                                   this->_layout.border_outer_bounds(),
                                                   this->_layout.borderRadius))
                     {
@@ -782,7 +777,7 @@ namespace tabletopify
                     // }
                     case input_event_type::mouse_single_click:
                     {
-                        if (point_in_textarea(evt.position()) && point_in_textarea(evt.prev_position()))
+                        if (point_in_textarea(evt.position()))
                         {
                             this->focus_widget();
                             const auto caretPosition = g_nanovg.get_caret_position(
@@ -812,7 +807,7 @@ namespace tabletopify
                     }
                     case input_event_type::mouse_double_click:
                     {
-                        if (point_in_textarea(evt.position()) && point_in_textarea(evt.prev_position()))
+                        if (point_in_textarea(evt.position()))
                         {
                             this->focus_widget();
                             const auto caretPosition = g_nanovg.get_caret_position(
@@ -876,7 +871,7 @@ namespace tabletopify
                     }
                     case input_event_type::mouse_triple_click:
                     {
-                        if (point_in_textarea(evt.position()) && point_in_textarea(evt.prev_position()))
+                        if (point_in_textarea(evt.position()))
                         {
                             this->focus_widget();
                             selectBegin = 0;
