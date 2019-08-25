@@ -245,7 +245,7 @@ namespace tabletopify
                         this->unfocus_widget();
                     }
                 }
-            }            
+            }
         }
 
         rect widget_scroll_area::bounds_callback(widget_base* parent, const rect& desired)
@@ -706,58 +706,9 @@ namespace tabletopify
             {
                 // return point_inside_rect
                 return point_inside_rect(position, scissor()) &&
-                       point_inside_rounded_rect(position, 
+                       point_inside_rounded_rect(position,
                                                  _layout.border_inner_bounds(),
                                                  _layout.borderRadius - _layout.borderSize);
-            };
-            const auto findWordBegin = [&]()
-            {
-                bool foundNonWhitespace = false;
-                auto it = sb.begin() + selectEnd;
-                while(it > sb.begin())
-                {
-                    --it;
-                    if (foundNonWhitespace)
-                    {
-                        if (it->is_whitespace())
-                        {
-                            ++it;
-                            break;
-                        }
-                    }
-                    else
-                    {
-                        if (!it->is_whitespace())
-                        {
-                            foundNonWhitespace = true;
-                        }
-                    }
-                }
-                return it;
-            };
-            const auto findWordEnd = [&]()
-            {
-                bool foundNonWhitespace = false;
-                auto it = sb.begin() + selectEnd;
-                while (it < sb.end())
-                {
-                    if (foundNonWhitespace)
-                    {
-                        if (it->is_whitespace())
-                        {
-                            break;
-                        }
-                    }
-                    else
-                    {
-                        if (!it->is_whitespace())
-                        {
-                            foundNonWhitespace = true;
-                        }
-                    }
-                    ++it;
-                }
-                return it;
             };
 
             for (auto evt : g_input.get_input_events())
@@ -853,48 +804,8 @@ namespace tabletopify
                                 data()->text,
                                 evt.position());
 
-                            auto calcSelectRange = [&](auto&& shouldInclude) -> void
-                            {
-                                // find select end (front of selection)
-                                for(auto it = sb.begin() + caretPosition; it >= sb.begin(); --it)
-                                {
-                                    if (!shouldInclude(*it))
-                                    {
-                                        selectEnd = (int32_t)(it + 1 - sb.begin());
-                                        break;
-                                    }
-                                    else if (it == sb.begin())
-                                    {
-                                        selectEnd = 0;
-                                        break;
-                                    }
-                                }
-                                // find select begin (back of selection)
-                                for(auto it = sb.begin() + caretPosition; it < sb.end(); ++it)
-                                {
-                                    if (!shouldInclude(*it))
-                                    {
-                                        selectBegin = (int32_t)(it - sb.begin());
-                                        break;
-                                    }
-                                    else if (it == (sb.end() - 1))
-                                    {
-                                        selectBegin = (int32_t)(sb.end() - sb.begin());
-                                        break;
-                                    }
-                                }
-                            };
-
-                            // select contiguous whitespace
-                            if ((sb.begin() + caretPosition)->is_whitespace())
-                            {
-                                calcSelectRange([](utf8_codepoint cp) -> bool {return cp.is_whitespace();});
-                            }
-                            // select contiguous not whitespace
-                            else
-                            {
-                                calcSelectRange([](utf8_codepoint cp) -> bool {return !cp.is_whitespace();});
-                            }
+                            selectBegin = sb.find_word_begin(sb.begin() + caretPosition, false) - sb.begin();
+                            selectEnd = sb.find_word_end(sb.begin() + caretPosition, false) - sb.begin();
                         }
                         else
                         {
@@ -930,7 +841,8 @@ namespace tabletopify
                                 // skip to begining of current word
                                 if (evt.modifiers().control)
                                 {
-                                    auto it = findWordBegin();
+                                    // auto it = findWordBegin();
+                                    auto it = sb.find_word_begin(sb.begin() + selectBegin, true);
                                     selectEnd = (it - sb.begin());
                                     if (!evt.modifiers().shift)
                                     {
@@ -943,7 +855,7 @@ namespace tabletopify
                                     {
                                         if (evt.modifiers().shift)
                                         {
-                                            selectEnd = std::max(selectEnd - 1, size_t(0));
+                                            selectEnd  = std::max(selectEnd - 1, size_t(0));
                                         }
                                         else
                                         {
@@ -966,7 +878,8 @@ namespace tabletopify
                                 // skip to end of current word
                                 if (evt.modifiers().control)
                                 {
-                                    auto it = findWordEnd();
+                                    // auto it = findWordEnd();
+                                    auto it = sb.find_word_end(sb.begin() + selectEnd, true);
                                     selectEnd = (it - sb.begin());
                                     if (!evt.modifiers().shift)
                                     {
@@ -1030,7 +943,7 @@ namespace tabletopify
                                 // delete next word
                                 else if (evt.modifiers().control && selectEnd < sb.size())
                                 {
-                                    auto it = findWordEnd();
+                                    auto it = sb.find_word_end(sb.begin() + selectEnd, false);
                                     sb.erase(sb.begin() + selectEnd, it);
                                     selectBegin = selectEnd;
                                     textDirty = true;
@@ -1052,7 +965,8 @@ namespace tabletopify
                                 // delete previous word
                                 else if (evt.modifiers().control && selectEnd > 0)
                                 {
-                                    auto it = findWordBegin();
+                                    // auto it = findWordBegin();
+                                    auto it = sb.find_word_begin(sb.begin() + selectBegin, false);
                                     sb.erase(it, sb.begin() + selectEnd);
                                     selectBegin = selectEnd = (it - sb.begin());
                                     textDirty = true;
@@ -1080,7 +994,7 @@ namespace tabletopify
                                 if (evt.modifiers().control)
                                 {
                                     selectBegin = 0;
-                                    selectEnd = (int32_t)(sb.end() - sb.begin());
+                                    selectEnd = sb.size();
                                 }
                                 break;
                             // Cut
