@@ -143,6 +143,9 @@ namespace tabletopify
         void insert(const_iterator position, const utf8_string& str);
         utf8_string str() const;
         utf8_string str(const_iterator from, const_iterator to) const;
+
+        iterator find_word_begin(iterator from, bool skipOverWhitespace);
+        iterator find_word_end(iterator from, bool skipOverWhitespace);
     };
 }
 

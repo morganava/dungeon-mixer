@@ -420,4 +420,61 @@ namespace tabletopify
         utf8_string retval(buffer, len);
         return retval;
     }
+
+    utf8_stringbuffer::iterator utf8_stringbuffer::find_word_begin(iterator it, bool skipOverWhitespace)
+    {
+        if (it == this->end()) {
+            --it;
+        }
+
+        if (it == this->begin())
+        {
+            return it;
+        }
+
+        if (skipOverWhitespace) {
+            while((it - 1)->is_whitespace()) {
+                it--;
+            }
+        }
+
+        auto prev = it--;
+        bool lookingForWhitespace = it->is_whitespace();
+
+        while(it > this->begin())
+        {
+            if (it->is_whitespace() != lookingForWhitespace) {
+                return prev;
+            }
+            prev = it--;
+        }
+        return this->begin();
+    }
+
+    utf8_stringbuffer::iterator utf8_stringbuffer::find_word_end(iterator it, bool skipOverWhitespace)
+    {
+        if (it == this->end())
+        {
+            return it;
+        }
+ 
+        if (skipOverWhitespace) {
+            while(it->is_whitespace()) {
+                it++;
+            }
+        }
+
+        auto prev = it++;
+        bool lookingForWhitespace = it->is_whitespace();
+
+        while(it < this->end())
+        {
+            if (it->is_whitespace() != lookingForWhitespace) {
+                return it;
+            }
+            prev = it++;
+        }
+
+        return this->end();
+    }
 }
