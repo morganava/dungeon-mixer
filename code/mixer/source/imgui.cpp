@@ -1090,6 +1090,11 @@ namespace tabletopify
                 }
                 textOffset = std::max(0.0, textOffset);
             }
+
+            if (point_in_textarea(g_input.get_mouse_position(input_frame::current)))
+            {
+                g_input.set_mouse_cursor(mouse_cursor::ibeam);
+            }
         }
 
         void widget_text_box::first_render_impl() const
