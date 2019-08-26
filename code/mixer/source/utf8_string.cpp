@@ -430,41 +430,18 @@ namespace tabletopify
 
         if (skipOverWhitespace)
         {
-            for(--it ;it->is_whitespace(); --it)
-            {
-                if (it == this->begin())
-                {
-                    return it;
-                }
-            }
-
-            for(--it; it > this->begin(); --it)
-            {
-                if (it->is_whitespace())
-                {
-                    return ++it;
-                }
-            }
-            return it;
+            // iterate until we hit something that isn't whitespace
+            for(--it ;it > this->begin() && it->is_whitespace(); --it);
         }
-        else
-        {
-            auto itIsWhitespace = it->is_whitespace();
-            if (itIsWhitespace && !(it - 1)->is_whitespace())
-            {
-                itIsWhitespace = false;
-            }
 
-            for(it--; it > this->begin(); it--)
-            {
-                if (it->is_whitespace() != itIsWhitespace)
-                {
-                    return ++it;
-                }
-            }
+        const bool findWhitespace =  it->is_whitespace();
+        // iterate back until we get to the opposite of what we want
+        for(;it > this->begin() && it->is_whitespace() == findWhitespace; --it);
 
-            return it;
+        if(it->is_whitespace() != findWhitespace) {
+            ++it;
         }
+        return it;
     }
 
     utf8_stringbuffer::iterator utf8_stringbuffer::find_word_end(iterator it, bool skipOverWhitespace)
@@ -476,43 +453,13 @@ namespace tabletopify
 
         if (skipOverWhitespace)
         {
-            // iterate over whitespace
-            while(it->is_whitespace())
-            {
-                ++it;
-                if (it == this->end())
-                {
-                    MX_LOG_INFO("the fuck");
-                    return it;
-                }
-            }
-
-            // iterate over non-whitespace
-            for(++it; it < this->end(); ++it)
-            {
-                if (it->is_whitespace())
-                {
-                    return it;
-                }
-            }
-            return it;
+            for(; it < this->end() && it->is_whitespace(); ++it);
         }
-        else
-        {
-            const auto itIsWhitespace = it->is_whitespace();
-            if (itIsWhitespace && !(it - 1)->is_whitespace())
-            {
-                return it;
-            }
 
-            for(it++; it < this->end(); it++)
-            {
-                if (it->is_whitespace() != itIsWhitespace)
-                {
-                    return it;
-                }
-            }
-            return it;
-        }
+        const bool findWhitespace = it->is_whitespace();
+        // iterate forward until we get to the opposite of what we want
+        for(; it < this->end() && it->is_whitespace() == findWhitespace; ++it);
+
+        return it;
     }
 }
