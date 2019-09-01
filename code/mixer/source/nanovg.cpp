@@ -262,14 +262,8 @@ namespace tabletopify
                         NVGglyphPosition glyphPositions[caretCount];
                         const auto glyphCount = nvgTextGlyphPositions(_ctx, startPosition.x, startPosition.y, str.begin(), str.end(), glyphPositions, caretCount);
 
-                        // check of at the end of the string
-                        if (caretIndex == glyphCount) {
-                            caretBounds.position.x = glyphPositions[caretIndex - 1].maxx;
-                        }
-                        // in between glyphs
-                        else {
-                            caretBounds.position.x = glyphPositions[caretIndex].minx;
-                        }
+                        MX_THROW_IF_FALSE(glyphCount >= caretIndex);
+                        caretBounds.position.x = glyphPositions[caretIndex - 1].maxx;
                     }
                     else
                     {
