@@ -943,7 +943,7 @@ namespace tabletopify
                                 // delete next word
                                 else if (evt.modifiers().control && selectEnd < sb.size())
                                 {
-                                    auto it = sb.find_word_end(sb.begin() + selectEnd, false);
+                                    auto it = sb.find_word_end(sb.begin() + selectEnd, true);
                                     sb.erase(sb.begin() + selectEnd, it);
                                     selectBegin = selectEnd;
                                     textDirty = true;
@@ -965,8 +965,7 @@ namespace tabletopify
                                 // delete previous word
                                 else if (evt.modifiers().control && selectEnd > 0)
                                 {
-                                    // auto it = findWordBegin();
-                                    auto it = sb.find_word_begin(sb.begin() + selectBegin, false);
+                                    auto it = sb.find_word_begin(sb.begin() + selectBegin, true);
                                     sb.erase(it, sb.begin() + selectEnd);
                                     selectBegin = selectEnd = (it - sb.begin());
                                     textDirty = true;
