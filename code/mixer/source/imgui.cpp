@@ -1038,6 +1038,8 @@ namespace tabletopify
                     case input_event_type::char_press:
                     {
                         if (!this->is_focused()) break;
+                        // ignore modified char press
+                        if (evt.modifiers().control || evt.modifiers().alt) break;
 
                         textDirty = true;
                         if (textSelected)
@@ -1045,8 +1047,8 @@ namespace tabletopify
                             sb.erase(sb.begin() + from, sb.begin() + to);
                         }
 
-                        sb.insert(sb.begin() + selectEnd, evt.codepoint());
-                        selectBegin = ++selectEnd;
+                        sb.insert(sb.begin() + from, evt.codepoint());
+                        selectBegin = selectEnd = (from + 1);
                         break;
                     }
                     default:
