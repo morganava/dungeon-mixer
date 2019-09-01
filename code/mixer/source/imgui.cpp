@@ -1027,7 +1027,7 @@ namespace tabletopify
                                     sb.insert(sb.begin() + from, g_input.get_clipboard_string());
                                     auto finalSize = sb.size();
 
-                                    selectEnd = selectBegin = selectEnd + (int32_t)(finalSize - initSize);
+                                    selectEnd = selectBegin = from + (int32_t)(finalSize - initSize);
                                     textDirty = true;
                                 }
                                 break;
