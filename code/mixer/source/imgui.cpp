@@ -842,7 +842,7 @@ namespace tabletopify
                                 if (evt.modifiers().control)
                                 {
                                     // auto it = findWordBegin();
-                                    auto it = sb.find_word_begin(sb.begin() + selectBegin, true);
+                                    auto it = sb.find_word_begin(sb.begin() + selectEnd, true);
                                     selectEnd = (it - sb.begin());
                                     if (!evt.modifiers().shift)
                                     {
@@ -878,7 +878,6 @@ namespace tabletopify
                                 // skip to end of current word
                                 if (evt.modifiers().control)
                                 {
-                                    // auto it = findWordEnd();
                                     auto it = sb.find_word_end(sb.begin() + selectEnd, true);
                                     selectEnd = (it - sb.begin());
                                     if (!evt.modifiers().shift)
