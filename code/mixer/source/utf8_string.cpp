@@ -379,6 +379,13 @@ namespace tabletopify
         this->push_back(str);
     }
 
+    utf8_stringbuffer& utf8_stringbuffer::operator=(const utf8_string& str)
+    {
+        this->clear();
+        this->push_back(str);
+        return *this;
+    }
+
     void utf8_stringbuffer::push_back(const utf8_string& str)
     {
         for(auto cp : str)

@@ -137,8 +137,10 @@ namespace tabletopify
         using vector::vector;
         using vector::push_back;
         using vector::insert;
+        using vector::operator=;
 
         utf8_stringbuffer(const utf8_string&);
+        utf8_stringbuffer& operator=(const utf8_string&);
         void push_back(const utf8_string&);
         void insert(const_iterator position, const utf8_string& str);
         utf8_string str() const;
