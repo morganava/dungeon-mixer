@@ -701,6 +701,9 @@ namespace tabletopify
             auto& sb = this->data()->sb;
             auto& selectBegin = this->data()->selectBegin;
             auto& selectEnd = this->data()->selectEnd;
+            auto& undoStack = this->data()->undoStack;
+            auto& redoStack = this->data()->redoStack;
+            (void)redoStack;
 
             const auto point_in_textarea = [&](vec2 position) -> bool
             {
@@ -709,6 +712,66 @@ namespace tabletopify
                        point_inside_rounded_rect(position,
                                                  _layout.border_inner_bounds(),
                                                  _layout.borderRadius - _layout.borderSize);
+            };
+
+            const auto update_action = [&](auto action) -> void
+            {
+                auto& previousAction = data()->previousAction;
+
+                // handle undo
+                if (action == text_box_action::undo)
+                {
+                    if (undoStack.size() > 0)
+                    {
+                        redoStack.push_back({sb.str(), selectBegin, selectEnd});
+                        const auto& val = undoStack.back();
+                        sb = val.text;
+                        selectBegin = val.selectBegin;
+                        selectEnd = val.selectEnd;
+                        undoStack.pop_back();
+                    }
+                }
+                // handle redo
+                else if(action == text_box_action::redo)
+                {
+                    if (redoStack.size() > 0)
+                    {
+                        undoStack.push_back({sb.str(), selectBegin, selectEnd});
+                        const auto& val = redoStack.back();
+                        sb = val.text;
+                        selectBegin = val.selectBegin;
+                        selectEnd = val.selectEnd;
+                        redoStack.pop_back();
+                    }
+                }
+                // handle pushing state
+                else
+                {
+                    bool pushState = false;
+                    switch(action)
+                    {
+                        case text_box_action::write_whitespace:
+                            pushState = previousAction != text_box_action::write_whitespace &&
+                                        previousAction != text_box_action::write_nonwhitespace;
+                            break;
+                        case text_box_action::write_nonwhitespace:
+                            pushState = previousAction != text_box_action::write_nonwhitespace;
+                            break;
+                        case text_box_action::erase_left:
+                        case text_box_action::erase_right:
+                            pushState = previousAction != action;
+                            break;
+                        default:
+                            pushState = true;
+                            break;
+                    }
+
+                    if (pushState)
+                    {
+                        undoStack.push_back({sb.str(), selectBegin, selectEnd});
+                    }
+                }
+                previousAction = action;
             };
 
             for (auto evt : g_input.get_input_events())
@@ -841,7 +904,6 @@ namespace tabletopify
                                 // skip to begining of current word
                                 if (evt.modifiers().control)
                                 {
-                                    // auto it = findWordBegin();
                                     auto it = sb.find_word_begin(sb.begin() + selectEnd, true);
                                     selectEnd = (it - sb.begin());
                                     if (!evt.modifiers().shift)
@@ -935,6 +997,7 @@ namespace tabletopify
                                 // delete selected text
                                 if (textSelected)
                                 {
+                                    update_action(text_box_action::erase_block);
                                     textDirty = true;
                                     sb.erase(sb.begin() + from, sb.begin() + to);
                                     selectBegin = selectEnd = from;
@@ -942,6 +1005,7 @@ namespace tabletopify
                                 // delete next word
                                 else if (evt.modifiers().control && selectEnd < sb.size())
                                 {
+                                    update_action(text_box_action::erase_block);
                                     auto it = sb.find_word_end(sb.begin() + selectEnd, true);
                                     sb.erase(sb.begin() + selectEnd, it);
                                     selectBegin = selectEnd;
@@ -949,6 +1013,7 @@ namespace tabletopify
                                 }
                                 else if (selectEnd < sb.size())
                                 {
+                                    update_action(text_box_action::erase_right);
                                     textDirty = true;
                                     sb.erase(sb.begin() + selectEnd);
                                 }
@@ -957,6 +1022,7 @@ namespace tabletopify
                                 // delete selected text
                                 if (textSelected)
                                 {
+                                    update_action(text_box_action::erase_block);
                                     textDirty = true;
                                     sb.erase(sb.begin() + from, sb.begin() + to);
                                     selectBegin = selectEnd = from;
@@ -964,6 +1030,7 @@ namespace tabletopify
                                 // delete previous word
                                 else if (evt.modifiers().control && selectEnd > 0)
                                 {
+                                    update_action(text_box_action::erase_block);
                                     auto it = sb.find_word_begin(sb.begin() + selectBegin, true);
                                     sb.erase(it, sb.begin() + selectEnd);
                                     selectBegin = selectEnd = (it - sb.begin());
@@ -972,6 +1039,7 @@ namespace tabletopify
                                 // backspace from caret
                                 else if (selectEnd > 0)
                                 {
+                                    update_action(text_box_action::erase_left);
                                     sb.erase(sb.begin() + selectEnd - 1);
                                     selectBegin = selectEnd = selectEnd - 1;
                                     textDirty = true;
@@ -999,35 +1067,64 @@ namespace tabletopify
                             case GLFW_KEY_X:
                                 if (evt.modifiers().control)
                                 {
-                                    const auto str = sb.str(sb.begin() + from, sb.begin() + to);
-                                    g_input.set_clipboard_string(str);
-                                    sb.erase(sb.begin() + from, sb.begin() + to);
+                                    if (from < to) {
+                                        update_action(text_box_action::erase_block);
+                                        const auto str = sb.str(sb.begin() + from, sb.begin() + to);
+                                        g_input.set_clipboard_string(str);
+                                        sb.erase(sb.begin() + from, sb.begin() + to);
 
-                                    selectEnd = selectBegin = from;
-                                    textDirty = true;
+                                        selectEnd = selectBegin = from;
+                                        textDirty = true;
+                                    }
                                 }
                                 break;
                             // Copy
                             case GLFW_KEY_C:
                                 if (evt.modifiers().control)
                                 {
-                                    const auto str = sb.str(sb.begin() + from, sb.begin() + to);
-                                    g_input.set_clipboard_string(str);
+                                    if (from < to) {
+                                        const auto str = sb.str(sb.begin() + from, sb.begin() + to);
+                                        g_input.set_clipboard_string(str);
+                                    }
                                 }
                                 break;
                             // Paste
                             case GLFW_KEY_V:
                                 if (evt.modifiers().control)
                                 {
-                                    // remove selected text
-                                    sb.erase(sb.begin() + from, sb.begin() + to);
-                                    // paste into sb
-                                    auto initSize = sb.size();
-                                    sb.insert(sb.begin() + from, g_input.get_clipboard_string());
-                                    auto finalSize = sb.size();
+                                    const auto clipboardString = g_input.get_clipboard_string();
 
-                                    selectEnd = selectBegin = from + (int32_t)(finalSize - initSize);
-                                    textDirty = true;
+                                    if (from < to || clipboardString.size() > 0)
+                                    {
+                                        update_action(text_box_action::insert_block);
+                                        // remove selected text
+                                        sb.erase(sb.begin() + from, sb.begin() + to);
+                                        // paste into sb
+                                        auto initSize = sb.size();
+                                        sb.insert(sb.begin() + from, clipboardString);
+                                        auto finalSize = sb.size();
+
+                                        selectEnd = selectBegin = from + (int32_t)(finalSize - initSize);
+                                        textDirty = true;
+                                    }
+                                }
+                                break;
+                            // Undo/Redo
+                            case GLFW_KEY_Z:
+                                if (evt.modifiers().control)
+                                {
+                                    // redo
+                                    if (evt.modifiers().shift)
+                                    {
+                                        update_action(text_box_action::redo);
+                                        textDirty = true;
+                                    }
+                                    // undo
+                                    else
+                                    {
+                                        update_action(text_box_action::undo);
+                                        textDirty = true;
+                                    }
                                 }
                                 break;
                         }
@@ -1042,7 +1139,18 @@ namespace tabletopify
                         textDirty = true;
                         if (textSelected)
                         {
+                            update_action(text_box_action::erase_block);
                             sb.erase(sb.begin() + from, sb.begin() + to);
+                            selectBegin = selectEnd = from;
+                        }
+
+                        if (evt.codepoint().is_whitespace())
+                        {
+                            update_action(text_box_action::write_whitespace);
+                        }
+                        else
+                        {
+                            update_action(text_box_action::write_nonwhitespace);
                         }
 
                         sb.insert(sb.begin() + from, evt.codepoint());

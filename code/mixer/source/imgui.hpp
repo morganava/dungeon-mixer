@@ -461,6 +461,19 @@ namespace tabletopify
 
         /// text box
 
+        typedef enum class text_box_action
+        {
+            empty,
+            write_whitespace,
+            write_nonwhitespace,
+            insert_block,
+            erase_block,
+            erase_left,
+            erase_right,
+            redo,
+            undo,
+        } text_box_action_t;
+
         struct text_box_data : widget_data
         {
             utf8_stringbuffer sb;
@@ -468,6 +481,18 @@ namespace tabletopify
             double textOffset = 0.0;
             size_t selectBegin = 0;
             size_t selectEnd = 0;
+
+            struct snapshot
+            {
+                utf8_string text;
+                size_t selectBegin;
+                size_t selectEnd;
+            };
+
+            text_box_action_t previousAction = text_box_action::empty;
+
+            std::vector<snapshot> undoStack;
+            std::vector<snapshot> redoStack;
             text_box_data() = default;
             text_box_data(utf8_string text)
             : sb(text)
