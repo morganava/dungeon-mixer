@@ -1212,18 +1212,34 @@ namespace tabletopify
             {
                 if (this->data()->selectBegin == this->data()->selectEnd)
                 {
-                    g_nanovg.draw_text_with_caret(
-                        this->_layout.inner_bounds(),
-                        this->data()->textOffset,
-                        this->style().fontFamily,
-                        this->style().fontSize,
-                        this->style().fontColor,
-                        this->style().textHalign,
-                        this->style().textValign,
-                        data()->text,
-                        this->data()->selectBegin,
-                        2.0f, // TODO: get from style
-                        color::rgb(0,0,0));  // TODO: get from style
+                    // placeholder
+                    if (this->data()->text.size() == 0) {
+                        g_nanovg.draw_text_with_caret(
+                            this->_layout.inner_bounds(),
+                            this->data()->textOffset,
+                            this->style().fontFamily,
+                            this->style().fontSize,
+                            this->style().placeholderFontColor,
+                            this->style().textHalign,
+                            this->style().textValign,
+                            this->data()->placeholderText,
+                            this->data()->selectBegin,
+                            2.0f,
+                            this->style().fontColor);
+                    } else {
+                        g_nanovg.draw_text_with_caret(
+                            this->_layout.inner_bounds(),
+                            this->data()->textOffset,
+                            this->style().fontFamily,
+                            this->style().fontSize,
+                            this->style().fontColor,
+                            this->style().textHalign,
+                            this->style().textValign,
+                            this->data()->text,
+                            this->data()->selectBegin,
+                            2.0f,
+                            this->style().fontColor);
+                    }
                 }
                 else
                 {
@@ -1235,24 +1251,40 @@ namespace tabletopify
                         this->style().fontColor,
                         this->style().textHalign,
                         this->style().textValign,
-                        data()->text,
+                        this->data()->text,
                         std::min(this->data()->selectBegin, this->data()->selectEnd),
                         std::max(this->data()->selectBegin, this->data()->selectEnd),
-                        color::rgb(0xFF,0xFF,0xFF),  // TODO: get from style
-                        color::rgb(0xFF,0x88,0x00));  // TODO: get from style
+                        this->style().selectedFontColor,
+                        this->style().selectionColor);
                 }
             }
             else
             {
-                g_nanovg.draw_text(
-                this->_layout.inner_bounds(),
-                this->data()->textOffset,
-                this->style().fontFamily,
-                this->style().fontSize,
-                this->style().fontColor,
-                this->style().textHalign,
-                this->style().textValign,
-                data()->text);
+                // placeholder text
+                if (this->data()->text.size() == 0) {
+                    g_nanovg.draw_text(
+                        this->_layout.inner_bounds(),
+                        this->data()->textOffset,
+                        this->style().fontFamily,
+                        this->style().fontSize,
+                        this->style().placeholderFontColor,
+                        this->style().textHalign,
+                        this->style().textValign,
+                        this->data()->placeholderText);
+                } else
+                {
+                    g_nanovg.draw_text(
+                        this->_layout.inner_bounds(),
+                        this->data()->textOffset,
+                        this->style().fontFamily,
+                        this->style().fontSize,
+                        this->style().fontColor,
+                        this->style().textHalign,
+                        this->style().textValign,
+                        this->data()->text);
+                }
+
+
             }
             g_context.pop_scissor();
         }

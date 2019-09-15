@@ -478,25 +478,25 @@ namespace tabletopify
         {
             utf8_stringbuffer sb;
             utf8_string text;
+            utf8_string placeholderText;
             double textOffset = 0.0;
+
             size_t selectBegin = 0;
             size_t selectEnd = 0;
-
+            text_box_action_t previousAction = text_box_action::empty;
             struct snapshot
             {
                 utf8_string text;
                 size_t selectBegin;
                 size_t selectEnd;
             };
-
-            text_box_action_t previousAction = text_box_action::empty;
-
             std::vector<snapshot> undoStack;
             std::vector<snapshot> redoStack;
             text_box_data() = default;
-            text_box_data(utf8_string text)
+            text_box_data(utf8_string text, utf8_string placeholderText)
             : sb(text)
             , text(std::move(text))
+            , placeholderText(std::move(placeholderText))
             {}
         };
 
