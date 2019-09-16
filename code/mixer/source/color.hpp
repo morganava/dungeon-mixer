@@ -1,5 +1,7 @@
 #pragma once
 
+#include "utilities.hpp"
+
 namespace tabletopify
 {
     union color

@@ -75,7 +75,8 @@ namespace tabletopify
                     self.on_submit = [](const utf8_string& str) -> void
                     {
                         MX_LOG_INFO("SUBMIT : {}", str);
-                    };);
+                    };
+                );
                 mxButton(&root.playlist.searchButton,
                     self.on_click = []() -> void {MX_LOG_INFO("SEARCH");};);
             }
