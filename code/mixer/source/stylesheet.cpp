@@ -15,6 +15,7 @@ namespace tabletopify
             "button",
             "label",
             "textBox",
+            "slider",
         };
 
         static_assert(countof(typeStrings) == (size_t)element_type::count, "mismatch of element_type enum and names");

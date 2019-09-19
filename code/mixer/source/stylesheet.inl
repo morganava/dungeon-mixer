@@ -11,11 +11,11 @@ STYLE_SHEET_ENTRY(size, vec2{}, sdf::geometry)
 // margin
 STYLE_SHEET_ENTRY(margin, edges{}, sdf::geometry)
 // border
-STYLE_SHEET_ENTRY(borderSize, 2.0, sdf::none)
+STYLE_SHEET_ENTRY(borderSize, 2.0, sdf::geometry)
 STYLE_SHEET_ENTRY(borderColor, color::rgb(0x00,0x00,0x00), sdf::none)
-STYLE_SHEET_ENTRY(borderRadius, corners{}, sdf::none)
+STYLE_SHEET_ENTRY(borderRadius, corners{}, sdf::geometry)
 // padding
-STYLE_SHEET_ENTRY(padding, edges{}, sdf::none)
+STYLE_SHEET_ENTRY(padding, edges{}, sdf::geometry)
 // background
 STYLE_SHEET_ENTRY(backgroundColor, color::rgb(0xff,0xff,0xff), sdf::none)
 // font
@@ -28,3 +28,13 @@ STYLE_SHEET_ENTRY(selectionColor, color::rgb(0xFF,0x88,0x00), sdf::none)
 // text
 STYLE_SHEET_ENTRY(textHalign, halign::left, sdf::none)
 STYLE_SHEET_ENTRY(textValign, valign::middle, sdf::none)
+// slider
+STYLE_SHEET_ENTRY(sliderBackgroundCornerRadius, corners{10.0}, sdf::geometry)
+STYLE_SHEET_ENTRY(sliderBackgroundColor, color::rgb(0x50,0x50,0x50), sdf::none)
+STYLE_SHEET_ENTRY(sliderBackgroundBorderColor, color::rgb(0x80,0x80,0x80), sdf::none)
+STYLE_SHEET_ENTRY(sliderBackgroundBorderSize, 2.0, sdf::geometry)
+STYLE_SHEET_ENTRY(sliderHandleSize, vec2(20.0, 20.0), sdf::geometry)
+STYLE_SHEET_ENTRY(sliderHandleBorderSize, 2.0, sdf::geometry)
+STYLE_SHEET_ENTRY(sliderHandleColor, color::rgb(0x60,0x60,0x60), sdf::geometry)
+STYLE_SHEET_ENTRY(sliderHandleBorderColor, color::rgb(0x80,0x80,0x80), sdf::none)
+STYLE_SHEET_ENTRY(sliderHandleCornerRadius, corners(10.0), sdf::geometry)

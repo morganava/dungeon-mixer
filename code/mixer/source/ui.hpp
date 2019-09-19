@@ -72,6 +72,7 @@ namespace tabletopify
                 imgui::button_data searchButton = {"[ ]"};
 
                 imgui::scroll_area_data scroll;
+                imgui::slider_data slider = {0.0f, 100.0f, 50.0f};
             } playlist;
 
             struct

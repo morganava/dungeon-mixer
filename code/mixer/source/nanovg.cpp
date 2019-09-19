@@ -76,8 +76,10 @@ namespace tabletopify
         set_scissor,
         fill_rect,
         fill_rounded_rect,
+        fill_circle,
         stroke_rect,
         stroke_rounded_rect,
+        stroke_circle,
         draw_text,
         draw_text_with_caret,
         draw_text_with_selection,
@@ -140,6 +142,19 @@ namespace tabletopify
                     nvgFill(_ctx);
                 }
                 break;
+                case draw_command::fill_circle:
+                {
+                    circlef c;
+                    color col;
+                    MX_THROW_IF_FALSE(cq.next(c));
+                    MX_THROW_IF_FALSE(cq.next(col));
+
+                    nvgBeginPath(_ctx);
+                    nvgCircle(_ctx, c.position.x, c.position.y, c.radius);
+                    nvgFillColor(_ctx, col);
+                    nvgFill(_ctx);
+                }
+                break;
                 case draw_command::stroke_rect:
                 {
                     rectf r;
@@ -182,6 +197,21 @@ namespace tabletopify
                     nvgRoundedRectVarying(_ctx, r.position.x, r.position.y, r.size.x, r.size.y, rad.topLeft, rad.topRight, rad.bottomRight, rad.bottomLeft);
                     nvgStrokeColor(_ctx, col);
                     nvgStrokeWidth(_ctx, strokeWidth);
+                    nvgStroke(_ctx);
+                }
+                break;
+                case draw_command::stroke_circle:
+                {
+                    circlef c;
+                    float strokeWidth;
+                    color col;
+                    MX_THROW_IF_FALSE(cq.next(c));
+                    MX_THROW_IF_FALSE(cq.next(strokeWidth));
+                    MX_THROW_IF_FALSE(cq.next(col));
+
+                    nvgBeginPath(_ctx);
+                    nvgCircle(_ctx, c.position.x, c.position.y, c.radius);
+                    nvgStrokeColor(_ctx, col);
                     nvgStroke(_ctx);
                 }
                 break;
@@ -452,6 +482,14 @@ namespace tabletopify
         cq.push_back(col);
     }
 
+    void nanovg::fill_circle(const circlef& c, const color& col)
+    {
+        auto& cq = _command_queue.current;
+        cq.push_back(draw_command::fill_circle);
+        cq.push_back(c);
+        cq.push_back(col);
+    }
+
     void nanovg::stroke_rect(const rectf& r, float strokeWidth, const color& col)
     {
         auto& cq = _command_queue.current;
@@ -466,6 +504,15 @@ namespace tabletopify
         auto& cq = _command_queue.current;
         cq.push_back(draw_command::stroke_rounded_rect);
         cq.push_back(r);
+        cq.push_back(c);
+        cq.push_back(strokeWidth);
+        cq.push_back(col);
+    }
+
+    void nanovg::stroke_circle(const circlef& c, float strokeWidth, const color& col)
+    {
+        auto& cq = _command_queue.current;
+        cq.push_back(draw_command::stroke_circle);
         cq.push_back(c);
         cq.push_back(strokeWidth);
         cq.push_back(col);

@@ -16,7 +16,6 @@ namespace tabletopify
             auto& selectEnd = this->data()->selectEnd;
             auto& undoStack = this->data()->undoStack;
             auto& redoStack = this->data()->redoStack;
-            (void)redoStack;
 
             const auto point_in_textarea = [&](vec2 position) -> bool
             {

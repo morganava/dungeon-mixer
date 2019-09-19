@@ -75,5 +75,12 @@
         "borderRadius" : 8,
         "margin" : [2, 4, 2, 4],
         "padding" : 8
+    },
+    "slider" :
+    {
+        "size" : [20, 50],
+        "margin" : 5,
+        "padding" : 10,
+        "sliderHandleSize" : [50, 30]
     }
 }

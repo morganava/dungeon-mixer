@@ -82,7 +82,7 @@ namespace tabletopify
             }
             mxVScroll(&root.playlist.scroll)
             {
-
+                mxSlider(&root.playlist.slider);
             }
         }
     }

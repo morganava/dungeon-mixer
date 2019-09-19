@@ -512,8 +512,29 @@ namespace tabletopify
         };
 
 
+        struct slider_data : widget_data
+        {
+            double minVal;
+            double maxVal;
+            double currentVal;
 
+            slider_data(double minVal, double maxVal, double currentVal)
+            : minVal(minVal)
+            , maxVal(maxVal)
+            , currentVal(currentVal)
+            { }
+        };
+
+        struct widget_slider : public widget<widget_slider, element_type::slider, slider_data>
+        {
+        public:
+            using widget::widget;
+
+            void middle_update_impl();
+            void first_render_impl() const;
+        };
     } // imgui namespace
+}
 
 // user logic
 // resolve collision geometry
@@ -550,5 +571,4 @@ namespace tabletopify
 #define mxLabel(DATA, ...) MX_WIDGET_CODEGEN(widget_label, DATA, __VA_ARGS__)
 #define mxButton(DATA, ...) MX_WIDGET_CODEGEN(widget_button, DATA, __VA_ARGS__)
 #define mxTextBox(DATA, ...) MX_WIDGET_CODEGEN(widget_text_box, DATA, __VA_ARGS__)
-
-}
+#define mxSlider(DATA, ...) MX_WIDGET_CODEGEN(widget_slider, DATA, __VA_ARGS__)
