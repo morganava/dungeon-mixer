@@ -78,9 +78,9 @@
     },
     "slider" :
     {
-        "size" : [20, 50],
+        "size" : [0, 50],
         "margin" : 5,
-        "padding" : 10,
+        "padding" : [10,10,10,10],
         "sliderHandleSize" : [50, 30]
     }
 }

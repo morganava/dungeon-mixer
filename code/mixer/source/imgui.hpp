@@ -57,11 +57,12 @@ namespace tabletopify
                 return *this;
             }
 
-            constexpr void operator()(ARGS&&... args)
+            template<typename... T>
+            constexpr void operator()(T&&... args)
             {
                 if (exec_func)
                 {
-                    exec_func(std::forward<ARGS>(args)...);
+                    exec_func(std::forward<T>(args)...);
                 }
             }
         private:
@@ -532,6 +533,11 @@ namespace tabletopify
 
             void middle_update_impl();
             void first_render_impl() const;
+
+            callback<double> on_change;
+        private:
+            rect slider_rect(const rect& bounds) const;
+
         };
     } // imgui namespace
 }

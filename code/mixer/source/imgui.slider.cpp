@@ -5,8 +5,6 @@ namespace tabletopify
 {
     namespace imgui
     {
-
-
         void widget_slider::middle_update_impl()
         {
             auto bounds = this->_layout.child_bounds();
@@ -25,10 +23,16 @@ namespace tabletopify
                 {
                     case input_event_type::mouse_drag_begin:
                     {
-                        if (point_inside_rect(evt.position(), this->scissor()) &&
-                            point_inside_rect(evt.position(), bounds))
+                        this->unfocus_widget();
+                        if (point_inside_rect(evt.position(), this->scissor()))
                         {
-                            this->focus_widget();
+                            if (point_inside_rect(evt.position(), bounds) ||
+                                point_inside_rect(evt.position(), this->slider_rect(bounds)))
+                            {
+                                this->focus_widget();
+                                auto x = evt.position().x;
+                                data()->currentVal = position_to_val(x, data()->minVal, data()->maxVal);
+                            }
                         }
                     }
                     break;
@@ -51,6 +55,10 @@ namespace tabletopify
                             data()->currentVal = position_to_val(x, data()->minVal, data()->maxVal);
                             this->focus_widget();
                         }
+                        else
+                        {
+                            this->unfocus_widget();
+                        }
                     }
                     break;
                     default:
@@ -59,7 +67,7 @@ namespace tabletopify
             }
 
             if (data()->currentVal != startVal) {
-                MX_LOG_VAR(data()->currentVal);
+                this->on_change(data()->currentVal);
             }
         }
 
@@ -82,7 +90,24 @@ namespace tabletopify
                 style.sliderBackgroundBorderColor);
 
             // draw slider
+            const auto sliderHandleRect = this->slider_rect(bounds);
 
+
+            g_nanovg.fill_rounded_rect(
+                sliderHandleRect,
+                style.sliderHandleCornerRadius,
+                style.sliderHandleColor);
+
+            g_nanovg.stroke_rounded_rect(
+                sliderHandleRect,
+                style.sliderHandleCornerRadius,
+                style.sliderHandleBorderSize,
+                style.sliderHandleBorderColor);
+        }
+
+        rect widget_slider::slider_rect(const rect& bounds) const
+        {
+            const auto& style = this->style();
             auto val_to_position = [](double val, double minVal, double maxVal, double left, double right) -> double
             {
                 return (val - minVal) / (maxVal - minVal) * (right - left) + left;
@@ -95,7 +120,7 @@ namespace tabletopify
                 bounds.left() + style.sliderHandleSize.x / 2.0,
                 bounds.right() - style.sliderHandleSize.x / 2.0);
 
-            rect sliderHandleRect =
+            return rect
             {
                 {
                     sliderCenterX - (style.sliderHandleSize.x / 2.0),
@@ -103,17 +128,6 @@ namespace tabletopify
                 },
                 style.sliderHandleSize
             };
-
-            g_nanovg.fill_rounded_rect(
-                sliderHandleRect,
-                style.sliderHandleCornerRadius,
-                style.sliderHandleColor);
-
-            g_nanovg.stroke_rounded_rect(
-                sliderHandleRect,
-                style.sliderHandleCornerRadius,
-                style.sliderHandleBorderSize,
-                style.sliderHandleBorderColor);
         }
     }
 }
