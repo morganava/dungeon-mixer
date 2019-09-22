@@ -7,7 +7,7 @@ STYLE_SHEET_ENTRY(scrollbarBackColor, color::rgb(0xc0,0xc0,0xc0), sdf::none)
 STYLE_SHEET_ENTRY(scrollbarCornerRadius, 5.0, sdf::none)
 STYLE_SHEET_ENTRY(scrollbarStep, 45.0, sdf::none)
 // size
-STYLE_SHEET_ENTRY(size, vec2{}, sdf::geometry)
+STYLE_SHEET_ENTRY(size, vec2(0.0, 50), sdf::geometry)
 // margin
 STYLE_SHEET_ENTRY(margin, edges{}, sdf::geometry)
 // border
