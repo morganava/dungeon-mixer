@@ -213,6 +213,7 @@ namespace tabletopify
             bool _desiredWidthRequested = false;
             bool _desiredHeightRequested = false;
             widget_data* _data = nullptr;
+            size_t _childCounter = 0;
         };
 
         template<typename T, element_type ELEMENT_TYPE, typename WIDGET_DATA=widget_data, widget_flag_t WIDGET_FLAGS=widget_flag::none>
@@ -531,13 +532,11 @@ namespace tabletopify
             using widget::widget;
 
             static rect bounds_callback(widget_base* parent, const rect& desired);
-            void middle_update_impl();
-            void first_render_impl() const;
             void last_update_impl();
 
             callback<double> on_change;
         private:
-            vec2 slider_center(double width) const;
+            vec2 handle_center(double width) const;
             friend struct widget_slider_handle;
 
         };

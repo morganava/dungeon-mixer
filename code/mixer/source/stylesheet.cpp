@@ -16,6 +16,7 @@ namespace tabletopify
             "label",
             "textBox",
             "slider",
+            "sliderTrack",
             "sliderHandle",
         };
 

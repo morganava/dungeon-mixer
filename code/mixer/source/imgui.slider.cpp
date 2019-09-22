@@ -5,6 +5,11 @@ namespace tabletopify
 {
     namespace imgui
     {
+        struct widget_slider_track : public widget<widget_slider_track, element_type::slider_track>
+        {
+            using widget::widget;
+        };
+
         struct widget_slider_handle : public widget<widget_slider_handle, element_type::slider_handle>
         {
             using widget::widget;
@@ -16,13 +21,9 @@ namespace tabletopify
 
         void widget_slider_handle::middle_update_impl()
         {
-            auto handle_bounds = [&]() -> rect
-            {
-                return {};
-            };
-
             const auto sliderBounds = _slider->_layout.child_bounds();
             const auto handleWidth = this->_layout.outerBounds.width();
+            const auto handleBounds = this->_layout.border_outer_bounds();
             const auto startVal = _slider->data()->currentVal;
             const auto minVal = _slider->data()->minVal;
             const auto maxVal = _slider->data()->maxVal;
@@ -45,7 +46,7 @@ namespace tabletopify
                         if (point_inside_rect(evt.position(), _slider->scissor()))
                         {
                             if (point_inside_rect(evt.position(), sliderBounds) ||
-                                point_inside_rect(evt.position(), handle_bounds()))
+                                point_inside_rect(evt.position(), handleBounds))
                             {
                                 _slider->focus_widget();
                                 auto x = evt.position().x;
@@ -89,6 +90,7 @@ namespace tabletopify
             }
         }
 
+        #define mxSliderTrack() MX_WIDGET_CODEGEN(widget_slider_track, nullptr)
         #define mxSliderHandle(...) MX_WIDGET_CODEGEN(widget_slider_handle, nullptr, __VA_ARGS__)
 
         //
@@ -97,46 +99,33 @@ namespace tabletopify
 
         rect widget_slider::bounds_callback(widget_base* parent, const rect& desired)
         {
+            constexpr size_t SLIDER_TRACK_ID = 0;
+            constexpr size_t SLIDER_HANDLE_ID = 1;
+
             auto& self = *static_cast<widget_slider*>(parent);
 
-            // desired will already have the size, just need to set the position
-            vec2 center = self.slider_center(desired.width());
-            vec2 position = center - (desired.size / 2.0);
+            switch(self._childCounter) {
+                case SLIDER_TRACK_ID:
+                    // fill entire child space
+                    return self._layout.child_bounds();
+                case SLIDER_HANDLE_ID:
+                    // desired will already have the size, just need to set the position
+                    vec2 center = self.handle_center(desired.width());
+                    vec2 position = center - (desired.size / 2.0);
 
-            auto retval = rect(position, desired.size);
-            return retval;
-        }
-
-        void widget_slider::middle_update_impl()
-        {
-        }
-
-        void widget_slider::first_render_impl() const
-        {
-            const auto& style = this->style();
-            const auto bounds = this->_layout.child_bounds();
-
-            // draw background
-
-            g_nanovg.fill_rounded_rect(
-                bounds,
-                style.sliderBackgroundCornerRadius,
-                style.sliderBackgroundColor);
-
-            g_nanovg.stroke_rounded_rect(
-                bounds,
-                style.sliderBackgroundCornerRadius,
-                style.sliderBackgroundBorderSize,
-                style.sliderBackgroundBorderColor);
+                    return rect(position, desired.size);
+            }
+            return {};
         }
 
         void widget_slider::last_update_impl()
         {
+            mxSliderTrack();
             auto slider = this;
             mxSliderHandle(self._slider = slider);
         }
 
-        vec2 widget_slider::slider_center(double sliderWidth) const
+        vec2 widget_slider::handle_center(double sliderWidth) const
         {
             const auto val = data()->currentVal;
             const auto minVal = data()->minVal;

@@ -100,6 +100,8 @@ namespace tabletopify
 
             // now get our actual bounds from parent
             this->_layout.outerBounds = rb.eval(desiredBounds);
+            // increment the number of children our parent has
+            rb.widget->_childCounter++;
 
             // get our style
             this->_style = g_style_resolver.resolve(et, this->tags, element_state::none);

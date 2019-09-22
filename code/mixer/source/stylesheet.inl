@@ -28,8 +28,3 @@ STYLE_SHEET_ENTRY(selectionColor, color::rgb(0xFF,0x88,0x00), sdf::none)
 // text
 STYLE_SHEET_ENTRY(textHalign, halign::left, sdf::none)
 STYLE_SHEET_ENTRY(textValign, valign::middle, sdf::none)
-// slider
-STYLE_SHEET_ENTRY(sliderBackgroundCornerRadius, corners{10.0}, sdf::geometry)
-STYLE_SHEET_ENTRY(sliderBackgroundColor, color::rgb(0x50,0x50,0x50), sdf::none)
-STYLE_SHEET_ENTRY(sliderBackgroundBorderColor, color::rgb(0x80,0x80,0x80), sdf::none)
-STYLE_SHEET_ENTRY(sliderBackgroundBorderSize, 2.0, sdf::geometry)
