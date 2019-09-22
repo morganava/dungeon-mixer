@@ -57,12 +57,11 @@ namespace tabletopify
                 return *this;
             }
 
-            template<typename... T>
-            constexpr void operator()(T&&... args)
+            constexpr void operator()(auto&&... args)
             {
                 if (exec_func)
                 {
-                    exec_func(std::forward<T>(args)...);
+                    exec_func(std::forward<decltype(args)>(args)...);
                 }
             }
         private:
