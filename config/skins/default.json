@@ -82,5 +82,13 @@
         "margin" : 5,
         "padding" : [10,10,10,10],
         "sliderHandleSize" : [50, 30]
+    },
+    "sliderHandle" :
+    {
+        "size" : [40,40],
+        "borderRadius" : 10,
+        "backgroundColor" : "magenta",
+        "margin" : 5
+
     }
 }

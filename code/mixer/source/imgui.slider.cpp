@@ -5,17 +5,35 @@ namespace tabletopify
 {
     namespace imgui
     {
-        void widget_slider::middle_update_impl()
+        struct widget_slider_handle : public widget<widget_slider_handle, element_type::slider_handle>
         {
-            auto bounds = this->_layout.child_bounds();
-            const auto sliderSize = this->style().sliderHandleSize;
+            using widget::widget;
 
-            auto position_to_val = [&](double pos, double minVal, double maxVal) -> double
+            void middle_update_impl();
+
+            widget_slider* _slider = nullptr;
+        };
+
+        void widget_slider_handle::middle_update_impl()
+        {
+            auto handle_bounds = [&]() -> rect
             {
-                return clamp(0.0, (pos - (bounds.left() + sliderSize.x / 2.0)) / (bounds.width() - sliderSize.x), 1.0) * (maxVal - minVal);
+                return {};
             };
 
-            double startVal = data()->currentVal;
+            const auto sliderBounds = _slider->_layout.child_bounds();
+            const auto handleWidth = this->_layout.outerBounds.width();
+            const auto startVal = _slider->data()->currentVal;
+            const auto minVal = _slider->data()->minVal;
+            const auto maxVal = _slider->data()->maxVal;
+
+            auto position_to_val = [&](double pos) -> double
+            {
+                return clamp(
+                    0.0,
+                    (pos - (sliderBounds.left() + handleWidth / 2.0)) / (sliderBounds.width() - handleWidth),
+                    1.0) * (maxVal - minVal);
+            };
 
             for(auto& evt : g_input.get_input_events())
             {
@@ -23,15 +41,15 @@ namespace tabletopify
                 {
                     case input_event_type::mouse_drag_begin:
                     {
-                        this->unfocus_widget();
-                        if (point_inside_rect(evt.position(), this->scissor()))
+                        _slider->unfocus_widget();
+                        if (point_inside_rect(evt.position(), _slider->scissor()))
                         {
-                            if (point_inside_rect(evt.position(), bounds) ||
-                                point_inside_rect(evt.position(), this->slider_rect(bounds)))
+                            if (point_inside_rect(evt.position(), sliderBounds) ||
+                                point_inside_rect(evt.position(), handle_bounds()))
                             {
-                                this->focus_widget();
+                                _slider->focus_widget();
                                 auto x = evt.position().x;
-                                data()->currentVal = position_to_val(x, data()->minVal, data()->maxVal);
+                                _slider->data()->currentVal = position_to_val(x);
                             }
                         }
                     }
@@ -39,25 +57,25 @@ namespace tabletopify
                     case input_event_type::mouse_drag:
                     case input_event_type::mouse_drag_end:
                     {
-                        if (this->is_focused())
+                        if (_slider->is_focused())
                         {
                             auto x = evt.position().x;
-                            data()->currentVal = position_to_val(x, data()->minVal, data()->maxVal);
+                            _slider->data()->currentVal = position_to_val(x);
                         }
                     }
                     break;
                     case input_event_type::mouse_single_click:
                     {
-                        if (point_inside_rect(evt.position(), this->scissor()) &&
-                            point_inside_rect(evt.position(), bounds))
+                        if (point_inside_rect(evt.position(), _slider->scissor()) &&
+                            point_inside_rect(evt.position(), sliderBounds))
                         {
                             auto x = evt.position().x;
-                            data()->currentVal = position_to_val(x, data()->minVal, data()->maxVal);
-                            this->focus_widget();
+                            _slider->data()->currentVal = position_to_val(x);
+                            _slider->focus_widget();
                         }
                         else
                         {
-                            this->unfocus_widget();
+                            _slider->unfocus_widget();
                         }
                     }
                     break;
@@ -66,9 +84,31 @@ namespace tabletopify
                 }
             }
 
-            if (data()->currentVal != startVal) {
-                this->on_change(data()->currentVal);
+            if (startVal != _slider->data()->currentVal) {
+                _slider->on_change(_slider->data()->currentVal);
             }
+        }
+
+        #define mxSliderHandle(...) MX_WIDGET_CODEGEN(widget_slider_handle, nullptr, __VA_ARGS__)
+
+        //
+        // Slider
+        //
+
+        rect widget_slider::bounds_callback(widget_base* parent, const rect& desired)
+        {
+            auto& self = *static_cast<widget_slider*>(parent);
+
+            // desired will already have the size, just need to set the position
+            vec2 center = self.slider_center(desired.width());
+            vec2 position = center - (desired.size / 2.0);
+
+            auto retval = rect(position, desired.size);
+            return retval;
+        }
+
+        void widget_slider::middle_update_impl()
+        {
         }
 
         void widget_slider::first_render_impl() const
@@ -88,46 +128,29 @@ namespace tabletopify
                 style.sliderBackgroundCornerRadius,
                 style.sliderBackgroundBorderSize,
                 style.sliderBackgroundBorderColor);
-
-            // draw slider
-            const auto sliderHandleRect = this->slider_rect(bounds);
-
-
-            g_nanovg.fill_rounded_rect(
-                sliderHandleRect,
-                style.sliderHandleCornerRadius,
-                style.sliderHandleColor);
-
-            g_nanovg.stroke_rounded_rect(
-                sliderHandleRect,
-                style.sliderHandleCornerRadius,
-                style.sliderHandleBorderSize,
-                style.sliderHandleBorderColor);
         }
 
-        rect widget_slider::slider_rect(const rect& bounds) const
+        void widget_slider::last_update_impl()
         {
-            const auto& style = this->style();
-            auto val_to_position = [](double val, double minVal, double maxVal, double left, double right) -> double
-            {
-                return (val - minVal) / (maxVal - minVal) * (right - left) + left;
-            };
+            auto slider = this;
+            mxSliderHandle(self._slider = slider);
+        }
 
-            double sliderCenterX = val_to_position(
-                data()->currentVal,
-                data()->minVal,
-                data()->maxVal,
-                bounds.left() + style.sliderHandleSize.x / 2.0,
-                bounds.right() - style.sliderHandleSize.x / 2.0);
+        vec2 widget_slider::slider_center(double sliderWidth) const
+        {
+            const auto val = data()->currentVal;
+            const auto minVal = data()->minVal;
+            const auto maxVal = data()->maxVal;
 
-            return rect
-            {
-                {
-                    sliderCenterX - (style.sliderHandleSize.x / 2.0),
-                    bounds.top() + (bounds.height() / 2.0) - (style.sliderHandleSize.y / 2.0)
-                },
-                style.sliderHandleSize
-            };
+            const auto bounds = this->_layout.child_bounds();
+            const auto left = bounds.left() + sliderWidth / 2.0;
+            const auto right = bounds.right() - sliderWidth / 2.0;
+
+            double x = (val -  minVal) / (maxVal - minVal) * (right - left) + left;
+            double y = bounds.top() + bounds.height() / 2.0;
+
+            return {x, y};
+
         }
     }
 }

@@ -530,12 +530,15 @@ namespace tabletopify
         public:
             using widget::widget;
 
+            static rect bounds_callback(widget_base* parent, const rect& desired);
             void middle_update_impl();
             void first_render_impl() const;
+            void last_update_impl();
 
             callback<double> on_change;
         private:
-            rect slider_rect(const rect& bounds) const;
+            vec2 slider_center(double width) const;
+            friend struct widget_slider_handle;
 
         };
     } // imgui namespace

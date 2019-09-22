@@ -22,6 +22,7 @@ namespace tabletopify
         label,
         text_box,
         slider,
+        slider_handle,
 
         count,
 
