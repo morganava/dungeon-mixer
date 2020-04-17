@@ -14,10 +14,28 @@ namespace tabletopify
         {
             using widget::widget;
 
+            element_state_t resolve_element_state_impl() const;
             void middle_update_impl();
 
             widget_slider* _slider = nullptr;
         };
+
+        element_state_t widget_slider_handle::resolve_element_state_impl() const
+        {
+            const auto mouse_position = g_input.get_mouse_position(input_frame::current);
+
+            if (point_inside_rect(
+                    mouse_position,
+                    this->scissor()) &&
+                point_inside_rounded_rect(
+                    mouse_position,
+                    this->_layout.border_outer_bounds(),
+                    this->_layout.borderRadius))
+            {
+                return element_state::hover;
+            }
+            return element_state::none;
+        }
 
         void widget_slider_handle::middle_update_impl()
         {

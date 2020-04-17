@@ -78,26 +78,25 @@
     },
     "slider" :
     {
-        "size" : [0, 50],
-        "margin" : 5,
-        "padding" : [10,10,10,10]
+        "size" : [0, 42],
+        "margin" : 0,
+        "padding" : [4, 12, 4, 12]
     },
     "sliderTrack" :
     {
         "borderRadius" : 0,
-        "backgroundColor" : "blue",
+        "backgroundColor" : "#F80",
         "margin" : 10
     },
     "sliderHandle" :
     {
-        "size" : [80,40],
-        "borderRadius" : 10,
-        "backgroundColor" : "magenta",
+        "size" : [40,40],
+        "borderRadius" : 20,
+        "backgroundColor" : "#888",
         "margin" : 5
     },
-    "sliderHandle.foobar" :
+    "sliderHandle:hover" :
     {
-        "backgroundColor" : "orange",
-        "borderRadius" : 0
+        "backgroundColor" : "#AAA"
     }
 }
