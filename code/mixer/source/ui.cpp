@@ -82,7 +82,7 @@ namespace tabletopify
             }
             mxVScroll(&root.playlist.scroll)
             {
-                mxSlider(&root.playlist.slider, self.on_change = [](double val) -> void {MX_LOG_VAR(val);});
+                mxSlider(&root.playlist.slider, self.tags = {"foobar"}; self.on_change = [](double val) -> void {MX_LOG_VAR(val);});
             }
         }
     }

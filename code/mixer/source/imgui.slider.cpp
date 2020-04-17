@@ -90,7 +90,7 @@ namespace tabletopify
             }
         }
 
-        #define mxSliderTrack() MX_WIDGET_CODEGEN(widget_slider_track, nullptr)
+        #define mxSliderTrack(...) MX_WIDGET_CODEGEN(widget_slider_track, nullptr, __VA_ARGS__)
         #define mxSliderHandle(...) MX_WIDGET_CODEGEN(widget_slider_handle, nullptr, __VA_ARGS__)
 
         //
@@ -120,9 +120,10 @@ namespace tabletopify
 
         void widget_slider::last_update_impl()
         {
-            mxSliderTrack();
+            const auto tags = this->tags;
+            mxSliderTrack(self.tags = tags);
             auto slider = this;
-            mxSliderHandle(self._slider = slider);
+            mxSliderHandle(self._slider = slider; self.tags = tags);
         }
 
         vec2 widget_slider::handle_center(double sliderWidth) const
