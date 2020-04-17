@@ -237,8 +237,8 @@ namespace tabletopify
                 }
 
                 auto* self = static_cast<T*>(this);
-                self->last_update_impl();
-                self->last_render_impl();
+                self->last_update();
+                self->last_render();
 
                 g_context.pop_render_bounds();
             }
