@@ -10,5 +10,6 @@ add_library(nanovg STATIC
 
 include_directories(../include)
 include_directories(../../stb/include)
+include_directories(../../glfw/include)
 
 target_link_libraries(nanovg stb)
