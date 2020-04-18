@@ -74,6 +74,19 @@ namespace tabletopify
             double remainingRatio = 1.0;
             double remainingSize = totalSize;
 
+            // resolve constraints with identical min and max values
+            for(size_t i = 0; i < N; ++i) {
+                const auto& currentConstraint = _constraints[i];
+                if (currentConstraint.min == currentConstraint.max) {
+                    const auto size = currentConstraint.min;
+                    _sizes[i] = size;
+                    resolved[i] = true;
+
+                    remainingSize -= size;
+                    remainingRatio -= currentConstraint.ratio;
+                }
+            }
+
             bool needResolve = true;
             while(needResolve)
             {
