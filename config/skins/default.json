@@ -98,5 +98,9 @@
     "sliderHandle:hover" :
     {
         "backgroundColor" : "#AAA"
+    },
+    "sliderHandle:active" :
+    {
+        "backgroundColor" : "#555"
     }
 }

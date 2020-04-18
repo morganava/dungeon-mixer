@@ -116,6 +116,23 @@ namespace tabletopify
             this->_childScissor = get_intersecting_rect(scissor, this->_layout.inner_bounds());
         }
 
+        element_state_t widget_base::resolve_element_state_impl()
+        {
+            const auto mouse_position = g_input.get_mouse_position(input_frame::current);
+
+            if (point_inside_rect(
+                    mouse_position,
+                    this->scissor()) &&
+                point_inside_rounded_rect(
+                    mouse_position,
+                    this->_layout.border_outer_bounds(),
+                    this->_layout.borderRadius))
+            {
+                return element_state::hover;
+            }
+            return element_state::none;
+        }
+
         void widget_base::render_box_layout_impl() const
         {
             const auto& style = this->style();

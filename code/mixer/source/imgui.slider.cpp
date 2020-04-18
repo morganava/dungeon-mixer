@@ -14,30 +14,13 @@ namespace tabletopify
         {
             using widget::widget;
 
-            element_state_t resolve_element_state_impl() const;
-            void middle_update_impl();
+            void first_update_impl();
+            element_state_t resolve_element_state_impl();
 
             widget_slider* _slider = nullptr;
         };
 
-        element_state_t widget_slider_handle::resolve_element_state_impl() const
-        {
-            const auto mouse_position = g_input.get_mouse_position(input_frame::current);
-
-            if (point_inside_rect(
-                    mouse_position,
-                    this->scissor()) &&
-                point_inside_rounded_rect(
-                    mouse_position,
-                    this->_layout.border_outer_bounds(),
-                    this->_layout.borderRadius))
-            {
-                return element_state::hover;
-            }
-            return element_state::none;
-        }
-
-        void widget_slider_handle::middle_update_impl()
+        void widget_slider_handle::first_update_impl()
         {
             const auto sliderBounds = _slider->_layout.child_bounds();
             const auto handleWidth = this->_layout.outerBounds.width();
@@ -58,6 +41,7 @@ namespace tabletopify
             {
                 switch (evt.type())
                 {
+                    case input_event_type::mouse_down:
                     case input_event_type::mouse_drag_begin:
                     {
                         _slider->unfocus_widget();
@@ -74,13 +58,17 @@ namespace tabletopify
                     }
                     break;
                     case input_event_type::mouse_drag:
-                    case input_event_type::mouse_drag_end:
                     {
                         if (_slider->is_focused())
                         {
                             auto x = evt.position().x;
                             _slider->data()->currentVal = position_to_val(x);
                         }
+                    }
+                    break;
+                    case input_event_type::mouse_drag_end:
+                    {
+                        _slider->unfocus_widget();
                     }
                     break;
                     case input_event_type::mouse_single_click:
@@ -106,6 +94,26 @@ namespace tabletopify
             if (startVal != _slider->data()->currentVal) {
                 _slider->on_change(_slider->data()->currentVal);
             }
+        }
+
+        element_state_t widget_slider_handle::resolve_element_state_impl()
+        {
+            if (_slider->is_focused()) {
+                return element_state::active;
+            }
+
+            const auto mouse_position = g_input.get_mouse_position(input_frame::current);
+            if (point_inside_rect(
+                    mouse_position,
+                    this->scissor()) &&
+                point_inside_rounded_rect(
+                    mouse_position,
+                    this->_layout.border_outer_bounds(),
+                    this->_layout.borderRadius))
+            {
+                return element_state::hover;
+            }
+            return element_state::none;
         }
 
         #define mxSliderTrack(...) MX_WIDGET_CODEGEN(widget_slider_track, nullptr, __VA_ARGS__)

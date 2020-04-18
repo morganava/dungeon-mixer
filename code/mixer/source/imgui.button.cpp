@@ -7,23 +7,6 @@ namespace tabletopify
     {
         // Button
 
-        element_state_t widget_button::resolve_element_state_impl() const
-        {
-            const auto mouse_position = g_input.get_mouse_position(input_frame::current);
-
-            if (point_inside_rect(
-                    mouse_position,
-                    this->scissor()) &&
-                point_inside_rounded_rect(
-                    mouse_position,
-                    this->_layout.border_outer_bounds(),
-                    this->_layout.borderRadius))
-            {
-                return element_state::hover;
-            }
-            return element_state::none;
-        }
-
         void widget_button::first_update_impl()
         {
             for(auto evt : g_input.get_input_events())

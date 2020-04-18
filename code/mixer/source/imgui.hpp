@@ -174,7 +174,7 @@ namespace tabletopify
             // common funcs
             void resolve_box_layout_impl(element_type_t et, widget_flag_t flags);
             void resolve_scissor_impl();
-            element_state_t resolve_element_state_impl() const {return element_state::none;}
+            element_state_t resolve_element_state_impl();
             void resolve_style_impl(element_type_t, element_state_t);
             void render_box_layout_impl() const;
 
@@ -450,7 +450,6 @@ namespace tabletopify
         public:
             using widget::widget;
 
-            element_state_t resolve_element_state_impl() const;
             void first_update_impl();
             void first_render_impl() const;
             void last_update_impl();
