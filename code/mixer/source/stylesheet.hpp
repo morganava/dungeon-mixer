@@ -39,6 +39,9 @@ namespace tabletopify
         disabled= 1 << 2,
     } element_state_t;
 
+    inline element_state_t operator&(element_state_t left, element_state_t right) {
+        return static_cast<element_state_t>(static_cast<uint_fast8_t>(left) & static_cast<uint_fast8_t>(right));
+    }
     element_state_t parse_element_state(const std::string&);
 
     namespace sdf

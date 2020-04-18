@@ -102,18 +102,19 @@ namespace tabletopify
             return &style;
         }
 
-        element_type_t typeList[2] = {element_type::any, type};
-        std::vector<element_state_t> stateList = {element_state::none};
-        const auto& push_state = [&](element_state_t flag) -> void
+        // build our lists we're going to iterate through
+        element_type_t typeList[] =
         {
-            if (static_cast<uint_fast8_t>(state) & static_cast<uint_fast8_t>(flag))
-            {
-                stateList.push_back(flag);
-            }
+            element_type::any,
+            type
         };
-        push_state(element_state::hover);
-        push_state(element_state::active);
+        element_state_t stateList[] = {
+            element_state::hover,
+            element_state::active,
+            element_state::disabled
+        };
 
+        // function to applying partial styles
         style_sheet retval;
         const auto apply_style = [&](const selector& sel) -> void
         {
@@ -123,19 +124,31 @@ namespace tabletopify
             }
         };
 
-        for(auto currentType : typeList)
-        {
-            for(auto currentState : stateList)
-            {
-                selector s = {currentType, {}, currentState};
-                apply_style(s);
+        // any, type
+        for (auto currentType : typeList) {
+            apply_style({currentType, {}, element_state::none});
+        }
+        // any.tag ... type.tag
+        for (auto currentType : typeList) {
+            for (const auto& currentTag : tags) {
+                apply_style({currentType, {currentTag}, element_state::none});
             }
-            for(const auto& currentTag : tags)
-            {
-                for(auto currentState : stateList)
-                {
-                    selector s = {currentType, {currentTag}, currentState};
-                    apply_style(s);
+        }
+        // any:state ... type:state
+        for (auto currentType : typeList) {
+            for (auto currentState : stateList) {
+                if ((state & currentState) == currentState) {
+                    apply_style({currentType, {}, currentState});
+                }
+            }
+        }
+        // any.tag:state ... type.tag:state
+        for (auto currentType : typeList) {
+            for (auto currentState : stateList) {
+                if ((state & currentState) == currentState) {
+                    for (const auto& currentTag : tags) {
+                        apply_style({currentType, {currentTag}, currentState});
+                    }
                 }
             }
         }
