@@ -59,3 +59,4 @@ namespace tabletopify
     void to_json(nl::json& js, const color& col);
     void from_json(const nl::json& js, color& col);
 }
+std::ostream& operator<<(std::ostream& out, const tabletopify::color& col);

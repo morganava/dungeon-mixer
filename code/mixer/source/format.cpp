@@ -4,6 +4,7 @@
 #include "geometry.hpp"
 #include "uuid.hpp"
 #include "stylesheet.hpp"
+#include "color.hpp"
 
 using std::ostream;
 using namespace tabletopify;
@@ -156,5 +157,16 @@ ostream& operator<<(ostream& out, const element_state_t& es)
             out << "disabled";
             break;
     }
+    return out;
+}
+
+// color
+ostream& operator<<(ostream& out, const color& col)
+{
+    fmt::fprintf(out, "#%02x%02x%02x",
+        static_cast<uint8_t>(255.0 * col.red),
+        static_cast<uint8_t>(255.0 * col.green),
+        static_cast<uint8_t>(255.0 * col.blue));
+
     return out;
 }
