@@ -78,7 +78,6 @@ namespace tabletopify
                         {
                             auto x = evt.position().x;
                             _slider->data()->currentVal = position_to_val(x);
-                            _slider->focus_widget();
                         }
                         else
                         {
