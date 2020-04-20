@@ -4,10 +4,8 @@
 
 namespace tabletopify
 {
-    union color
+    struct color
     {
-    public:
-
         // magenta by default
         constexpr color()
         : raw{1.0f, 0.0f, 1.0f, 1.0f}
@@ -18,6 +16,9 @@ namespace tabletopify
         { }
 
         constexpr color(const color& that) = default;
+        constexpr color(color&&) = default;
+        constexpr color& operator=(const color&) = default;
+        constexpr color& operator=(color&&) = default;
 
         constexpr static color rgb(uint32_t r, uint32_t g, uint32_t b)
         {
@@ -43,17 +44,19 @@ namespace tabletopify
 
             return retval;
         }
-    public:
-        struct
+
+        #define COLOR_ENTRY(NAME, RGB) const static color NAME;
+        #include "color.inl"
+        #undef COLOR_ENTRY
+
+        union
         {
-            float r,g,b,a;
+            struct
+            {
+                float r,g,b,a;
+            };
+            float raw[4];
         };
-        struct
-        {
-            float red,green,blue,alpha;
-        };
-    private:
-        float raw[4];
     };
 
     void to_json(nl::json& js, const color& col);

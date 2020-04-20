@@ -164,9 +164,9 @@ ostream& operator<<(ostream& out, const element_state_t& es)
 ostream& operator<<(ostream& out, const color& col)
 {
     fmt::fprintf(out, "#%02x%02x%02x",
-        static_cast<uint8_t>(255.0 * col.red),
-        static_cast<uint8_t>(255.0 * col.green),
-        static_cast<uint8_t>(255.0 * col.blue));
+        static_cast<uint8_t>(255.0 * col.r),
+        static_cast<uint8_t>(255.0 * col.g),
+        static_cast<uint8_t>(255.0 * col.b));
 
     return out;
 }
