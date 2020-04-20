@@ -66,6 +66,11 @@
     ".title" : {
         "fontSize" : 80
     },
+    ".entryTitle" : {
+        "fontSize" : 26,
+        "textHalign" : "left"
+
+    },
     "textBox.searchBox" :
     {
         "backgroundColor" : "white",

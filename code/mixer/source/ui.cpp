@@ -43,12 +43,21 @@ namespace tabletopify
             mxButton(&root.sidebar.playlists, self.tags = {"mediumText", "sidebarEntry"});
             mxButton(&root.sidebar.newPlaylist, self.tags = {"lightText", "sidebarEntry", "indent"};
                 self.on_click = []() -> void {MX_LOG_INFO("NEW PLAYLIST");});
-            mxButton(&root.sidebar.starred, self.tags = {"lightText", "sidebarEntry", "indent"};
-                self.on_click = []() -> void {MX_LOG_INFO("STARRED");});
-            mxButton(&root.sidebar.playing, self.tags = {"lightText", "sidebarEntry", "indent"};
-                self.on_click = []() -> void {MX_LOG_INFO("PLAYING");});
-            mxButton(&root.sidebar.all, self.tags = {"lightText", "sidebarEntry", "indent"};
-                self.on_click = []() -> void {MX_LOG_INFO("ALL");});
+            for( size_t i = 0; i < root.playlist.playlists.size(); ++i)
+            {
+                auto& currentPlaylist = root.playlist.playlists[i];
+                mxButton(&currentPlaylist.title, self.tags = {"lightText","sidebarEntry", "indent"};
+                    self.on_click = [&]() -> void
+                    {
+                        MX_LOG_INFO("{}", currentPlaylist.title.text);
+                        worker(Worker_UI).enqueue([=]() -> void
+                        {
+                            root.playlist.currentPlaylistId = static_cast<playlist_id_t>(i);
+                        });
+                    };
+
+                );
+            }
             mxButton(&root.sidebar.edit, self.tags = {"mediumText", "sidebarEntry"};
                 self.on_click = []() -> void {MX_LOG_INFO("EDIT");});
             mxButton(&root.sidebar.about, self.tags = {"mediumText", "sidebarEntry"};
@@ -58,10 +67,11 @@ namespace tabletopify
 
     void ui::draw_playlist(float dt)
     {
+        auto& currentPlaylist = root.playlist.currentPlaylist();
         mxVBox(&root.playlist.vflex, self.tags = {"content"})
         {
             mxLabel(&root.playlist.heading, self.tags= {"header", "darkText"});
-            mxLabel(&root.playlist.title, self.tags = {"header", "title", "lightText"});
+            mxLabel(&currentPlaylist.title, self.tags = {"header", "title", "lightText"});
             mxHBox(&root.playlist.buttonFlex)
             {
                 mxButton(&root.playlist.export_,
@@ -82,7 +92,18 @@ namespace tabletopify
             }
             mxVScroll(&root.playlist.scroll)
             {
-                mxSlider(&root.playlist.slider, self.tags = {"foobar"}; self.on_change = [](double val) -> void {MX_LOG_VAR(val);});
+                for (auto& currentEntry : currentPlaylist.entries) {
+                    mxHBox(&root.playlist.rowFlex)
+                    {
+                        mxSpacer(); // FAVORITE
+                        mxLabel(&currentEntry.title, self.tags = {"entryTitle"});
+                        mxSlider(&currentEntry.volume, self.tags = {"entryVolume"};
+                            self.on_change = [](double val) -> void { MX_LOG_VAR(val);};
+                        );
+                        mxSpacer(); // MUTE TOGGLE
+                        mxSpacer(); // PLAY/STOP BUTTON
+                    }
+                }
             }
         }
     }

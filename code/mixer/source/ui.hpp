@@ -1,6 +1,7 @@
 #pragma once
 
 #include "singleton.hpp"
+#include "audio.hpp"
 
 namespace tabletopify
 {
@@ -24,6 +25,17 @@ namespace tabletopify
             About
         } currentScreen = Screen::Playlist;
         typedef enum Screen Screen_t;
+
+        struct playlist_id
+        {
+            enum value
+            {
+                starred = 0,
+                playing,
+                all,
+            };
+        };
+        typedef playlist_id::value playlist_id_t;
 
         struct
         {
@@ -52,7 +64,7 @@ namespace tabletopify
                     constraint{35, 35, 1.0},
                     constraint{70, 70, 1.0},
                     constraint{100, 100, 1.0},
-                    constraint{0.0, unconstrained, 2.0},
+                    constraint{0.0, unconstrained, 1.0},
                 };
                 imgui::label_data heading = {"Playlist"};
                 imgui::label_data title = {"All"};
@@ -72,9 +84,56 @@ namespace tabletopify
                 imgui::button_data searchButton = {"[ ]"};
 
                 imgui::scroll_area_data scroll;
-                imgui::slider_data slider = {0.0f, 100.0f, 50.0f};
-            } playlist;
+                imgui::flex_box_data rowFlex =
+                {
+                    constraint{64,64,1.0},
+                    constraint{256,unconstrained,2.0},
+                    constraint{256,256,1.0},
+                    constraint{64,64,1.0},
+                    constraint{64,64,1.0},
+                };
 
+                imgui::label_data trackTitle = {"Title"};
+                imgui::label_data trackVolume = {"Volume"};
+                imgui::slider_data slider = {0.0f, 100.0f, 50.0f};
+
+                struct playlist_data
+                {
+                    imgui::label_data title;
+                    struct playlist_entry
+                    {
+                        bool favorited;
+                        imgui::label_data title;
+                        imgui::slider_data volume = {0.0, 1.0, 0.5};
+                        imgui::button_data mute;
+                        imgui::button_data playstop;
+
+                        atmosphere_handle_t atmosphereHandle = MX_INVALID_HANDLE;
+                    };
+                    std::vector<playlist_entry> entries;
+                };
+                playlist_id_t currentPlaylistId = playlist_id::all;
+                std::vector<playlist_data> playlists =
+                {
+                    // starred
+                    {{"Favorites"}, {}},
+                    // playing
+                    {{"Playing"}, {}},
+                    // all
+                    {{"All"},
+                        {
+                            {false, {"Moo Cows"}},
+                            {false, {"Rainy Forest"}},
+                            {false, {"Marketplace"}},
+                        }
+                    },
+                };
+
+                playlist_data& currentPlaylist() {
+                    return playlists[currentPlaylistId];
+                }
+
+            } playlist;
             struct
             {
 
