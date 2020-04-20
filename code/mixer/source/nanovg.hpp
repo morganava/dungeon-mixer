@@ -62,6 +62,7 @@ namespace tabletopify
 
         // render methods
         void set_scissor(const rectf&);
+        void set_fill_color(const color&);
         void fill_rect(const rectf&, const color&);
         void fill_rounded_rect(const rectf&, const cornersf&, const color&);
         void fill_circle(const circlef&, const color&);
