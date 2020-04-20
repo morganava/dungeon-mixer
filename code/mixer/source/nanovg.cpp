@@ -106,6 +106,11 @@ namespace tabletopify
         {
             switch(cmd)
             {
+                default:
+                {
+                    MX_THROW_MSG("unknown draw command: {}", static_cast<uint8_t>(cmd));
+                }
+                break;
                 case draw_command::set_scissor:
                 {
                     rectf r;
@@ -126,13 +131,10 @@ namespace tabletopify
                 case draw_command::fill_rect:
                 {
                     rectf r;
-                    color col;
                     MX_THROW_IF_FALSE(cq.next(r));
-                    MX_THROW_IF_FALSE(cq.next(col))
 
                     nvgBeginPath(_ctx);
                     nvgRect(_ctx, r.position.x, r.position.y, r.size.x, r.size.y);
-                    nvgFillColor(_ctx, col);
                     nvgFill(_ctx);
                 }
                 break;
@@ -140,27 +142,21 @@ namespace tabletopify
                 {
                     rectf r;
                     cornersf rad;
-                    color col;
                     MX_THROW_IF_FALSE(cq.next(r));
                     MX_THROW_IF_FALSE(cq.next(rad));
-                    MX_THROW_IF_FALSE(cq.next(col));
 
                     nvgBeginPath(_ctx);
                     nvgRoundedRectVarying(_ctx, r.position.x, r.position.y, r.size.x, r.size.y, rad.topLeft, rad.topRight, rad.bottomRight, rad.bottomLeft);
-                    nvgFillColor(_ctx, col);
                     nvgFill(_ctx);
                 }
                 break;
                 case draw_command::fill_circle:
                 {
                     circlef c;
-                    color col;
                     MX_THROW_IF_FALSE(cq.next(c));
-                    MX_THROW_IF_FALSE(cq.next(col));
 
                     nvgBeginPath(_ctx);
                     nvgCircle(_ctx, c.position.x, c.position.y, c.radius);
-                    nvgFillColor(_ctx, col);
                     nvgFill(_ctx);
                 }
                 break;
@@ -481,29 +477,26 @@ namespace tabletopify
         cq.push_back(col);
     }
 
-    void nanovg::fill_rect(const rectf& r, const color& col)
+    void nanovg::fill_rect(const rectf& r)
     {
         auto& cq = _command_queue.current;
         cq.push_back(draw_command::fill_rect);
         cq.push_back(r);
-        cq.push_back(col);
     }
 
-    void nanovg::fill_rounded_rect(const rectf& r, const cornersf& c, const color& col)
+    void nanovg::fill_rounded_rect(const rectf& r, const cornersf& c)
     {
         auto& cq = _command_queue.current;
         cq.push_back(draw_command::fill_rounded_rect);
         cq.push_back(r);
         cq.push_back(c);
-        cq.push_back(col);
     }
 
-    void nanovg::fill_circle(const circlef& c, const color& col)
+    void nanovg::fill_circle(const circlef& c)
     {
         auto& cq = _command_queue.current;
         cq.push_back(draw_command::fill_circle);
         cq.push_back(c);
-        cq.push_back(col);
     }
 
     void nanovg::stroke_rect(const rectf& r, float strokeWidth, const color& col)

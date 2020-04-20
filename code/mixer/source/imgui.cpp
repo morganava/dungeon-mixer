@@ -144,13 +144,15 @@ namespace tabletopify
                 fillBounds.position += vec2{style.borderSize, style.borderSize} / 2.0;
                 fillBounds.size -= vec2{style.borderSize, style.borderSize};
 
-                g_nanovg.fill_rounded_rect(fillBounds, style.borderRadius, style.backgroundColor);
+                g_nanovg.set_fill_color(style.backgroundColor);
+                g_nanovg.fill_rounded_rect(fillBounds, style.borderRadius);
                 g_nanovg.stroke_rounded_rect(strokeBounds, style.borderRadius, style.borderSize, style.borderColor);
             }
             else
             {
                 auto fillBounds = this->_layout.border_outer_bounds();
-                g_nanovg.fill_rounded_rect(fillBounds, style.borderRadius, style.backgroundColor);
+                g_nanovg.set_fill_color(style.backgroundColor);
+                g_nanovg.fill_rounded_rect(fillBounds, style.borderRadius);
             }
         }
 
