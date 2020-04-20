@@ -32,6 +32,7 @@ namespace tabletopify
             template<typename FUNCTOR>
             callback& operator=(FUNCTOR&& functor)
             {
+                MX_ASSERT(delete_func == nullptr && exec_func == nullptr);
                 // convertble to a raw function pointer
                 if constexpr (std::is_convertible<FUNCTOR, void(*)(ARGS...)>::value)
                 {
