@@ -28,7 +28,7 @@ namespace tabletopify
 
         static void move(TYPE&& that)
         {
-            contruct(std::forward<TYPE&&>(that));
+            construct(std::forward<TYPE&&>(that));
         }
 
         static constexpr void free()
