@@ -20,7 +20,7 @@ namespace tabletopify
         MX_THROW_IF_NULL(_ctx);
     }
 
-    font_id nanovg::create_font(fs::path&& path)
+    font_id_t nanovg::create_font(fs::path&& path)
     {
         auto fontFilePath = fs::canonical(path);
         auto it = _font_map.find(fontFilePath);
@@ -224,7 +224,7 @@ namespace tabletopify
                 {
                     rectf bounds;
                     float textOffset;
-                    font_id font;
+                    font_id_t font;
                     float size;
                     color col;
                     halign_t halign;
@@ -253,7 +253,7 @@ namespace tabletopify
                 {
                     rectf bounds;
                     float textOffset;
-                    font_id font;
+                    font_id_t font;
                     float fontSize;
                     color fontColor;
                     halign_t halign;
@@ -331,7 +331,7 @@ namespace tabletopify
                 {
                     rectf bounds;
                     float textOffset;
-                    font_id font;
+                    font_id_t font;
                     float fontSize;
                     color fontColor;
                     halign_t halign;
@@ -527,9 +527,9 @@ namespace tabletopify
         cq.push_back(col);
     }
 
-    void nanovg::draw_text(const rectf& bounds, float textOffset, font_id font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const utf8_string& str)
+    void nanovg::draw_text(const rectf& bounds, float textOffset, font_id_t font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const utf8_string& str)
     {
-        if (font == font_id::invalid) {
+        if (font == font_id_t::invalid) {
             return;
         }
 
@@ -545,9 +545,9 @@ namespace tabletopify
         cq.push_back(str);
     }
 
-    void nanovg::draw_text_with_caret(const rectf& bounds, float textOffset, font_id font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const utf8_string& str, int32_t caretIndex, float caretWidth, const color& caretColor)
+    void nanovg::draw_text_with_caret(const rectf& bounds, float textOffset, font_id_t font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const utf8_string& str, int32_t caretIndex, float caretWidth, const color& caretColor)
     {
-        if (font == font_id::invalid) {
+        if (font == font_id_t::invalid) {
             return;
         }
 
@@ -573,9 +573,9 @@ namespace tabletopify
         }
     }
 
-    void nanovg::draw_text_with_selection(const rectf& bounds, float textOffset, font_id font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const utf8_string& str, int32_t selectBegin, int32_t selectEnd, const color& selectedFontColor, const color& selectionColor)
+    void nanovg::draw_text_with_selection(const rectf& bounds, float textOffset, font_id_t font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const utf8_string& str, int32_t selectBegin, int32_t selectEnd, const color& selectedFontColor, const color& selectionColor)
     {
-        if (font == font_id::invalid) {
+        if (font == font_id_t::invalid) {
             return;
         }
 
@@ -602,10 +602,10 @@ namespace tabletopify
         }
     }
 
-    int32_t nanovg::get_caret_position(const rectf& bounds, float textOffset, font_id font, float fontSize, halign_t halign, valign_t valign, const utf8_string& str, const vec2f& clickPoint)
+    int32_t nanovg::get_caret_position(const rectf& bounds, float textOffset, font_id_t font, float fontSize, halign_t halign, valign_t valign, const utf8_string& str, const vec2f& clickPoint)
     {
         // TODO: take y into account or is the assumption of this function that a click has happened?
-        if (font == font_id::invalid) {
+        if (font == font_id_t::invalid) {
             return -1;
         }
 
@@ -637,9 +637,9 @@ namespace tabletopify
         return index;
     }
 
-    float nanovg::get_caret_offset(const rectf& bounds, font_id font, float fontSize, halign_t halign, valign_t valign, const utf8_string& str, size_t caretPosition)
+    float nanovg::get_caret_offset(const rectf& bounds, font_id_t font, float fontSize, halign_t halign, valign_t valign, const utf8_string& str, size_t caretPosition)
     {
-        if (font == font_id::invalid) {
+        if (font == font_id_t::invalid) {
             return 0.0f;
         }
 

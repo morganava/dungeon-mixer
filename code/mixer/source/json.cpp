@@ -403,8 +403,8 @@ namespace tabletopify
         }
     }
 
-    // font_id
-    void from_json(const nl::json& j, font_id& fi)
+    // font_id_t
+    void from_json(const nl::json& j, font_id_t& fi)
     {
         MX_THROW_IF_FALSE(j.is_string());
 

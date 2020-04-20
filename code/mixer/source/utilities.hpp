@@ -85,6 +85,24 @@ namespace tabletopify
         std::unique_ptr<uint8_t[]> _memory;
         size_t _bytes;
     };
+
+    template<typename T>
+    struct strong_id
+    {
+        constexpr strong_id() = default;
+        constexpr strong_id(size_t handle)
+        : _handle(handle)
+        { }
+        constexpr strong_id(const strong_id&) = default;
+        constexpr strong_id(strong_id&&) = default;
+        strong_id& operator=(const strong_id&) = default;
+        strong_id& operator=(strong_id&&) = default;
+        constexpr operator size_t() const { return _handle; }
+        constexpr const static T invalid = T();
+    private:
+        size_t _handle = ~size_t(0);
+    };
+    #define MX_STRONG_ID(NAME) struct NAME : public strong_id<NAME> { using strong_id::strong_id; using strong_id::operator=;}; typedef NAME NAME##_t;
 }
 
 namespace std
