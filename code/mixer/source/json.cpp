@@ -332,6 +332,7 @@ namespace tabletopify
         {
             "stretch",
             "tile",
+            "center",
         };
 
         for(size_t i = 0; i < countof(modeStrings); ++i)

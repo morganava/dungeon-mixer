@@ -172,6 +172,13 @@ namespace tabletopify
                 return nvgImagePattern(_ctx, dim.left(), dim.top(), image.width(), image.height(), 0.0f, image.id, 1.0f);
             }
             break;
+            case background_image_mode::center:
+            {
+                rectf imageRect = { dim.center() - image.size / 2.0f, {image.size} };
+                nvgScissor(_ctx, imageRect.position.x, imageRect.position.y, imageRect.size.x, imageRect.size.y);
+                return nvgImagePattern(_ctx, imageRect.left(), imageRect.top(), imageRect.width(), imageRect.height(), 0.0f, image.id, 1.0f);
+            }
+            break;
        }
        return {};
     }
@@ -192,6 +199,11 @@ namespace tabletopify
         auto& cq = _command_queue.current;
 
         rectf currentScissor;
+
+        const auto restoreScissor = [&]() -> void {
+            nvgScissor(_ctx, currentScissor.position.x, currentScissor.position.y, currentScissor.size.x, currentScissor.size.y);
+        };
+
         while(cq.next<draw_command_t>(cmd))
         {
             switch(cmd)
@@ -268,6 +280,8 @@ namespace tabletopify
                     nvgRect(_ctx, r.position.x, r.position.y, r.size.x, r.size.y);
                     nvgFillPaint(_ctx, paint);
                     nvgFill(_ctx);
+
+                    restoreScissor();
                 }
                 break;
                 case draw_command::image_fill_rounded_rect:
@@ -290,6 +304,7 @@ namespace tabletopify
                     nvgFillPaint(_ctx, paint);
                     nvgFill(_ctx);
 
+                    restoreScissor();
                 }
                 break;
                 case draw_command::image_fill_circle:
@@ -309,6 +324,8 @@ namespace tabletopify
                     nvgCircle(_ctx, c.position.x, c.position.y, c.radius);
                     nvgFillPaint(_ctx, paint);
                     nvgFill(_ctx);
+
+                    restoreScissor();
                 }
                 break;
                 case draw_command::stroke_rect:

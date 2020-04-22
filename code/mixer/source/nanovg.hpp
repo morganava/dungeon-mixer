@@ -29,6 +29,7 @@ namespace tabletopify
     {
         stretch,
         tile,
+        center,
     } background_image_mode_t;
 
     // strongly typed so we can have from_json

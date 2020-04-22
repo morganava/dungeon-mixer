@@ -112,6 +112,6 @@
     {
         "backgroundColor" : "magenta",
         "backgroundImage" : "volume.png",
-        "backgroundImageMode" : "stretch"
+        "backgroundImageMode" : "center"
     }
 }
