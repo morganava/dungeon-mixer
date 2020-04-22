@@ -104,6 +104,11 @@ namespace tabletopify
             return x*x + y*y;
         }
 
+        constexpr T magnitude() const
+        {
+            return sqrt(squared_magnitude());
+        }
+
         constexpr operator vec2_<float>() const
         {
             return {(float)x, (float)y};
@@ -223,6 +228,36 @@ namespace tabletopify
     {
         vec2_<T> position;
         T radius;
+
+        constexpr vec2_<T> center() const
+        {
+            return position;
+        }
+
+        constexpr T left() const
+        {
+            return position.x - radius;
+        }
+
+        constexpr T right() const
+        {
+            return position.x + radius;
+        }
+
+        constexpr T top() const
+        {
+            return position.y - radius;
+        }
+
+        constexpr T bottom() const
+        {
+            return position.y + radius;
+        }
+
+        constexpr T diameter() const
+        {
+            return radius * 2;
+        }
 
         constexpr operator circle_<float>() const
         {
