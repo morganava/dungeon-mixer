@@ -112,6 +112,7 @@
     {
         "backgroundColor" : "magenta",
         "backgroundImage" : "volume.png",
+        "backgroundImageMode" : "stretch",
         "margin" : 10
     }
 }

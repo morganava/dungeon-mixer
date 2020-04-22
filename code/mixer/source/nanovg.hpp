@@ -25,6 +25,11 @@ namespace tabletopify
         bottom = NVG_ALIGN_BOTTOM,
     } valign_t;
 
+    typedef enum class background_image_mode : uint_fast8_t
+    {
+        stretch,
+        tile,
+    } background_image_mode_t;
 
     // strongly typed so we can have from_json
     MX_STRONG_HANDLE(font_handle);

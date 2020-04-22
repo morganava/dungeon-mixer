@@ -322,6 +322,31 @@ namespace tabletopify
         }
     }
 
+    // background image mode
+    void from_json(const nl::json& j, background_image_mode_t& bim)
+    {
+        MX_THROW_IF_FALSE(j.is_string());
+
+        const auto jstr = j.get<std::string>();
+        constexpr const char* modeStrings[] =
+        {
+            "stretch",
+            "tile",
+        };
+
+        for(size_t i = 0; i < countof(modeStrings); ++i)
+        {
+            const auto* currentMode = modeStrings[i];
+            if (jstr == currentMode)
+            {
+                bim = static_cast<background_image_mode_t>(i);
+                return;
+            }
+        }
+
+        MX_THROW_MSG("Cannot parse '{}' as background_image_mode_t, must be 'stretch or 'tile'", jstr);
+    }
+
     // style_resolver
 
     void from_json(const nl::json& j, element_state_t state, style_declaration_set& sds)
