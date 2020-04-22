@@ -87,22 +87,22 @@ namespace tabletopify
     };
 
     template<typename T>
-    struct strong_id
+    struct strong_handle
     {
-        constexpr strong_id() = default;
-        constexpr strong_id(size_t handle)
+        constexpr strong_handle() = default;
+        constexpr strong_handle(size_t handle)
         : _handle(handle)
         { }
-        constexpr strong_id(const strong_id&) = default;
-        constexpr strong_id(strong_id&&) = default;
-        strong_id& operator=(const strong_id&) = default;
-        strong_id& operator=(strong_id&&) = default;
+        constexpr strong_handle(const strong_handle&) = default;
+        constexpr strong_handle(strong_handle&&) = default;
+        strong_handle& operator=(const strong_handle&) = default;
+        strong_handle& operator=(strong_handle&&) = default;
         constexpr operator size_t() const { return _handle; }
         constexpr const static T invalid = T();
     private:
         size_t _handle = ~size_t(0);
     };
-    #define MX_STRONG_ID(NAME) struct NAME : public strong_id<NAME> { using strong_id::strong_id; using strong_id::operator=;}; typedef NAME NAME##_t;
+    #define MX_STRONG_HANDLE(NAME) struct NAME : public strong_handle<NAME> { using strong_handle::strong_handle; using strong_handle::operator=;}; typedef NAME NAME##_t;
 }
 
 namespace std

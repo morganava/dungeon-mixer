@@ -258,12 +258,12 @@ namespace tabletopify
         }
     }
 
-    // font_id_t
-    void from_json(const nl::json& j, font_id_t& fi)
+    // font_handle_t
+    void from_json(const nl::json& j, font_handle_t& fh)
     {
         MX_THROW_IF_FALSE(j.is_string());
 
-        fi = g_nanovg.create_font(get_skins_path() / j.get<std::string>());
+        fh = g_nanovg.create_font(get_skins_path() / j.get<std::string>());
     }
 
     // image_handle_t

@@ -20,7 +20,7 @@ STYLE_SHEET_ENTRY(padding, edges{}, sdf::geometry)
 STYLE_SHEET_ENTRY(backgroundColor, color::rgb(0xff,0xff,0xff), sdf::none)
 STYLE_SHEET_ENTRY(backgroundImage, image_handle::invalid, sdf::none)
 // font
-STYLE_SHEET_ENTRY(fontFamily, font_id::invalid, sdf::none)
+STYLE_SHEET_ENTRY(fontFamily, font_handle::invalid, sdf::none)
 STYLE_SHEET_ENTRY(fontColor, color::rgb(0x00,0x00,0x00), sdf::none)
 STYLE_SHEET_ENTRY(fontSize, 24.0, sdf::none)
 STYLE_SHEET_ENTRY(placeholderFontColor, color::rgb(0x60,0x60,0x60), sdf::none)
