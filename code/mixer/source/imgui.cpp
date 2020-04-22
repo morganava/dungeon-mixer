@@ -147,7 +147,7 @@ namespace tabletopify
                 if (style.backgroundImage == image_handle::invalid) {
                     g_nanovg.color_fill_rounded_rect(fillBounds, style.borderRadius, style.backgroundColor);
                 } else {
-                    g_nanovg.image_fill_rounded_rect(fillBounds, style.borderRadius, style.backgroundImage);
+                    g_nanovg.image_fill_rounded_rect(fillBounds, style.borderRadius, style.backgroundImage, style.backgroundImageMode);
                 }
                 g_nanovg.stroke_rounded_rect(strokeBounds, style.borderRadius, style.borderSize, style.borderColor);
             }
@@ -157,7 +157,7 @@ namespace tabletopify
                 if (style.backgroundImage == image_handle::invalid) {
                     g_nanovg.color_fill_rounded_rect(fillBounds, style.borderRadius, style.backgroundColor);
                 } else {
-                    g_nanovg.image_fill_rounded_rect(fillBounds, style.borderRadius, style.backgroundImage);
+                    g_nanovg.image_fill_rounded_rect(fillBounds, style.borderRadius, style.backgroundImage, style.backgroundImageMode);
                 }
             }
         }

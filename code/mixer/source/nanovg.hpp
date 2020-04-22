@@ -50,9 +50,9 @@ namespace tabletopify
         void color_fill_rect(const rectf&, const color&);
         void color_fill_rounded_rect(const rectf&, const cornersf&, const color&);
         void color_fill_circle(const circlef&, const color&);
-        void image_fill_rect(const rectf&, const image_handle_t);
-        void image_fill_rounded_rect(const rectf&, const cornersf&, const image_handle_t);
-        void image_fill_circle(const circlef&, const image_handle_t);
+        void image_fill_rect(const rectf&, const image_handle_t, const background_image_mode_t);
+        void image_fill_rounded_rect(const rectf&, const cornersf&, const image_handle_t, const background_image_mode_t);
+        void image_fill_circle(const circlef&, const image_handle_t, const background_image_mode_t);
         void stroke_rect(const rectf&, float strokeWidth, const color&);
         void stroke_rounded_rect(const rectf&, const cornersf&, float strokeWidth, const color&);
         void stroke_circle(const circlef&, float strokeWidth, const color&);
@@ -77,15 +77,27 @@ namespace tabletopify
 
         // texture info
         std::unordered_map<fs::path, image_handle_t> _image_map;
-        constexpr static const image_handle_t MX_DEBUG_IMAGE_HANDLE = 0;
+
         typedef int nvg_image_id_t;
         constexpr static const nvg_image_id_t INVALID_NVG_IMAGE_ID = ~nvg_image_id_t(0);
-        std::vector<nvg_image_id_t> _nvg_images = {INVALID_NVG_IMAGE_ID};
+        typedef struct nvg_image
+        {
+            nvg_image_id_t id = INVALID_NVG_IMAGE_ID;
+            vec2f size;
+
+            constexpr float width() const { return size.x; };
+            constexpr float height() const { return size.y; };
+        } nvg_image_t;
+        constexpr static const image_handle_t MX_DEBUG_IMAGE_HANDLE = 0;
+        // the first nvg_image_t is the black and magenta debug texture
+        std::vector<nvg_image_t> _nvg_images = {{}};
 
         bool early_exit();
         void swap_buffers();
 
         static vec2f text_bounds_to_start_position(const rectf& bounds, halign_t halign, valign_t valign);
+
+        NVGpaint make_nvgpaint(image_handle_t ih, const rectf& dim, background_image_mode_t bim) const;
 
         struct
         {
@@ -103,5 +115,4 @@ namespace tabletopify
         singleton<nanovg>::free();
     }
     inline constexpr nanovg& g_nanovg = singleton<nanovg>::get();
-
 }

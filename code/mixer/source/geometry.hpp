@@ -259,6 +259,14 @@ namespace tabletopify
             return radius * 2;
         }
 
+        constexpr rect_<T> bounding_box() const
+        {
+            return rect_<T>{
+                {left(), right()},
+                {diameter(), diameter()}
+            };
+        }
+
         constexpr operator circle_<float>() const
         {
             return {(vec2f)position, (float)radius};

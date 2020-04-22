@@ -25,7 +25,7 @@ namespace tabletopify
             0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0xFF, 0xFF,
         };
 
-        _nvg_images[MX_DEBUG_IMAGE_HANDLE] = nvgCreateImageRGBA(_ctx, 2, 2, NVG_IMAGE_REPEATX | NVG_IMAGE_REPEATY | NVG_IMAGE_NEAREST, debugPixels);
+        _nvg_images[MX_DEBUG_IMAGE_HANDLE] = {nvgCreateImageRGBA(_ctx, 2, 2, NVG_IMAGE_REPEATX | NVG_IMAGE_REPEATY | NVG_IMAGE_NEAREST, debugPixels), {8,8}};
     }
 
     font_handle_t nanovg::create_font(fs::path&& path)
@@ -71,7 +71,7 @@ namespace tabletopify
 
         const auto index = _nvg_images.size();
         _image_map.insert({imageFilePath, index});
-        _nvg_images.push_back(INVALID_NVG_IMAGE_ID);
+        _nvg_images.push_back({INVALID_NVG_IMAGE_ID, {}});
 
         worker(Worker_FileIO).enqueue([index=index, imageFilePath=std::move(imageFilePath)]() -> void
         {
@@ -103,7 +103,11 @@ namespace tabletopify
             {
                 worker(Worker_UI).enqueue([index=index, imageFileName=std::move(imageFileName), pixelData=std::move(pixelData), width=width, height=height]() -> void
                 {
-                    g_nanovg._nvg_images[index] = nvgCreateImageRGBA(g_nanovg._ctx, width, height, NVG_IMAGE_GENERATE_MIPMAPS, pixelData.get());
+                    g_nanovg._nvg_images[index] =
+                    {
+                        nvgCreateImageRGBA(g_nanovg._ctx, width, height, NVG_IMAGE_GENERATE_MIPMAPS  | NVG_IMAGE_REPEATX | NVG_IMAGE_REPEATY, pixelData.get()),
+                        {static_cast<float>(width), static_cast<float>(height)}
+                    };
                     MX_LOG_INFO("Loaded image: {}", imageFileName);
                 });
             }
@@ -153,6 +157,24 @@ namespace tabletopify
         draw_text_with_caret,
         draw_text_with_selection,
     } draw_command_t;
+
+    NVGpaint nanovg::make_nvgpaint(image_handle_t ih, const rectf& dim, background_image_mode_t bim) const
+    {
+        const auto& image = _nvg_images[ih];
+        switch(bim) {
+            case background_image_mode::stretch:
+            {
+                return nvgImagePattern(_ctx, dim.left(), dim.top(), dim.width(), dim.height(), 0.0f, image.id, 1.0f);
+            }
+            break;
+            case background_image_mode::tile:
+            {
+                return nvgImagePattern(_ctx, dim.left(), dim.top(), image.width(), image.height(), 0.0f, image.id, 1.0f);
+            }
+            break;
+       }
+       return {};
+    }
 
     void nanovg::update(float dt, double window_width, double window_height, double pixel_ratio)
     {
@@ -232,15 +254,19 @@ namespace tabletopify
                 case draw_command::image_fill_rect:
                 {
                     rectf r;
-                    image_handle_t img;
+                    image_handle_t ih;
+                    background_image_mode_t bim;
                     MX_THROW_IF_FALSE(cq.next(r));
-                    MX_THROW_IF_FALSE(cq.next(img));
+                    MX_THROW_IF_FALSE(cq.next(ih));
+                    MX_THROW_IF_FALSE(cq.next(bim));
                     // make sure this is a valid handle
-                    MX_ASSERT(img < _nvg_images.size());
+                    MX_ASSERT(ih < _nvg_images.size());
+
+                    NVGpaint paint = make_nvgpaint(ih, r, bim);
 
                     nvgBeginPath(_ctx);
                     nvgRect(_ctx, r.position.x, r.position.y, r.size.x, r.size.y);
-                    nvgFillPaint(_ctx, nvgImagePattern(_ctx, r.position.x, r.position.y, r.size.x, r.size.y, 0.0f, _nvg_images[img], 1.0f));
+                    nvgFillPaint(_ctx, paint);
                     nvgFill(_ctx);
                 }
                 break;
@@ -248,14 +274,20 @@ namespace tabletopify
                 {
                     rectf r;
                     cornersf rad;
-                    image_handle_t img;
+                    image_handle_t ih;
+                    background_image_mode_t bim;
                     MX_THROW_IF_FALSE(cq.next(r));
                     MX_THROW_IF_FALSE(cq.next(rad));
-                    MX_THROW_IF_FALSE(cq.next(img));
+                    MX_THROW_IF_FALSE(cq.next(ih));
+                    MX_THROW_IF_FALSE(cq.next(bim));
+                    // make sure this is a valid handle
+                    MX_ASSERT(ih < _nvg_images.size());
+
+                    NVGpaint paint = make_nvgpaint(ih, r, bim);
 
                     nvgBeginPath(_ctx);
                     nvgRoundedRectVarying(_ctx, r.position.x, r.position.y, r.size.x, r.size.y, rad.topLeft, rad.topRight, rad.bottomRight, rad.bottomLeft);
-                    nvgFillPaint(_ctx, nvgImagePattern(_ctx, r.position.x, r.position.y, r.size.x, r.size.y, 0.0f, _nvg_images[img], 1.0f));
+                    nvgFillPaint(_ctx, paint);
                     nvgFill(_ctx);
 
                 }
@@ -263,13 +295,19 @@ namespace tabletopify
                 case draw_command::image_fill_circle:
                 {
                     circlef c;
-                    image_handle_t img;
+                    image_handle_t ih;
+                    background_image_mode_t bim;
                     MX_THROW_IF_FALSE(cq.next(c));
-                    MX_THROW_IF_FALSE(cq.next(img));
+                    MX_THROW_IF_FALSE(cq.next(ih));
+                    MX_THROW_IF_FALSE(cq.next(bim));
+                    // make sure this is a valid handle
+                    MX_ASSERT(ih < _nvg_images.size());
+
+                    NVGpaint paint = make_nvgpaint(ih, c.bounding_box(), bim);
 
                     nvgBeginPath(_ctx);
                     nvgCircle(_ctx, c.position.x, c.position.y, c.radius);
-                    nvgFillPaint(_ctx, nvgImagePattern(_ctx, c.left(), c.top(), c.diameter(), c.diameter(), 0.0f, _nvg_images[img], 1.0f));
+                    nvgFillPaint(_ctx, paint);
                     nvgFill(_ctx);
                 }
                 break;
@@ -608,29 +646,32 @@ namespace tabletopify
         cq.push_back(col);
     }
 
-    void nanovg::image_fill_rect(const rectf& r, const image_handle_t img)
+    void nanovg::image_fill_rect(const rectf& r, const image_handle_t img, const background_image_mode_t bim)
     {
         auto& cq = _command_queue.current;
         cq.push_back(draw_command::image_fill_rect);
         cq.push_back(r);
         cq.push_back(img);
+        cq.push_back(bim);
     }
 
-    void nanovg::image_fill_rounded_rect(const rectf& r, const cornersf& c, const image_handle_t img)
+    void nanovg::image_fill_rounded_rect(const rectf& r, const cornersf& c, const image_handle_t img, const background_image_mode_t bim)
     {
         auto& cq = _command_queue.current;
         cq.push_back(draw_command::image_fill_rounded_rect);
         cq.push_back(r);
         cq.push_back(c);
         cq.push_back(img);
+        cq.push_back(bim);
     }
 
-    void nanovg::image_fill_circle(const circlef& c, const image_handle_t img)
+    void nanovg::image_fill_circle(const circlef& c, const image_handle_t img, const background_image_mode_t bim)
     {
         auto& cq = _command_queue.current;
         cq.push_back(draw_command::image_fill_circle);
         cq.push_back(c);
         cq.push_back(img);
+        cq.push_back(bim);
     }
 
     void nanovg::stroke_rect(const rectf& r, float strokeWidth, const color& col)
