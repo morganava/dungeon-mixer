@@ -362,29 +362,24 @@ namespace tabletopify
 
             if (scroll_vertical)
             {
-                g_nanovg.set_fill_color(back_color);
-                g_nanovg.fill_rect(vsa);
+                g_nanovg.color_fill_rect(vsa, back_color);
 
                 const auto grab_color = data()->vertical.grabbing ? active_color : fore_color;
-                g_nanovg.set_fill_color(grab_color);
-                g_nanovg.fill_rounded_rect(vsga, corner_radius);
+                g_nanovg.color_fill_rounded_rect(vsga, corner_radius, grab_color);
             }
             if (scroll_horizontal)
             {
-                g_nanovg.set_fill_color(back_color);
-                g_nanovg.fill_rect(hsa);
+                g_nanovg.color_fill_rect(hsa, back_color);
 
                 const auto grab_color = data()->horizontal.grabbing ? active_color : fore_color;
-                g_nanovg.set_fill_color(grab_color);
-                g_nanovg.fill_rounded_rect(hsga, corner_radius);
+                g_nanovg.color_fill_rounded_rect(hsga, corner_radius, grab_color);
             }
 
             if(scroll_vertical && scroll_horizontal)
             {
                 const auto scrollbar_size = this->style().scrollbarSize;
                 auto bottom_corner = rect{vsa.bottom_left(),vec2{scrollbar_size}};
-                g_nanovg.set_fill_color(back_color);
-                g_nanovg.fill_rect(bottom_corner);
+                g_nanovg.color_fill_rect(bottom_corner, back_color);
             }
         }
     }

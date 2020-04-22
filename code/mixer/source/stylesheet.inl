@@ -18,6 +18,7 @@ STYLE_SHEET_ENTRY(borderRadius, corners{}, sdf::geometry)
 STYLE_SHEET_ENTRY(padding, edges{}, sdf::geometry)
 // background
 STYLE_SHEET_ENTRY(backgroundColor, color::rgb(0xff,0xff,0xff), sdf::none)
+STYLE_SHEET_ENTRY(backgroundImage, image_handle::invalid, sdf::none)
 // font
 STYLE_SHEET_ENTRY(fontFamily, font_id::invalid, sdf::none)
 STYLE_SHEET_ENTRY(fontColor, color::rgb(0x00,0x00,0x00), sdf::none)

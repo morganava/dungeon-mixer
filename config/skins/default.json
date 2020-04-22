@@ -36,7 +36,7 @@
         "fontColor" : "white"
     },
     ".mediumText" : {
-        "fontColor" : "grey"
+        "fontColor" : "gray"
     },
     ".darkText" : {
         "fontColor" : "black"
@@ -107,5 +107,11 @@
     "sliderHandle:active" :
     {
         "backgroundColor" : "#555"
+    },
+    "button.mute" :
+    {
+        "backgroundColor" : "magenta",
+        "backgroundImage" : "volume.png",
+        "margin" : 10
     }
 }

@@ -28,6 +28,7 @@ namespace tabletopify
 
     // strongly typed so we can have from_json
     MX_STRONG_ID(font_id);
+    MX_STRONG_ID(image_handle);
 
     class nanovg
     {
@@ -35,15 +36,18 @@ namespace tabletopify
         void create_context();
         void update(float dt, double window_width, double window_height, double pixel_ratio);
 
-        // loads font
+        // content loading
         font_id_t create_font(fs::path&& path);
+        image_handle_t create_image(fs::path&& path);
 
         // render methods
         void set_scissor(const rectf&);
-        void set_fill_color(const color&);
-        void fill_rect(const rectf&);
-        void fill_rounded_rect(const rectf&, const cornersf&);
-        void fill_circle(const circlef&);
+        void color_fill_rect(const rectf&, const color&);
+        void color_fill_rounded_rect(const rectf&, const cornersf&, const color&);
+        void color_fill_circle(const circlef&, const color&);
+        void image_fill_rect(const rectf&, const image_handle_t);
+        void image_fill_rounded_rect(const rectf&, const cornersf&, const image_handle_t);
+        void image_fill_circle(const circlef&, const image_handle_t);
         void stroke_rect(const rectf&, float strokeWidth, const color&);
         void stroke_rounded_rect(const rectf&, const cornersf&, float strokeWidth, const color&);
         void stroke_circle(const circlef&, float strokeWidth, const color&);
@@ -63,8 +67,15 @@ namespace tabletopify
         // font info
         std::unordered_map<fs::path, font_id_t> _font_map;
         typedef int nvg_font_face_id_t;
-        constexpr static nvg_font_face_id_t INVALID_NVG_FONT_ID = ~nvg_font_face_id_t(0);
+        constexpr static const nvg_font_face_id_t INVALID_NVG_FONT_ID = ~nvg_font_face_id_t(0);
         std::vector<nvg_font_face_id_t> _nvg_font_faces;
+
+        // texture info
+        std::unordered_map<fs::path, image_handle_t> _image_map;
+        constexpr static const image_handle_t MX_DEBUG_IMAGE_HANDLE = 0;
+        typedef int nvg_image_id_t;
+        constexpr static const nvg_image_id_t INVALID_NVG_IMAGE_ID = ~nvg_image_id_t(0);
+        std::vector<nvg_image_id_t> _nvg_images = {INVALID_NVG_IMAGE_ID};
 
         bool early_exit();
         void swap_buffers();

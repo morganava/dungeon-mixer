@@ -139,20 +139,26 @@ namespace tabletopify
 
             if (style.borderSize > 0.0)
             {
-                auto strokeBounds = this->_layout.border_outer_bounds();
+                const auto strokeBounds = this->_layout.border_outer_bounds();
                 auto fillBounds = strokeBounds;
                 fillBounds.position += vec2{style.borderSize, style.borderSize} / 2.0;
                 fillBounds.size -= vec2{style.borderSize, style.borderSize};
 
-                g_nanovg.set_fill_color(style.backgroundColor);
-                g_nanovg.fill_rounded_rect(fillBounds, style.borderRadius);
+                if (style.backgroundImage == image_handle::invalid) {
+                    g_nanovg.color_fill_rounded_rect(fillBounds, style.borderRadius, style.backgroundColor);
+                } else {
+                    g_nanovg.image_fill_rounded_rect(fillBounds, style.borderRadius, style.backgroundImage);
+                }
                 g_nanovg.stroke_rounded_rect(strokeBounds, style.borderRadius, style.borderSize, style.borderColor);
             }
             else
             {
                 auto fillBounds = this->_layout.border_outer_bounds();
-                g_nanovg.set_fill_color(style.backgroundColor);
-                g_nanovg.fill_rounded_rect(fillBounds, style.borderRadius);
+                if (style.backgroundImage == image_handle::invalid) {
+                    g_nanovg.color_fill_rounded_rect(fillBounds, style.borderRadius, style.backgroundColor);
+                } else {
+                    g_nanovg.image_fill_rounded_rect(fillBounds, style.borderRadius, style.backgroundImage);
+                }
             }
         }
 

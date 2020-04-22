@@ -18,34 +18,100 @@ namespace tabletopify
         // init nanovg
         _ctx = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
         MX_THROW_IF_NULL(_ctx);
+
+        constexpr static const uint8_t debugPixels[] =
+        {
+            0xFF, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0xFF,
+            0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0xFF, 0xFF,
+        };
+
+        _nvg_images[MX_DEBUG_IMAGE_HANDLE] = nvgCreateImageRGBA(_ctx, 2, 2, NVG_IMAGE_REPEATX | NVG_IMAGE_REPEATY | NVG_IMAGE_NEAREST, debugPixels);
     }
 
     font_id_t nanovg::create_font(fs::path&& path)
     {
         auto fontFilePath = fs::canonical(path);
         auto it = _font_map.find(fontFilePath);
-        if(it == _font_map.end())
-        {
-            // index our font face id will be stored
-            auto index = _nvg_font_faces.size();
-            _font_map.insert({fontFilePath, index});
-            _nvg_font_faces.push_back(INVALID_NVG_FONT_ID);
-
-            worker(Worker_FileIO).enqueue([index=index, fontFilePath=std::move(fontFilePath)]() -> void
-            {
-                memory_buffer fontFile(fontFilePath);
-                std::string fontName = fontFilePath.filename();
-
-                worker(Worker_UI).enqueue([index=index, fontName=std::move(fontName), fontFile=std::move(fontFile)]() -> void
-                {
-                    g_nanovg._nvg_font_faces[index] = nvgCreateFontMem(g_nanovg._ctx, fontName.c_str(), fontFile.data(), static_cast<int>(fontFile.size()));
-                    MX_LOG_INFO("Loaded font: {}", fontName);
-                });
-            });
-
-            return index;
+        if(it != _font_map.end()) {
+            return it->second;
         }
-        return it->second;
+
+        // index our font face id will be stored
+        const auto index = _nvg_font_faces.size();
+        _font_map.insert({fontFilePath, index});
+        _nvg_font_faces.push_back(INVALID_NVG_FONT_ID);
+
+        worker(Worker_FileIO).enqueue([index=index, fontFilePath=std::move(fontFilePath)]() -> void
+        {
+            memory_buffer fontFile(fontFilePath);
+            std::string fontName = fontFilePath.filename();
+
+            worker(Worker_UI).enqueue([index=index, fontName=std::move(fontName), fontFile=std::move(fontFile)]() -> void
+            {
+                g_nanovg._nvg_font_faces[index] = nvgCreateFontMem(g_nanovg._ctx, fontName.c_str(), fontFile.data(), static_cast<int>(fontFile.size()));
+                MX_LOG_INFO("Loaded font: {}", fontName);
+            });
+        });
+
+        return index;
+    }
+
+    image_handle_t nanovg::create_image(fs::path&& path)
+    {
+        if (!fs::exists(path)) {
+            MX_LOG_ERROR("Failed to load image {}: file does not exist", path);
+            return MX_DEBUG_IMAGE_HANDLE;
+        }
+
+        auto imageFilePath = fs::canonical(path);
+        auto it = _image_map.find(imageFilePath);
+        if (it != _image_map.end()) {
+            return it->second;
+        }
+
+        const auto index = _nvg_images.size();
+        _image_map.insert({imageFilePath, index});
+        _nvg_images.push_back(INVALID_NVG_IMAGE_ID);
+
+        worker(Worker_FileIO).enqueue([index=index, imageFilePath=std::move(imageFilePath)]() -> void
+        {
+            // load file into memory
+            memory_buffer imageFile(imageFilePath);
+            MX_THROW_IF_FALSE(imageFile.size() <= std::numeric_limits<int>::max());
+            const int imageFileSize = static_cast<int>(imageFile.size());
+
+            // load pixel data from image
+            int width = 0;
+            int height = 0;
+            std::unique_ptr<stbi_uc[], decltype(&stbi_image_free)> pixelData(
+                stbi_load_from_memory(imageFile.data(), imageFileSize, &width, &height, nullptr, 4),
+                stbi_image_free);
+
+            const auto imageFileName = imageFilePath.filename();
+
+            if (pixelData.get() ==  nullptr)
+            {
+                MX_LOG_ERROR("Failed to load image {}: {}", imageFileName, stbi_failure_reason());
+
+                // use the magenta checkboard image
+                worker(Worker_UI).enqueue([index=index]() -> void
+                {
+                    g_nanovg._nvg_images[index] = g_nanovg._nvg_images[MX_DEBUG_IMAGE_HANDLE];
+                });
+            }
+            else
+            {
+                worker(Worker_UI).enqueue([index=index, imageFileName=std::move(imageFileName), pixelData=std::move(pixelData), width=width, height=height]() -> void
+                {
+                    g_nanovg._nvg_images[index] = nvgCreateImageRGBA(g_nanovg._ctx, width, height, NVG_IMAGE_GENERATE_MIPMAPS, pixelData.get());
+                    MX_LOG_INFO("Loaded image: {}", imageFileName);
+                });
+            }
+
+
+        });
+
+        return index;
     }
 
     bool nanovg::early_exit()
@@ -74,10 +140,12 @@ namespace tabletopify
     typedef enum draw_command : uint8_t
     {
         set_scissor,
-        set_fill_color,
-        fill_rect,
-        fill_rounded_rect,
-        fill_circle,
+        color_fill_rect,
+        color_fill_rounded_rect,
+        color_fill_circle,
+        image_fill_rect,
+        image_fill_rounded_rect,
+        image_fill_circle,
         stroke_rect,
         stroke_rounded_rect,
         stroke_circle,
@@ -120,43 +188,88 @@ namespace tabletopify
                     nvgScissor(_ctx, r.position.x, r.position.y, r.size.x, r.size.y);
                 }
                 break;
-                case draw_command::set_fill_color:
-                {
-                    color col;
-                    MX_THROW_IF_FALSE(cq.next(col));
-
-                    nvgFillColor(_ctx, col);
-                }
-                break;
-                case draw_command::fill_rect:
+                case draw_command::color_fill_rect:
                 {
                     rectf r;
+                    color col;
                     MX_THROW_IF_FALSE(cq.next(r));
+                    MX_THROW_IF_FALSE(cq.next(col));
 
                     nvgBeginPath(_ctx);
                     nvgRect(_ctx, r.position.x, r.position.y, r.size.x, r.size.y);
+                    nvgFillColor(_ctx, col);
                     nvgFill(_ctx);
                 }
                 break;
-                case draw_command::fill_rounded_rect:
+                case draw_command::color_fill_rounded_rect:
                 {
                     rectf r;
                     cornersf rad;
+                    color col;
                     MX_THROW_IF_FALSE(cq.next(r));
                     MX_THROW_IF_FALSE(cq.next(rad));
+                    MX_THROW_IF_FALSE(cq.next(col));
 
                     nvgBeginPath(_ctx);
                     nvgRoundedRectVarying(_ctx, r.position.x, r.position.y, r.size.x, r.size.y, rad.topLeft, rad.topRight, rad.bottomRight, rad.bottomLeft);
+                    nvgFillColor(_ctx, col);
                     nvgFill(_ctx);
                 }
                 break;
-                case draw_command::fill_circle:
+                case draw_command::color_fill_circle:
                 {
                     circlef c;
+                    color col;
                     MX_THROW_IF_FALSE(cq.next(c));
+                    MX_THROW_IF_FALSE(cq.next(col));
 
                     nvgBeginPath(_ctx);
                     nvgCircle(_ctx, c.position.x, c.position.y, c.radius);
+                    nvgFillColor(_ctx, col);
+                    nvgFill(_ctx);
+                }
+                break;
+                case draw_command::image_fill_rect:
+                {
+                    rectf r;
+                    image_handle_t img;
+                    MX_THROW_IF_FALSE(cq.next(r));
+                    MX_THROW_IF_FALSE(cq.next(img));
+                    // make sure this is a valid handle
+                    MX_ASSERT(img < _nvg_images.size());
+
+                    nvgBeginPath(_ctx);
+                    nvgRect(_ctx, r.position.x, r.position.y, r.size.x, r.size.y);
+                    nvgFillPaint(_ctx, nvgImagePattern(_ctx, r.position.x, r.position.y, r.size.x, r.size.y, 0.0f, _nvg_images[img], 1.0f));
+                    nvgFill(_ctx);
+                }
+                break;
+                case draw_command::image_fill_rounded_rect:
+                {
+                    rectf r;
+                    cornersf rad;
+                    image_handle_t img;
+                    MX_THROW_IF_FALSE(cq.next(r));
+                    MX_THROW_IF_FALSE(cq.next(rad));
+                    MX_THROW_IF_FALSE(cq.next(img));
+
+                    nvgBeginPath(_ctx);
+                    nvgRoundedRectVarying(_ctx, r.position.x, r.position.y, r.size.x, r.size.y, rad.topLeft, rad.topRight, rad.bottomRight, rad.bottomLeft);
+                    nvgFillPaint(_ctx, nvgImagePattern(_ctx, r.position.x, r.position.y, r.size.x, r.size.y, 0.0f, _nvg_images[img], 1.0f));
+                    nvgFill(_ctx);
+
+                }
+                break;
+                case draw_command::image_fill_circle:
+                {
+                    circlef c;
+                    image_handle_t img;
+                    MX_THROW_IF_FALSE(cq.next(c));
+                    MX_THROW_IF_FALSE(cq.next(img));
+
+                    nvgBeginPath(_ctx);
+                    nvgCircle(_ctx, c.position.x, c.position.y, c.radius);
+                    nvgFillPaint(_ctx, nvgImagePattern(_ctx, c.left(), c.top(), c.diameter(), c.diameter(), 0.0f, _nvg_images[img], 1.0f));
                     nvgFill(_ctx);
                 }
                 break;
@@ -189,7 +302,7 @@ namespace tabletopify
                     MX_THROW_IF_FALSE(cq.next(rad));
                     MX_THROW_IF_FALSE(cq.next(strokeWidth));
                     MX_THROW_IF_FALSE(cq.next(col));
-                    float halfStrokeWidth = strokeWidth / 2.0f;
+                    const float halfStrokeWidth = strokeWidth / 2.0f;
 
                     r.position += vec2f{halfStrokeWidth};
                     r.size -= vec2f{strokeWidth, strokeWidth};
@@ -470,33 +583,54 @@ namespace tabletopify
         cq.push_back(r);
     }
 
-    void nanovg::set_fill_color(const color& col)
+    void nanovg::color_fill_rect(const rectf& r, const color& col)
     {
         auto& cq = _command_queue.current;
-        cq.push_back(draw_command::set_fill_color);
+        cq.push_back(draw_command::color_fill_rect);
+        cq.push_back(r);
         cq.push_back(col);
     }
 
-    void nanovg::fill_rect(const rectf& r)
+    void nanovg::color_fill_rounded_rect(const rectf& r, const cornersf& c, const color& col)
     {
         auto& cq = _command_queue.current;
-        cq.push_back(draw_command::fill_rect);
-        cq.push_back(r);
-    }
-
-    void nanovg::fill_rounded_rect(const rectf& r, const cornersf& c)
-    {
-        auto& cq = _command_queue.current;
-        cq.push_back(draw_command::fill_rounded_rect);
+        cq.push_back(draw_command::color_fill_rounded_rect);
         cq.push_back(r);
         cq.push_back(c);
+        cq.push_back(col);
     }
 
-    void nanovg::fill_circle(const circlef& c)
+    void nanovg::color_fill_circle(const circlef& c, const color& col)
     {
         auto& cq = _command_queue.current;
-        cq.push_back(draw_command::fill_circle);
+        cq.push_back(draw_command::color_fill_circle);
         cq.push_back(c);
+        cq.push_back(col);
+    }
+
+    void nanovg::image_fill_rect(const rectf& r, const image_handle_t img)
+    {
+        auto& cq = _command_queue.current;
+        cq.push_back(draw_command::image_fill_rect);
+        cq.push_back(r);
+        cq.push_back(img);
+    }
+
+    void nanovg::image_fill_rounded_rect(const rectf& r, const cornersf& c, const image_handle_t img)
+    {
+        auto& cq = _command_queue.current;
+        cq.push_back(draw_command::image_fill_rounded_rect);
+        cq.push_back(r);
+        cq.push_back(c);
+        cq.push_back(img);
+    }
+
+    void nanovg::image_fill_circle(const circlef& c, const image_handle_t img)
+    {
+        auto& cq = _command_queue.current;
+        cq.push_back(draw_command::image_fill_circle);
+        cq.push_back(c);
+        cq.push_back(img);
     }
 
     void nanovg::stroke_rect(const rectf& r, float strokeWidth, const color& col)

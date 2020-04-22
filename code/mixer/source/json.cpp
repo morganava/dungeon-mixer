@@ -266,6 +266,14 @@ namespace tabletopify
         fi = g_nanovg.create_font(get_skins_path() / j.get<std::string>());
     }
 
+    // image_handle_t
+    void from_json(const nl::json& j, image_handle_t& ih)
+    {
+        MX_THROW_IF_FALSE(j.is_string());
+
+        ih = g_nanovg.create_image(get_skins_path() / j.get<std::string>());
+    }
+
     // text alignment
 
     void from_json(const nl::json& j, halign_t& ha)

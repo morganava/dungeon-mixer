@@ -100,7 +100,9 @@ namespace tabletopify
                         mxSlider(&currentEntry.volume, self.tags = {"entryVolume"};
                             self.on_change = [](double val) -> void { MX_LOG_VAR(val);};
                         );
-                        mxSpacer(); // MUTE TOGGLE
+                        mxButton(&currentEntry.mute, self.tags = {"mute"};
+                            self.on_click = []() -> void { MX_LOG_INFO("MUTE");};
+                        ); // MUTE TOGGLE
                         mxSpacer(); // PLAY/STOP BUTTON
                     }
                 }
