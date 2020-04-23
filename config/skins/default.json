@@ -81,10 +81,13 @@
         "margin" : [2, 4, 2, 4],
         "padding" : 8
     },
+    "flexBox.playlistEntry" :
+    {
+        "size" : [0, 50]
+    },
     "slider" :
     {
-        "size" : [0, 42],
-        "margin" : 0,
+        "margin" : 4,
         "padding" : [4, 12, 4, 12]
     },
     "sliderTrack" :
@@ -108,10 +111,15 @@
     {
         "backgroundColor" : "#555"
     },
-    "button.mute" :
+    "button.volume" :
     {
-        "backgroundColor" : "magenta",
+        "size" : [26, 26],
+        "borderSize" : 4,
         "backgroundImage" : "volume.png",
         "backgroundImageMode" : "center"
+    },
+    "button.muted" :
+    {
+        "backgroundImage" : "muted.png"
     }
 }

@@ -93,14 +93,14 @@ namespace tabletopify
             mxVScroll(&root.playlist.scroll)
             {
                 for (auto& currentEntry : currentPlaylist.entries) {
-                    mxHBox(&root.playlist.rowFlex)
+                    mxHBox(&root.playlist.rowFlex, self.tags={"playlistEntry"})
                     {
                         mxSpacer(); // FAVORITE
                         mxLabel(&currentEntry.title, self.tags = {"entryTitle"});
                         mxSlider(&currentEntry.volume, self.tags = {"entryVolume"};
                             self.on_change = [](double val) -> void { MX_LOG_VAR(val);};
                         );
-                        mxButton(&currentEntry.mute, self.tags = {"mute"};
+                        mxButton(&currentEntry.muteUnmute, self.tags = {"volume"};
                             self.on_click = []() -> void { MX_LOG_INFO("MUTE");};
                         ); // MUTE TOGGLE
                         mxSpacer(); // PLAY/STOP BUTTON

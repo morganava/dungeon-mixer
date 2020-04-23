@@ -44,6 +44,16 @@ namespace tabletopify
 
             self._offset += sz;
 
+            if (desired.height() > 0.0 && desired.height() < retval.height()) {
+                retval.position.y += (retval.height() - desired.height()) / 2.0;
+                retval.size.y = desired.height();
+            }
+
+            if (desired.width() > 0.0 && desired.width() < retval.width()) {
+                retval.position.x += (retval.width() - desired.width()) / 2.0;
+                retval.size.x = desired.width();
+            }
+
             return retval;
         }
     }
