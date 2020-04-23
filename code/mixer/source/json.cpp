@@ -333,6 +333,7 @@ namespace tabletopify
             "stretch",
             "tile",
             "center",
+            "contain",
         };
 
         for(size_t i = 0; i < countof(modeStrings); ++i)
@@ -345,7 +346,7 @@ namespace tabletopify
             }
         }
 
-        MX_THROW_MSG("Cannot parse '{}' as background_image_mode_t, must be 'stretch or 'tile'", jstr);
+        MX_THROW_MSG("Cannot parse '{}' as background_image_mode_t, must be one of 'stretch', 'tile', 'center', or 'contain'", jstr);
     }
 
     // style_resolver

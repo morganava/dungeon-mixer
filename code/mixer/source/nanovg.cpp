@@ -179,6 +179,25 @@ namespace tabletopify
                 return nvgImagePattern(_ctx, imageRect.left(), imageRect.top(), imageRect.width(), imageRect.height(), 0.0f, image.id, 1.0f);
             }
             break;
+            case background_image_mode::contain:
+            {
+                // candidate scale factors
+                const float s_w = dim.width() / image.width();
+                const float s_h = dim.height() / image.height();
+
+                vec2f size;
+                if (s_w * image.height() <= dim.height()) {
+                    size = image.size * s_w;
+                } else {
+                    MX_ASSERT(s_h * image.width() <= dim.width());
+                    size = image.size * s_h;
+                }
+
+                rectf imageRect = {dim.center() - size / 2.0f, size};
+                nvgScissor(_ctx, imageRect.position.x, imageRect.position.y, imageRect.size.x, imageRect.size.y);
+                return nvgImagePattern(_ctx, imageRect.left(), imageRect.top(), imageRect.width(), imageRect.height(), 0.0f, image.id, 1.0f);
+            }
+            break;
        }
        return {};
     }
