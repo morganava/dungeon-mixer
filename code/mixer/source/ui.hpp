@@ -102,11 +102,13 @@ namespace tabletopify
                     imgui::label_data title;
                     struct playlist_entry
                     {
-                        bool favorited;
+                        bool favorited = false;
                         imgui::label_data title;
                         imgui::slider_data volume = {0.0, 1.0, 0.5};
-                        imgui::button_data mute;
-                        imgui::button_data playstop;
+                        float previousVolume;
+                        bool muted = false;
+                        imgui::button_data muteUnmute;
+                        imgui::button_data playStop;
 
                         atmosphere_handle_t atmosphereHandle = MX_INVALID_HANDLE;
                     };
