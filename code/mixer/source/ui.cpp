@@ -95,7 +95,7 @@ namespace tabletopify
                 for (auto& currentEntry : currentPlaylist.entries) {
                     mxHBox(&root.playlist.rowFlex, self.tags={"playlistEntry"})
                     {
-                        mxCheckbox(&currentEntry.favorite,
+                        mxCheckbox(&currentEntry.favorite, self.tags = {"entryFavorite"};
                             self.on_change = [](bool checked) -> void
                             {
                                 MX_LOG_VAR(checked);
@@ -104,9 +104,7 @@ namespace tabletopify
                         mxSlider(&currentEntry.volume, self.tags = {"entryVolume"};
                             self.on_change = [](double val) -> void { MX_LOG_VAR(val);};
                         );
-                        mxButton(&currentEntry.muteUnmute, self.tags = {"volume"};
-                            self.on_click = []() -> void { MX_LOG_INFO("MUTE");};
-                        ); // MUTE TOGGLE
+                        mxCheckbox(&currentEntry.muteUnmute, self.tags = {"entryMute"}); // MUTE TOGGLE
                         mxSpacer(); // PLAY/STOP BUTTON
                     }
                 }

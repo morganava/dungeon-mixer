@@ -107,7 +107,7 @@ namespace tabletopify
                         imgui::slider_data volume = {0.0, 1.0, 0.5};
                         float previousVolume;
                         bool muted = false;
-                        imgui::button_data muteUnmute;
+                        imgui::checkbox_data muteUnmute = {false};
                         imgui::button_data playStop;
 
                         atmosphere_handle_t atmosphereHandle = MX_INVALID_HANDLE;

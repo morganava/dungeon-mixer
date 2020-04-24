@@ -47,6 +47,14 @@
         "backgroundColor" : "#888",
         "margin" : 5
     },
+    "sliderHandle:hover" :
+    {
+        "backgroundColor" : "#AAA"
+    },
+    "sliderHandle:active" :
+    {
+        "backgroundColor" : "#555"
+    },
     "checkbox" : {
         "size" : [24,24],
         "borderSize" : 0,
@@ -113,22 +121,22 @@
     {
         "size" : [0, 50]
     },
-    "sliderHandle:hover" :
-    {
-        "backgroundColor" : "#AAA"
+    "checkbox.entryFavorite" : {
+        "size" : [32,32],
+        "borderSize" : 0,
+        "backgroundImage" : "star.png"
     },
-    "sliderHandle:active" :
-    {
-        "backgroundColor" : "#555"
+    "checkbox.entryFavorite:checked" : {
+        "borderSize" : 0,
+        "backgroundImage" : "star-filled.png"
     },
-    "button.volume" :
-    {
-        "size" : [32, 32],
-        "backgroundImage" : "volume.png",
-        "backgroundImageMode" : "contain"
+    "checkbox.entryMute" : {
+        "size" : [32,32],
+        "borderSize" : 0,
+        "backgroundImage" : "volume.png"
     },
-    "button.muted" :
-    {
-        "backgroundImage" : "muted.png"
+    "checkbox.entryMute:checked" : {
+        "borderSize" : 0,
+        "backgroundImage" : "mute.png"
     }
 }
