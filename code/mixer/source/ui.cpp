@@ -95,7 +95,11 @@ namespace tabletopify
                 for (auto& currentEntry : currentPlaylist.entries) {
                     mxHBox(&root.playlist.rowFlex, self.tags={"playlistEntry"})
                     {
-                        mxSpacer(); // FAVORITE
+                        mxCheckbox(&currentEntry.favorite,
+                            self.on_change = [](bool checked) -> void
+                            {
+                                MX_LOG_VAR(checked);
+                            }); // FAVORITE
                         mxLabel(&currentEntry.title, self.tags = {"entryTitle"});
                         mxSlider(&currentEntry.volume, self.tags = {"entryVolume"};
                             self.on_change = [](double val) -> void { MX_LOG_VAR(val);};

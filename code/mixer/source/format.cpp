@@ -156,6 +156,9 @@ ostream& operator<<(ostream& out, const element_state_t& es)
         case element_state::disabled:
             out << "disabled";
             break;
+        case element_state::checked:
+            out << "checked";
+            break;
     }
     return out;
 }

@@ -29,6 +29,34 @@
     },
     "button" : {
     },
+    "slider" :
+    {
+        "margin" : 4,
+        "padding" : [4, 12, 4, 12]
+    },
+    "sliderTrack" :
+    {
+        "borderRadius" : 0,
+        "backgroundColor" : "#F80",
+        "margin" : 10
+    },
+    "sliderHandle" :
+    {
+        "size" : [40,40],
+        "borderRadius" : 20,
+        "backgroundColor" : "#888",
+        "margin" : 5
+    },
+    "checkbox" : {
+        "size" : [24,24],
+        "borderSize" : 0,
+        "backgroundColor" : "white"
+    },
+    "checkbox:checked" : {
+        "borderSize" : 4,
+        "borderColor" : "white",
+        "backgroundColor" : "black"
+    },
     ".indent" : {
         "padding" : { "left" : 32}
     },
@@ -85,24 +113,6 @@
     {
         "size" : [0, 50]
     },
-    "slider" :
-    {
-        "margin" : 4,
-        "padding" : [4, 12, 4, 12]
-    },
-    "sliderTrack" :
-    {
-        "borderRadius" : 0,
-        "backgroundColor" : "#F80",
-        "margin" : 10
-    },
-    "sliderHandle" :
-    {
-        "size" : [40,40],
-        "borderRadius" : 20,
-        "backgroundColor" : "#888",
-        "margin" : 5
-    },
     "sliderHandle:hover" :
     {
         "backgroundColor" : "#AAA"
@@ -113,10 +123,9 @@
     },
     "button.volume" :
     {
-        "size" : [26, 26],
-        "borderSize" : 4,
+        "size" : [32, 32],
         "backgroundImage" : "volume.png",
-        "backgroundImageMode" : "center"
+        "backgroundImageMode" : "contain"
     },
     "button.muted" :
     {

@@ -512,6 +512,7 @@ namespace tabletopify
             callback<const utf8_string&> on_submit;
         };
 
+        // slider
 
         struct slider_data : widget_data
         {
@@ -538,6 +539,31 @@ namespace tabletopify
         private:
             vec2 handle_center(double width) const;
             friend struct widget_slider_handle;
+
+        };
+
+        // checkbox
+
+        struct checkbox_data : widget_data
+        {
+            bool checked;
+            checkbox_data(bool checked)
+            : checked(checked)
+            { }
+        };
+
+        struct widget_checkbox : public widget<widget_checkbox, element_type::checkbox, checkbox_data>
+        {
+        public:
+            using widget::widget;
+
+            element_state_t resolve_element_state_impl();
+            void first_update_impl();
+            void last_update_impl();
+
+            callback<bool> on_change;
+        private:
+            bool _clicked;
 
         };
     } // imgui namespace
@@ -579,3 +605,4 @@ namespace tabletopify
 #define mxButton(DATA, ...) MX_WIDGET_CODEGEN(widget_button, DATA, __VA_ARGS__)
 #define mxTextBox(DATA, ...) MX_WIDGET_CODEGEN(widget_text_box, DATA, __VA_ARGS__)
 #define mxSlider(DATA, ...) MX_WIDGET_CODEGEN(widget_slider, DATA, __VA_ARGS__)
+#define mxCheckbox(DATA, ...) MX_WIDGET_CODEGEN(widget_checkbox, DATA, __VA_ARGS__)

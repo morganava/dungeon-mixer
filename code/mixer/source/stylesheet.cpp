@@ -18,6 +18,7 @@ namespace tabletopify
             "slider",
             "sliderTrack",
             "sliderHandle",
+            "checkbox",
         };
 
         static_assert(countof(typeStrings) == (size_t)element_type::count, "mismatch of element_type enum and names");
@@ -38,6 +39,8 @@ namespace tabletopify
         {
             "hover",
             "active",
+            "disabled",
+            "checked",
         };
 
         if (str == "")
@@ -111,7 +114,8 @@ namespace tabletopify
         element_state_t stateList[] = {
             element_state::hover,
             element_state::active,
-            element_state::disabled
+            element_state::disabled,
+            element_state::checked,
         };
 
         // function to applying partial styles

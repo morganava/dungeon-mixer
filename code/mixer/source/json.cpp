@@ -360,7 +360,7 @@ namespace tabletopify
         #define STYLE_SHEET_ENTRY(NAME, VAL, FLAGS)\
         if(auto it = j.find(#NAME); it != j.end())\
         {\
-            if constexpr(FLAGS & sdf::geometry) MX_THROW_MSG_IF_FALSE(state == element_state::none, "style property '{}' cannot be specified in styles with '{}' selector", #NAME, state);\
+            if constexpr(FLAGS != element_state::none) MX_THROW_MSG_IF_FALSE(!static_cast<uint_fast8_t>(FLAGS & state), "style property '{}' cannot be specified in styles with '{}' selector", #NAME, state);\
             d.push_back<style_entry_t>(style_entry::NAME);\
             typedef std::remove_const<std::remove_reference<decltype(VAL)>::type>::type TYPE;\
             d.push_back<TYPE>(it->get<TYPE>());\

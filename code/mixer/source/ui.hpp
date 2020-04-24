@@ -102,7 +102,7 @@ namespace tabletopify
                     imgui::label_data title;
                     struct playlist_entry
                     {
-                        bool favorited = false;
+                        imgui::checkbox_data favorite = {false};
                         imgui::label_data title;
                         imgui::slider_data volume = {0.0, 1.0, 0.5};
                         float previousVolume;
