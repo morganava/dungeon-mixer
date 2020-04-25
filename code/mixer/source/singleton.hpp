@@ -62,4 +62,11 @@ namespace tabletopify
     };
     template<typename TYPE>
     typename singleton<TYPE>::singleton_data singleton<TYPE>::singleton::data;
+
+    #define MX_MAKE_SINGLETON(TYPE) \
+    constexpr TYPE* get_##TYPE() { return tabletopify::singleton<TYPE>::addr(); } \
+    template<typename... ARGS> \
+    void init_##TYPE(ARGS&&... args) { tabletopify::singleton<TYPE>::construct(std::forward<ARGS>(args)...); } \
+    constexpr void free_##TYPE() { tabletopify::singleton<TYPE>::free(); } \
+    inline constexpr TYPE& g_##TYPE = tabletopify::singleton<TYPE>::get();
 }

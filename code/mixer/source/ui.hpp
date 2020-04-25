@@ -142,20 +142,5 @@ namespace tabletopify
             } edit;
         } root;
     };
-
-    constexpr ui* get_ui()
-    {
-        return singleton<ui>::addr();
-    }
-
-    inline void init_ui()
-    {
-        singleton<ui>::construct();
-    }
-
-    constexpr void free_ui()
-    {
-        singleton<ui>::free();
-    }
-    inline constexpr ui& g_ui = singleton<ui>::get();
+    MX_MAKE_SINGLETON(ui)
 }
