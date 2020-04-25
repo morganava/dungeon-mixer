@@ -1,0 +1,38 @@
+{
+    "LibraryId" : "6c9445e0-840c-42fa-b823-46448f5726d5",
+    "Title" : "Water",
+    "Tracks" :
+    [
+        {
+            "Title" : "Mud Pot",
+            "AudioId" : "621851c6-8aac-4077-a78a-3f3571cf11a1",
+            "Type" : "Loop",
+            "Tags" : ["boiling", "bubbling", "hot-springs", "mudpot", "water"],
+            "Files" : ["mudpot.ogg"]
+        },
+        {
+            "Title" : "Lapping Water",
+            "AudioId" : "35fc1ff5-a975-412d-8644-5d995fbb92a1",
+            "Type": "Loop",
+            "Tags" : ["waves", "lake"],
+            "Files" : ["lapping_water.ogg"]
+        }
+    ],
+    "OldTracks" :
+    [
+        {
+            "Title" : "Sawing",
+            "AudioId" : "37fbd587-ab8a-4e85-898c-be2c76d79440",
+            "Type" : "OneShot",
+            "Tags" : ["construction", "saw"],
+            "Files" : ["sawing.wav"]
+        },
+        {
+            "Title" : "Sea Gulls",
+            "AudioId" : "21b24cc6-d659-4c39-ae69-75d7938fd7b3",
+            "Type" : "Loop",
+            "Tags" : ["birds", "sea"],
+            "Files" : ["seagulls.wav"]
+        }
+    ]
+}

@@ -1,0 +1,18 @@
+{
+    "LibraryId" : "8a2b0f47-2b22-49b4-b535-003a712620cf",
+    "Title" : "Animals",
+    "Tracks" :
+    [
+        {
+            "Title" : "Mooing Cows",
+            "AudioId" : "6891dad7-09f9-4fdb-916c-ce37d49bd4fe",
+            "Type" : "OneShot",
+            "Tags" : ["cows", "moo", "farm", "animal"],
+            "Files" : ["moo_00.ogg", "moo_01.ogg", "moo_02.ogg", "moo_03.ogg", "moo_04.ogg",
+                       "moo_05.ogg", "moo_06.ogg", "moo_07.ogg", "moo_08.ogg", "moo_09.ogg",
+                       "moo_10.ogg", "moo_11.ogg", "moo_12.ogg", "moo_13.ogg", "moo_14.ogg",
+                       "moo_15.ogg", "moo_16.ogg", "moo_17.ogg", "moo_18.ogg", "moo_19.ogg",
+                       "moo_20.ogg", "moo_21.ogg"]
+        }
+    ]
+}

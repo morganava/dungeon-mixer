@@ -1,0 +1,35 @@
+{
+    "LibraryId" : "02a72e9a-2a3c-4250-8e18-9acd57ab0bd3",
+    "Title" : "Weather",
+    "Tracks" :
+    [
+        {
+            "Title" : "Light Rain",
+            "AudioId" : "dc0a450c-81e9-42c6-a557-ca635468ba77",
+            "Type" : "Loop",
+            "Tags" : ["light", "rain", "water"],
+            "Files" : ["light_rain.ogg"]
+        },
+        {
+            "Title" : "Medium Rain",
+            "AudioId" : "30175f4b-71bc-48db-b0db-c7c3fd1c474f",
+            "Type" : "Loop",
+            "Tags" : ["medium", "rain", "water"],
+            "Files" : ["medium_rain.ogg"]
+        },
+        {
+            "Title" : "Heavy Rain",
+            "AudioId" : "b5610cdd-a56a-423f-9da6-82fffd399550",
+            "Type" : "Loop",
+            "Tags" : ["heavy", "rain", "water"],
+            "Files" : ["heavy_rain.ogg"]
+        },
+        {
+            "Title" : "Strong Rustling Wind",
+            "AudioId" : "308f0c9f-244e-44be-ac78-828601c9c55f",
+            "Type" : "Loop",
+            "Tags" : ["wind", "strong", "rustling", "grass", "gusts"],
+            "Files" : ["strong_rustling_wind.ogg"]
+        }
+    ]
+}
