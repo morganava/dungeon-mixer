@@ -72,7 +72,7 @@ namespace tabletopify
         // work to do
         run_once_task func;
         // consumer sets to true when finished
-        volatile bool* finished;    // TODO: get rid of volatile
+        volatile bool* finished;    // TODO: get rid of volatile, replace wth std::mutex* or atomic_flag
     };
 
     enum worker_id
@@ -117,6 +117,12 @@ namespace tabletopify
         std::thread::id getThreadId() const;
         void enqueue(run_once_task&& work);
         void enqueue(run_once_task&& work, volatile bool* finished);
+
+        worker& operator<<(run_once_task&& work) {
+            this->enqueue(std::move(work));
+            return *this;
+        }
+
         bool try_dequeue(work_item& out_work);
         float nextFloat(float min, float max);
         size_t nextIndex(size_t count);
