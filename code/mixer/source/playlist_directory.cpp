@@ -1,0 +1,54 @@
+#include "audio.hpp"
+
+namespace tabletopify
+{
+    playlist_directory::playlist_directory() { }
+
+    playlist_handle_t playlist_directory::create_playlist()
+    {
+        return add_entry({});
+    }
+
+    void playlist_directory::delete_playlist(playlist_handle_t playlist)
+    {
+        _entries.erase(playlist);
+    }
+
+    playlist_handle_t playlist_directory::add_entry(playlist_entry&& entry)
+    {
+        auto handle = _next_handle++;
+        MX_ASSERT(_entries.find(handle) == _entries.end());
+        _entries.insert({handle, std::move(entry)});
+        return handle;
+    }
+
+    playlist_entry& playlist_directory::get_entry(playlist_handle_t playlist)
+    {
+        auto it = _entries.find(playlist);
+        // make sure the provided playlist exists
+        MX_ASSERT(it != _entries.end());
+        auto& playlistEntry = it->second;
+        return playlistEntry;
+    }
+
+    void playlist_directory::add_atmosphere(playlist_handle_t playlist, atmosphere_handle_t atmosphere)
+    {
+        auto& playlistEntry = this->get_entry(playlist);
+        // add if it isn't already in the list
+        if(std::find(playlistEntry.atmospheres.begin(), playlistEntry.atmospheres.end(), atmosphere) ==
+           playlistEntry.atmospheres.end())
+        {
+            playlistEntry.atmospheres.push_back(atmosphere);
+        }
+    }
+
+    void playlist_directory::remove_atmosphere(playlist_handle_t playlist, atmosphere_handle_t atmosphere)
+    {
+        auto& playlistEntry = this->get_entry(playlist);
+        // remove atmosphere
+        auto it = std::find(playlistEntry.atmospheres.begin(), playlistEntry.atmospheres.end(), atmosphere);
+        MX_ASSERT(it != playlistEntry.atmospheres.end());
+        playlistEntry.atmospheres.erase(it);
+    }
+
+}

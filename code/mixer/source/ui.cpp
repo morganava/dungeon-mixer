@@ -7,7 +7,6 @@
 #include "nanovg.hpp"
 #include "imgui.hpp"
 #include "ui.hpp"
-#include "singleton.hpp"
 #include "linear_constraint_solver.hpp"
 #include "array.hpp"
 

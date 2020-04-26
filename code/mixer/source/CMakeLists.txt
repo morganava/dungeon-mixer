@@ -50,6 +50,7 @@ add_executable(tabletop_mixer
     audio_directory.cpp
     track_directory.cpp
     atmosphere_directory.cpp
+    playlist_directory.cpp
     playback_manager.cpp
     # ui
     ui.cpp)

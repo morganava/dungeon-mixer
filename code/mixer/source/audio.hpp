@@ -2,6 +2,7 @@
 
 #include "tag_map.hpp"
 #include "uuid.hpp"
+#include "singleton.hpp"
 
 namespace tabletopify
 {
@@ -11,6 +12,8 @@ namespace tabletopify
     typedef handle_t track_handle_t;
     // collection of tracks
     typedef handle_t atmosphere_handle_t;
+    // a playlist
+    typedef handle_t playlist_handle_t;
 
     constexpr handle_t MX_INVALID_HANDLE = ~handle_t(0);
 
@@ -122,6 +125,7 @@ namespace tabletopify
     // description for how audio is to played in an atmosphere
     struct track_entry
     {
+        // TODO: we might be able to replace these with the audio_handle?
         utf8_string audioTitle;
         uuid audioId;
         std::shared_ptr<audio_data> audioData;
@@ -190,6 +194,35 @@ namespace tabletopify
         // map track id to atmosphere handle
         std::unordered_map<uuid, atmosphere_handle_t> _id_map;
     };
+
+    struct playlist_entry
+    {
+        // unique id (for serialization)
+        uuid id;
+        // title
+        utf8_string title;
+        // atmospheres
+        std::vector<atmosphere_handle_t> atmospheres;
+    };
+
+    class playlist_directory
+    {
+    public:
+        playlist_directory();
+        playlist_handle_t create_playlist();
+        playlist_handle_t add_entry(playlist_entry&&);
+        void delete_playlist(playlist_handle_t);
+        void add_atmosphere(playlist_handle_t, atmosphere_handle_t);
+        void remove_atmosphere(playlist_handle_t, atmosphere_handle_t);
+
+        std::vector<playlist_handle_t> get_playlist_handles() const;
+    private:
+        playlist_entry& get_entry(playlist_handle_t);
+
+        playlist_handle_t _next_handle = 0;
+        std::map<playlist_handle_t, playlist_entry> _entries = {};
+    };
+    MX_MAKE_SINGLETON(playlist_directory)
 
     struct playback_entry
     {

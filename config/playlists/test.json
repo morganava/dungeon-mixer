@@ -1,24 +1,27 @@
 {
   "Version" : "0.1",
-  "Atmospheres" : [
+  "Atmospheres" :
+  [
     {
       "AtmosphereId" : "5f96dcd9-015c-4525-868a-ae6b8b8e1d02",
       "Title" : "Rainy Cow Field",
       "Tracks" :
       [
         {
-          "AudioID" : "6891dad7-09f9-4fdb-916c-ce37d49bd4fe",
+          "AudioId" : "6891dad7-09f9-4fdb-916c-ce37d49bd4fe",
           "Volume" : 1.0,
-          "Repeat" : [3.0, 10.0],
+          "RepeatRange" : [3.0, 10.0],
+          "Position" : [0.0, 0.0, 5.0]
         },
         {
-          "AudioID" : "dc0a450c-81e9-42c6-a557-ca635468ba77",
-          "Volume" : 0.75,
+          "AudioId" : "dc0a450c-81e9-42c6-a557-ca635468ba77",
+          "Volume" : 0.75
         }
       ]
-    },
+    }
   ],
-  "Playlists" : [
+  "Playlists" :
+  [
     {
       "PlaylistId" : "e495fc80-53b3-43ef-baa6-d61aa188f7cb",
       "Title" : "Test",
@@ -27,5 +30,5 @@
         "5f96dcd9-015c-4525-868a-ae6b8b8e1d02"
       ]
     }
-  ],
+  ]
 }

@@ -45,6 +45,12 @@ namespace tabletopify
         return strings_path;
     }
 
+    static fs::path get_playlists_path()
+    {
+        static fs::path playlists_path = get_tabletopify_path() / "playlists";
+        return playlists_path;
+    }
+
     void load_stylesheet()
     {
         worker(Worker_FileIO).enqueue([]() -> void
@@ -122,6 +128,114 @@ namespace tabletopify
                 });
             }
         });
+    }
+
+    void load_playlists()
+    {
+        worker(Worker_FileIO).enqueue([]() -> void
+        {
+            // iterate over each subdirectory in the lilbrary directory
+            for(auto& it : fs::directory_iterator(get_playlists_path()))
+            {
+                auto path = it.path();
+                MX_LOG_INFO("Loading playlist: {}", path);
+                memory_buffer bytes(path);
+
+                worker(Worker_Background).enqueue([bytes=std::move(bytes)]() -> void
+                {
+                    // TODO: make these compatible with singleton<T>
+                    auto& g_atmosphere_directory = *get_atmosphere_directory();
+                    auto& g_track_directory = *get_track_directory();
+                    auto& g_audio_directory = *get_audio_directory();
+
+                    auto json = nl::json::parse(bytes.begin(), bytes.end());
+                    utf8_string version = json["Version"];
+                    // TODO: handle different versions
+                    (void)version;
+
+                    // parse our atmosphere_entry list
+                    auto atmosphereList = json["Atmospheres"];
+                    for (auto atmosphereJson : atmosphereList)
+                    {
+                        atmosphere_entry atmosphereEntry;
+                        atmosphereEntry.id = atmosphereJson["AtmosphereId"].get<uuid>();
+                        atmosphereEntry.title = atmosphereJson["Title"].get<utf8_string>();
+
+                        auto trackList = atmosphereJson["Tracks"];
+                        for (auto trackJson : trackList)
+                        {
+                            track_entry trackEntry;
+
+                            // AudioId is the id of the audio_entry referenced
+                            const auto audioId = trackJson["AudioId"].get<uuid>();
+                            auto audioHandle = g_audio_directory.get_audio_handle_by_id(audioId);
+
+                            if (audioHandle == MX_INVALID_HANDLE) {
+                                MX_LOG_ERROR("AudioData with id '{}' does not exist", trackEntry.audioId);
+                                continue;
+                            }
+
+                            trackEntry.audioId = audioId;
+                            trackEntry.volume = 1.0f;
+                            trackEntry.atmosphereVolume = 1.0f;
+
+                            if (trackJson.contains("Volume")) {
+                                trackEntry.volume = trackJson["Volume"].get<float>();
+                            }
+                            if (trackJson.contains("RepeatRange")) {
+                                // TODO: implement
+                                trackEntry.repeat.min = 5.0f;
+                                trackEntry.repeat.max = 10.0f;
+                            }
+                            if (trackJson.contains("Position")) {
+                                // TODO: implement
+                            } else {
+                                trackEntry.position.enabled = false;
+                            }
+
+
+                            // get rest of data from audio directory
+                            auto& audioEntry = g_audio_directory.get_entry(audioHandle);
+                            trackEntry.audioTitle = audioEntry.title;
+                            trackEntry.audioData = audioEntry.data;
+
+                            auto trackHandle = g_track_directory.add_entry(std::move(trackEntry));
+                            atmosphereEntry.tracks.push_back(trackHandle);
+                        }
+                        g_atmosphere_directory.add_entry(std::move(atmosphereEntry));
+                    }
+
+                    // parse our playlist_entry list
+                    auto playlistList = json["Playlists"];
+                    for (auto playlistJson : playlistList)
+                    {
+                        playlist_entry playlistEntry;
+                        playlistEntry.id = playlistJson["PlaylistId"].get<uuid>();
+                        playlistEntry.title = playlistJson["Title"].get<utf8_string>();
+                        auto atmospheresList = playlistJson["Atmospheres"];
+                        for (auto atmosphereId : atmospheresList)
+                        {
+                            const auto id = atmosphereId.get<uuid>();
+                            auto atmosphereHandle = g_atmosphere_directory.get_atmosphere_handle_by_id(id);
+                            if (atmosphereHandle == MX_INVALID_HANDLE) {
+                                MX_LOG_ERROR("Atmosphere with id '{}' does not exist", atmosphereId);
+                            }
+                            playlistEntry.atmospheres.push_back(atmosphereHandle);
+                        }
+                        g_playlist_directory.add_entry(std::move(playlistEntry));
+                    }
+                });
+            }
+        });
+    }
+
+    void load_playlist(const fs::path& playlistPath)
+    {
+        worker(Worker_FileIO).enqueue([=]() -> void
+        {
+            MX_LOG_INFO("Loading playlist: {}", playlistPath);
+        });
+
     }
 
     void open_user_mix(const fs::path& mixPath)

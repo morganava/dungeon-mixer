@@ -28,7 +28,7 @@ namespace tabletopify
         init_logger(LogLevel_Info);
 
         // init nanovg
-        init_nanovg();            
+        init_nanovg();
 
         // init style resolver
         init_style_resolver();
@@ -47,10 +47,15 @@ namespace tabletopify
         init_audio_directory();
         init_track_directory({});
         init_atmosphere_directory({});
+        init_playlist_directory();
         init_playback_manager();
+
 
         // load our audio manifests
         load_audio_manifests();
+
+        // load our playlists
+        load_playlists();
 
         // init strings
         init_string_manager(get_strings_path() / "en-us.json");
@@ -78,6 +83,6 @@ namespace tabletopify
         free_nanovg();
 
         // close queues off to new work
-        free_work_manager();        
+        free_work_manager();
     }
 }
