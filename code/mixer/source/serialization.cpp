@@ -66,10 +66,17 @@ namespace tabletopify
     {
         worker(Worker_FileIO).enqueue([]() -> void
         {
-            // iterate over each subdirectory in the lilbrary directory
+            // iterate over each subdirectory in the library directory
             for(auto& it : fs::directory_iterator(get_library_path()))
             {
+                if (!fs::is_directory(it.path())) {
+                    MX_LOG_INFO("Skipping: {}" , it.path());
+                    continue;
+                }
+
+                // TODO: use memory_buffer here
                 auto manifestPath = it.path() / "manifest.json";
+                MX_LOG_INFO("Loading manifest: {}", manifestPath);
                 auto manifestSize = fs::file_size(manifestPath);
 
                 std::ifstream manifestFile(manifestPath.native(), std::ios_base::in | std::ios_base::binary);
