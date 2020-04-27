@@ -9,6 +9,7 @@
 #include "imgui.hpp"
 #include "color.hpp"
 #include "stylesheet.hpp"
+#include "ui.hpp"
 
 namespace tabletopify
 {
@@ -226,6 +227,11 @@ namespace tabletopify
                     }
                 });
             }
+
+            worker(Worker_Background).enqueue([]() -> void
+            {
+                g_ui.populate_playlist_data();
+            });
         });
     }
 

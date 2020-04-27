@@ -8,6 +8,9 @@ namespace tabletopify
         : qwords{0,0}
         { }
 
+        constexpr uuid(uint64_t hi, uint64_t lo)
+        : qwords{hi,lo}
+        { }
         constexpr uuid(const uuid& that) = default;
         constexpr uuid(uuid&& that) = default;
         constexpr uuid& operator=(const uuid&) = default;

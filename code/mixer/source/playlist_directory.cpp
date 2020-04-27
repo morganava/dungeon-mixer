@@ -9,6 +9,17 @@ namespace tabletopify
         return add_entry({});
     }
 
+    std::vector<playlist_handle_t> playlist_directory::get_playlist_handles() const
+    {
+        std::vector<playlist_handle_t> retval;
+		retval.reserve(_entries.size());
+        for (auto val : _entries)
+        {
+            retval.push_back(val.first);
+        }
+        return retval;
+    }
+
     void playlist_directory::delete_playlist(playlist_handle_t playlist)
     {
         _entries.erase(playlist);

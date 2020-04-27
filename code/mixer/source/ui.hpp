@@ -9,6 +9,8 @@ namespace tabletopify
     {
     public:
         void update(float dt, int32_t width, int32_t height);
+
+        void populate_playlist_data();
     private:
 
         void draw_debug(float dt) {}
@@ -30,12 +32,30 @@ namespace tabletopify
         {
             enum value
             {
-                starred = 0,
+                all = 0,
+                starred,
                 playing,
-                all,
+
+                count,
             };
         };
         typedef playlist_id::value playlist_id_t;
+
+        struct playlist_widget
+        {
+            imgui::label_data title;
+            struct atmosphere_widget
+            {
+                imgui::checkbox_data favorite = {false};
+                imgui::label_data title;
+                imgui::slider_data volume = {0.0, 1.0, 0.5};
+                imgui::checkbox_data muteUnmute = {false};
+                imgui::button_data playStop;
+
+                atmosphere_handle_t atmosphereHandle = MX_INVALID_HANDLE;
+            };
+            std::vector<atmosphere_widget> entries;
+        };
 
         struct
         {
@@ -97,41 +117,10 @@ namespace tabletopify
                 imgui::label_data trackVolume = {"Volume"};
                 imgui::slider_data slider = {0.0f, 100.0f, 50.0f};
 
-                struct playlist_data
-                {
-                    imgui::label_data title;
-                    struct playlist_entry
-                    {
-                        imgui::checkbox_data favorite = {false};
-                        imgui::label_data title;
-                        imgui::slider_data volume = {0.0, 1.0, 0.5};
-                        float previousVolume;
-                        bool muted = false;
-                        imgui::checkbox_data muteUnmute = {false};
-                        imgui::button_data playStop;
-
-                        atmosphere_handle_t atmosphereHandle = MX_INVALID_HANDLE;
-                    };
-                    std::vector<playlist_entry> entries;
-                };
                 playlist_id_t currentPlaylistId = playlist_id::all;
-                std::vector<playlist_data> playlists =
-                {
-                    // starred
-                    {{"Favorites"}, {}},
-                    // playing
-                    {{"Playing"}, {}},
-                    // all
-                    {{"All"},
-                        {
-                            {false, {"Moo Cows"}},
-                            {false, {"Rainy Forest"}},
-                            {false, {"Marketplace"}},
-                        }
-                    },
-                };
+                std::vector<playlist_widget> playlists= {{}, {}, {}};
 
-                playlist_data& currentPlaylist() {
+                playlist_widget& currentPlaylist() {
                     return playlists[currentPlaylistId];
                 }
 

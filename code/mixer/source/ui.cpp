@@ -9,6 +9,7 @@
 #include "ui.hpp"
 #include "linear_constraint_solver.hpp"
 #include "array.hpp"
+#include "audio.hpp"
 
 namespace tabletopify
 {
@@ -32,6 +33,54 @@ namespace tabletopify
                 }
             }
         }
+    }
+
+    void ui::populate_playlist_data()
+    {
+        worker(Worker_Background) << []() -> void {
+            // TODO: replace this with singleton
+            auto& g_atmosphere_directory = *get_atmosphere_directory();
+
+            std::vector<ui::playlist_widget> playlists;
+            for (auto playlistHandle : g_playlist_directory.get_playlist_handles())
+            {
+                auto& playlistEntry = g_playlist_directory.get_entry(playlistHandle);
+                ui::playlist_widget currentPlaylistWidget;
+
+                currentPlaylistWidget.title.text = playlistEntry.title;
+                for (auto atmosphereHandle : playlistEntry.atmospheres)
+                {
+                    const auto& atmosphereEntry = g_atmosphere_directory.get_entry(atmosphereHandle);
+                    utf8_string atmosphereEntry_title = atmosphereEntry.title;
+
+                    playlist_widget::atmosphere_widget currentAtmosphereWidget;
+					// TODO: store in atmosphereEntry
+                    currentAtmosphereWidget.favorite = {false};
+                    currentAtmosphereWidget.title = imgui::label_data{atmosphereEntry.title};
+					// TODO: store in atmosphereEntry
+                    currentAtmosphereWidget.volume = {0.0, 1.0, 0.5};
+					// TODO: stor ein atmosphereEntry
+                    currentAtmosphereWidget.muteUnmute = {false};
+                    currentAtmosphereWidget.atmosphereHandle = atmosphereHandle;
+
+                    currentPlaylistWidget.entries.push_back(std::move(currentAtmosphereWidget));
+                }
+                playlists.emplace_back(std::move(currentPlaylistWidget));
+            }
+
+            worker(Worker_UI) << [playlists = std::move(playlists)]() -> void
+            {
+                MX_LOG_VAR(playlists.size());
+                for(auto currentPlaylist : playlists) {
+                    MX_LOG_VAR(currentPlaylist.title.text);
+                }
+
+                g_ui.root.playlist.playlists = std::move(playlists);
+                g_ui.root.playlist.currentPlaylistId = playlist_id::all;
+
+                MX_LOG_INFO("PLaylist Populated!");
+            };
+        };
     }
 
     void ui::draw_sidebar(float dt)

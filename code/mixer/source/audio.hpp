@@ -14,6 +14,15 @@ namespace tabletopify
     typedef handle_t atmosphere_handle_t;
     // a playlist
     typedef handle_t playlist_handle_t;
+    // special playlists
+    namespace playlist_handle
+    {
+        constexpr playlist_handle_t all     = 0;
+        constexpr playlist_handle_t starred = 1;
+        constexpr playlist_handle_t playing = 2;
+        constexpr playlist_handle_t first_custom  = 3;
+    }
+
 
     constexpr handle_t MX_INVALID_HANDLE = ~handle_t(0);
 
@@ -209,18 +218,24 @@ namespace tabletopify
     {
     public:
         playlist_directory();
+
+        std::vector<playlist_handle_t> get_playlist_handles() const;
+
         playlist_handle_t create_playlist();
+        playlist_entry& get_entry(playlist_handle_t);
         playlist_handle_t add_entry(playlist_entry&&);
         void delete_playlist(playlist_handle_t);
         void add_atmosphere(playlist_handle_t, atmosphere_handle_t);
         void remove_atmosphere(playlist_handle_t, atmosphere_handle_t);
-
-        std::vector<playlist_handle_t> get_playlist_handles() const;
     private:
-        playlist_entry& get_entry(playlist_handle_t);
 
-        playlist_handle_t _next_handle = 0;
-        std::map<playlist_handle_t, playlist_entry> _entries = {};
+        playlist_handle_t _next_handle = playlist_handle::first_custom;
+        std::map<playlist_handle_t, playlist_entry> _entries =
+        {
+            {playlist_handle::all, {uuid(0,playlist_handle::all), "All", {}}},
+            {playlist_handle::starred, {uuid(0,playlist_handle::starred), "Starred", {}}},
+            {playlist_handle::playing, {uuid(0,playlist_handle::playing), "Playing", {}}},
+        };
     };
     MX_MAKE_SINGLETON(playlist_directory)
 

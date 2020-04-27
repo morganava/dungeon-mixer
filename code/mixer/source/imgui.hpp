@@ -427,7 +427,7 @@ namespace tabletopify
         {
             utf8_string text;
             label_data() = default;
-            label_data(utf8_string&& text) : text(std::move(text)) {}
+            label_data(utf8_string text) : text(std::move(text)) {}
         };
 
         struct widget_label : public widget<widget_label, element_type::label, label_data>
