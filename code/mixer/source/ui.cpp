@@ -62,7 +62,7 @@ namespace tabletopify
 					// TODO: stor ein atmosphereEntry
                     currentAtmosphereWidget.muteUnmute = {false};
                     currentAtmosphereWidget.atmosphereHandle = atmosphereHandle;
-
+                    MX_LOG_VAR(atmosphereHandle);
                     currentPlaylistWidget.entries.push_back(std::move(currentAtmosphereWidget));
                 }
                 playlists.emplace_back(std::move(currentPlaylistWidget));
@@ -144,16 +144,30 @@ namespace tabletopify
                     mxHBox(&root.playlist.rowFlex, self.tags={"playlistEntry"})
                     {
                         mxCheckbox(&currentEntry.favorite, self.tags = {"entryFavorite"};
-                            self.on_change = [](bool checked) -> void
-                            {
-                                MX_LOG_VAR(checked);
-                            }); // FAVORITE
+                        self.on_change = [](bool checked) -> void
+                        {
+                            MX_LOG_VAR(checked);
+                        }); // FAVORITE
                         mxLabel(&currentEntry.title, self.tags = {"entryTitle"});
                         mxSlider(&currentEntry.volume, self.tags = {"entryVolume"};
                             self.on_change = [](double val) -> void { MX_LOG_VAR(val);};
                         );
                         mxCheckbox(&currentEntry.muteUnmute, self.tags = {"entryMute"}); // MUTE TOGGLE
-                        mxSpacer(); // PLAY/STOP BUTTON
+                        mxCheckbox(&currentEntry.playStop, self.tags = {"entryPlay"};
+                        self.on_change = [&](bool checked) -> void
+                        {
+                            worker(Worker_Background) << [=]() {
+                                // TODO: singletonize
+                                auto& g_playback_manager = *get_playback_manager();
+                                const auto handle = currentEntry.atmosphereHandle;
+                                if (checked) {
+                                    g_playback_manager.play_atmosphere(handle);
+                                } else {
+                                    g_playback_manager.stop_atmosphere(handle);
+                                }
+
+                            };
+                        }); // PLAY/STOP BUTTON
                     }
                 }
             }

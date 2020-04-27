@@ -51,15 +51,15 @@ namespace tabletopify
         // // update_draw(ctx, width, height);
         // get_renderer()->update(dt, width, height);
 
-        // volatile bool finished = false;
-        // worker(Worker_Background).enqueue([dt]()
-        // {
-        //     get_audio_directory()->update(dt);
-        //     get_playback_manager()->update(dt);
-        // }, &finished);
+        volatile bool finished = false;
+        worker(Worker_Background).enqueue([dt]()
+        {
+            get_audio_directory()->update(dt);
+            get_playback_manager()->update(dt);
+        }, &finished);
 
-        // // busy wait
-        // while(!finished) std::this_thread::yield();
+        // busy wait
+        while(!finished) std::this_thread::yield();
     }
 
     // on window exit

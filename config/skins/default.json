@@ -138,5 +138,14 @@
     "checkbox.entryMute:checked" : {
         "borderSize" : 0,
         "backgroundImage" : "mute.png"
+    },
+    "checkbox.entryPlay" : {
+        "size" : [32,32],
+        "borderSize" : 0,
+        "backgroundImage" : "play.png"
+    },
+    "checkbox.entryPlay:checked" : {
+        "borderSize" : 0,
+        "backgroundImage" : "stop.png"
     }
 }

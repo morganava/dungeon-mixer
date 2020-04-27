@@ -50,7 +50,7 @@ namespace tabletopify
                 imgui::label_data title;
                 imgui::slider_data volume = {0.0, 1.0, 0.5};
                 imgui::checkbox_data muteUnmute = {false};
-                imgui::button_data playStop;
+                imgui::checkbox_data playStop = {false};
 
                 atmosphere_handle_t atmosphereHandle = MX_INVALID_HANDLE;
             };
