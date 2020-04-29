@@ -10,6 +10,7 @@
 #include "color.hpp"
 #include "stylesheet.hpp"
 #include "ui.hpp"
+#include "geometry.hpp"
 
 namespace tabletopify
 {
@@ -139,11 +140,12 @@ namespace tabletopify
             for(auto& it : fs::directory_iterator(get_playlists_path()))
             {
                 auto path = it.path();
-                MX_LOG_INFO("Loading playlist: {}", path);
                 memory_buffer bytes(path);
 
-                worker(Worker_Background).enqueue([bytes=std::move(bytes)]() -> void
+                worker(Worker_Background) << [=,bytes=std::move(bytes)]() -> void
                 {
+                    MX_LOG_INFO("Loading playlist : {}", path);
+
                     // TODO: make these compatible with singleton<T>
                     auto& g_atmosphere_directory = *get_atmosphere_directory();
                     auto& g_track_directory = *get_track_directory();
@@ -151,8 +153,8 @@ namespace tabletopify
 
                     auto json = nl::json::parse(bytes.begin(), bytes.end());
                     utf8_string version = json["Version"];
-                    // TODO: handle different versions
-                    (void)version;
+                    MX_LOG_INFO(" Version : {}", version);
+                    MX_LOG_INFO(" Atmospheres :");
 
                     // parse our atmosphere_entry list
                     auto atmosphereList = json["Atmospheres"];
@@ -161,6 +163,9 @@ namespace tabletopify
                         atmosphere_entry atmosphereEntry;
                         atmosphereEntry.id = atmosphereJson["AtmosphereId"].get<uuid>();
                         atmosphereEntry.title = atmosphereJson["Title"].get<utf8_string>();
+
+                        MX_LOG_INFO(" AtmosphereTitle : {}", atmosphereEntry.title);
+                        MX_LOG_INFO(" AtmosphereId : {}", atmosphereEntry.id);
 
                         auto trackList = atmosphereJson["Tracks"];
                         for (auto trackJson : trackList)
@@ -171,34 +176,71 @@ namespace tabletopify
                             const auto audioId = trackJson["AudioId"].get<uuid>();
                             auto audioHandle = g_audio_directory.get_audio_handle_by_id(audioId);
 
+                            MX_LOG_INFO("  AudioId : {}", audioId);
+                            MX_LOG_INFO("   AudioHandle : {}", audioHandle);
+
                             if (audioHandle == MX_INVALID_HANDLE) {
-                                MX_LOG_ERROR("AudioData with id '{}' does not exist", trackEntry.audioId);
+                                MX_LOG_ERROR("AudioData with id '{}' does not exist", audioId);
                                 continue;
                             }
 
-                            trackEntry.audioId = audioId;
+                            // get rest of data from audio directory
+                            auto& audioEntry = g_audio_directory.get_entry(audioHandle);
+
+                            trackEntry.audioTitle = audioEntry.title;
+                            trackEntry.audioData = audioEntry.data;
                             trackEntry.volume = 1.0f;
                             trackEntry.atmosphereVolume = 1.0f;
+
+                            MX_LOG_INFO("   AudioTitle : {}", trackEntry.audioTitle);
 
                             if (trackJson.contains("Volume")) {
                                 trackEntry.volume = trackJson["Volume"].get<float>();
                             }
-                            if (trackJson.contains("RepeatRange")) {
-                                // TODO: implement
-                                trackEntry.repeat.min = 5.0f;
-                                trackEntry.repeat.max = 10.0f;
+
+                            MX_LOG_INFO("   Volume : {}", trackEntry.volume);
+
+                            switch (audioEntry.type())
+                            {
+                                case ONE_SHOT:
+                                {
+                                    if (trackJson.contains("RepeatRange")) {
+                                        auto range = trackJson["RepeatRange"];
+                                        if (range.is_array() &&
+                                            range.size() == 2 &&
+                                            range[0].is_number() &&
+                                            range[1].is_number())
+                                        {
+                                            float range0 = range[0].get<float>();
+                                            float range1 = range[1].get<float>();
+
+                                            trackEntry.repeat.min = std::min(range0, range1);
+                                            trackEntry.repeat.max = std::max(range0, range1);
+
+                                            MX_LOG_INFO("   RepeatMin : {}", trackEntry.repeat.min);
+                                            MX_LOG_INFO("   RepeatMax : {}", trackEntry.repeat.max);
+                                        }
+                                    }
+                                }
+                                break;
+                                case LOOP:
+                                {
+                                    // no loop specific parameters
+                                }
+                                break;
                             }
+
                             if (trackJson.contains("Position")) {
-                                // TODO: implement
+                                vec3 position = trackJson["Position"].get<vec3>();
+                                trackEntry.position.x = position.x;
+                                trackEntry.position.y = position.y;
+                                trackEntry.position.z = position.z;
+                                trackEntry.position.enabled = true;
+
+                                MX_LOG_INFO("   Position : {}", position);
                             } else {
                                 trackEntry.position.enabled = false;
                             }
-
-
-                            // get rest of data from audio directory
-                            auto& audioEntry = g_audio_directory.get_entry(audioHandle);
-                            trackEntry.audioTitle = audioEntry.title;
-                            trackEntry.audioData = audioEntry.data;
 
                             auto trackHandle = g_track_directory.add_entry(std::move(trackEntry));
                             atmosphereEntry.tracks.push_back(trackHandle);
@@ -207,12 +249,16 @@ namespace tabletopify
                     }
 
                     // parse our playlist_entry list
+                    MX_LOG_INFO(" Playlists :");
                     auto playlistList = json["Playlists"];
                     for (auto playlistJson : playlistList)
                     {
                         playlist_entry playlistEntry;
                         playlistEntry.id = playlistJson["PlaylistId"].get<uuid>();
                         playlistEntry.title = playlistJson["Title"].get<utf8_string>();
+                        MX_LOG_INFO("  PlaylistId : {}", playlistEntry.id);
+                        MX_LOG_INFO("  PlaylistTitle : {}", playlistEntry.title);
+                        MX_LOG_INFO("  Atmospheres : ");
                         auto atmospheresList = playlistJson["Atmospheres"];
                         for (auto atmosphereId : atmospheresList)
                         {
@@ -221,17 +267,18 @@ namespace tabletopify
                             if (atmosphereHandle == MX_INVALID_HANDLE) {
                                 MX_LOG_ERROR("Atmosphere with id '{}' does not exist", atmosphereId);
                             }
+                            MX_LOG_INFO("  AtmosphereId : {}", id);
                             playlistEntry.atmospheres.push_back(atmosphereHandle);
                         }
                         g_playlist_directory.add_entry(std::move(playlistEntry));
                     }
-                });
+                };
             }
 
-            worker(Worker_Background).enqueue([]() -> void
+            worker(Worker_Background) << []() -> void
             {
                 g_ui.populate_playlist_data();
-            });
+            };
         });
     }
 

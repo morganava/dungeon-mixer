@@ -23,7 +23,6 @@ namespace tabletopify
         constexpr playlist_handle_t first_custom  = 3;
     }
 
-
     constexpr handle_t MX_INVALID_HANDLE = ~handle_t(0);
 
     typedef enum
@@ -107,6 +106,10 @@ namespace tabletopify
         std::shared_ptr<audio_data> data;
         // time since able to unload data in seconds
         float age = 0.0f;
+        audio_type_t type() const
+        {
+            return data->get_type();
+        }
     };
 
     class audio_directory
@@ -136,12 +139,10 @@ namespace tabletopify
     {
         // TODO: we might be able to replace these with the audio_handle?
         utf8_string audioTitle;
-        uuid audioId;
         std::shared_ptr<audio_data> audioData;
-        audio_type_t audioType;
-        float volume;
+        float volume = 1.0f;
         float atmosphereVolume = 1.0f;
-        bool muted;
+        bool muted = false;
         bool atmosphereMuted = false;
         struct
         {
@@ -150,7 +151,7 @@ namespace tabletopify
         } repeat;
         struct
         {
-            bool enabled;
+            bool enabled = false;
             union
             {
                 struct
