@@ -27,7 +27,8 @@ namespace tabletopify
 
     playlist_handle_t playlist_directory::add_entry(playlist_entry&& entry)
     {
-        auto handle = _next_handle++;
+        auto handle = _next_handle;
+        _next_handle = static_cast<playlist_handle_t>(static_cast<handle_t>(handle) + 1);
         MX_ASSERT(_entries.find(handle) == _entries.end());
         _entries.insert({handle, std::move(entry)});
         return handle;

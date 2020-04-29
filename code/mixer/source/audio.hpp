@@ -6,24 +6,24 @@
 
 namespace tabletopify
 {
+    constexpr handle_t MX_INVALID_HANDLE = ~handle_t(0);
+
     // maps to audio data
     typedef handle_t audio_handle_t;
     // instantiated possibly playing audio tracks
     typedef handle_t track_handle_t;
     // collection of tracks
     typedef handle_t atmosphere_handle_t;
-    // a playlist
-    typedef handle_t playlist_handle_t;
-    // special playlists
-    namespace playlist_handle
+    // playlists
+    enum class playlist_handle : handle_t
     {
-        constexpr playlist_handle_t all     = 0;
-        constexpr playlist_handle_t starred = 1;
-        constexpr playlist_handle_t playing = 2;
-        constexpr playlist_handle_t first_custom  = 3;
-    }
-
-    constexpr handle_t MX_INVALID_HANDLE = ~handle_t(0);
+        invalid = MX_INVALID_HANDLE,
+        all = 0,
+        starred,
+        playing,
+        first_custom,
+    };
+    typedef playlist_handle playlist_handle_t;
 
     typedef enum
     {
@@ -231,11 +231,12 @@ namespace tabletopify
     private:
 
         playlist_handle_t _next_handle = playlist_handle::first_custom;
+        // init with our builtin playlists
         std::map<playlist_handle_t, playlist_entry> _entries =
         {
-            {playlist_handle::all, {uuid(0,playlist_handle::all), "All", {}}},
-            {playlist_handle::starred, {uuid(0,playlist_handle::starred), "Starred", {}}},
-            {playlist_handle::playing, {uuid(0,playlist_handle::playing), "Playing", {}}},
+            {playlist_handle::all,     {uuid(0,static_cast<uint64_t>(playlist_handle::all)), "All", {}}},
+            {playlist_handle::starred, {uuid(0,static_cast<uint64_t>(playlist_handle::starred)), "Starred", {}}},
+            {playlist_handle::playing, {uuid(0,static_cast<uint64_t>(playlist_handle::playing)), "Playing", {}}},
         };
     };
     MX_MAKE_SINGLETON(playlist_directory)
