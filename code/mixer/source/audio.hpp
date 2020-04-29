@@ -133,6 +133,7 @@ namespace tabletopify
         // amount of time an unreferenced track waits before unloading data and freeing memory
         constexpr static float unload_age = 10.0f;
     };
+    MX_MAKE_SINGLETON(audio_directory)
 
     // description for how audio is to played in an atmosphere
     struct track_entry
@@ -175,6 +176,7 @@ namespace tabletopify
         static track_handle_t _next_handle;
         std::unordered_map<track_handle_t, track_entry> _entries;
     };
+    MX_MAKE_SINGLETON(track_directory)
 
     struct atmosphere_entry
     {
@@ -204,6 +206,7 @@ namespace tabletopify
         // map track id to atmosphere handle
         std::unordered_map<uuid, atmosphere_handle_t> _id_map;
     };
+    MX_MAKE_SINGLETON(atmosphere_directory)
 
     struct playlist_entry
     {
@@ -278,21 +281,5 @@ namespace tabletopify
     private:
         std::unordered_map<track_handle_t, playback_entry> _entries;
     };
-
-    /// getters
-
-    audio_directory* get_audio_directory();
-    track_directory* get_track_directory();
-    atmosphere_directory* get_atmosphere_directory();
-    playback_manager* get_playback_manager();
-
-    void init_audio_directory();
-    void init_track_directory(track_directory&&);
-    void init_atmosphere_directory(atmosphere_directory&&);
-    void init_playback_manager();
-
-    void free_audio_directory();
-    void free_track_directory();
-    void free_atmosphere_directory();
-    void free_playback_manager();
+    MX_MAKE_SINGLETON(playback_manager);
 }

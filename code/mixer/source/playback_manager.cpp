@@ -7,26 +7,6 @@
 
 namespace tabletopify
 {
-    playback_manager* g_playback_manager = nullptr;
-    playback_manager* get_playback_manager()
-    {
-        MX_ASSERT(worker(Worker_Background).getThreadId() == std::this_thread::get_id());
-        return g_playback_manager;
-    }
-    void init_playback_manager()
-    {
-        MX_ASSERT(g_playback_manager == nullptr);
-        g_playback_manager = new playback_manager();
-    }
-    void free_playback_manager()
-    {
-        delete g_playback_manager;
-        g_playback_manager = nullptr;
-    }
-
-    extern track_directory* g_track_directory;
-    extern atmosphere_directory* g_atmosphere_directory;
-
     void playback_manager::update(float dt)
     {
         for(auto& it : _entries)
@@ -91,7 +71,7 @@ namespace tabletopify
 
     void playback_manager::play_atmosphere(atmosphere_handle_t atmosphereHandle)
     {
-        auto& atmosphereEntry = g_atmosphere_directory->get_entry(atmosphereHandle);
+        auto& atmosphereEntry = g_atmosphere_directory.get_entry(atmosphereHandle);
         for(auto trackHandle : atmosphereEntry.tracks)
         {
             this->play_track(trackHandle);
@@ -100,7 +80,7 @@ namespace tabletopify
 
     void playback_manager::stop_atmosphere(atmosphere_handle_t atmosphereHandle)
     {
-        auto& atmosphereEntry = g_atmosphere_directory->get_entry(atmosphereHandle);
+        auto& atmosphereEntry = g_atmosphere_directory.get_entry(atmosphereHandle);
         for(auto trackHandle : atmosphereEntry.tracks)
         {
             this->stop_track(trackHandle);
@@ -110,9 +90,8 @@ namespace tabletopify
     void playback_manager::set_atmosphere_volume(atmosphere_handle_t handle, float volume)
     {
         MX_ASSERT(volume >= 0.0f && volume <= 1.0f);
-        auto& g_track_directory = *get_track_directory();
 
-        auto& atmosphereEntry = g_atmosphere_directory->get_entry(handle);
+        auto& atmosphereEntry = g_atmosphere_directory.get_entry(handle);
         for(const auto trackHandle : atmosphereEntry.tracks)
         {
             auto& trackEntry = g_track_directory.get_entry(trackHandle);
@@ -129,7 +108,7 @@ namespace tabletopify
 
         MX_ASSERT(_entries.find(trackHandle) == _entries.end());
 
-        auto& trackEntry = g_track_directory->get_entry(trackHandle);
+        auto& trackEntry = g_track_directory.get_entry(trackHandle);
 
         playback_entry playbackEntry;
         playbackEntry.audioData = trackEntry.audioData;
@@ -148,7 +127,7 @@ namespace tabletopify
 
     void playback_manager::sync_track(track_handle_t trackHandle)
     {
-        auto& trackEntry = g_track_directory->get_entry(trackHandle);
+        auto& trackEntry = g_track_directory.get_entry(trackHandle);
         auto it = _entries.find(trackHandle);
         // if this track isn't playing nothing to do
         if(it != _entries.end())

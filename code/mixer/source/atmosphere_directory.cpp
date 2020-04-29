@@ -7,30 +7,6 @@
 
 namespace tabletopify
 {
-    atmosphere_directory* g_atmosphere_directory = nullptr;
-    atmosphere_directory* get_atmosphere_directory()
-    {
-        MX_ASSERT(worker(Worker_Background).getThreadId() == std::this_thread::get_id());
-        return g_atmosphere_directory;
-    }
-    void init_atmosphere_directory(atmosphere_directory&& atmosphereDirectory)
-    {
-        if(g_atmosphere_directory == nullptr)
-        {
-            g_atmosphere_directory = new atmosphere_directory(std::forward<atmosphere_directory>(atmosphereDirectory));
-        }
-        else
-        {
-            MX_ASSERT(worker(Worker_Background).getThreadId() == std::this_thread::get_id());
-            *g_atmosphere_directory = std::forward<atmosphere_directory>(atmosphereDirectory);
-        }
-    }
-    void free_atmosphere_directory()
-    {
-        delete g_atmosphere_directory;
-        g_atmosphere_directory = nullptr;
-    }
-
     atmosphere_handle_t atmosphere_directory::_next_handle = 0;
 
     /// Atmosphere Directory
@@ -50,7 +26,7 @@ namespace tabletopify
     {
         auto norm = query.normalized();
         auto query_tags = norm.split();
-                
+
         return _tag_map.get_keys_by_tag_query(query_tags);
     }
 

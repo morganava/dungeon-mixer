@@ -45,8 +45,8 @@ namespace tabletopify
 
         // init audio managers
         init_audio_directory();
-        init_track_directory({});
-        init_atmosphere_directory({});
+        init_track_directory();
+        init_atmosphere_directory();
         init_playlist_directory();
         init_playback_manager();
 
