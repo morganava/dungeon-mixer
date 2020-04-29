@@ -151,23 +151,27 @@ namespace tabletopify
                         }); // FAVORITE
                         mxLabel(&currentEntry.title, self.tags = {"entryTitle"});
                         mxSlider(&currentEntry.volume, self.tags = {"entryVolume"};
-                            self.on_change = [&](double volume) -> void
-                            {
-                                worker(Worker_Background) << [=]() -> void
-                                {
-                                    auto& g_playback_manager = *get_playback_manager();
-                                    g_playback_manager.set_atmosphere_volume(handle, volume);
-                                };
-                            };
-                        );
-                        mxCheckbox(&currentEntry.muteUnmute, self.tags = {"entryMute"}); // MUTE TOGGLE
-                        mxCheckbox(&currentEntry.playStop, self.tags = {"entryPlay"};
-                        self.on_change = [&](bool checked) -> void
+                        self.on_change = [&](double volume) -> void
                         {
-                            worker(Worker_Background) << [=]() {
-                                // TODO: singletonize
-                                auto& g_playback_manager = *get_playback_manager();
-                                if (checked) {
+                            worker(Worker_Background) << [=]() -> void
+                            {
+                                g_playback_manager.set_atmosphere_volume(handle, volume);
+                            };
+                        };); // VOLUME
+                        mxCheckbox(&currentEntry.muteUnmute, self.tags = {"entryMute"};
+                        self.on_change = [&](bool muted) -> void
+                        {
+                            worker(Worker_Background) << [=]() -> void
+                            {
+                                g_playback_manager.set_atmosphere_mute(handle, muted);
+                            };
+                        }); // MUTE
+                        mxCheckbox(&currentEntry.playStop, self.tags = {"entryPlay"};
+                        self.on_change = [&](bool playing) -> void
+                        {
+                            worker(Worker_Background) << [=]()
+                            {
+                                if (playing) {
                                     g_playback_manager.play_atmosphere(handle);
                                 } else {
                                     g_playback_manager.stop_atmosphere(handle);

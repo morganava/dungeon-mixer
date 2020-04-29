@@ -93,7 +93,26 @@ namespace tabletopify
 
         auto& atmosphereEntry = g_atmosphere_directory.get_entry(handle);
         atmosphereEntry.volume = volume;
-        for(const auto trackHandle : atmosphereEntry.tracks)
+        sync_atmosphere(atmosphereEntry);
+    }
+
+    void playback_manager::set_atmosphere_mute(atmosphere_handle_t handle, bool muted)
+    {
+        auto& atmosphereEntry = g_atmosphere_directory.get_entry(handle);
+        atmosphereEntry.muted = muted;
+        sync_atmosphere(atmosphereEntry);
+
+    }
+
+    void playback_manager::sync_atmosphere(atmosphere_handle_t handle)
+    {
+        auto& atmosphereEntry = g_atmosphere_directory.get_entry(handle);
+        sync_atmosphere(atmosphereEntry);
+    }
+
+    void playback_manager::sync_atmosphere(const atmosphere_entry& entry)
+    {
+        for(const auto trackHandle : entry.tracks)
         {
             sync_track(trackHandle);
         }

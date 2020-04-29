@@ -273,7 +273,8 @@ namespace tabletopify
         void play_atmosphere(atmosphere_handle_t);
         void stop_atmosphere(atmosphere_handle_t);
         void set_atmosphere_volume(atmosphere_handle_t, float);
-
+        void set_atmosphere_mute(atmosphere_handle_t, bool);
+        void sync_atmosphere(atmosphere_handle_t);
 
         /// Track methods
         void play_track(track_handle_t);
@@ -281,6 +282,7 @@ namespace tabletopify
         void sync_track(track_handle_t);
         void stop_all_tracks();
     private:
+        void sync_atmosphere(const atmosphere_entry& entry);
         std::unordered_map<track_handle_t, playback_entry> _entries;
     };
     MX_MAKE_SINGLETON(playback_manager);
