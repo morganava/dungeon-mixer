@@ -265,13 +265,15 @@ namespace tabletopify
         void update(float dt);
 
         /// Atmosphere methods
-        void play_atmosphere(atmosphere_handle_t atmosphereHandle);
-        void stop_atmosphere(atmosphere_handle_t atmosphereHandle);
+        void play_atmosphere(atmosphere_handle_t);
+        void stop_atmosphere(atmosphere_handle_t);
+        void set_atmosphere_volume(atmosphere_handle_t, float);
+
 
         /// Track methods
-        void play_track(track_handle_t trackHandle);
-        void stop_track(track_handle_t trackHandle);
-        void sync_track(track_handle_t trackHandle);
+        void play_track(track_handle_t);
+        void stop_track(track_handle_t);
+        void sync_track(track_handle_t);
         void stop_all_tracks();
     private:
         std::unordered_map<track_handle_t, playback_entry> _entries;

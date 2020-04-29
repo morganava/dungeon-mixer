@@ -107,6 +107,20 @@ namespace tabletopify
         }
     }
 
+    void playback_manager::set_atmosphere_volume(atmosphere_handle_t handle, float volume)
+    {
+        MX_ASSERT(volume >= 0.0f && volume <= 1.0f);
+        auto& g_track_directory = *get_track_directory();
+
+        auto& atmosphereEntry = g_atmosphere_directory->get_entry(handle);
+        for(const auto trackHandle : atmosphereEntry.tracks)
+        {
+            auto& trackEntry = g_track_directory.get_entry(trackHandle);
+            trackEntry.atmosphereVolume = volume;
+            sync_track(trackHandle);
+        }
+    }
+
     // track methods
 
     void playback_manager::play_track(track_handle_t trackHandle)

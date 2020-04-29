@@ -115,6 +115,11 @@ namespace tabletopify
 
     void ui::draw_playlist(float dt)
     {
+        // skip drawing if no playlists
+        if (root.playlist.playlists.size() == 0) {
+            return;
+        }
+
         auto& currentPlaylist = root.playlist.currentPlaylist();
         mxVBox(&root.playlist.vflex, self.tags = {"content"})
         {
@@ -141,6 +146,7 @@ namespace tabletopify
             mxVScroll(&root.playlist.scroll)
             {
                 for (auto& currentEntry : currentPlaylist.entries) {
+                    const auto handle = currentEntry.atmosphereHandle;
                     mxHBox(&root.playlist.rowFlex, self.tags={"playlistEntry"})
                     {
                         mxCheckbox(&currentEntry.favorite, self.tags = {"entryFavorite"};
@@ -150,7 +156,14 @@ namespace tabletopify
                         }); // FAVORITE
                         mxLabel(&currentEntry.title, self.tags = {"entryTitle"});
                         mxSlider(&currentEntry.volume, self.tags = {"entryVolume"};
-                            self.on_change = [](double val) -> void { MX_LOG_VAR(val);};
+                            self.on_change = [&](double volume) -> void
+                            {
+                                worker(Worker_Background) << [=]() -> void
+                                {
+                                    auto& g_playback_manager = *get_playback_manager();
+                                    g_playback_manager.set_atmosphere_volume(handle, volume);
+                                };
+                            };
                         );
                         mxCheckbox(&currentEntry.muteUnmute, self.tags = {"entryMute"}); // MUTE TOGGLE
                         mxCheckbox(&currentEntry.playStop, self.tags = {"entryPlay"};
@@ -159,7 +172,6 @@ namespace tabletopify
                             worker(Worker_Background) << [=]() {
                                 // TODO: singletonize
                                 auto& g_playback_manager = *get_playback_manager();
-                                const auto handle = currentEntry.atmosphereHandle;
                                 if (checked) {
                                     g_playback_manager.play_atmosphere(handle);
                                 } else {

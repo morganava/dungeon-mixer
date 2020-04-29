@@ -118,7 +118,7 @@ namespace tabletopify
                 imgui::slider_data slider = {0.0f, 100.0f, 50.0f};
 
                 playlist_id_t currentPlaylistId = playlist_id::all;
-                std::vector<playlist_widget> playlists= {{}, {}, {}};
+                std::vector<playlist_widget> playlists;
 
                 playlist_widget& currentPlaylist() {
                     return playlists[currentPlaylistId];
