@@ -92,10 +92,9 @@ namespace tabletopify
         MX_ASSERT(volume >= 0.0f && volume <= 1.0f);
 
         auto& atmosphereEntry = g_atmosphere_directory.get_entry(handle);
+        atmosphereEntry.volume = volume;
         for(const auto trackHandle : atmosphereEntry.tracks)
         {
-            auto& trackEntry = g_track_directory.get_entry(trackHandle);
-            trackEntry.atmosphereVolume = volume;
             sync_track(trackHandle);
         }
     }
@@ -132,9 +131,10 @@ namespace tabletopify
         // if this track isn't playing nothing to do
         if(it != _entries.end())
         {
+            auto& atmosphereEntry = g_atmosphere_directory.get_entry(trackEntry.atmosphereHandle);
             auto& playbackEntry = it->second;
 
-            playbackEntry.volume = (trackEntry.atmosphereMuted ? 0.0f : trackEntry.atmosphereVolume) * (trackEntry.muted ? 0.0f : trackEntry.volume);
+            playbackEntry.volume = (atmosphereEntry.muted ? 0.0f : atmosphereEntry.volume) * (trackEntry.muted ? 0.0f : trackEntry.volume);
 
             switch(playbackEntry.audioData->get_type())
             {

@@ -50,15 +50,22 @@ namespace tabletopify
 
     atmosphere_handle_t atmosphere_directory::add_entry(atmosphere_entry&& entry)
     {
-        const auto key = _next_handle++;
+        const auto atmosphereHandle = _next_handle++;
+
+        // give all the tracks their parent atmosphere's handle
+        for(auto& trackHandle : entry.tracks)
+        {
+            auto& trackEntry = g_track_directory.get_entry(trackHandle);
+            trackEntry.atmosphereHandle = atmosphereHandle;
+        }
 
         std::vector<utf8_string> tags = entry.title.split();
-        _tag_map.add_key(key, tags);
+        _tag_map.add_key(atmosphereHandle, tags);
 
-        _id_map.insert({entry.id, key});
-        _entries.insert({key, std::move(entry)});
+        _id_map.insert({entry.id, atmosphereHandle});
+        _entries.insert({atmosphereHandle, std::move(entry)});
 
-        return key;
+        return atmosphereHandle;
     }
 
     void atmosphere_directory::remove_entry(atmosphere_handle_t handle)

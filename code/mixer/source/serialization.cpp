@@ -162,6 +162,16 @@ namespace tabletopify
                         MX_LOG_INFO(" AtmosphereTitle : {}", atmosphereEntry.title);
                         MX_LOG_INFO(" AtmosphereId : {}", atmosphereEntry.id);
 
+                        if (atmosphereJson.contains("Volume")) {
+                            atmosphereEntry.volume = atmosphereJson["Volume"].get<float>();
+                        }
+                        MX_LOG_INFO(" Volume : {}", atmosphereEntry.volume);
+
+                        if (atmosphereJson.contains("Muted")) {
+                            atmosphereEntry.muted = atmosphereJson["Muted"].get<bool>();
+                        }
+                        MX_LOG_INFO(" Muted : {}", atmosphereEntry.muted);
+
                         auto trackList = atmosphereJson["Tracks"];
                         for (auto trackJson : trackList)
                         {
@@ -185,15 +195,18 @@ namespace tabletopify
                             trackEntry.audioTitle = audioEntry.title;
                             trackEntry.audioData = audioEntry.data;
                             trackEntry.volume = 1.0f;
-                            trackEntry.atmosphereVolume = 1.0f;
+                            trackEntry.muted = false;
 
                             MX_LOG_INFO("   AudioTitle : {}", trackEntry.audioTitle);
 
                             if (trackJson.contains("Volume")) {
                                 trackEntry.volume = trackJson["Volume"].get<float>();
                             }
-
                             MX_LOG_INFO("   Volume : {}", trackEntry.volume);
+                            if (trackJson.contains("Muted")) {
+                                trackEntry.muted = trackJson["Muted"].get<bool>();
+                            }
+                            MX_LOG_INFO("   Muted : {}", trackEntry.muted);
 
                             switch (audioEntry.type())
                             {

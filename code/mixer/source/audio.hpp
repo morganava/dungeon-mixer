@@ -138,13 +138,12 @@ namespace tabletopify
     // description for how audio is to played in an atmosphere
     struct track_entry
     {
+        atmosphere_handle_t atmosphereHandle;
         // TODO: we might be able to replace these with the audio_handle?
         utf8_string audioTitle;
         std::shared_ptr<audio_data> audioData;
         float volume = 1.0f;
-        float atmosphereVolume = 1.0f;
         bool muted = false;
-        bool atmosphereMuted = false;
         struct
         {
             float min;
@@ -184,6 +183,9 @@ namespace tabletopify
         uuid id;
         // title
         utf8_string title;
+        // volume
+        float volume = 1.0f;
+        bool muted = false;
         // tracks
         std::vector<track_handle_t> tracks;
     };

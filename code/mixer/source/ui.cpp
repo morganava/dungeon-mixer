@@ -57,12 +57,9 @@ namespace tabletopify
 					// TODO: store in atmosphereEntry
                     currentAtmosphereWidget.favorite = {false};
                     currentAtmosphereWidget.title = imgui::label_data{atmosphereEntry.title};
-					// TODO: store in atmosphereEntry
-                    currentAtmosphereWidget.volume = {0.0, 1.0, 0.5};
-					// TODO: stor ein atmosphereEntry
-                    currentAtmosphereWidget.muteUnmute = {false};
+                    currentAtmosphereWidget.volume = {0.0, 1.0, atmosphereEntry.volume};
+                    currentAtmosphereWidget.muteUnmute = {atmosphereEntry.muted};
                     currentAtmosphereWidget.atmosphereHandle = atmosphereHandle;
-                    MX_LOG_VAR(atmosphereHandle);
                     currentPlaylistWidget.entries.push_back(std::move(currentAtmosphereWidget));
                 }
                 playlists.emplace_back(std::move(currentPlaylistWidget));
@@ -77,8 +74,6 @@ namespace tabletopify
 
                 g_ui.root.playlist.playlists = std::move(playlists);
                 g_ui.root.playlist.currentPlaylistId = playlist_id::all;
-
-                MX_LOG_INFO("PLaylist Populated!");
             };
         };
     }
