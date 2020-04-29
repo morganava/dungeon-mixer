@@ -34,7 +34,7 @@ namespace tabletopify
         MX_THROW_IF_FALSE(js.is_string());
         utf8_string str = (std::string)js;
 
-        // strip out whitespace and conver it to lowercase
+        // strip out whitespace and convert it to lowercase
         utf8_stringbuffer sb;
         sb.reserve(str.size());
 
@@ -145,6 +145,7 @@ namespace tabletopify
 
     void from_json(const nl::json& j, vec2& v)
     {
+        v = vec2::zero;
         if (j.is_object())
         {
             if(auto it = j.find("x"); it != j.end())
@@ -165,6 +166,40 @@ namespace tabletopify
             MX_THROW_IF_FALSE(j[1].is_number());
             v.x = j[0].get<double>();
             v.y = j[1].get<double>();
+        }
+    }
+
+    void from_json(const nl::json& j, vec3& v)
+    {
+        v = vec3::zero;
+        if (j.is_object())
+        {
+            if(auto it = j.find("x"); it != j.end())
+            {
+                MX_THROW_IF_FALSE(it->is_number());
+                v.x = it->get<double>();
+            }
+            if(auto it = j.find("y"); it != j.end())
+            {
+                MX_THROW_IF_FALSE(it->is_number());
+                v.y = it->get<double>();
+            }
+            if(auto it = j.find("z"); it != j.end())
+            {
+                MX_THROW_IF_FALSE(it->is_number());
+                v.z = it->get<double>();
+            }
+        }
+        else if(j.is_array())
+        {
+            MX_THROW_IF_FALSE(j.size() == 3);
+            MX_THROW_IF_FALSE(j[0].is_number());
+            MX_THROW_IF_FALSE(j[1].is_number());
+            MX_THROW_IF_FALSE(j[2].is_number());
+
+            v.x = j[0].get<double>();
+            v.y = j[1].get<double>();
+            v.z = j[2].get<double>();
         }
     }
 

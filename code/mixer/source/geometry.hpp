@@ -31,8 +31,8 @@ namespace tabletopify
     template<typename T>
     struct vec2_
     {
-        T x = 0.0;
-        T y = 0.0;
+        T x = T(0);
+        T y = T(0);
 
         constexpr vec2_() = default;
         constexpr vec2_(const vec2_&) = default;
@@ -106,7 +106,7 @@ namespace tabletopify
 
         constexpr T magnitude() const
         {
-            return sqrt(squared_magnitude());
+            return std::sqrt(squared_magnitude());
         }
 
         constexpr operator vec2_<float>() const
@@ -124,6 +124,120 @@ namespace tabletopify
     }
     typedef vec2_<double> vec2;
     typedef vec2_<float> vec2f;
+
+    void from_json(const nl::json&, vec2&);
+
+    // vector 3
+
+    template<typename T>
+    struct vec3_
+    {
+        T x = T(0);
+        T y = T(0);
+        T z = T(0);
+
+        constexpr vec3_() = default;
+        constexpr vec3_(const vec3_&) = default;
+        constexpr vec3_(vec3_&&) = default;
+
+        constexpr vec3_(T x, T y, T z)
+        : x(x)
+        , y(y)
+        , z(z)
+        { }
+
+        constexpr explicit vec3_(T val)
+        : x(val)
+        , y(val)
+        , z(val)
+        { }
+
+        constexpr vec3_(const vec2_<T>& val)
+        : x(val.x)
+        , y(val.y)
+        , z(0)
+        { }
+
+        constexpr vec3_& operator=(const vec3_&) = default;
+
+        constexpr vec3_ operator+(const vec3_& that) const
+        {
+            return vec3_(this->x + that.x, this->y + that.y, this->z + that.z);
+        }
+
+        constexpr vec3_ operator-(const vec3_& that) const
+        {
+            return vec3_(this->x - that.x, this->y - that.y, this->z - that.z);
+        }
+
+        constexpr vec3_ operator*(T d) const
+        {
+            return vec3_(this->x * d, this->y * d, this->z * d);
+        }
+
+        constexpr vec3_ operator/(T d) const
+        {
+            return vec3_(this->x / d, this->y / d, this->z * d);
+        }
+
+        constexpr vec3_& operator+=(const vec3_& that)
+        {
+            this->x += that.x;
+            this->y += that.y;
+            this->z += that.z;
+            return *this;
+        }
+
+        constexpr vec3_& operator-=(const vec3_& that)
+        {
+            this->x -= that.x;
+            this->y -= that.y;
+            this->z -= that.z;
+            return *this;
+        }
+
+        constexpr bool operator==(const vec3_& that) const
+        {
+            return x == that.x && y == that.y && z == that.z;
+        }
+
+        constexpr bool operator!=(const vec3_& that) const
+        {
+            return x != that.x || y != that.y || z != that.z;
+        }
+
+        constexpr static T dot_product(const vec3_& a, const vec3_& b)
+        {
+            return a.x*b.x + a.y*b.y + a.z*b.z;
+        }
+
+        constexpr T squared_magnitude() const
+        {
+            return x*x + y*y + z*z;
+        }
+
+        constexpr T magnitude() const
+        {
+            return std::sqrt(squared_magnitude());
+        }
+
+        constexpr operator vec3_<float>() const
+        {
+            return {(float)x, (float)y, (float)z};
+        }
+
+        constexpr static const vec3_ zero = {0,0,0};
+    };
+
+    template<typename T>
+    constexpr vec3_<T> operator*(double d, const vec3_<T>& v)
+    {
+        return v * d;
+    }
+    typedef vec3_<double> vec3;
+    typedef vec3_<float> vec3f;
+
+    void from_json(const nl::json&, vec3&);
 
     // point
 
@@ -621,6 +735,11 @@ template<typename T>
 std::ostream& operator<<(std::ostream& out, const tabletopify::vec2_<T>& v)
 {
     return out << "{ x : " << v.x << ", y : " << v.y << " }";
+}
+template<typename T>
+std::ostream& operator<<(std::ostream& out, const tabletopify::vec3_<T>& v)
+{
+    return out << "{ x : " << v.x << ", y : " << v.y << ", z : " << v.z << " }";
 }
 template<typename T>
 std::ostream& operator<<(std::ostream& out, const tabletopify::rect_<T>& r)
