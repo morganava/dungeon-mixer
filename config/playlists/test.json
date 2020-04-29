@@ -6,7 +6,7 @@
       "AtmosphereId" : "5f96dcd9-015c-4525-868a-ae6b8b8e1d02",
       "Title" : "Rainy Cow Field",
       "Volume" : 0.1,
-      "Muted" : false,
+      "Muted" : true,
       "Tracks" :
       [
         {

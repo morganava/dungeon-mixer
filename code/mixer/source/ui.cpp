@@ -57,7 +57,8 @@ namespace tabletopify
 					// TODO: store in atmosphereEntry
                     currentAtmosphereWidget.favorite = {false};
                     currentAtmosphereWidget.title = imgui::label_data{atmosphereEntry.title};
-                    currentAtmosphereWidget.volume = {0.0, 1.0, atmosphereEntry.volume};
+                    currentAtmosphereWidget.volume = {0.0, 1.0, atmosphereEntry.muted ? 0.0 : atmosphereEntry.volume};
+                    currentAtmosphereWidget.volumeVal = atmosphereEntry.volume;
                     currentAtmosphereWidget.muteUnmute = {atmosphereEntry.muted};
                     currentAtmosphereWidget.atmosphereHandle = atmosphereHandle;
                     currentPlaylistWidget.entries.push_back(std::move(currentAtmosphereWidget));
@@ -151,16 +152,25 @@ namespace tabletopify
                         }); // FAVORITE
                         mxLabel(&currentEntry.title, self.tags = {"entryTitle"});
                         mxSlider(&currentEntry.volume, self.tags = {"entryVolume"};
-                        self.on_change = [&](double volume) -> void
+                         self.on_change = [&](double volume) -> void
                         {
+                            currentEntry.volumeVal = volume;
+                            currentEntry.muteUnmute.checked = false;
                             worker(Worker_Background) << [=]() -> void
                             {
                                 g_playback_manager.set_atmosphere_volume(handle, volume);
+                                g_playback_manager.set_atmosphere_mute(handle, false);
                             };
                         };); // VOLUME
                         mxCheckbox(&currentEntry.muteUnmute, self.tags = {"entryMute"};
                         self.on_change = [&](bool muted) -> void
                         {
+                            if (muted) {
+                                currentEntry.volume.currentVal = 0.0f;
+                            } else {
+                                currentEntry.volume.currentVal = currentEntry.volumeVal;
+                            }
+
                             worker(Worker_Background) << [=]() -> void
                             {
                                 g_playback_manager.set_atmosphere_mute(handle, muted);

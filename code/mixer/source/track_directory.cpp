@@ -20,7 +20,7 @@ namespace tabletopify
 
     track_handle_t track_directory::add_entry(track_entry&& entry)
     {
-        auto handle = ++_next_handle;
+        auto handle = _next_handle++;
 
         auto it = _entries.find(handle);
         MX_ASSERT(it == _entries.end());

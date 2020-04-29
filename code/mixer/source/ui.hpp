@@ -48,7 +48,9 @@ namespace tabletopify
             {
                 imgui::checkbox_data favorite = {false};
                 imgui::label_data title;
-                imgui::slider_data volume = {0.0, 1.0, 0.5};
+                imgui::slider_data volume = {0.0, 1.0, 0.0};
+                // duplicate value for toggling mute
+                double volumeVal = 0.0;
                 imgui::checkbox_data muteUnmute = {false};
                 imgui::checkbox_data playStop = {false};
 
