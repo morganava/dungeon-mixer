@@ -1,4 +1,5 @@
 #include "audio.hpp"
+#include "ui.hpp"
 
 namespace tabletopify
 {
@@ -63,4 +64,73 @@ namespace tabletopify
         playlistEntry.atmospheres.erase(it);
     }
 
+    void playlist_directory::favorite_atmosphere(atmosphere_handle_t handle)
+    {
+        MX_LOG_INFO("Favoriting : {}", handle);
+
+        // update the atmopshere_entry
+        auto& atmosphere = g_atmosphere_directory.get_entry(handle);
+        MX_ASSERT(atmosphere.favorite == false);
+        atmosphere.favorite = true;
+
+        // add to the favorites playlist
+        add_atmosphere(playlist_handle::favorites, handle);
+
+        // tell ui to update
+        update_playlist_ui();
+    }
+
+    void playlist_directory::unfavorite_atmosphere(atmosphere_handle_t handle)
+    {
+        MX_LOG_INFO("Unfavoriting : {}", handle);
+
+        // update the atmopshere_entry
+        auto& atmosphere = g_atmosphere_directory.get_entry(handle);
+        MX_ASSERT(atmosphere.favorite == true);
+        atmosphere.favorite = false;
+
+        // remove from the favorites playlist
+        remove_atmosphere(playlist_handle::favorites, handle);
+
+        // tell ui to update
+        update_playlist_ui();
+    }
+
+    void playlist_directory::update_playlist_ui()
+    {
+        std::vector<playlist_widget> playlists;
+        for (auto playlistHandle : g_playlist_directory.get_playlist_handles())
+        {
+            auto& playlistEntry = g_playlist_directory.get_entry(playlistHandle);
+            playlist_widget currentPlaylistWidget;
+
+            currentPlaylistWidget.title.text = playlistEntry.title;
+            for (auto atmosphereHandle : playlistEntry.atmospheres)
+            {
+                const auto& atmosphereEntry = g_atmosphere_directory.get_entry(atmosphereHandle);
+                utf8_string atmosphereEntry_title = atmosphereEntry.title;
+
+                playlist_widget::atmosphere_widget currentAtmosphereWidget;
+                currentAtmosphereWidget.favorite =  {atmosphereEntry.favorite};
+                currentAtmosphereWidget.title = {atmosphereEntry.title};
+                currentAtmosphereWidget.volume = {0.0, 1.0, atmosphereEntry.muted ? 0.0 : atmosphereEntry.volume};
+                currentAtmosphereWidget.volumeVal = atmosphereEntry.volume;
+                currentAtmosphereWidget.muteUnmute = {atmosphereEntry.muted};
+                currentAtmosphereWidget.atmosphereHandle = atmosphereHandle;
+                currentPlaylistWidget.entries.push_back(std::move(currentAtmosphereWidget));
+            }
+            playlists.emplace_back(std::move(currentPlaylistWidget));
+        }
+
+        worker(Worker_UI) << [playlists = std::move(playlists)]() -> void
+        {
+            MX_LOG_VAR(playlists.size());
+            for(auto currentPlaylist : playlists) {
+                MX_LOG_VAR(currentPlaylist.title.text);
+            }
+
+            g_ui.root.playlist.playlists = std::move(playlists);
+            g_ui.root.playlist.currentPlaylistId = playlist_id::all;
+        };
+    }
 }

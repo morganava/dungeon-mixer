@@ -172,6 +172,12 @@ namespace tabletopify
                         }
                         MX_LOG_INFO(" Muted : {}", atmosphereEntry.muted);
 
+                        if (atmosphereJson.contains("Favorite")) {
+                            atmosphereEntry.favorite = atmosphereJson["Favorite"].get<bool>();
+                        }
+                        MX_LOG_INFO(" Favorite : {}", atmosphereEntry.favorite);
+
+
                         auto trackList = atmosphereJson["Tracks"];
                         for (auto trackJson : trackList)
                         {
@@ -253,7 +259,12 @@ namespace tabletopify
                             auto trackHandle = g_track_directory.add_entry(std::move(trackEntry));
                             atmosphereEntry.tracks.push_back(trackHandle);
                         }
-                        g_atmosphere_directory.add_entry(std::move(atmosphereEntry));
+
+                        const bool favorite = atmosphereEntry.favorite;
+                        const auto atmosphereHandle = g_atmosphere_directory.add_entry(std::move(atmosphereEntry));
+                        if (favorite) {
+                            g_playlist_directory.add_atmosphere(playlist_handle::favorites, atmosphereHandle);
+                        }
                     }
 
                     // parse our playlist_entry list
@@ -267,6 +278,9 @@ namespace tabletopify
                         MX_LOG_INFO("  PlaylistId : {}", playlistEntry.id);
                         MX_LOG_INFO("  PlaylistTitle : {}", playlistEntry.title);
                         MX_LOG_INFO("  Atmospheres : ");
+
+                        auto playlistHandle = g_playlist_directory.add_entry(std::move(playlistEntry));
+
                         auto atmospheresList = playlistJson["Atmospheres"];
                         for (auto atmosphereId : atmospheresList)
                         {
@@ -276,16 +290,15 @@ namespace tabletopify
                                 MX_LOG_ERROR("Atmosphere with id '{}' does not exist", atmosphereId);
                             }
                             MX_LOG_INFO("  AtmosphereId : {}", id);
-                            playlistEntry.atmospheres.push_back(atmosphereHandle);
+                            g_playlist_directory.add_atmosphere(playlistHandle, atmosphereHandle);
                         }
-                        g_playlist_directory.add_entry(std::move(playlistEntry));
                     }
                 };
             }
 
             worker(Worker_Background) << []() -> void
             {
-                g_ui.populate_playlist_data();
+                g_playlist_directory.update_playlist_ui();
             };
         });
     }

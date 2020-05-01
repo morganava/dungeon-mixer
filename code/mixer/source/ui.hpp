@@ -1,10 +1,52 @@
 #pragma once
 
 #include "singleton.hpp"
+#include "imgui.hpp"
 #include "audio.hpp"
 
 namespace tabletopify
 {
+    enum class Screen
+    {
+        Debug = -1,
+        Playlist,
+        Edit,
+        About
+    };
+    typedef enum Screen Screen_t;
+
+    struct playlist_id
+    {
+        enum value
+        {
+            all = 0,
+            starred,
+            playing,
+
+            count,
+        };
+    };
+    typedef playlist_id::value playlist_id_t;
+
+    struct playlist_widget
+    {
+        imgui::label_data title;
+        struct atmosphere_widget
+        {
+            imgui::checkbox_data favorite = {false};
+            imgui::label_data title;
+            imgui::slider_data volume = {0.0, 1.0, 0.0};
+            // duplicate value for toggling mute
+            double volumeVal = 0.0;
+            imgui::checkbox_data muteUnmute = {false};
+            imgui::checkbox_data playStop = {false};
+
+            atmosphere_handle_t atmosphereHandle = MX_INVALID_HANDLE;
+        };
+        std::vector<atmosphere_widget> entries;
+    };
+
+
     class ui
     {
     public:
@@ -12,6 +54,7 @@ namespace tabletopify
 
         void populate_playlist_data();
     private:
+        friend class playlist_directory;
 
         void draw_debug(float dt) {}
         void draw_playlist(float dt);
@@ -19,45 +62,7 @@ namespace tabletopify
         void draw_about(float dt) {}
         void draw_sidebar(float dt);
 
-        enum class Screen
-        {
-            Debug = -1,
-            Playlist,
-            Edit,
-            About
-        } currentScreen = Screen::Playlist;
-        typedef enum Screen Screen_t;
-
-        struct playlist_id
-        {
-            enum value
-            {
-                all = 0,
-                starred,
-                playing,
-
-                count,
-            };
-        };
-        typedef playlist_id::value playlist_id_t;
-
-        struct playlist_widget
-        {
-            imgui::label_data title;
-            struct atmosphere_widget
-            {
-                imgui::checkbox_data favorite = {false};
-                imgui::label_data title;
-                imgui::slider_data volume = {0.0, 1.0, 0.0};
-                // duplicate value for toggling mute
-                double volumeVal = 0.0;
-                imgui::checkbox_data muteUnmute = {false};
-                imgui::checkbox_data playStop = {false};
-
-                atmosphere_handle_t atmosphereHandle = MX_INVALID_HANDLE;
-            };
-            std::vector<atmosphere_widget> entries;
-        };
+        Screen_t currentScreen = Screen::Playlist;
 
         struct
         {

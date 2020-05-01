@@ -19,7 +19,7 @@ namespace tabletopify
     {
         invalid = MX_INVALID_HANDLE,
         all = 0,
-        starred,
+        favorites,
         playing,
         first_custom,
     };
@@ -186,6 +186,8 @@ namespace tabletopify
         // volume
         float volume = 1.0f;
         bool muted = false;
+        // favorited
+        bool favorite = false;
         // tracks
         std::vector<track_handle_t> tracks;
     };
@@ -233,15 +235,19 @@ namespace tabletopify
         void delete_playlist(playlist_handle_t);
         void add_atmosphere(playlist_handle_t, atmosphere_handle_t);
         void remove_atmosphere(playlist_handle_t, atmosphere_handle_t);
+        void favorite_atmosphere(atmosphere_handle_t);
+        void unfavorite_atmosphere(atmosphere_handle_t);
+
+        void update_playlist_ui();
     private:
 
         playlist_handle_t _next_handle = playlist_handle::first_custom;
         // init with our builtin playlists
         std::map<playlist_handle_t, playlist_entry> _entries =
         {
-            {playlist_handle::all,     {uuid(0,static_cast<uint64_t>(playlist_handle::all)), "All", {}}},
-            {playlist_handle::starred, {uuid(0,static_cast<uint64_t>(playlist_handle::starred)), "Starred", {}}},
-            {playlist_handle::playing, {uuid(0,static_cast<uint64_t>(playlist_handle::playing)), "Playing", {}}},
+            {playlist_handle::all,       {uuid(0,static_cast<uint64_t>(playlist_handle::all)),       "All",     {}}},
+            {playlist_handle::favorites, {uuid(0,static_cast<uint64_t>(playlist_handle::favorites)), "Starred", {}}},
+            {playlist_handle::playing,   {uuid(0,static_cast<uint64_t>(playlist_handle::playing)),   "Playing", {}}},
         };
     };
     MX_MAKE_SINGLETON(playlist_directory)

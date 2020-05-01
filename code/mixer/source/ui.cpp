@@ -35,50 +35,6 @@ namespace tabletopify
         }
     }
 
-    void ui::populate_playlist_data()
-    {
-        worker(Worker_Background) << []() -> void {
-            // TODO: replace this with singleton
-            auto& g_atmosphere_directory = *get_atmosphere_directory();
-
-            std::vector<ui::playlist_widget> playlists;
-            for (auto playlistHandle : g_playlist_directory.get_playlist_handles())
-            {
-                auto& playlistEntry = g_playlist_directory.get_entry(playlistHandle);
-                ui::playlist_widget currentPlaylistWidget;
-
-                currentPlaylistWidget.title.text = playlistEntry.title;
-                for (auto atmosphereHandle : playlistEntry.atmospheres)
-                {
-                    const auto& atmosphereEntry = g_atmosphere_directory.get_entry(atmosphereHandle);
-                    utf8_string atmosphereEntry_title = atmosphereEntry.title;
-
-                    playlist_widget::atmosphere_widget currentAtmosphereWidget;
-					// TODO: store in atmosphereEntry
-                    currentAtmosphereWidget.favorite = {false};
-                    currentAtmosphereWidget.title = imgui::label_data{atmosphereEntry.title};
-                    currentAtmosphereWidget.volume = {0.0, 1.0, atmosphereEntry.muted ? 0.0 : atmosphereEntry.volume};
-                    currentAtmosphereWidget.volumeVal = atmosphereEntry.volume;
-                    currentAtmosphereWidget.muteUnmute = {atmosphereEntry.muted};
-                    currentAtmosphereWidget.atmosphereHandle = atmosphereHandle;
-                    currentPlaylistWidget.entries.push_back(std::move(currentAtmosphereWidget));
-                }
-                playlists.emplace_back(std::move(currentPlaylistWidget));
-            }
-
-            worker(Worker_UI) << [playlists = std::move(playlists)]() -> void
-            {
-                MX_LOG_VAR(playlists.size());
-                for(auto currentPlaylist : playlists) {
-                    MX_LOG_VAR(currentPlaylist.title.text);
-                }
-
-                g_ui.root.playlist.playlists = std::move(playlists);
-                g_ui.root.playlist.currentPlaylistId = playlist_id::all;
-            };
-        };
-    }
-
     void ui::draw_sidebar(float dt)
     {
         mxVScroll(&root.sidebar.scroll, self.tags = {"sidebar"})
@@ -93,7 +49,6 @@ namespace tabletopify
                 mxButton(&currentPlaylist.title, self.tags = {"lightText","sidebarEntry", "indent"};
                     self.on_click = [&]() -> void
                     {
-                        MX_LOG_INFO("{}", currentPlaylist.title.text);
                         worker(Worker_UI).enqueue([=]() -> void
                         {
                             root.playlist.currentPlaylistId = static_cast<playlist_id_t>(i);
@@ -146,10 +101,17 @@ namespace tabletopify
                     mxHBox(&root.playlist.rowFlex, self.tags={"playlistEntry"})
                     {
                         mxCheckbox(&currentEntry.favorite, self.tags = {"entryFavorite"};
-                        self.on_change = [](bool checked) -> void
+                        self.on_change = [&](bool favorited) -> void
                         {
-                            MX_LOG_VAR(checked);
-                        }); // FAVORITE
+                            worker(Worker_Background) << [=]()
+                            {
+                                if (favorited) {
+                                    g_playlist_directory.favorite_atmosphere(handle);
+                                } else {
+                                    g_playlist_directory.unfavorite_atmosphere(handle);
+                                }
+                            };
+                        };); // FAVORITE
                         mxLabel(&currentEntry.title, self.tags = {"entryTitle"});
                         mxSlider(&currentEntry.volume, self.tags = {"entryVolume"};
                          self.on_change = [&](double volume) -> void
@@ -179,6 +141,7 @@ namespace tabletopify
                         mxCheckbox(&currentEntry.playStop, self.tags = {"entryPlay"};
                         self.on_change = [&](bool playing) -> void
                         {
+                            MX_LOG_VAR(playing);
                             worker(Worker_Background) << [=]()
                             {
                                 if (playing) {
