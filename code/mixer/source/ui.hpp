@@ -46,13 +46,12 @@ namespace tabletopify
         std::vector<atmosphere_widget> entries;
     };
 
-
     class ui
     {
     public:
         void update(float dt, int32_t width, int32_t height);
 
-        void populate_playlist_data();
+        void populate_playlist_widgets(std::vector<playlist_widget>&& playlistWidgets);
     private:
         friend class playlist_directory;
 

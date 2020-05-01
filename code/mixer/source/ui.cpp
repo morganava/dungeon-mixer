@@ -35,6 +35,12 @@ namespace tabletopify
         }
     }
 
+    void ui::populate_playlist_widgets(std::vector<playlist_widget>&& playlistWidgets)
+    {
+        root.playlist.playlists = std::move(playlistWidgets);
+        root.playlist.currentPlaylistId = playlist_id::all;
+    }
+
     void ui::draw_sidebar(float dt)
     {
         mxVScroll(&root.sidebar.scroll, self.tags = {"sidebar"})

@@ -1,3 +1,5 @@
+#include <cxxabi.h>
+
 #include "audio.hpp"
 #include "ui.hpp"
 
@@ -122,15 +124,9 @@ namespace tabletopify
             playlists.emplace_back(std::move(currentPlaylistWidget));
         }
 
-        worker(Worker_UI) << [playlists = std::move(playlists)]() -> void
+        worker(Worker_UI) << [playlists=std::move(playlists)]() mutable-> void
         {
-            MX_LOG_VAR(playlists.size());
-            for(auto currentPlaylist : playlists) {
-                MX_LOG_VAR(currentPlaylist.title.text);
-            }
-
-            g_ui.root.playlist.playlists = std::move(playlists);
-            g_ui.root.playlist.currentPlaylistId = playlist_id::all;
+            g_ui.populate_playlist_widgets(std::move(playlists));
         };
     }
 }
