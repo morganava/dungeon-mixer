@@ -563,7 +563,7 @@ namespace tabletopify
 
             callback<bool> on_change;
         private:
-            bool _clicked;
+            bool _clicked = false;
 
         };
     } // imgui namespace
