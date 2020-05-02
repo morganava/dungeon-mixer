@@ -82,8 +82,7 @@ namespace tabletopify
         if(g_worker_manager->_accepting_work)
         {
             std::lock_guard<std::mutex> lock(g_worker_manager->_mutex[_index]);
-            work_item wi = {std::move(work), finished};
-            g_worker_manager->_queue[_index].emplace(std::move(wi));
+            g_worker_manager->_queue[_index].push({std::move(work), finished});
         }
     }
 

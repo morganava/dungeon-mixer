@@ -78,7 +78,7 @@ namespace tabletopify
         auto title_tags = title.split();
         for(auto& str : title_tags)
         {
-            tags.emplace_back(std::move(str));
+            tags.push_back(std::move(str));
         }
 
         // add one-shot or loop tags depending on recieved data

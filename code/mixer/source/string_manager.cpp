@@ -22,6 +22,7 @@ namespace tabletopify
             MX_ASSERT(fs::exists(stringsPath));
             auto stringsSize = fs::file_size(stringsPath);
 
+            // TODO: switch to use memory_buffer
             std::ifstream stringsFile(stringsPath.native(), std::ios_base::in | std::ios_base::binary);
             std::string stringsData(stringsSize, 0);
             stringsFile.read(stringsData.data(), stringsSize);

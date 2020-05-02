@@ -121,7 +121,7 @@ namespace tabletopify
                 currentAtmosphereWidget.atmosphereHandle = atmosphereHandle;
                 currentPlaylistWidget.entries.push_back(std::move(currentAtmosphereWidget));
             }
-            playlists.emplace_back(std::move(currentPlaylistWidget));
+            playlists.push_back(std::move(currentPlaylistWidget));
         }
 
         worker(Worker_UI) << [playlists=std::move(playlists)]() mutable-> void
