@@ -35,10 +35,10 @@ namespace tabletopify
         }
     }
 
-    void ui::populate_playlist_widgets(std::vector<playlist_widget>&& playlistWidgets)
+    void ui::populate_playlist_widgets(std::vector<playlist_widget>&& playlistWidgets, std::map<atmosphere_handle_t,atmosphere_widget>&& atmosphereWidgets)
     {
         root.playlist.playlists = std::move(playlistWidgets);
-        root.playlist.currentPlaylistId = playlist_id::all;
+        root.playlist.atmospheres = std::move(atmosphereWidgets);
     }
 
     void ui::draw_sidebar(float dt)
@@ -55,12 +55,11 @@ namespace tabletopify
                 mxButton(&currentPlaylist.title, self.tags = {"lightText","sidebarEntry", "indent"};
                     self.on_click = [&]() -> void
                     {
-                        worker(Worker_UI).enqueue([=]() -> void
+                        worker(Worker_UI) << [=]() -> void
                         {
-                            root.playlist.currentPlaylistId = static_cast<playlist_id_t>(i);
-                        });
+                            root.playlist.currentPlaylistHandle = currentPlaylist.handle;
+                        };
                     };
-
                 );
             }
             mxButton(&root.sidebar.edit, self.tags = {"mediumText", "sidebarEntry"};
@@ -102,8 +101,11 @@ namespace tabletopify
             }
             mxVScroll(&root.playlist.scroll)
             {
-                for (auto& currentEntry : currentPlaylist.entries) {
+                for (auto& currentAtmosphereHandle : currentPlaylist.entries) {
+                    MX_ASSERT(root.playlist.atmospheres.find(currentAtmosphereHandle) != root.playlist.atmospheres.end());
+                    auto& currentEntry = root.playlist.atmospheres[currentAtmosphereHandle];
                     const auto handle = currentEntry.atmosphereHandle;
+
                     mxHBox(&root.playlist.rowFlex, self.tags={"playlistEntry"})
                     {
                         mxCheckbox(&currentEntry.favorite, self.tags = {"entryFavorite"};

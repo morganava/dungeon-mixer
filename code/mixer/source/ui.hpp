@@ -15,35 +15,25 @@ namespace tabletopify
     };
     typedef enum Screen Screen_t;
 
-    struct playlist_id
+    struct atmosphere_widget
     {
-        enum value
-        {
-            all = 0,
-            starred,
-            playing,
+        imgui::checkbox_data favorite = {false};
+        imgui::label_data title;
+        imgui::slider_data volume = {0.0, 1.0, 0.0};
+        // duplicate value for toggling mute
+        double volumeVal = 0.0;
+        imgui::checkbox_data muteUnmute = {false};
+        imgui::checkbox_data playStop = {false};
 
-            count,
-        };
+        atmosphere_handle_t atmosphereHandle = MX_INVALID_HANDLE;
     };
-    typedef playlist_id::value playlist_id_t;
 
     struct playlist_widget
     {
+        playlist_handle_t handle;
         imgui::label_data title;
-        struct atmosphere_widget
-        {
-            imgui::checkbox_data favorite = {false};
-            imgui::label_data title;
-            imgui::slider_data volume = {0.0, 1.0, 0.0};
-            // duplicate value for toggling mute
-            double volumeVal = 0.0;
-            imgui::checkbox_data muteUnmute = {false};
-            imgui::checkbox_data playStop = {false};
 
-            atmosphere_handle_t atmosphereHandle = MX_INVALID_HANDLE;
-        };
-        std::vector<atmosphere_widget> entries;
+        std::vector<atmosphere_handle_t> entries;
     };
 
     class ui
@@ -51,7 +41,7 @@ namespace tabletopify
     public:
         void update(float dt, int32_t width, int32_t height);
 
-        void populate_playlist_widgets(std::vector<playlist_widget>&& playlistWidgets);
+        void populate_playlist_widgets(std::vector<playlist_widget>&& playlistWidgets, std::map<atmosphere_handle_t,atmosphere_widget>&& atmosphereWidgets);
     private:
         friend class playlist_directory;
 
@@ -123,13 +113,24 @@ namespace tabletopify
                 imgui::label_data trackVolume = {"Volume"};
                 imgui::slider_data slider = {0.0f, 100.0f, 50.0f};
 
-                playlist_id_t currentPlaylistId = playlist_id::all;
+                playlist_handle_t currentPlaylistHandle = playlist_handle::invalid;
+                size_t currentPlaylistIndex = -1;
+
                 std::vector<playlist_widget> playlists;
+                std::map<atmosphere_handle_t, atmosphere_widget> atmospheres;
 
-                playlist_widget& currentPlaylist() {
-                    return playlists[currentPlaylistId];
+                playlist_widget& currentPlaylist()
+                {
+                    for(auto& currentWidget : playlists) {
+                        if (currentWidget.handle == currentPlaylistHandle) {
+                            return currentWidget;
+                        }
+                    }
+
+                    // fallback to 'all'
+                    MX_ASSERT(playlists.front().handle == playlist_handle::all);
+                    return playlists.front();
                 }
-
             } playlist;
             struct
             {
