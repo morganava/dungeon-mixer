@@ -20,15 +20,13 @@ namespace tabletopify
             mxHBox(&root.flex)
             {
                 draw_sidebar(dt);
-                switch(this->currentScreen)
+                switch(root.currentScreen)
                 {
-                    case Screen::Debug:
-                        draw_debug(dt); break;
-                    case Screen::Playlist:
+                    case screen::playlist:
                         draw_playlist(dt); break;
-                    case Screen::Edit:
+                    case screen::edit:
                         draw_edit(dt); break;
-                    case Screen::About:
+                    case screen::about:
                         draw_about(dt); break;
                 }
             }
@@ -63,19 +61,34 @@ namespace tabletopify
             {
                 auto& currentPlaylist = root.playlist.playlists[i];
                 mxButton(&currentPlaylist.title, self.tags = {"lightText","sidebarEntry", "indent"};
-                    self.on_click = [&]() -> void
+                    self.on_click = [=]() -> void
                     {
                         worker(Worker_UI) << [=]() -> void
                         {
-                            root.playlist.currentPlaylistHandle = currentPlaylist.handle;
+                            g_ui.root.currentScreen = screen::playlist;
+                            g_ui.root.playlist.currentPlaylistHandle = currentPlaylist.handle;
                         };
                     };
                 );
             }
             mxButton(&root.sidebar.edit, self.tags = {"mediumText", "sidebarEntry"};
-                self.on_click = []() -> void {MX_LOG_INFO("EDIT");});
+                self.on_click = []() -> void
+                {
+                    MX_LOG_INFO("EDIT");
+                    worker(Worker_UI) << []() -> void
+                    {
+                        g_ui.root.currentScreen = screen::edit;
+                    };
+                });
             mxButton(&root.sidebar.about, self.tags = {"mediumText", "sidebarEntry"};
-                self.on_click = []() -> void {MX_LOG_INFO("ABOUT");});
+                self.on_click = []() -> void
+                {
+                    MX_LOG_INFO("ABOUT");
+                    worker(Worker_UI) << []() -> void
+                    {
+                        g_ui.root.currentScreen = screen::about;
+                    };
+                });
         }
     }
 

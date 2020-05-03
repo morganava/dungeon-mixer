@@ -6,14 +6,13 @@
 
 namespace tabletopify
 {
-    enum class Screen
+    enum class screen : uint_fast8_t
     {
-        Debug = -1,
-        Playlist,
-        Edit,
-        About
+        playlist = 0,
+        edit,
+        about,
     };
-    typedef enum Screen Screen_t;
+    typedef enum screen screen_t;
 
     struct atmosphere_widget
     {
@@ -48,13 +47,10 @@ namespace tabletopify
     private:
         friend class playlist_directory;
 
-        void draw_debug(float dt) {}
         void draw_playlist(float dt);
         void draw_edit(float dt) {}
         void draw_about(float dt) {}
         void draw_sidebar(float dt);
-
-        Screen_t currentScreen = Screen::Playlist;
 
         struct
         {
@@ -75,6 +71,8 @@ namespace tabletopify
                 imgui::button_data edit = {"Edit"};
                 imgui::button_data about = {"About"};
             } sidebar;
+
+            screen_t currentScreen = screen::playlist;
 
             struct
             {
@@ -137,7 +135,13 @@ namespace tabletopify
             } playlist;
             struct
             {
-
+                imgui::flex_box_data vflex =
+                {
+                    constraint{35, 35, 1.0},
+                    constraint{70, 70, 1.0},
+                    constraint{100, 100, 1.0},
+                    constraint{0.0, unconstrained, 1.0},
+                };
             } edit;
         } root;
     };
