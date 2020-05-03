@@ -265,6 +265,8 @@ namespace tabletopify
                         if (favorite) {
                             g_playlist_directory.add_atmosphere(playlist_handle::favorites, atmosphereHandle);
                         }
+                        g_playlist_directory.add_atmosphere(playlist_handle::all, atmosphereHandle);
+
                     }
 
                     // parse our playlist_entry list
