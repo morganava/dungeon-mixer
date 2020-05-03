@@ -42,6 +42,9 @@ namespace tabletopify
         void update(float dt, int32_t width, int32_t height);
 
         void populate_playlist_widgets(std::vector<playlist_widget>&& playlistWidgets, std::map<atmosphere_handle_t,atmosphere_widget>&& atmosphereWidgets);
+
+        void sync_playlist(playlist_handle_t playlistHandle, std::vector<atmosphere_handle_t>&& atmosphereHandles);
+
     private:
         friend class playlist_directory;
 

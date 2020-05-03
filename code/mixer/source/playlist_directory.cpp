@@ -77,9 +77,6 @@ namespace tabletopify
 
         // add to the favorites playlist
         add_atmosphere(playlist_handle::favorites, handle);
-
-        // tell ui to update
-        update_playlist_ui();
     }
 
     void playlist_directory::unfavorite_atmosphere(atmosphere_handle_t handle)
@@ -93,12 +90,9 @@ namespace tabletopify
 
         // remove from the favorites playlist
         remove_atmosphere(playlist_handle::favorites, handle);
-
-        // tell ui to update
-        update_playlist_ui();
     }
 
-    void playlist_directory::update_playlist_ui()
+    void playlist_directory::sync_all_playlists()
     {
         std::vector<playlist_widget> playlists;
         std::map<atmosphere_handle_t, atmosphere_widget> atmospheres;
@@ -135,6 +129,15 @@ namespace tabletopify
         worker(Worker_UI) << [playlists=std::move(playlists), atmospheres=std::move(atmospheres)]() mutable-> void
         {
             g_ui.populate_playlist_widgets(std::move(playlists), std::move(atmospheres));
+        };
+    }
+
+    void playlist_directory::sync_playlist(playlist_handle_t handle)
+    {
+        auto& entry = get_entry(handle);
+        worker(Worker_UI) << [=]() mutable -> void
+        {
+            g_ui.sync_playlist(handle, std::move(entry.atmospheres));
         };
     }
 }

@@ -41,6 +41,16 @@ namespace tabletopify
         root.playlist.atmospheres = std::move(atmosphereWidgets);
     }
 
+    void ui::sync_playlist(playlist_handle_t playlistHandle, std::vector<atmosphere_handle_t>&& atmosphereHandles)
+    {
+        for(auto& playlistWidget : root.playlist.playlists) {
+            if (playlistWidget.handle == playlistHandle) {
+                playlistWidget.entries = std::move(atmosphereHandles);
+                return;
+            }
+        }
+    }
+
     void ui::draw_sidebar(float dt)
     {
         mxVScroll(&root.sidebar.scroll, self.tags = {"sidebar"})
@@ -115,8 +125,10 @@ namespace tabletopify
                             {
                                 if (favorited) {
                                     g_playlist_directory.favorite_atmosphere(handle);
+                                    g_playlist_directory.sync_playlist(playlist_handle::favorites);
                                 } else {
                                     g_playlist_directory.unfavorite_atmosphere(handle);
+                                    g_playlist_directory.sync_playlist(playlist_handle::favorites);
                                 }
                             };
                         };); // FAVORITE
@@ -154,10 +166,12 @@ namespace tabletopify
                             {
                                 if (playing) {
                                     g_playback_manager.play_atmosphere(handle);
+                                    g_playlist_directory.add_atmosphere(playlist_handle::playing, handle);
                                 } else {
                                     g_playback_manager.stop_atmosphere(handle);
+                                    g_playlist_directory.remove_atmosphere(playlist_handle::playing, handle);
                                 }
-
+                                g_playlist_directory.sync_playlist(playlist_handle::playing);
                             };
                         }); // PLAY/STOP BUTTON
                     }

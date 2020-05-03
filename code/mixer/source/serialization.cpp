@@ -300,7 +300,7 @@ namespace tabletopify
 
             worker(Worker_Background) << []() -> void
             {
-                g_playlist_directory.update_playlist_ui();
+                g_playlist_directory.sync_all_playlists();
             };
         });
     }

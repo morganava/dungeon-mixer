@@ -238,7 +238,10 @@ namespace tabletopify
         void favorite_atmosphere(atmosphere_handle_t);
         void unfavorite_atmosphere(atmosphere_handle_t);
 
-        void update_playlist_ui();
+        // updates all the playlist and atmospheres in ui
+        void sync_all_playlists();
+        // update existing playlist contents
+        void sync_playlist(playlist_handle_t);
     private:
 
         playlist_handle_t _next_handle = playlist_handle::first_custom;
