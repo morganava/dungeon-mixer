@@ -49,6 +49,11 @@ namespace tabletopify
         }
     }
 
+    void ui::populate_audio_query_widgets(std::vector<audio_query_result_widget>&& queryResults)
+    {
+        root.edit.search.queryResults = queryResults;
+    }
+
     void ui::draw_sidebar(float dt)
     {
         mxVScroll(&root.sidebar.scroll, self.tags = {"sidebar"})
@@ -113,14 +118,17 @@ namespace tabletopify
                 mxSpacer();
                 mxButton(&root.playlist.newMix,
                     self.on_click = []() -> void {MX_LOG_INFO("NEW MIX");};);
-                mxTextBox(&root.playlist.searchBox, self.tags = {"searchBox"};
+                mxTextBox(&root.playlist.searchBox, self.tags = {"search"};
                     self.on_submit = [](const utf8_string& str) -> void
                     {
                         MX_LOG_INFO("SUBMIT : {}", str);
                     };
                 );
-                mxButton(&root.playlist.searchButton,
-                    self.on_click = []() -> void {MX_LOG_INFO("SEARCH");};);
+                mxButton(&root.playlist.searchButton, self.tags = {"search"};
+                    self.on_click = []() -> void
+                    {
+                        MX_LOG_INFO("SEARCH");
+                    };);
             }
             mxVScroll(&root.playlist.scroll)
             {
@@ -192,4 +200,55 @@ namespace tabletopify
             }
         }
     }
+
+    void ui::draw_edit(float dt)
+    {
+        mxVBox(&root.edit.vflex, self.tags = {"content"})
+        {
+            mxLabel(&root.edit.heading, self.tags= {"header", "darkText"});
+            mxButton(&root.edit.title, self.tags = {"header", "title", "lightText"});
+            mxHBox(&root.edit.hflex)
+            {
+                mxSpacer();
+                mxTextBox(&root.edit.searchBox, self.tags = {"search"};
+                self.on_submit = [](const utf8_string& query) -> void
+                {
+                    worker(Worker_Background) << [=]() -> void
+                    {
+                        auto audioHandles = g_audio_directory.get_audio_handles_by_query(query);
+                        std::vector<audio_query_result_widget> queryWidgets;
+                        for(auto handle : audioHandles) {
+                            const auto& entry = g_audio_directory.get_entry(handle);
+                            queryWidgets.push_back({handle, {entry.title}});
+                        }
+
+                        worker(Worker_UI) << [queryWidgets=std::move(queryWidgets)]() mutable -> void
+                        {
+                            g_ui.populate_audio_query_widgets(std::move(queryWidgets));
+                        };
+                    };
+                });
+            }
+            mxHBox(&root.edit.hflex)
+            {
+                mxVScroll(&root.edit.tracks.scroll)
+                {
+
+                }
+                mxVScroll(&root.edit.search.scroll)
+                {
+                    for(auto& queryResult : root.edit.search.queryResults)
+                    {
+                        mxButton(&queryResult.title, self.tags={"audioResult"};
+                        self.on_click = [&]() -> void
+                        {
+                            MX_LOG_INFO("CLICKED : {}, {}", queryResult.title.text, queryResult.handle);
+                        });
+                        mxSpacer();
+                    }
+                }
+            }
+        }
+    }
+
 }

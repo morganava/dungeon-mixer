@@ -138,6 +138,7 @@ namespace tabletopify
     // description for how audio is to played in an atmosphere
     struct track_entry
     {
+        // the atmosphere this track belongs to
         atmosphere_handle_t atmosphereHandle;
         // TODO: we might be able to replace these with the audio_handle?
         utf8_string audioTitle;

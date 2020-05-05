@@ -25,6 +25,9 @@
     "spacer" : {
         "backgroundColor" : "transparent"
     },
+    "spacer.test" : {
+        "size" : [100,100]
+    },
     "label" : {
     },
     "button" : {
@@ -107,15 +110,21 @@
         "textHalign" : "left"
 
     },
-    "textBox.searchBox" :
+    "textBox.search" :
     {
         "backgroundColor" : "white",
-        "fontSize" : 48,
+        "fontSize" : 24,
         "textHalign" : "left",
         "textValign" : "middle",
         "borderRadius" : 8,
         "margin" : [2, 4, 2, 4],
         "padding" : 8
+    },
+    "button.search" :
+    {
+        "backgroundImage" : "magnifying-glass-dark.png",
+        "backgroundImageMode" : "contain"
+
     },
     "flexBox.playlistEntry" :
     {
@@ -147,5 +156,8 @@
     "checkbox.entryPlay:checked" : {
         "borderSize" : 0,
         "backgroundImage" : "stop.png"
+    },
+    "button.audioResult" : {
+        "size" : [0, 36]
     }
 }
