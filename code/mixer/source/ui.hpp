@@ -46,15 +46,27 @@ namespace tabletopify
     public:
         void update(float dt, int32_t width, int32_t height);
 
-        void populate_playlist_widgets(std::vector<playlist_widget>&& playlistWidgets, std::map<atmosphere_handle_t,atmosphere_widget>&& atmosphereWidgets);
-
-        void sync_playlist(playlist_handle_t playlistHandle, std::vector<atmosphere_handle_t>&& atmosphereHandles);
-
-        void populate_audio_query_widgets(std::vector<audio_query_result_widget>&&);
-
+        // populates backend playlist data to ui
+        void sync_playlists();
     private:
+        playlist_widget& get_playlist_widget(playlist_handle_t handle);
+        void remove_atmosphere_from_playlist(playlist_handle_t playlist, atmosphere_handle_t atmosphere);
+        void add_atmosphere_to_playlist(playlist_handle_t playlist, atmosphere_handle_t atmosphere);
+
+        // playlist screen methods
+        void set_atmosphere_favorite(atmosphere_handle_t handle, bool favorited);
+        void set_atmosphere_volume(atmosphere_widget& widget, atmosphere_handle_t handle, double volume);
+        void set_atmosphere_mute(atmosphere_widget& widget, atmosphere_handle_t handle, bool muted);
+        void set_atmosphere_play(atmosphere_handle_t handle, bool playing);
+        void create_new_atmosphere(playlist_handle_t handle);
+
+        // edit screen methods
+        void do_audio_search(const utf8_string& query);
+
+        // TODO: nuke this
         friend class playlist_directory;
 
+        // draw methods
         void draw_playlist(float dt);
         void draw_edit(float dt);
         void draw_about(float dt) {}

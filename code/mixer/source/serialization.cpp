@@ -298,9 +298,9 @@ namespace tabletopify
                 };
             }
 
-            worker(Worker_Background) << []() -> void
+            worker(Worker_UI) << []()
             {
-                g_playlist_directory.sync_all_playlists();
+                g_ui.sync_playlists();
             };
         });
     }
