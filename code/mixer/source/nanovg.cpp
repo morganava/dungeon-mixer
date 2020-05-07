@@ -26,6 +26,9 @@ namespace tabletopify
         };
 
         _nvg_images[MX_DEBUG_IMAGE_HANDLE] = {nvgCreateImageRGBA(_ctx, 2, 2, NVG_IMAGE_REPEATX | NVG_IMAGE_REPEATY | NVG_IMAGE_NEAREST, debugPixels), {8,8}};
+
+        // set command_queue to write mode
+        _current.begin_writing();
     }
 
     font_handle_t nanovg::create_font(fs::path&& path)
@@ -120,7 +123,7 @@ namespace tabletopify
 
     bool nanovg::early_exit()
     {
-        if (_command_queue.current == _command_queue.previous)
+        if (_previous == _current)
         {
             ++_same_frames;
         }
@@ -137,8 +140,9 @@ namespace tabletopify
     void nanovg::swap_buffers()
     {
         glfwSwapBuffers(g_window);
-        std::swap(_command_queue.current, _command_queue.previous);
-        _command_queue.current.clear();
+        std::swap(_current, _previous);
+        _current.begin_writing();
+        _current.set_layer(draw_layer::background);
     }
 
     typedef enum draw_command : uint8_t
@@ -215,7 +219,7 @@ namespace tabletopify
         nvgBeginFrame(_ctx, window_width, window_height, pixel_ratio);
 
         draw_command_t cmd;
-        auto& cq = _command_queue.current;
+        auto& cq = _current;
 
         rectf currentScissor;
 
@@ -223,6 +227,7 @@ namespace tabletopify
             nvgScissor(_ctx, currentScissor.position.x, currentScissor.position.y, currentScissor.size.x, currentScissor.size.y);
         };
 
+        cq.begin_reading();
         while(cq.next<draw_command_t>(cmd))
         {
             switch(cmd)
@@ -652,14 +657,14 @@ namespace tabletopify
 
     void nanovg::set_scissor(const rectf& r)
     {
-        auto& cq = _command_queue.current;
+        auto& cq = _current;
         cq.push_back(draw_command::set_scissor);
         cq.push_back(r);
     }
 
     void nanovg::color_fill_rect(const rectf& r, const color& col)
     {
-        auto& cq = _command_queue.current;
+        auto& cq = _current;
         cq.push_back(draw_command::color_fill_rect);
         cq.push_back(r);
         cq.push_back(col);
@@ -667,7 +672,7 @@ namespace tabletopify
 
     void nanovg::color_fill_rounded_rect(const rectf& r, const cornersf& c, const color& col)
     {
-        auto& cq = _command_queue.current;
+        auto& cq = _current;
         cq.push_back(draw_command::color_fill_rounded_rect);
         cq.push_back(r);
         cq.push_back(c);
@@ -676,7 +681,7 @@ namespace tabletopify
 
     void nanovg::color_fill_circle(const circlef& c, const color& col)
     {
-        auto& cq = _command_queue.current;
+        auto& cq = _current;
         cq.push_back(draw_command::color_fill_circle);
         cq.push_back(c);
         cq.push_back(col);
@@ -684,7 +689,7 @@ namespace tabletopify
 
     void nanovg::image_fill_rect(const rectf& r, const image_handle_t img, const background_image_mode_t bim)
     {
-        auto& cq = _command_queue.current;
+        auto& cq = _current;
         cq.push_back(draw_command::image_fill_rect);
         cq.push_back(r);
         cq.push_back(img);
@@ -693,7 +698,7 @@ namespace tabletopify
 
     void nanovg::image_fill_rounded_rect(const rectf& r, const cornersf& c, const image_handle_t img, const background_image_mode_t bim)
     {
-        auto& cq = _command_queue.current;
+        auto& cq = _current;
         cq.push_back(draw_command::image_fill_rounded_rect);
         cq.push_back(r);
         cq.push_back(c);
@@ -703,7 +708,7 @@ namespace tabletopify
 
     void nanovg::image_fill_circle(const circlef& c, const image_handle_t img, const background_image_mode_t bim)
     {
-        auto& cq = _command_queue.current;
+        auto& cq = _current;
         cq.push_back(draw_command::image_fill_circle);
         cq.push_back(c);
         cq.push_back(img);
@@ -712,7 +717,7 @@ namespace tabletopify
 
     void nanovg::stroke_rect(const rectf& r, float strokeWidth, const color& col)
     {
-        auto& cq = _command_queue.current;
+        auto& cq = _current;
         cq.push_back(draw_command::stroke_rect);
         cq.push_back(r);
         cq.push_back(strokeWidth);
@@ -721,7 +726,7 @@ namespace tabletopify
 
     void nanovg::stroke_rounded_rect(const rectf& r, const cornersf& c, float strokeWidth, const color& col)
     {
-        auto& cq = _command_queue.current;
+        auto& cq = _current;
         cq.push_back(draw_command::stroke_rounded_rect);
         cq.push_back(r);
         cq.push_back(c);
@@ -731,7 +736,7 @@ namespace tabletopify
 
     void nanovg::stroke_circle(const circlef& c, float strokeWidth, const color& col)
     {
-        auto& cq = _command_queue.current;
+        auto& cq = _current;
         cq.push_back(draw_command::stroke_circle);
         cq.push_back(c);
         cq.push_back(strokeWidth);
@@ -744,7 +749,7 @@ namespace tabletopify
             return;
         }
 
-        auto& cq = _command_queue.current;
+        auto& cq = _current;
         cq.push_back(draw_command::draw_text);
         cq.push_back(bounds);
         cq.push_back(textOffset);
@@ -762,7 +767,7 @@ namespace tabletopify
             return;
         }
 
-        auto& cq = _command_queue.current;
+        auto& cq = _current;
         if (caretIndex < 0)
         {
             draw_text(bounds, textOffset, font, fontSize, fontColor, halign, valign, str);
@@ -790,7 +795,7 @@ namespace tabletopify
             return;
         }
 
-        auto& cq = _command_queue.current;
+        auto& cq = _current;
         if (selectBegin == selectEnd)
         {
             draw_text(bounds, textOffset, font, fontSize, fontColor, halign, valign, str);

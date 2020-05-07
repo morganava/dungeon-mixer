@@ -101,10 +101,78 @@ namespace tabletopify
 
         NVGpaint make_nvgpaint(image_handle_t ih, const rectf& dim, background_image_mode_t bim) const;
 
-        struct
+        // for now we should only need 3 layers
+        enum class draw_layer : uint_fast8_t
         {
-            hash_buffer previous, current;
-        } _command_queue;
+            invalid = static_cast<uint_fast8_t>(-1),
+            background = 0,
+            middleground,
+            foreground,
+            count,
+        };
+
+        class command_queue
+        {
+        public:
+
+            bool operator==(const command_queue& that) const
+            {
+                return false;
+            }
+
+            template<typename T>
+            void push_back(T&& val) {
+                _commands[static_cast<size_t>(_currentLayer)].push_back(std::forward<T>(val));
+            }
+
+            template<typename T>
+            bool next(T& out)
+            {
+                for(size_t idx = static_cast<size_t>(_currentLayer);
+                    idx < static_cast<size_t>(draw_layer::count);
+                    idx++)
+                {
+                    if (_commands[idx].next<T>(out)) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            void set_layer(draw_layer layer) {
+                MX_ASSERT(_mode == mode::writing);
+                _currentLayer = layer;
+            }
+
+            void begin_writing() {
+                MX_ASSERT(_mode == mode::reading);
+                _mode = mode::writing;
+                _currentLayer = draw_layer::invalid;
+                for(auto& buffer : _commands) {
+                    buffer.clear();
+                }
+            }
+
+            void begin_reading() {
+                MX_ASSERT(_mode == mode::writing);
+                _mode = mode::reading;
+                _currentLayer = draw_layer::background;
+                for(auto& buffer : _commands) {
+                    buffer.reset();
+                }
+            }
+        private:
+            enum class mode
+            {
+                reading,
+                writing,
+            } _mode = mode::reading;
+
+            draw_layer _currentLayer = draw_layer::background;
+            std::array<hash_buffer, static_cast<size_t>(draw_layer::count)> _commands;
+        };
+
+        command_queue _previous, _current;
     };
     MX_MAKE_SINGLETON(nanovg);
 }

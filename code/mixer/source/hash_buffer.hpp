@@ -25,6 +25,11 @@ namespace tabletopify
             _hash = 0;
         }
 
+        void reset()
+        {
+            _buffer.reset();
+        }
+
         bool operator==(const hash_buffer& that) const
         {
             if (this == &that)

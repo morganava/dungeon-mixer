@@ -50,6 +50,11 @@ namespace tabletopify
             _read_head = _raw.data();
         }
 
+        bool finished_reading() const
+        {
+            return _read_head == (_raw.data() + _raw.size());
+        }
+
         size_t size() const
         {
             return _raw.size();
