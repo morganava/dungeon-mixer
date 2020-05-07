@@ -106,15 +106,5 @@ namespace tabletopify
             hash_buffer previous, current;
         } _command_queue;
     };
-
-    constexpr nanovg* get_nanovg() { return singleton<nanovg>::addr(); }
-    inline void init_nanovg()
-    {
-        singleton<nanovg>::construct();
-    }
-    constexpr void free_nanovg()
-    {
-        singleton<nanovg>::free();
-    }
-    inline constexpr nanovg& g_nanovg = singleton<nanovg>::get();
+    MX_MAKE_SINGLETON(nanovg);
 }
