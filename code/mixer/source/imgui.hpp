@@ -153,6 +153,11 @@ namespace tabletopify
         }
         typedef widget_flag::values widget_flag_t;
 
+        typedef enum class render_pass
+        {
+            geometry,
+            full,
+        } render_pass_t;
         // widget base-class
 
         struct widget_base
@@ -242,6 +247,26 @@ namespace tabletopify
                 self->last_render();
 
                 g_context.pop_render_bounds();
+            }
+
+            bool draw(render_pass_t renderPass, auto&& lambda) {
+
+                lambda(static_cast<T&>(*this));
+                switch(renderPass)
+                {
+                    case render_pass::geometry:
+                        this->resolve_box_layout(); /* for click detection */
+                        break;
+                    case render_pass::full:
+                        this->resolve_box_layout(); /* for click detection */
+                        this->first_update(); /* post geometry but pre style */
+                        this->resolve_style(); /* get the style */
+                        this->middle_update(); /* post style resolution but pre render */
+                        this->render_box_layout(); /* common box layout rendering */
+                        this->first_render(); /* widget specific rendering */
+                        this->push_render_bounds();
+                }
+                return true;
             }
 
             void resolve_box_layout()
@@ -566,6 +591,8 @@ namespace tabletopify
             bool _clicked = false;
 
         };
+
+        // context menu
     } // imgui namespace
 }
 
@@ -579,19 +606,7 @@ namespace tabletopify
 // widget-specific second render
 
 #define MX_WIDGET_CODEGEN(X, PDATA, ...)\
-    if (imgui::X widget##__LINE__(PDATA); \
-        [&](auto& self) -> bool {\
-            __VA_ARGS__\
-            ;\
-            self.resolve_box_layout(); /* for click detection */\
-            self.first_update(); /* post geometry but pre style */\
-            self.resolve_style(); /* get the style */\
-            self.middle_update(); /* post style resolution but pre render */\
-            self.render_box_layout(); /* common box layout rendering */\
-            self.first_render(); /* widget specific rendering */\
-            self.push_render_bounds();\
-            return true;\
-        }(widget##__LINE__))
+    if (imgui::X widget##__LINE__(PDATA); widget##__LINE__.draw(imgui::render_pass::full,[&](auto& self){__VA_ARGS__;}))
 
 #define mxRoot(VIEWPORT) MX_WIDGET_CODEGEN(widget_root, VIEWPORT)
 #define mxScrollArea(DATA, ...) MX_WIDGET_CODEGEN(widget_scroll_area, DATA, __VA_ARGS__)
