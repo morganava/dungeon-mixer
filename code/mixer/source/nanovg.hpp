@@ -118,7 +118,12 @@ namespace tabletopify
 
             bool operator==(const command_queue& that) const
             {
-                return false;
+                for(size_t i = 0; i < size_t(draw_layer::count); i++)
+                {
+                    if (!(this->_commands[i] == that._commands[i]))
+                        return false;
+                }
+                return true;
             }
 
             template<typename T>
@@ -150,7 +155,6 @@ namespace tabletopify
             }
 
             void begin_writing() {
-                MX_ASSERT(_mode == mode::reading);
                 _mode = mode::writing;
                 _currentLayer = draw_layer::invalid;
                 for(auto& buffer : _commands) {
@@ -159,7 +163,6 @@ namespace tabletopify
             }
 
             void begin_reading() {
-                MX_ASSERT(_mode == mode::writing);
                 _mode = mode::reading;
                 _currentLayer = draw_layer::background;
                 for(auto& buffer : _commands) {
