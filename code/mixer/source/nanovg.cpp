@@ -658,8 +658,21 @@ namespace tabletopify
     void nanovg::set_scissor(const rectf& r)
     {
         auto& cq = _current;
-        cq.push_back(draw_command::set_scissor);
-        cq.push_back(r);
+
+        auto currentLayer = cq.get_current_layer();
+        for(size_t layer = 0; layer < static_cast<size_t>(draw_layer::count); layer++)
+        {
+            cq.set_layer(static_cast<draw_layer_t>(layer));
+            cq.push_back(draw_command::set_scissor);
+            cq.push_back(r);
+        }
+        cq.set_layer(currentLayer);
+    }
+
+    void nanovg::set_draw_layer(const draw_layer_t layer)
+    {
+        auto& cq = _current;
+        cq.set_layer(layer);
     }
 
     void nanovg::color_fill_rect(const rectf& r, const color& col)

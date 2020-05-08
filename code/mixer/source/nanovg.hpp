@@ -11,6 +11,16 @@ namespace tabletopify
 {
     class utf8_string;
 
+    // for now we should only need 3 layers
+    typedef enum class draw_layer : uint_fast8_t
+    {
+        invalid = static_cast<uint_fast8_t>(-1),
+        background = 0,
+        middleground,
+        foreground,
+        count,
+    } draw_layer_t;
+
     typedef enum class halign : uint_fast8_t
     {
         left = NVG_ALIGN_LEFT,
@@ -49,6 +59,7 @@ namespace tabletopify
 
         // render methods
         void set_scissor(const rectf&);
+        void set_draw_layer(const draw_layer_t);
         void color_fill_rect(const rectf&, const color&);
         void color_fill_rounded_rect(const rectf&, const cornersf&, const color&);
         void color_fill_circle(const circlef&, const color&);
@@ -101,16 +112,6 @@ namespace tabletopify
 
         NVGpaint make_nvgpaint(image_handle_t ih, const rectf& dim, background_image_mode_t bim) const;
 
-        // for now we should only need 3 layers
-        enum class draw_layer : uint_fast8_t
-        {
-            invalid = static_cast<uint_fast8_t>(-1),
-            background = 0,
-            middleground,
-            foreground,
-            count,
-        };
-
         class command_queue
         {
         public:
@@ -144,6 +145,10 @@ namespace tabletopify
                 _currentLayer = layer;
             }
 
+            draw_layer_t get_current_layer() const {
+                return _currentLayer;
+            }
+
             void begin_writing() {
                 MX_ASSERT(_mode == mode::reading);
                 _mode = mode::writing;
@@ -168,7 +173,7 @@ namespace tabletopify
                 writing,
             } _mode = mode::reading;
 
-            draw_layer _currentLayer = draw_layer::background;
+            draw_layer_t _currentLayer = draw_layer::background;
             std::array<hash_buffer, static_cast<size_t>(draw_layer::count)> _commands;
         };
 
