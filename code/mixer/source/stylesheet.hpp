@@ -25,6 +25,7 @@ namespace tabletopify
         slider_track,
         slider_handle,
         checkbox,
+        context_menu,
 
         count,
 

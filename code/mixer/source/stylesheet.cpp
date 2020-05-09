@@ -19,6 +19,7 @@ namespace tabletopify
             "sliderTrack",
             "sliderHandle",
             "checkbox",
+            "contextMenu",
         };
 
         static_assert(countof(typeStrings) == (size_t)element_type::count, "mismatch of element_type enum and names");
