@@ -2,7 +2,6 @@
 #include "logger.hpp"
 #include "audio.hpp"
 #include "serialization.hpp"
-#include "draw.hpp"
 #include "string_manager.hpp"
 #include "singleton.hpp"
 #include "utilities.hpp"

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "singleton.hpp"
 #include "work_queue.hpp"
 
 #define MX_LOG_ERROR(...) get_logger()->log(tabletopify::LogLevel_Error, __VA_ARGS__)
@@ -17,106 +18,83 @@ namespace tabletopify
         LogLevel_Count,
     } log_level_t;
 
-// the new shit
     class logger
     {
     public:
         logger(log_level_t logLevel);
 
-        void log(log_level_t lvl, const std::string& msg)
-        {
-            auto now = std::chrono::system_clock::now();
-
-            worker(Worker_Logging).enqueue([=]() -> void
-            {
-                std::chrono::duration<double> duration(now - _start);
-                write_message(lvl, duration.count(), msg.c_str());
-            });
-        }
+        void log(log_level_t lvl, std::string msg);
 
         template<size_t N>
         void log(log_level_t lvl, const char (&msg)[N])
         {
-            auto now = std::chrono::system_clock::now();
-
-            worker(Worker_Logging).enqueue([=]() -> void
-            {
-                std::chrono::duration<double> duration(now - _start);
-                write_message(lvl, duration.count(), msg);
-            });
+            log_internal(lvl, nullptr, std::forward<decltype(msg)>(msg));
         }
 
         template<size_t N, typename... Args>
-        void log(log_level_t lvl, const char (&format)[N], const Args&... args)
+        void log(log_level_t lvl, const char (&format)[N], Args... args)
         {
-            auto now = std::chrono::system_clock::now();
-
-            worker(Worker_Logging).enqueue([=]() -> void
-            {
-                std::chrono::duration<double> duration(now - _start);
-
-                auto msg = fmt::format(format, args...);
-                write_message(lvl, duration.count(), msg.c_str());
-            });
+            log_internal(lvl, nullptr, std::forward<decltype(format)>(format), std::move(args)...);
         }
 
-        void blocking_log(log_level_t lvl, const std::string& msg)
-        {
-            auto now = std::chrono::system_clock::now();
-
-            volatile bool finished = false;
-            worker(Worker_Logging).enqueue([=]() -> void
-            {
-                std::chrono::duration<double> duration(now - _start);
-                write_message(lvl, duration.count(), msg.c_str());
-            }, &finished);
-            while(!finished) std::this_thread::yield();
-        }
+        void blocking_log(log_level_t lvl, std::string msg);
 
         template<size_t N>
         void blocking_log(log_level_t lvl, const char (&msg)[N])
         {
-            auto now = std::chrono::system_clock::now();
-
             volatile bool finished = false;
-            worker(Worker_Logging).enqueue([=]() -> void
-            {
-                std::chrono::duration<double> duration(now - _start);
-                write_message(lvl, duration.count(), msg);
-            }, &finished);
-            while(!finished) std::this_thread::yield();
+            log_internal(lvl, &finished, std::forward<decltype(msg)>(msg));
         }
 
         template<size_t N, typename... Args>
-        void blocking_log(log_level_t lvl, const char (&format)[N], const Args&... args)
+        void blocking_log(log_level_t lvl, const char (&format)[N], Args... args)
         {
-            auto now = std::chrono::system_clock::now();
-
             volatile bool finished = false;
-            worker(Worker_Logging).enqueue([=]() -> void
-            {
-                std::chrono::duration<double> duration(now - _start);
-
-                auto msg = fmt::format(format, args...);
-                write_message(lvl, duration.count(), msg.c_str());
-            }, &finished);
-            while(!finished) std::this_thread::yield();
+            log_internal(lvl, &finished, std::forward<decltype(format)>(format), std::move(args)...);
         }
 
     private:
-        void write_message(log_level_t lvl, double duration, const char* msg);
+        void write_message(log_level_t lvl, std::chrono::system_clock::time_point now, const char* msg);
+
+        void log_internal(log_level_t lvl, volatile bool* finished, std::string&& msg);
+        template<size_t N>
+        void log_internal(log_level_t lvl, volatile bool* finished, const char (&msg)[N]);
+        template<size_t N, typename... Args>
+        void log_internal(log_level_t lvl, volatile bool* finished, const char (&format)[N], Args&&... args);
+
+        void wait(volatile bool* finished);
 
         log_level_t _log_level;
         FILE* _log_file;
-        const static std::chrono::system_clock::time_point _start;
+        const std::chrono::system_clock::time_point _start = std::chrono::system_clock::now();
         constexpr static const char* _log_format_strings[] =
         {
             "[{:f}][ERROR] {}\n",
             "[{:f}][INFO] {}\n",
         };
     };
+    MX_MAKE_SINGLETON(logger);
 
-    logger* get_logger();
-    void init_logger(log_level_t lvl);
-    void free_logger();
+    template<size_t N>
+    void logger::log_internal(log_level_t lvl, volatile bool* finished, const char (&msg)[N])
+    {
+        auto now = std::chrono::system_clock::now();
+        worker(Worker_Logging).enqueue([=]() -> void
+        {
+            g_logger.write_message(lvl, now, msg);
+        }, finished);
+        wait(finished);
+    }
+
+    template<size_t N, typename... Args>
+    void logger::log_internal(log_level_t lvl, volatile bool* finished, const char (&format)[N], Args&&... args)
+    {
+        auto now = std::chrono::system_clock::now();
+        worker(Worker_Logging).enqueue([=, ...args=std::move(args)]() -> void
+        {
+            auto msg = fmt::format(format, args...);
+            g_logger.write_message(lvl, now, msg.c_str());
+        }, finished);
+        wait(finished);
+    }
 }

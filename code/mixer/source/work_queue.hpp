@@ -16,8 +16,11 @@ namespace tabletopify
         }
         run_once_task& operator=(run_once_task&& that)
         {
-            std::memcpy(this, &that, sizeof(*this));
-            std::memset(&that, 0x00, sizeof(that));
+            this->_run = that._run;
+            this->_callable = that._callable;
+            that._run = nullptr;
+            that._callable = nullptr;
+
             return *this;
         }
 

@@ -25,7 +25,7 @@ namespace tabletopify
             constexpr callback& operator=(void(*function)(ARGS...))
             {
                 exec_func = function;
-                delete_func = [](){};
+                delete_func = nullptr;
                 return *this;
             }
 
@@ -33,7 +33,7 @@ namespace tabletopify
             callback& operator=(FUNCTOR&& functor)
             {
                 MX_ASSERT(delete_func == nullptr && exec_func == nullptr);
-                // convertble to a raw function pointer
+                // convertible to a raw function pointer
                 if constexpr (std::is_convertible<FUNCTOR, void(*)(ARGS...)>::value)
                 {
                     this->exec_func = static_cast<void(*)(ARGS...)>(functor);
@@ -42,10 +42,10 @@ namespace tabletopify
                 // functor object
                 else
                 {
-                    // ensure we'r enot overriding a callback somehow
+                    // ensure we're not overriding a callback somehow
                     MX_ASSERT(singleton<FUNCTOR>::assigned() == false);
 
-                    // move to static storge
+                    // move to static storage
                     singleton<FUNCTOR>::move(std::move(functor));
 
                     this->exec_func = [](ARGS... args) -> void
@@ -608,6 +608,17 @@ namespace tabletopify
 
         };
 
+        // context menu
+
+        struct context_menu_data : widget_data
+        {
+            vec2 spawnLocation;
+        };
+
+        struct widget_context_menu : public widget<widget_context_menu, element_type::context_menu, context_menu_data>
+        {
+            static rect bounds_callback(widget_base* parent, const rect& desired);
+        };
     } // imgui namespace
 }
 

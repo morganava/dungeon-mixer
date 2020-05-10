@@ -9,13 +9,13 @@ namespace tabletopify
 
     constexpr modifier_keys operator&(const modifier_keys& left, const modifier_keys& right)
     {
-        return 
+        return
         {
-            left.shift & right.shift,
-            left.control & right.control,
-            left.alt & right.alt,
-            left.super & right.super,
-            left.num_lock & right.num_lock
+            static_cast<button_state_t>(left.shift & right.shift),
+            static_cast<button_state_t>(left.control & right.control),
+            static_cast<button_state_t>(left.alt & right.alt),
+            static_cast<button_state_t>(left.super & right.super),
+            static_cast<button_state_t>(left.num_lock & right.num_lock)
         };
     }
 
@@ -51,7 +51,7 @@ namespace tabletopify
         {
             _frameCount[0] += 1;
         }
-        _modifiers[0] = modifiers;            
+        _modifiers[0] = modifiers;
     }
 
     void click_detector::push_position(vec2 position)
@@ -134,8 +134,8 @@ namespace tabletopify
             {
                 if (this->squared_movement_past_n_buckets(2) < SQUARED_MOVEMENT_THRESHOLD)
                 {
-                    return true;    
-                }                
+                    return true;
+                }
             }
         }
         return false;
@@ -156,7 +156,7 @@ namespace tabletopify
                 {
                     if (this->squared_movement_past_n_buckets(4) < SQUARED_MOVEMENT_THRESHOLD)
                     {
-                        return true;    
+                        return true;
                     }
                 }
             }
@@ -165,7 +165,7 @@ namespace tabletopify
     }
 
     bool click_detector::triple_clicked_impl() const
-    {        
+    {
         if (_states[0] == button_state::released &&
             _states[1] == button_state::pressed &&
             _states[2] == button_state::released &&
@@ -184,7 +184,7 @@ namespace tabletopify
                     {
                         if (this->squared_movement_past_n_buckets(6) < SQUARED_MOVEMENT_THRESHOLD)
                         {
-                            return true;    
+                            return true;
                         }
                     }
                 }
@@ -529,7 +529,7 @@ namespace tabletopify
                     _input_events.push_back(evt);
 
                     break;
-                }                 
+                }
                 case raw_input_event_type::scroll:
                 {
                     _mouse_state.current.scroll += {ie.scroll.scroll_x, ie.scroll.scroll_y};

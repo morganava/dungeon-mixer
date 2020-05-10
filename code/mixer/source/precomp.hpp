@@ -26,8 +26,8 @@ using ss = std::stringstream;
 #include <chrono>
 #include <atomic>
 #include <fstream>
-#include <experimental/filesystem>
-namespace fs = std::experimental::filesystem;
+#include <filesystem>
+namespace fs = std::filesystem;
 #include <iterator>
 #include <algorithm>
 #include <regex>
@@ -75,10 +75,5 @@ namespace nl = nlohmann;
 // countof(X)
 template<typename T, size_t N>
 constexpr size_t countof(const T (&)[N]) { return N; }
-
-typedef void* nk_context;
-typedef void* nk_user_font;
-typedef void* nk_font_atlas;
-typedef void* nk_image;
 
 #endif // TABLETOPIFY_PRECOMP_H

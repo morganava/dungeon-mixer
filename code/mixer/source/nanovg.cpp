@@ -80,7 +80,7 @@ namespace tabletopify
         {
             // load file into memory
             memory_buffer imageFile(imageFilePath);
-            MX_THROW_IF_FALSE(imageFile.size() <= std::numeric_limits<int>::max());
+            MX_THROW_IF_FALSE(imageFile.size() <= static_cast<size_t>(std::numeric_limits<int>::max()));
             const int imageFileSize = static_cast<int>(imageFile.size());
 
             // load pixel data from image

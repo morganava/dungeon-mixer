@@ -1,7 +1,6 @@
 #include "globals.hpp"
 #include "utilities.hpp"
 #include "audio.hpp"
-#include "draw.hpp"
 #include "work_queue.hpp"
 #include "logger.hpp"
 #include "string_manager.hpp"

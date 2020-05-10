@@ -31,6 +31,16 @@ namespace tabletopify
                 }
             }
         }
+
+        g_nanovg.set_draw_layer(draw_layer::foreground);
+        imgui::g_context.push_scissor({{0,0},{(double)width,(double)height}});
+        g_nanovg.color_fill_circle({{64,64}, 32}, color::yellow);
+
+        g_nanovg.set_draw_layer(draw_layer::background);
+        imgui::g_context.push_scissor({{0,0},{(double)width,(double)height}});
+        g_nanovg.color_fill_circle({{48,48}, 32}, color::teal);
+
+        imgui::g_context.pop_scissor();
     }
 
     void ui::sync_playlists()

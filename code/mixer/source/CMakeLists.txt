@@ -1,14 +1,9 @@
-find_package(OpenGL REQUIRED)
+find_package(OpenGL REQUIRED COMPONENTS OpenGL)
 find_package(GLEW REQUIRED)
 find_package(SFML 2.4 REQUIRED COMPONENTS audio)
 find_package(GTK3 3.0 REQUIRED gtk)
 
-add_compile_options(-Wall)
-add_compile_options(-Werror)
-add_compile_options(-Wfatal-errors)
-add_compile_options(-O3)
-add_compile_options(-g)
-add_compile_options(-std=c++17)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -Wfatal-errors -fconcepts")
 
 add_executable(tabletop_mixer
     precomp.cpp
@@ -44,6 +39,7 @@ add_executable(tabletop_mixer
     imgui.text_box.cpp
     imgui.slider.cpp
     imgui.checkbox.cpp
+    imgui.context_menu.cpp
     # audio backend
     audio_data.cpp
     audio_directory.cpp
@@ -54,14 +50,14 @@ add_executable(tabletop_mixer
     # ui
     ui.cpp)
 
-add_precompiled_header(tabletop_mixer precomp.hpp SOURCE_CXX precomp.cpp FORCEINCLUDE)
+target_precompile_headers(tabletop_mixer PRIVATE precomp.hpp)
 
 target_link_libraries(tabletop_mixer xxhash)
 target_link_libraries(tabletop_mixer utf8proc)
 target_link_libraries(tabletop_mixer stb)
 target_link_libraries(tabletop_mixer fmt)
 target_link_libraries(tabletop_mixer glfw)
-target_link_libraries(tabletop_mixer ${OPENGL_gl_LIBRARY})
+target_link_libraries(tabletop_mixer OpenGL::OpenGL)
 target_link_libraries(tabletop_mixer ${OPENGL_glu_LIBRARY})
 target_link_libraries(tabletop_mixer GLEW)
 target_link_libraries(tabletop_mixer nanovg)
