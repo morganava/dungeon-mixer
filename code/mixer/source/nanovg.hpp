@@ -176,7 +176,7 @@ namespace tabletopify
                 writing,
             } _mode = mode::reading;
 
-            draw_layer_t _currentLayer = draw_layer::background;
+            draw_layer_t _currentLayer = draw_layer::middleground;
             std::array<hash_buffer, static_cast<size_t>(draw_layer::count)> _commands;
         };
 

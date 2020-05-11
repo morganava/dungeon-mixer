@@ -30,6 +30,17 @@ namespace tabletopify
                         draw_about(dt); break;
                 }
             }
+
+            for(size_t i = 0; i <= static_cast<size_t>(imgui::render_pass::full); ++i)
+                if (imgui::widget_context_menu wcm(&root.contextMenu); wcm.draw(static_cast<imgui::render_pass_t>(i), [&](auto& self) {
+                    self.tags={"test"};
+                }))
+            {
+                mxSpacer(self.tags={"test"});
+                mxSpacer(self.tags={"test"});
+                mxSpacer(self.tags={"test"});
+            }
+
         }
 
         g_nanovg.set_draw_layer(draw_layer::foreground);

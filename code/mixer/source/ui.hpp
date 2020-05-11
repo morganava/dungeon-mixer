@@ -184,6 +184,8 @@ namespace tabletopify
                 } search;
 
             } edit;
+
+            imgui::context_menu_data contextMenu;
         } root;
     };
     MX_MAKE_SINGLETON(ui)

@@ -118,6 +118,9 @@ namespace tabletopify
             void push_render_bounds(const render_bounds&);
             const render_bounds& peek_render_bounds() const;
             void pop_render_bounds();
+            size_t render_bound_stack_size() const {
+                return _render_bounds_stack.size();
+            }
 
             // widget focus methods
             constexpr void focus_widget(widget_id_t id) { _focused_widget = id; }
@@ -203,13 +206,6 @@ namespace tabletopify
             void first_render_impl() const {}
             void last_update_impl() {}
             void last_render_impl() const {}
-
-        private:
-            // shared margin/border/padding rendering
-            // returns updated bounds
-            rect render_border(const rect& bounds) const;
-
-            const style_sheet* _style = nullptr;
         public:
             void requestSize(const vec2& size);
             void requestWidth(double width);
@@ -222,8 +218,11 @@ namespace tabletopify
 
             array<utf8_string> tags;
 
+            void increment_child_count() { _childCounter++; }
+
         protected:
 
+            const style_sheet* _style = nullptr;
             box_layout _layout = {};
             rect _scissor = {};
             rect _childScissor = {};
@@ -265,6 +264,10 @@ namespace tabletopify
             }
 
             bool draw(render_pass_t renderPass, auto&& lambda) {
+
+                this->_childCounter = 0;
+                g_context.set_render_pass(renderPass);
+
                 auto& self = static_cast<T&>(*this);
                 lambda(self);
                 switch(renderPass)
@@ -272,7 +275,7 @@ namespace tabletopify
                     case render_pass::geometry:
                         self.resolve_box_layout(); /* for click detection */
                         self.push_render_bounds();
-                        break;
+                        return true;
                     case render_pass::full:
                         self.resolve_box_layout(); /* for click detection */
                         self.first_update(); /* post geometry but pre style */
@@ -281,8 +284,9 @@ namespace tabletopify
                         self.render_box_layout(); /* common box layout rendering */
                         self.first_render(); /* widget specific rendering */
                         self.push_render_bounds();
+                        return true;
                 }
-                return true;
+                return false;
             }
 
             void resolve_box_layout()
@@ -617,7 +621,15 @@ namespace tabletopify
 
         struct widget_context_menu : public widget<widget_context_menu, element_type::context_menu, context_menu_data>
         {
+        public:
+            using widget::widget;
+
+            void resolve_box_layout_impl(element_type_t et, widget_flag_t flag);
             static rect bounds_callback(widget_base* parent, const rect& desired);
+            void first_render_impl() const;
+            void last_render_impl() const;
+        private:
+            double internal_height = 0.0;
         };
     } // imgui namespace
 }

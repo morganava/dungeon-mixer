@@ -26,7 +26,8 @@
         "backgroundColor" : "transparent"
     },
     "spacer.test" : {
-        "size" : [100,100]
+        "size" : [100,100],
+        "backgroundColor" : "green"
     },
     "label" : {
     },
@@ -159,5 +160,13 @@
     },
     "button.audioResult" : {
         "size" : [0, 36]
+    },
+    "contextMenu.test" : {
+        "size" : [256, 0],
+        "borderSize" : 3,
+        "borderRadius" : 5,
+        "padding" : 10,
+        "backgroundColor" : "orange",
+        "padding" : [10,20,30,40]
     }
 }

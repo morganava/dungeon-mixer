@@ -7,10 +7,10 @@ namespace tabletopify
 
         // Flex Box
 
-        void widget_flex_box::resolve_box_layout_impl(element_type_t et, widget_flag_t flag)
+        void widget_flex_box::resolve_box_layout_impl(element_type_t et, widget_flag_t flags)
         {
             // resolve the box layout as normal
-            widget_base::resolve_box_layout_impl(et, flag);
+            widget_base::resolve_box_layout_impl(et, flags);
             // calculate child sizes ahead of time
             auto& lcs = this->data()->constraints;
             if (this->direction == layout_direction::horizontal)
