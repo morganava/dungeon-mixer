@@ -3,11 +3,11 @@
 #include "singleton.hpp"
 #include "work_queue.hpp"
 
-#define MX_LOG_ERROR(...) get_logger()->log(tabletopify::LogLevel_Error, __VA_ARGS__)
-#define MX_LOG_INFO(...) get_logger()->log(tabletopify::LogLevel_Info, __VA_ARGS__)
-#define MX_LOG_TRACE(...) get_logger()->log(tabletopify::LogLevel_Info, __FILE__"(" __STR_LINE__ "): " __VA_ARGS__)
+#define MX_LOG_ERROR(...) tabletopify::g_logger.log(tabletopify::LogLevel_Error, __VA_ARGS__)
+#define MX_LOG_INFO(...) tabletopify::g_logger.log(tabletopify::LogLevel_Info, __VA_ARGS__)
+#define MX_LOG_TRACE(...) tabletopify::g_logger.log(tabletopify::LogLevel_Info, __FILE__"(" __STR_LINE__ "): " __VA_ARGS__)
 #define MX_LOG_VAR(X) MX_LOG_INFO(#X " : {}", X);
-#define MX_LOG_INFO_BLOCKING(...) get_logger()->blocking_log(tabletopify::LogLevel_Info, __VA_ARGS__)
+#define MX_LOG_INFO_BLOCKING(...) tabletopify::g_logger.blocking_log(tabletopify::LogLevel_Info, __VA_ARGS__)
 namespace tabletopify
 {
     typedef enum
