@@ -13,8 +13,10 @@ namespace tabletopify
     {
         widget_id_t next_widget_id()
         {
-            static widget_id_t nextId = 0;
-            return nextId++;
+            static widget_id_t nextId = widget_id::null;
+            auto retval = nextId;
+            nextId = static_cast<widget_id_t>(static_cast<size_t>(nextId) + 1);
+            return retval;;
         }
 
         // render_bounds

@@ -102,10 +102,14 @@ namespace tabletopify
 
         // widget id
 
-        typedef size_t widget_id_t;
-        constexpr widget_id_t NULL_WIDGET_ID = 0;
-        constexpr widget_id_t INVALID_WIDGET_ID = ~NULL_WIDGET_ID;
+        typedef enum class widget_id : size_t
+        {
+            invalid = static_cast<size_t>(~size_t(0)),
+            null = 0,
+        } widget_id_t;
         widget_id_t next_widget_id();
+
+
 
         // context
 
@@ -124,7 +128,7 @@ namespace tabletopify
 
             // widget focus methods
             constexpr void focus_widget(widget_id_t id) { _focused_widget = id; }
-            constexpr void unfocus_widget(widget_id_t id) { if (is_focused(id)) { focus_widget(INVALID_WIDGET_ID); } }
+            constexpr void unfocus_widget(widget_id_t id) { if (is_focused(id)) { focus_widget(widget_id::invalid); } }
             constexpr bool is_focused(widget_id_t id)  const { return id == _focused_widget; }
 
             // set's render scissor
@@ -145,7 +149,7 @@ namespace tabletopify
 
             std::vector<render_bounds> _render_bounds_stack;
             std::vector<rect> _render_scissor_stack;
-            widget_id_t _focused_widget = INVALID_WIDGET_ID;
+            widget_id_t _focused_widget = widget_id::invalid;
         };
 
         inline void init_context()
@@ -182,7 +186,7 @@ namespace tabletopify
 
             constexpr widget_id_t get_widget_id() const
             {
-                return _data ? _data->id : NULL_WIDGET_ID;
+                return _data ? _data->id : widget_id::invalid;
             }
 
         protected:
