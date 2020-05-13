@@ -17,8 +17,10 @@
 #define MX_THROW_MSG(...) throw std::runtime_error(fmt::format("Runtime Failure: " __FILE__ ":" __STR_LINE__ " " __VA_ARGS__));
 #define MX_THROW_MSG_IF_FALSE(X, ...) do { bool result = (X); if (!result) { throw std::runtime_error(fmt::format("Runtime Failure: " __FILE__ ":" __STR_LINE__ " " __VA_ARGS__)); } } while(0)
 
+#define MX_TRACE(...) MX_LOG_INFO(__FILE__"(" __STR_LINE__ ")");
 
-#define MX_TRACE(...) fprintf(stderr, __FILE__"(" __STR_LINE__ "): " __VA_ARGS__); fputs("\n", stderr);
+#define MX_FORCE_INLINE __attribute__ ((always_inline))
+#define MX_NEVER_INLINE __attribute__ ((noinline))
 
 // extra print operators
 std::ostream& operator<<(std::ostream& out, const sf::Vector3f& vec);
