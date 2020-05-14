@@ -1,9 +1,40 @@
 #include "imgui.hpp"
+#include "input.hpp"
 
 namespace tabletopify
 {
     namespace imgui
     {
+        bool widget_context_menu::should_draw_impl() const
+        {
+            return this->data()->visible;
+        }
+
+        void widget_context_menu::first_update_impl()
+        {
+            for(auto evt : g_input.get_input_events())
+            {
+                switch(evt.type())
+                {
+                    case input_event_type::mouse_down:
+                    {
+                        if (!point_inside_rect(evt.position(), this->_layout.outerBounds))
+                        {
+                            worker(Worker_UI) << [data=this->data()]()
+                            {
+                                data->visible = false;
+                            };
+                        }
+                        break;
+                    }
+                    default:
+                    {
+                        break;
+                    }
+                }
+            }
+        }
+
         void widget_context_menu::resolve_box_layout_impl(element_type_t et, widget_flag_t flags)
         {
             const auto& rb = g_context.peek_render_bounds();
@@ -35,7 +66,7 @@ namespace tabletopify
                 const double diff = layout.margin.top + layout.margin.bottom + 2* layout.borderSize + layout.padding.top + layout.padding.bottom;
 
                 this->_layout.outerBounds.size.y = this->internal_height + diff;
-				
+
 				// reset internal height to 0 for this render pass
                 this->internal_height = 0.0;
             }

@@ -109,8 +109,6 @@ namespace tabletopify
         } widget_id_t;
         widget_id_t next_widget_id();
 
-
-
         // context
 
         class context
@@ -125,6 +123,14 @@ namespace tabletopify
             size_t render_bound_stack_size() const {
                 return _render_bounds_stack.size();
             }
+
+            // root widget focus methods for 'window' like widgets
+            void focus_window_widget(widget_id_t);
+            void unfocus_window_widget(widget_id_t);
+            bool is_window_widget_focused(widget_id_t) const;
+            void set_current_window_widget(widget_id_t);
+            bool is_current_window_widget_focused() const;
+
 
             // widget focus methods
             constexpr void focus_widget(widget_id_t id) { _focused_widget = id; }
@@ -149,18 +155,11 @@ namespace tabletopify
 
             std::vector<render_bounds> _render_bounds_stack;
             std::vector<rect> _render_scissor_stack;
+            widget_id_t _focused_window_widget = widget_id::invalid;
             widget_id_t _focused_widget = widget_id::invalid;
+            widget_id_t _current_window_widget = widget_id::invalid;
         };
-
-        inline void init_context()
-        {
-            singleton<context>::construct();
-        }
-        constexpr void free_context()
-        {
-            singleton<context>::free();
-        }
-        inline constexpr context& g_context = singleton<context>::get();
+        MX_MAKE_SINGLETON(context);
 
         struct widget_data
         {
@@ -173,6 +172,7 @@ namespace tabletopify
             {
                 none        = 0x0,
                 scissors    = 0x1,
+                windows     = 0x2,
             };
         }
         typedef widget_flag::values widget_flag_t;
@@ -186,7 +186,7 @@ namespace tabletopify
 
             constexpr widget_id_t get_widget_id() const
             {
-                return _data ? _data->id : widget_id::invalid;
+                return _data ? _data->id : widget_id::null;
             }
 
         protected:
@@ -205,6 +205,7 @@ namespace tabletopify
 
             // widget interface methods
             static rect bounds_callback(widget_base* wb, const rect& desired) {  MX_ASSERT(!"Empty bounds callback, widget should not have children"); return {};}
+            constexpr bool should_draw_impl() const {return true;}
             void first_update_impl() {}
             void middle_update_impl() {}
             void first_render_impl() const {}
@@ -253,27 +254,41 @@ namespace tabletopify
             // destructor called after child widgets have been handled
             ~widget()
             {
-                if constexpr (WIDGET_FLAGS & widget_flag::scissors) {
-                    g_context.pop_scissor();
-                }
+                auto& self = static_cast<T&>(*this);
 
-                if (g_context.get_render_pass() == render_pass::full)
+                if (self.should_draw())
                 {
-                    auto& self = static_cast<T&>(*this);
-                    self.last_update();
-                    self.last_render();
-                }
+                    if constexpr (WIDGET_FLAGS & widget_flag::scissors) {
+                        g_context.pop_scissor();
+                    }
 
-                g_context.pop_render_bounds();
+                    if (g_context.get_render_pass() == render_pass::full)
+                    {
+
+                        self.last_update();
+                        self.last_render();
+                    }
+
+                    g_context.pop_render_bounds();
+                }
             }
 
             bool draw(render_pass_t renderPass, auto&& lambda) {
 
-                this->_childCounter = 0;
+                auto& self = static_cast<T&>(*this);
+                if (!self.should_draw()) {
+                    return false;
+                }
+
+                if constexpr (WIDGET_FLAGS & widget_flag::windows) {
+                    g_context.set_current_window_widget(this->get_widget_id());
+                }
+
+                self._childCounter = 0;
                 g_context.set_render_pass(renderPass);
 
-                auto& self = static_cast<T&>(*this);
                 lambda(self);
+
                 switch(renderPass)
                 {
                     case render_pass::geometry:
@@ -291,6 +306,12 @@ namespace tabletopify
                         return true;
                 }
                 return false;
+            }
+
+            bool should_draw() const
+            {
+                const auto& self = *static_cast<const T*>(this);
+                return self.should_draw_impl();
             }
 
             void resolve_box_layout()
@@ -362,7 +383,7 @@ namespace tabletopify
         };
 
         // the root widget with viewport info
-        struct widget_root : public widget<widget_root, element_type::root, widget_data, widget_flag::scissors>
+        struct widget_root : public widget<widget_root, element_type::root, widget_data, static_cast<widget_flag_t>(widget_flag::scissors | widget_flag::windows)>
         {
             using widget::widget;
             widget_root(const rect& viewport);
@@ -620,14 +641,17 @@ namespace tabletopify
 
         struct context_menu_data : widget_data
         {
+            bool visible = true;
             vec2 spawnLocation;
         };
 
-        struct widget_context_menu : public widget<widget_context_menu, element_type::context_menu, context_menu_data>
+        struct widget_context_menu : public widget<widget_context_menu, element_type::context_menu, context_menu_data, widget_flag::windows>
         {
         public:
             using widget::widget;
 
+            bool should_draw_impl() const;
+            void first_update_impl();
             void resolve_box_layout_impl(element_type_t et, widget_flag_t flag);
             static rect bounds_callback(widget_base* parent, const rect& desired);
             void first_render_impl() const;

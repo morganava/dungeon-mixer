@@ -48,6 +48,33 @@ namespace tabletopify
             _render_bounds_stack.pop_back();
         }
 
+        void context::focus_window_widget(widget_id_t id)
+        {
+            _focused_window_widget = id;
+        }
+
+        void context::unfocus_window_widget(widget_id_t id)
+        {
+            if (is_window_widget_focused(id)) {
+                _focused_window_widget = widget_id::invalid;
+            }
+        }
+
+        bool context::is_window_widget_focused(widget_id_t id) const
+        {
+            return id == _focused_window_widget;
+        }
+
+        void context::set_current_window_widget(widget_id_t id)
+        {
+            _current_window_widget = id;
+        }
+
+        bool context::is_current_window_widget_focused() const
+        {
+            return is_window_widget_focused(_current_window_widget);
+        }
+
         void context::push_scissor(const rect& scissor)
         {
             _render_scissor_stack.push_back(scissor);
