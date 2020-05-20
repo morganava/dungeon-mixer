@@ -4,81 +4,44 @@
 
 namespace tabletopify
 {
-    // todo: single size_t implementation backend
+    class tag_map_impl
+    {
+    public:
+        std::unordered_set<size_t> get_keys_by_tag_query(const std::vector<utf8_string>& query_tags) const;
+        void remove_key(size_t key);
+        void add_key(size_t key, const std::vector<utf8_string>& tags);
+    private:
+        std::unordered_multimap<utf8_string, size_t> _tag_to_keys;
+        std::unordered_multimap<size_t, utf8_string> _key_to_tags;
+        std::unordered_set<size_t> _keys;
+    };
+
     template<typename HANDLE>
     class tag_map
     {
+        static_assert(std::is_same<size_t,typename std::underlying_type<HANDLE>::type>::value);
     public:
         std::vector<HANDLE> get_keys_by_tag_query(const std::vector<utf8_string>& query_tags) const
         {
-            // initially fill with all our keys in case the query list is empty
-            std::unordered_set<HANDLE> result(_keys.begin(), _keys.end());
-            for(auto tag : query_tags)
-            {
-                // get all keys which have the current tag
-                std::unordered_set<HANDLE> intermediates;
-                auto range = _tag_to_keys.equal_range(tag);
-                for(auto it = range.first; it != range.second; ++it)
-                {
-                    intermediates.insert(it->second);
-                }
+            auto keys = _tag_map.get_keys_by_tag_query(query_tags);
 
-                // only include keys in updated result in both the aggregate
-                // results and this tag's result
-                std::unordered_set<HANDLE> newResult;
-                for(auto currentKey : result)
-                {
-                    if(intermediates.find(currentKey) != intermediates.end())
-                    {
-                        newResult.insert(currentKey);
-                    }
-                }
-
-                result = std::move(newResult);
+            std::vector<HANDLE> retval;
+            retval.reserve(keys.size());
+            for(auto currentKey : keys) {
+                retval.push_back(static_cast<HANDLE>(currentKey));
             }
-
-            return std::vector<HANDLE>(result.begin(), result.end());
+            return retval;
         }
         void remove_key(HANDLE key)
         {
-            // iterate over all tags for this key
-            auto tag_range = _key_to_tags.equal_range(key);
-            for(auto tag_it= tag_range.first; tag_it != tag_range.second;)
-            {
-                auto& tag = tag_it->second;
-
-                // erase the tag/key pair
-                auto key_range = _tag_to_keys.equal_range(tag);
-                for(auto key_it = key_range.first; key_it != key_range.second; ++key_it)
-                {
-                    if(key_it->second == key)
-                    {
-                        _tag_to_keys.erase(key_it);
-                        break;
-                    }
-                }
-
-                // erase the key/tag pair
-                tag_it = _key_to_tags.erase(tag_it);
-            }
-
-            _keys.erase(key);
+            _tag_map.remove_key(static_cast<size_t>(key));
         }
         void add_key(HANDLE key, const std::vector<utf8_string>& tags)
         {
-            MX_ASSERT(_key_to_tags.find(key) == _key_to_tags.end());
-
-            for(auto tag : tags)
-            {
-                _tag_to_keys.insert({tag, key});
-                _key_to_tags.insert({key, tag});
-            }
-
-            _keys.insert(key);
+            _tag_map.add_key(static_cast<size_t>(key), tags);
         }
     private:
-        std::unordered_multimap<utf8_string, HANDLE> _tag_to_keys;
-        std::unordered_multimap<HANDLE, utf8_string> _key_to_tags;
-        std::unordered_set<HANDLE> _keys;
+        tag_map_impl _tag_map;
+
     };
 }

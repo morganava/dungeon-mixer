@@ -1,18 +1,17 @@
-#if 0
 #include "utilities.hpp"
 #include "tag_map.hpp"
 #include "utf8_string.hpp"
 
 namespace tabletopify
 {
-    std::vector<handle_t> tag_map::get_keys_by_tag_query(const std::vector<utf8_string>& query_tags) const
+    std::unordered_set<size_t> tag_map_impl::get_keys_by_tag_query(const std::vector<utf8_string>& query_tags) const
     {
         // initially fill with all our keys in case the query list is empty
-        std::unordered_set<handle_t> result(_keys.begin(), _keys.end());
+        std::unordered_set<size_t> result(_keys.begin(), _keys.end());
         for(auto tag : query_tags)
         {
             // get all keys which have the current tag
-            std::unordered_set<handle_t> intermediates;
+            std::unordered_set<size_t> intermediates;
             auto range = _tag_to_keys.equal_range(tag);
             for(auto it = range.first; it != range.second; ++it)
             {
@@ -21,7 +20,7 @@ namespace tabletopify
 
             // only include keys in updated result in both the aggregate
             // results and this tag's result
-            std::unordered_set<handle_t> newResult;
+            std::unordered_set<size_t> newResult;
             for(auto currentKey : result)
             {
                 if(intermediates.find(currentKey) != intermediates.end())
@@ -33,10 +32,10 @@ namespace tabletopify
             result = std::move(newResult);
         }
 
-        return std::vector<handle_t>(result.begin(), result.end());
+        return result;
     }
 
-    void tag_map::remove_key(handle_t key)
+    void tag_map_impl::remove_key(size_t key)
     {
         // iterate over all tags for this key
         auto tag_range = _key_to_tags.equal_range(key);
@@ -62,7 +61,7 @@ namespace tabletopify
         _keys.erase(key);
     }
 
-    void tag_map::add_key(handle_t key, const std::vector<utf8_string>& tags)
+    void tag_map_impl::add_key(size_t key, const std::vector<utf8_string>& tags)
     {
         MX_ASSERT(_key_to_tags.find(key) == _key_to_tags.end());
 
@@ -75,4 +74,3 @@ namespace tabletopify
         _keys.insert(key);
     }
 }
-#endif
