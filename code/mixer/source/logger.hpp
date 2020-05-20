@@ -2,21 +2,19 @@
 
 #include "singleton.hpp"
 #include "work_queue.hpp"
+#include "enums.hpp"
 
-#define MX_LOG_ERROR(...) tabletopify::g_logger.log(tabletopify::LogLevel_Error, __VA_ARGS__)
-#define MX_LOG_INFO(...) tabletopify::g_logger.log(tabletopify::LogLevel_Info, __VA_ARGS__)
-#define MX_LOG_TRACE(...) tabletopify::g_logger.log(tabletopify::LogLevel_Info, __FILE__"(" __STR_LINE__ "): " __VA_ARGS__)
+#define MX_LOG_ERROR(...) tabletopify::g_logger.log(tabletopify::log_level::error, __VA_ARGS__)
+#define MX_LOG_INFO(...) tabletopify::g_logger.log(tabletopify::log_level::info, __VA_ARGS__)
+#define MX_LOG_TRACE(...) tabletopify::g_logger.log(tabletopify::log_level::info, __FILE__"(" __STR_LINE__ "): " __VA_ARGS__)
 #define MX_LOG_VAR(X) MX_LOG_INFO(#X " : {}", X);
-#define MX_LOG_INFO_BLOCKING(...) tabletopify::g_logger.blocking_log(tabletopify::LogLevel_Info, __VA_ARGS__)
+#define MX_LOG_INFO_BLOCKING(...) tabletopify::g_logger.blocking_log(tabletopify::log_level::info, __VA_ARGS__)
 namespace tabletopify
 {
-    typedef enum
-    {
-        LogLevel_Error = 0,
-        LogLevel_Info,
-
-        LogLevel_Count,
-    } log_level_t;
+    MX_MAKE_ENUM(log_level, uint_fast8_t,
+        error,
+        info
+    );
 
     class logger
     {
@@ -79,7 +77,7 @@ namespace tabletopify
     void logger::log_internal(log_level_t lvl, volatile bool* finished, const char (&msg)[N])
     {
         auto now = std::chrono::system_clock::now();
-        worker(Worker_Logging).enqueue([=]() -> void
+        worker(worker_id::logging).enqueue([=]() -> void
         {
             g_logger.write_message(lvl, now, msg);
         }, finished);
@@ -90,7 +88,7 @@ namespace tabletopify
     void logger::log_internal(log_level_t lvl, volatile bool* finished, const char (&format)[N], Args&&... args)
     {
         auto now = std::chrono::system_clock::now();
-        worker(Worker_Logging).enqueue([=, ...args=std::move(args)]() -> void
+        worker(worker_id::logging).enqueue([=, ...args=std::move(args)]() -> void
         {
             auto msg = fmt::format(format, args...);
             g_logger.write_message(lvl, now, msg.c_str());

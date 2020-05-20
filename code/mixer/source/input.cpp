@@ -265,10 +265,10 @@ namespace tabletopify
 
     void input::init_cursors()
     {
-        _mouse_cursors[mouse_cursor::arrow] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
-        _mouse_cursors[mouse_cursor::ibeam] = glfwCreateStandardCursor(GLFW_IBEAM_CURSOR);
-        _mouse_cursors[mouse_cursor::crosshair] = glfwCreateStandardCursor(GLFW_CROSSHAIR_CURSOR );
-        _mouse_cursors[mouse_cursor::hand] = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
+        _mouse_cursors[static_cast<size_t>(mouse_cursor::arrow)] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
+        _mouse_cursors[static_cast<size_t>(mouse_cursor::ibeam)] = glfwCreateStandardCursor(GLFW_IBEAM_CURSOR);
+        _mouse_cursors[static_cast<size_t>(mouse_cursor::crosshair)] = glfwCreateStandardCursor(GLFW_CROSSHAIR_CURSOR );
+        _mouse_cursors[static_cast<size_t>(mouse_cursor::hand)] = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
     }
 
     // maps glfw 'key codes' to localized human readable names
@@ -408,9 +408,9 @@ namespace tabletopify
         _mouse_state.current.scroll = {0.0, 0.0};
         _input_events.clear();
 
-        _mouse_state.mouse_buttons[mouse_button::left].update(dt);
-        _mouse_state.mouse_buttons[mouse_button::right].update(dt);
-        _mouse_state.mouse_buttons[mouse_button::middle].update(dt);
+        _mouse_state.mouse_buttons[static_cast<size_t>(mouse_button::left)].update(dt);
+        _mouse_state.mouse_buttons[static_cast<size_t>(mouse_button::right)].update(dt);
+        _mouse_state.mouse_buttons[static_cast<size_t>(mouse_button::middle)].update(dt);
 
         // consume events
         for(const auto& ie : _raw_events)
@@ -460,7 +460,7 @@ namespace tabletopify
                     const auto position = ie.mousemove.position;
                     _mouse_state.current.position = position;
 
-                    for(auto btn = 0; btn < mouse_button::count; ++btn)
+                    for(size_t btn = 0; btn < static_cast<size_t>(mouse_button::count); ++btn)
                     {
                         auto& cd = _mouse_state.mouse_buttons[btn];
                         cd.push_position(position);
@@ -484,13 +484,14 @@ namespace tabletopify
                 case raw_input_event_type::mouse_down:
                 {
                     const auto button = ie.mousedown.button;
+                    const auto buttonIndex = static_cast<size_t>(button);
                     MX_ASSERT(button >= mouse_button::left && button < mouse_button::count);
                     const auto modifiers = ie.mousedown.modifiers;
                     const auto position = _mouse_state.current.position;
 
-                    _mouse_state.mouse_buttons[button].push_state(button_state::pressed, modifiers);
-                    _mouse_state.mouse_buttons[button].push_position(position);
-                    _mouse_state.current.buttons[button] = button_state::pressed;
+                    _mouse_state.mouse_buttons[buttonIndex].push_state(button_state::pressed, modifiers);
+                    _mouse_state.mouse_buttons[buttonIndex].push_position(position);
+                    _mouse_state.current.buttons[buttonIndex] = button_state::pressed;
 
                     input_event evt;
                     evt._type = input_event_type::mouse_down;
@@ -503,12 +504,13 @@ namespace tabletopify
                 case raw_input_event_type::mouse_up:
                 {
                     const auto button = ie.mouseup.button;
+                    const auto buttonIndex = static_cast<size_t>(button);
                     MX_ASSERT(button >= mouse_button::left && button < mouse_button::count);
                     const auto modifiers = ie.mousedown.modifiers;
                     const auto position = _mouse_state.current.position;
 
-                    _mouse_state.current.buttons[button] = button_state::released;
-                    auto& cd = _mouse_state.mouse_buttons[button];
+                    _mouse_state.current.buttons[buttonIndex] = button_state::released;
+                    auto& cd = _mouse_state.mouse_buttons[buttonIndex];
 
                     cd.push_state(button_state::released, modifiers);
 
@@ -557,7 +559,7 @@ namespace tabletopify
     {
         if (_mouse_state.current.cursor != _mouse_state.previous.cursor)
         {
-            glfwSetCursor(g_window, _mouse_cursors[_mouse_state.current.cursor]);
+            glfwSetCursor(g_window, _mouse_cursors[static_cast<size_t>(_mouse_state.current.cursor)]);
         }
     }
 
@@ -699,7 +701,7 @@ namespace tabletopify
     {
         MX_ASSERT(btn >= mouse_button::left && btn < mouse_button::count);
         auto& mouse_state = frame == input_frame::previous ? _mouse_state.previous : _mouse_state.current;
-        return mouse_state.buttons[btn];
+        return mouse_state.buttons[static_cast<size_t>(btn)];
     }
 
     void input::set_mouse_cursor(mouse_cursor_t cursor)

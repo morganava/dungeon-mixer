@@ -16,7 +16,7 @@ namespace tabletopify
     {
         std::chrono::duration<double> duration(now - _start);
 
-        std::string fullMsg = fmt::format(_log_format_strings[lvl], duration.count(), msg);
+        std::string fullMsg = fmt::format(_log_format_strings[static_cast<uint_fast8_t>(lvl)], duration.count(), msg);
 
         std::fwrite(fullMsg.c_str(), sizeof(char), fullMsg.size(), stdout);
         std::fwrite(fullMsg.c_str(), sizeof(char), fullMsg.size(), _log_file);
@@ -39,7 +39,7 @@ namespace tabletopify
     void logger::log_internal(log_level_t lvl, volatile bool* finished, std::string&& msg)
     {
         auto now = std::chrono::system_clock::now();
-        worker(Worker_Logging).enqueue([=,msg=std::move(msg)]() -> void
+        worker(worker_id::logging).enqueue([=,msg=std::move(msg)]() -> void
         {
             g_logger.write_message(lvl, now, msg.c_str());
         }, finished);

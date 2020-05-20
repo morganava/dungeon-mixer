@@ -4,6 +4,7 @@
 #include "array.hpp"
 #include "stylesheet.hpp"
 #include "linear_constraint_solver.hpp"
+#include "enums.hpp"
 
 namespace tabletopify
 {
@@ -94,20 +95,15 @@ namespace tabletopify
         };
 
 
-        typedef enum class render_pass
-        {
-            geometry = 0,
-            full,
-        } render_pass_t;
+        MX_MAKE_ENUM(render_pass, uint_fast8_t,
+            geometry, /* only calculates layout information */
+            full /* layout, input, render */
+        );
 
         // widget id
-
-        typedef enum class widget_id : size_t
-        {
-            invalid = static_cast<size_t>(~size_t(0)),
-            null = 0,
-        } widget_id_t;
-        widget_id_t next_widget_id();
+        MX_MAKE_HANDLE_ENUM(widget_id,
+            null
+        );
 
         // context
 
@@ -166,16 +162,11 @@ namespace tabletopify
             widget_id_t id = next_widget_id();
         };
 
-        namespace widget_flag
-        {
-            enum values
-            {
-                none        = 0x0,
-                scissors    = 0x1,
-                windows     = 0x2,
-            };
-        }
-        typedef widget_flag::values widget_flag_t;
+
+        MX_MAKE_FLAG_ENUM(widget_flag, uint32_t,
+            scissors = 1 << 0,
+            windows  = 1 << 1,
+        );
 
         // widget base-class
 
@@ -258,7 +249,7 @@ namespace tabletopify
 
                 if (self.should_draw())
                 {
-                    if constexpr (WIDGET_FLAGS & widget_flag::scissors) {
+                    if constexpr (static_cast<bool>(WIDGET_FLAGS & widget_flag::scissors)) {
                         g_context.pop_scissor();
                     }
 
@@ -280,7 +271,7 @@ namespace tabletopify
                     return false;
                 }
 
-                if constexpr (WIDGET_FLAGS & widget_flag::windows) {
+                if constexpr (static_cast<bool>(WIDGET_FLAGS & widget_flag::windows)) {
                     g_context.set_current_window_widget(this->get_widget_id());
                 }
 
@@ -304,6 +295,8 @@ namespace tabletopify
                         self.first_render(); /* widget specific rendering */
                         self.push_render_bounds();
                         return true;
+                    default:
+                        MX_FAIL_FAST();
                 }
                 return false;
             }
@@ -354,7 +347,7 @@ namespace tabletopify
                 auto* self = static_cast<T*>(this);
                 render_bounds rb = {&T::bounds_callback, self};
                 g_context.push_render_bounds(rb);
-                if constexpr (WIDGET_FLAGS & widget_flag::scissors) {
+                if constexpr (static_cast<bool>(WIDGET_FLAGS & widget_flag::scissors)) {
                     g_context.push_scissor(this->childScissor());
                 }
             }
@@ -400,18 +393,11 @@ namespace tabletopify
         //
 
         // scroll_area
-
-        namespace scroll_direction
-        {
-            enum values
-            {
-                none       = 0x0,
-                horizontal = 0x1,
-                vertical   = 0x2,
-                both       = horizontal | vertical,
-            };
-        }
-        typedef scroll_direction::values scroll_direction_t;
+        MX_MAKE_FLAG_ENUM(scroll_direction, uint_fast8_t,
+            horizontal = 1 << 0,
+            vertical = 1 << 1,
+            both = (1 << 0) | (1 << 1)
+        );
 
         struct scroll_area_data : public widget_data
         {
@@ -532,8 +518,7 @@ namespace tabletopify
 
         /// text box
 
-        typedef enum class text_box_action
-        {
+        MX_MAKE_ENUM(text_box_action, uint_fast8_t,
             empty,
             write_whitespace,
             write_nonwhitespace,
@@ -542,8 +527,8 @@ namespace tabletopify
             erase_left,
             erase_right,
             redo,
-            undo,
-        } text_box_action_t;
+            undo
+        );
 
         struct text_box_data : widget_data
         {

@@ -3,16 +3,15 @@
 #include "singleton.hpp"
 #include "imgui.hpp"
 #include "audio.hpp"
+#include "enums.hpp"
 
 namespace tabletopify
 {
-    enum class screen : uint_fast8_t
-    {
-        playlist = 0,
+    MX_MAKE_ENUM(screen, uint_fast8_t,
+        playlist,
         edit,
-        about,
-    };
-    typedef enum screen screen_t;
+        about
+    );
 
     struct atmosphere_widget
     {
@@ -24,7 +23,7 @@ namespace tabletopify
         imgui::checkbox_data muteUnmute = {false};
         imgui::checkbox_data playStop = {false};
 
-        atmosphere_handle_t atmosphereHandle = MX_INVALID_HANDLE;
+        atmosphere_handle_t atmosphereHandle = atmosphere_handle::invalid;
     };
 
     struct playlist_widget
@@ -186,6 +185,7 @@ namespace tabletopify
             } edit;
 
             imgui::context_menu_data contextMenu;
+            imgui::scroll_area_data contextMenuScroll;
         } root;
     };
     MX_MAKE_SINGLETON(ui)

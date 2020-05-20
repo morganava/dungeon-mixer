@@ -6,46 +6,42 @@
 #include "hash.hpp"
 #include "color.hpp"
 #include "hash_buffer.hpp"
+#include "enums.hpp"
 
 namespace tabletopify
 {
     class utf8_string;
 
     // for now we should only need 3 layers
-    typedef enum class draw_layer : uint_fast8_t
-    {
-        invalid = static_cast<uint_fast8_t>(-1),
-        background = 0,
+    MX_MAKE_ENUM(draw_layer, uint_fast8_t,
+        background,
         middleground,
-        foreground,
-        count,
-    } draw_layer_t;
+        foreground
+    );
 
-    typedef enum class halign : uint_fast8_t
-    {
+    MX_MAKE_EXPLICIT_ENUM(halign, uint_fast8_t,
         left = NVG_ALIGN_LEFT,
         center = NVG_ALIGN_CENTER,
-        right = NVG_ALIGN_RIGHT,
-    } halign_t;
+        right = NVG_ALIGN_RIGHT
+    );
 
-    typedef enum class valign : uint_fast8_t
-    {
+    MX_MAKE_EXPLICIT_ENUM(valign, uint_fast8_t,
         top = NVG_ALIGN_TOP,
         middle = NVG_ALIGN_MIDDLE,
-        bottom = NVG_ALIGN_BOTTOM,
-    } valign_t;
+        bottom = NVG_ALIGN_BOTTOM
+    );
 
-    typedef enum class background_image_mode : uint_fast8_t
-    {
+    MX_MAKE_ENUM(background_image_mode, uint_fast8_t,
         stretch,
         tile,
         center,
-        contain,
-    } background_image_mode_t;
+        contain
+    );
 
-    // strongly typed so we can have from_json
-    MX_STRONG_HANDLE(font_handle);
-    MX_STRONG_HANDLE(image_handle);
+    MX_MAKE_HANDLE_ENUM(font_handle);
+    MX_MAKE_HANDLE_ENUM(image_handle,
+        debug
+    );
 
     class nanovg
     {
@@ -101,7 +97,6 @@ namespace tabletopify
             constexpr float width() const { return size.x; };
             constexpr float height() const { return size.y; };
         } nvg_image_t;
-        constexpr static const image_handle_t MX_DEBUG_IMAGE_HANDLE = 0;
         // the first nvg_image_t is the black and magenta debug texture
         std::vector<nvg_image_t> _nvg_images = {{}};
 

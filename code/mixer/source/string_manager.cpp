@@ -5,19 +5,9 @@
 
 namespace tabletopify
 {
-    static string_manager* g_string_manager = nullptr;
-
-    string_manager* get_string_manager()
+    string_manager::string_manager(fs::path&& stringsPath)
     {
-        return g_string_manager;
-    }
-
-    void init_string_manager(fs::path&& stringsPath)
-    {
-        MX_ASSERT(g_string_manager == nullptr);
-        g_string_manager = new string_manager();
-
-        worker(Worker_FileIO).enqueue([stringsPath=std::move(stringsPath)]() -> void
+        worker(worker_id::fileio).enqueue([stringsPath=std::move(stringsPath)]() -> void
         {
             MX_ASSERT(fs::exists(stringsPath));
             auto stringsSize = fs::file_size(stringsPath);
@@ -28,33 +18,27 @@ namespace tabletopify
             stringsFile.read(stringsData.data(), stringsSize);
             stringsFile.close();
 
-            worker(Worker_Background).enqueue([stringsData=std::move(stringsData), stringsPath=std::move(stringsPath)]() -> void
+            worker(worker_id::background).enqueue([stringsData=std::move(stringsData), stringsPath=std::move(stringsPath)]() -> void
             {
                 auto json = nl::json::parse(stringsData);
                 auto& stringList = json["Strings"];
-                MX_ASSERT(stringList.size() == MX_STR_COUNT);
+                MX_ASSERT(stringList.size() == static_cast<size_t>(mixer_string::count));
                 for(size_t idx = 0; idx < stringList.size(); ++idx)
                 {
-                    g_string_manager->_strings[idx] = stringList[idx];
+                    g_string_manager._strings[idx] = stringList[idx];
                 }
-                g_string_manager->_strings_loaded = true;
+                g_string_manager._strings_loaded = true;
                 MX_LOG_INFO("Loaded strings: {}", stringsPath.filename().native());
             });
         });
     }
 
-    void free_string_manager()
-    {
-        delete g_string_manager;
-        g_string_manager = nullptr;
-    }
-
     const char* string_manager::get_cstring(mixer_string_t str) const
     {
-        MX_ASSERT(str > MX_STR_INVALID && str < MX_STR_COUNT);
+        MX_ASSERT(str != mixer_string::invalid && str < mixer_string::count);
         if(this->_strings_loaded)
         {
-            return this->_strings[str].c_str();
+            return this->_strings[static_cast<size_t>(str)].c_str();
         }
         return "";
     }

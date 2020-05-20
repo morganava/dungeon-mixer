@@ -24,7 +24,7 @@ namespace tabletopify
         init_work_manager();
 
         // init logger with desired log verbosity
-        init_logger(LogLevel_Info);
+        init_logger(log_level::info);
 
         // init nanovg
         init_nanovg();

@@ -139,30 +139,6 @@ ostream& operator<<(ostream& out, const struct uuid& id)
     return out;
 }
 
-// element_state
-ostream& operator<<(ostream& out, const element_state_t& es)
-{
-    switch(es)
-    {
-        case element_state::none:
-            out << "none";
-            break;
-        case element_state::hover:
-            out << "hover";
-            break;
-        case element_state::active:
-            out << "active";
-            break;
-        case element_state::disabled:
-            out << "disabled";
-            break;
-        case element_state::checked:
-            out << "checked";
-            break;
-    }
-    return out;
-}
-
 // color
 ostream& operator<<(ostream& out, const color& col)
 {

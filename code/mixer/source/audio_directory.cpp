@@ -13,9 +13,10 @@ namespace tabletopify
     {
         for(auto& current_entry : _entries)
         {
-            switch(current_entry.data->state())
+            const auto state = current_entry.data->state();
+            switch(state)
             {
-                case UNLOADED:
+                case audio_data_state::unloaded:
                 {
                     // something other than the audio_directory has an instance
                     // of the shared audio_data, so load it
@@ -25,12 +26,12 @@ namespace tabletopify
                     }
                 }
                 break;
-                case LOADING:
+                case audio_data_state::loading:
                 {
                     // no-op, FileIO worker is doing work
                 }
                 break;
-                case LOADED:
+                case audio_data_state::loaded:
                 {
                     // audio loaded, but only the audio_directory has a reference
                     if(current_entry.data.use_count() == 1)
@@ -47,24 +48,28 @@ namespace tabletopify
                     }
                 }
                 break;
-                case UNLOADING:
+                case audio_data_state::unloading:
                 {
                     // no-op, FileIO worker is doing work
                 }
                 break;
-                case PENDING_UNLOADED:
+                case audio_data_state::pending_unloaded:
                 {
-                    current_entry.data->_state = UNLOADED;
+                    current_entry.data->_state = audio_data_state::unloaded;
                 }
                 break;
+                default:
+                {
+                    MX_FAIL_FAST("invalid audio_data_state : {}", static_cast<uint_fast8_t>(state));
+                }
             }
         }
     }
 
     audio_entry& audio_directory::get_entry(audio_handle_t handle)
     {
-        MX_ASSERT(handle != MX_INVALID_HANDLE && handle < _entries.size());
-        return _entries[handle];
+        MX_ASSERT(handle != audio_handle::invalid && static_cast<size_t>(handle) < _entries.size());
+        return _entries[static_cast<size_t>(handle)];
     }
 
     void audio_directory::add_entry(
@@ -94,7 +99,8 @@ namespace tabletopify
         // construct audio_entry
         audio_entry entry = {id, title, tags, data, 0.0f};
         // get key
-        audio_handle_t key = _entries.size();
+        audio_handle_t key = next_audio_handle();
+        MX_ASSERT(static_cast<size_t>(key) == _entries.size());
         // update tag map
         _tag_map.add_key(key, entry.tags);
         // update our id map (checking for collisions)
@@ -111,20 +117,9 @@ namespace tabletopify
         auto it = _id_map.find(id);
         if(it == _id_map.end())
         {
-            return MX_INVALID_HANDLE;
+            return audio_handle::invalid;
         }
         return it->second;
-    }
-
-    std::vector<audio_handle_t> audio_directory::get_audio_handles() const
-    {
-        std::vector<audio_handle_t> result;
-        const auto count = _entries.size();
-        for(audio_handle_t k = 0; k < count; ++k)
-        {
-            result.push_back(k);
-        }
-        return result;
     }
 
     std::vector<audio_handle_t> audio_directory::get_audio_handles_by_query(const utf8_string& query) const

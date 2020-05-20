@@ -6,9 +6,7 @@
 
 namespace tabletopify
 {
-    typedef enum
-    {
-        MX_STR_INVALID = -1,
+    MX_MAKE_ENUM(mixer_string, uint_fast16_t,
         MX_STR_PLAYLISTS,
         MX_STR_CREATE_PLAYLIST,
         MX_STR_ALL_PLAYLIST,
@@ -21,23 +19,17 @@ namespace tabletopify
         MX_STR_PLAYING,
         MX_STR_STOPPED,
         MX_STR_TITLE,
-        MX_STR_VOLUME,
-
-        MX_STR_COUNT,
-    } mixer_string_t;
+        MX_STR_VOLUME
+    )
 
     class string_manager
     {
     public:
+        string_manager(fs::path&& stringPath);
         const char* get_cstring(mixer_string_t str) const;
     private:
-        std::string _strings[MX_STR_COUNT];
+        std::string _strings[static_cast<size_t>(mixer_string::count)];
         bool _strings_loaded = false;
-
-        friend void init_string_manager(fs::path&& stringPath);
     };
-
-    string_manager* get_string_manager();
-    void init_string_manager(fs::path&& stringPath);
-    void free_string_manager();
+    MX_MAKE_SINGLETON(string_manager);
 }

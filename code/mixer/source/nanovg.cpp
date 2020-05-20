@@ -25,7 +25,7 @@ namespace tabletopify
             0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0xFF, 0xFF,
         };
 
-        _nvg_images[MX_DEBUG_IMAGE_HANDLE] = {nvgCreateImageRGBA(_ctx, 2, 2, NVG_IMAGE_REPEATX | NVG_IMAGE_REPEATY | NVG_IMAGE_NEAREST, debugPixels), {8,8}};
+        _nvg_images[static_cast<size_t>(image_handle::debug)] = {nvgCreateImageRGBA(_ctx, 2, 2, NVG_IMAGE_REPEATX | NVG_IMAGE_REPEATY | NVG_IMAGE_NEAREST, debugPixels), {8,8}};
 
         // set command_queue to write mode
         _current.begin_writing();
@@ -40,16 +40,17 @@ namespace tabletopify
         }
 
         // index our font face id will be stored
-        const auto index = _nvg_font_faces.size();
+        const auto index = next_font_handle();
+        MX_ASSERT(static_cast<size_t>(index) == _nvg_font_faces.size());
         _font_map.insert({fontFilePath, index});
         _nvg_font_faces.push_back(INVALID_NVG_FONT_ID);
 
-        worker(Worker_FileIO).enqueue([index=index, fontFilePath=std::move(fontFilePath)]() -> void
+        worker(worker_id::fileio).enqueue([index=index, fontFilePath=std::move(fontFilePath)]() -> void
         {
             memory_buffer fontFile(fontFilePath);
             std::string fontName = fontFilePath.filename();
 
-            worker(Worker_UI).enqueue([index=index, fontName=std::move(fontName), fontFile=std::move(fontFile)]() -> void
+            worker(worker_id::ui).enqueue([index=static_cast<size_t>(index), fontName=std::move(fontName), fontFile=std::move(fontFile)]() -> void
             {
                 g_nanovg._nvg_font_faces[index] = nvgCreateFontMem(g_nanovg._ctx, fontName.c_str(), fontFile.data(), static_cast<int>(fontFile.size()));
                 MX_LOG_INFO("Loaded font: {}", fontName);
@@ -63,7 +64,7 @@ namespace tabletopify
     {
         if (!fs::exists(path)) {
             MX_LOG_ERROR("Failed to load image {}: file does not exist", path);
-            return MX_DEBUG_IMAGE_HANDLE;
+            return image_handle::debug;
         }
 
         auto imageFilePath = fs::canonical(path);
@@ -72,11 +73,12 @@ namespace tabletopify
             return it->second;
         }
 
-        const auto index = _nvg_images.size();
+        const auto index = next_image_handle();
+        MX_ASSERT(static_cast<size_t>(index) == _nvg_images.size());
         _image_map.insert({imageFilePath, index});
         _nvg_images.push_back({INVALID_NVG_IMAGE_ID, {}});
 
-        worker(Worker_FileIO).enqueue([index=index, imageFilePath=std::move(imageFilePath)]() -> void
+        worker(worker_id::fileio).enqueue([index=index, imageFilePath=std::move(imageFilePath)]() -> void
         {
             // load file into memory
             memory_buffer imageFile(imageFilePath);
@@ -97,14 +99,14 @@ namespace tabletopify
                 MX_LOG_ERROR("Failed to load image {}: {}", imageFileName, stbi_failure_reason());
 
                 // use the magenta checkboard image
-                worker(Worker_UI).enqueue([index=index]() -> void
+                worker(worker_id::ui).enqueue([index=static_cast<size_t>(index)]() -> void
                 {
-                    g_nanovg._nvg_images[index] = g_nanovg._nvg_images[MX_DEBUG_IMAGE_HANDLE];
+                    g_nanovg._nvg_images[index] = g_nanovg._nvg_images[static_cast<size_t>(image_handle::debug)];
                 });
             }
             else
             {
-                worker(Worker_UI).enqueue([index=index, imageFileName=std::move(imageFileName), pixelData=std::move(pixelData), width=width, height=height]() -> void
+                worker(worker_id::ui).enqueue([index=static_cast<size_t>(index), imageFileName=std::move(imageFileName), pixelData=std::move(pixelData), width=width, height=height]() -> void
                 {
                     g_nanovg._nvg_images[index] =
                     {
@@ -145,8 +147,7 @@ namespace tabletopify
         _current.set_layer(draw_layer::background);
     }
 
-    typedef enum draw_command : uint8_t
-    {
+    MX_MAKE_ENUM(draw_command, uint8_t,
         set_scissor,
         color_fill_rect,
         color_fill_rounded_rect,
@@ -159,12 +160,12 @@ namespace tabletopify
         stroke_circle,
         draw_text,
         draw_text_with_caret,
-        draw_text_with_selection,
-    } draw_command_t;
+        draw_text_with_selection
+    );
 
     NVGpaint nanovg::make_nvgpaint(image_handle_t ih, const rectf& dim, background_image_mode_t bim) const
     {
-        const auto& image = _nvg_images[ih];
+        const auto& image = _nvg_images[static_cast<size_t>(ih)];
         switch(bim) {
             case background_image_mode::stretch:
             {
@@ -202,6 +203,10 @@ namespace tabletopify
                 return nvgImagePattern(_ctx, imageRect.left(), imageRect.top(), imageRect.width(), imageRect.height(), 0.0f, image.id, 1.0f);
             }
             break;
+            default:
+            {
+                MX_FAIL_FAST();
+            }
        }
        return {};
     }
@@ -296,7 +301,7 @@ namespace tabletopify
                     MX_THROW_IF_FALSE(cq.next(ih));
                     MX_THROW_IF_FALSE(cq.next(bim));
                     // make sure this is a valid handle
-                    MX_ASSERT(ih < _nvg_images.size());
+                    MX_ASSERT(static_cast<size_t>(ih) < _nvg_images.size());
 
                     NVGpaint paint = make_nvgpaint(ih, r, bim);
 
@@ -319,7 +324,7 @@ namespace tabletopify
                     MX_THROW_IF_FALSE(cq.next(ih));
                     MX_THROW_IF_FALSE(cq.next(bim));
                     // make sure this is a valid handle
-                    MX_ASSERT(ih < _nvg_images.size());
+                    MX_ASSERT(static_cast<size_t>(ih) < _nvg_images.size());
 
                     NVGpaint paint = make_nvgpaint(ih, r, bim);
 
@@ -340,7 +345,7 @@ namespace tabletopify
                     MX_THROW_IF_FALSE(cq.next(ih));
                     MX_THROW_IF_FALSE(cq.next(bim));
                     // make sure this is a valid handle
-                    MX_ASSERT(ih < _nvg_images.size());
+                    MX_ASSERT(static_cast<size_t>(ih) < _nvg_images.size());
 
                     NVGpaint paint = make_nvgpaint(ih, c.bounding_box(), bim);
 
@@ -434,7 +439,7 @@ namespace tabletopify
                     auto startPosition = text_bounds_to_start_position(bounds, halign, valign);
                     startPosition.x -= textOffset;
 
-                    nvgFontFaceId(_ctx, _nvg_font_faces[font]);
+                    nvgFontFaceId(_ctx, _nvg_font_faces[static_cast<size_t>(font)]);
                     nvgFontSize(_ctx, size);
                     nvgTextAlign(_ctx, static_cast<int>(halign) | static_cast<int>(valign));
                     nvgFillColor(_ctx, col);
@@ -471,7 +476,7 @@ namespace tabletopify
                     startPosition.x -= textOffset;
 
                     // draw the text
-                    nvgFontFaceId(_ctx, _nvg_font_faces[font]);
+                    nvgFontFaceId(_ctx, _nvg_font_faces[static_cast<size_t>(font)]);
                     nvgFontSize(_ctx, fontSize);
                     nvgTextAlign(_ctx, static_cast<int>(halign) | static_cast<int>(valign));
                     nvgFillColor(_ctx, fontColor);
@@ -509,6 +514,8 @@ namespace tabletopify
                         case valign::bottom:
                             caretBounds.position.y = bounds.bottom() - lineHeight;
                             break;
+                        default:
+                            MX_FAIL_FAST();
                     }
                     caretBounds.size = {caretWidth, lineHeight};
 
@@ -553,7 +560,7 @@ namespace tabletopify
                     startPosition.x -= textOffset;
 
                     // draw the text
-                    nvgFontFaceId(_ctx, _nvg_font_faces[font]);
+                    nvgFontFaceId(_ctx, _nvg_font_faces[static_cast<size_t>(font)]);
                     nvgFontSize(_ctx, fontSize);
                     nvgTextAlign(_ctx, static_cast<int>(halign) | static_cast<int>(valign));
                     nvgFillColor(_ctx, fontColor);
@@ -616,6 +623,8 @@ namespace tabletopify
                             case valign::bottom:
                                 selectionBounds.position.y = bounds.bottom() - lineHeight;
                                 break;
+                            default:
+                                MX_FAIL_FAST();
                         }
                         selectionBounds.size = {
                             selectEndX - selectBeginX,
@@ -839,7 +848,7 @@ namespace tabletopify
         }
 
         auto startPosition = text_bounds_to_start_position(bounds, halign, valign);
-        nvgFontFaceId(_ctx, _nvg_font_faces[font]);
+        nvgFontFaceId(_ctx, _nvg_font_faces[static_cast<size_t>(font)]);
         nvgFontSize(_ctx, fontSize);
         nvgTextAlign(_ctx, static_cast<int>(halign) | static_cast<int>(valign));
 
@@ -873,7 +882,7 @@ namespace tabletopify
         }
 
         auto startPosition = text_bounds_to_start_position(bounds, halign, valign);
-        nvgFontFaceId(_ctx, _nvg_font_faces[font]);
+        nvgFontFaceId(_ctx, _nvg_font_faces[static_cast<size_t>(font)]);
         nvgFontSize(_ctx, fontSize);
         nvgTextAlign(_ctx, static_cast<int>(halign) | static_cast<int>(valign));
 
@@ -911,6 +920,8 @@ namespace tabletopify
             case halign::right:
                 x = pos.x + size.x;
                 break;
+            default:
+                MX_FAIL_FAST();
         }
 
         switch(valign)
@@ -924,6 +935,8 @@ namespace tabletopify
             case valign::bottom:
                 y = pos.y + size.y;
                 break;
+            default:
+                MX_FAIL_FAST();
         }
 
         return vec2f{x, y};

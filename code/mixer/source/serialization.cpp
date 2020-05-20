@@ -54,14 +54,14 @@ namespace tabletopify
 
     void load_stylesheet()
     {
-        worker(Worker_FileIO).enqueue([]() -> void
+        worker(worker_id::fileio).enqueue([]() -> void
         {
             auto skinPath = get_skins_path() / "default.json";
             MX_LOG_INFO("Loading skin: {}", skinPath);
 
             memory_buffer mb(skinPath);
 
-            worker(Worker_Background).enqueue([mb=std::move(mb)]() -> void
+            worker(worker_id::background).enqueue([mb=std::move(mb)]() -> void
             {
                 auto json = nl::json::parse(mb.begin(), mb.end());
                 g_style_resolver = json.get<style_resolver>();
@@ -71,7 +71,7 @@ namespace tabletopify
 
     void load_audio_manifests()
     {
-        worker(Worker_FileIO).enqueue([]() -> void
+        worker(worker_id::fileio).enqueue([]() -> void
         {
             // iterate over each subdirectory in the library directory
             for(auto& it : fs::directory_iterator(get_library_path()))
@@ -92,7 +92,7 @@ namespace tabletopify
                 manifestFile.close();
 
                 // create audio entries for listings in manifest
-                worker(Worker_Background).enqueue([basePath=it.path(), manifestData=std::move(manifestData)]() -> void
+                worker(worker_id::background).enqueue([basePath=it.path(), manifestData=std::move(manifestData)]() -> void
                 {
                     auto json = nl::json::parse(manifestData);
                     auto trackList = json["Tracks"];
@@ -133,7 +133,7 @@ namespace tabletopify
 
     void load_playlists()
     {
-        worker(Worker_FileIO).enqueue([]() -> void
+        worker(worker_id::fileio).enqueue([]() -> void
         {
             // iterate over each subdirectory in the lilbrary directory
             for(auto& it : fs::directory_iterator(get_playlists_path()))
@@ -141,7 +141,7 @@ namespace tabletopify
                 auto path = it.path();
                 memory_buffer bytes(path);
 
-                worker(Worker_Background) << [=,bytes=std::move(bytes)]() -> void
+                worker(worker_id::background) << [=,bytes=std::move(bytes)]() -> void
                 {
                     MX_LOG_INFO("Loading playlist : {}", path);
 
@@ -189,7 +189,7 @@ namespace tabletopify
                             MX_LOG_INFO("  AudioId : {}", audioId);
                             MX_LOG_INFO("   AudioHandle : {}", audioHandle);
 
-                            if (audioHandle == MX_INVALID_HANDLE) {
+                            if (audioHandle == audio_handle::invalid) {
                                 MX_LOG_ERROR("AudioData with id '{}' does not exist", audioId);
                                 continue;
                             }
@@ -213,34 +213,25 @@ namespace tabletopify
                             }
                             MX_LOG_INFO("   Muted : {}", trackEntry.muted);
 
-                            switch (audioEntry.type())
+                            if(audioEntry.type() == audio_type::one_shot)
                             {
-                                case ONE_SHOT:
-                                {
-                                    if (trackJson.contains("RepeatRange")) {
-                                        auto range = trackJson["RepeatRange"];
-                                        if (range.is_array() &&
-                                            range.size() == 2 &&
-                                            range[0].is_number() &&
-                                            range[1].is_number())
-                                        {
-                                            float range0 = range[0].get<float>();
-                                            float range1 = range[1].get<float>();
+                                if (trackJson.contains("RepeatRange")) {
+                                    auto range = trackJson["RepeatRange"];
+                                    if (range.is_array() &&
+                                        range.size() == 2 &&
+                                        range[0].is_number() &&
+                                        range[1].is_number())
+                                    {
+                                        float range0 = range[0].get<float>();
+                                        float range1 = range[1].get<float>();
 
-                                            trackEntry.repeat.min = std::min(range0, range1);
-                                            trackEntry.repeat.max = std::max(range0, range1);
+                                        trackEntry.repeat.min = std::min(range0, range1);
+                                        trackEntry.repeat.max = std::max(range0, range1);
 
-                                            MX_LOG_INFO("   RepeatMin : {}", trackEntry.repeat.min);
-                                            MX_LOG_INFO("   RepeatMax : {}", trackEntry.repeat.max);
-                                        }
+                                        MX_LOG_INFO("   RepeatMin : {}", trackEntry.repeat.min);
+                                        MX_LOG_INFO("   RepeatMax : {}", trackEntry.repeat.max);
                                     }
                                 }
-                                break;
-                                case LOOP:
-                                {
-                                    // no loop specific parameters
-                                }
-                                break;
                             }
 
                             if (trackJson.contains("Position")) {
@@ -287,7 +278,7 @@ namespace tabletopify
                         {
                             const auto id = atmosphereId.get<uuid>();
                             auto atmosphereHandle = g_atmosphere_directory.get_atmosphere_handle_by_id(id);
-                            if (atmosphereHandle == MX_INVALID_HANDLE) {
+                            if (atmosphereHandle == atmosphere_handle::invalid) {
                                 MX_LOG_ERROR("Atmosphere with id '{}' does not exist", atmosphereId);
                             }
                             MX_LOG_INFO("  AtmosphereId : {}", id);
@@ -297,7 +288,7 @@ namespace tabletopify
                 };
             }
 
-            worker(Worker_UI) << []()
+            worker(worker_id::ui) << []()
             {
                 g_ui.sync_playlists();
             };
@@ -306,7 +297,7 @@ namespace tabletopify
 
     void load_playlist(const fs::path& playlistPath)
     {
-        worker(Worker_FileIO).enqueue([=]() -> void
+        worker(worker_id::fileio).enqueue([=]() -> void
         {
             MX_LOG_INFO("Loading playlist: {}", playlistPath);
         });

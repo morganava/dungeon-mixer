@@ -1,3 +1,4 @@
+#if 0
 #include "utilities.hpp"
 #include "tag_map.hpp"
 #include "utf8_string.hpp"
@@ -74,3 +75,4 @@ namespace tabletopify
         _keys.insert(key);
     }
 }
+#endif

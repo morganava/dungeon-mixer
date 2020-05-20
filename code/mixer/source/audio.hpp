@@ -6,39 +6,29 @@
 
 namespace tabletopify
 {
-    constexpr handle_t MX_INVALID_HANDLE = ~handle_t(0);
-
     // maps to audio data
-    typedef handle_t audio_handle_t;
+    MX_MAKE_HANDLE_ENUM(audio_handle);
     // instantiated possibly playing audio tracks
-    typedef handle_t track_handle_t;
+    MX_MAKE_HANDLE_ENUM(track_handle);
     // collection of tracks
-    typedef handle_t atmosphere_handle_t;
+    MX_MAKE_HANDLE_ENUM(atmosphere_handle);
     // playlists
-    enum class playlist_handle : handle_t
-    {
-        invalid = MX_INVALID_HANDLE,
-        all = 0,
+    MX_MAKE_HANDLE_ENUM(playlist_handle,
+        all,
         favorites,
-        playing,
-        first_custom,
-    };
-    typedef playlist_handle playlist_handle_t;
+        playing);
 
-    typedef enum
-    {
-        ONE_SHOT,
-        LOOP,
-    } audio_type_t;
+    MX_MAKE_ENUM(audio_type, uint_fast8_t,
+        one_shot,
+        loop
+    );
 
-    typedef enum
-    {
-        UNLOADED,
-        LOADING,
-        LOADED,
-        UNLOADING,
-        PENDING_UNLOADED,
-    } audio_data_state_t;
+    MX_MAKE_ENUM(audio_data_state, uint_fast8_t,
+        unloaded,
+        loading,
+        loaded,
+        unloading,
+        pending_unloaded);
 
     class audio_data
     {
@@ -55,7 +45,7 @@ namespace tabletopify
         virtual void load_impl() = 0;
         // freeing audio data
         virtual void unload_impl() = 0;
-        volatile audio_data_state_t _state = UNLOADED;
+        volatile audio_data_state_t _state = audio_data_state::unloaded;
 
         friend class audio_directory;
     };
@@ -66,7 +56,7 @@ namespace tabletopify
         one_shot_data(std::vector<fs::path>&& paths);
         ~one_shot_data() override;
 
-        audio_type_t get_type() override {return ONE_SHOT;}
+        audio_type_t get_type() override {return audio_type::one_shot;}
         sf::SoundBuffer& get_sound_buffer(bool positionable) override;
     private:
         void load_impl() override;
@@ -82,7 +72,7 @@ namespace tabletopify
         loop_data(fs::path&& loop_path);
         ~loop_data() override;
 
-        audio_type_t get_type() override {return LOOP;}
+        audio_type_t get_type() override {return audio_type::loop;}
         sf::SoundBuffer& get_sound_buffer(bool positionable) override;
     private:
         void load_impl() override;
@@ -117,16 +107,14 @@ namespace tabletopify
     public:
         void update(float dt);
         audio_handle_t get_audio_handle_by_id(const uuid& id) const;
-        std::vector<audio_handle_t> get_audio_handles() const;
         std::vector<audio_handle_t> get_audio_handles_by_query(const utf8_string& query) const;
 
         audio_entry& get_entry(audio_handle_t handle);
-        // audio_handle_t add_entry(audio_entry&& entry);
         void add_entry(uuid&& id, utf8_string&& title, std::vector<utf8_string>&& tags, std::shared_ptr<audio_data>&& data);
 
     private:
         std::vector<audio_entry> _entries;
-        tag_map _tag_map;
+        tag_map<audio_handle_t> _tag_map;
         // map track id to track handle
         std::unordered_map<uuid, audio_handle_t> _id_map;
 
@@ -173,7 +161,6 @@ namespace tabletopify
         track_handle_t add_entry(track_entry&& entry);
         void remove_entry(track_handle_t handle);
     private:
-        static track_handle_t _next_handle;
         std::unordered_map<track_handle_t, track_entry> _entries;
     };
     MX_MAKE_SINGLETON(track_directory)
@@ -205,9 +192,8 @@ namespace tabletopify
         void remove_entry(atmosphere_handle_t handle);
         void rename_entry(atmosphere_handle_t handle, const utf8_string& newName);
     private:
-        static atmosphere_handle_t _next_handle;
         std::map<atmosphere_handle_t, atmosphere_entry> _entries;
-        tag_map _tag_map;
+        tag_map<atmosphere_handle_t> _tag_map;
         // map track id to atmosphere handle
         std::unordered_map<uuid, atmosphere_handle_t> _id_map;
     };
@@ -244,8 +230,6 @@ namespace tabletopify
         // update existing playlist contents
         void sync_playlist(playlist_handle_t);
     private:
-
-        playlist_handle_t _next_handle = playlist_handle::first_custom;
         // init with our builtin playlists
         std::map<playlist_handle_t, playlist_entry> _entries =
         {

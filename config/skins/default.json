@@ -25,10 +25,6 @@
     "spacer" : {
         "backgroundColor" : "transparent"
     },
-    "spacer.test" : {
-        "size" : [100,100],
-        "backgroundColor" : "green"
-    },
     "label" : {
     },
     "button" : {
@@ -164,9 +160,20 @@
     "contextMenu.test" : {
         "size" : [256, 0],
         "borderSize" : 3,
-        "borderRadius" : 5,
-        "padding" : 10,
-        "backgroundColor" : "orange",
-        "padding" : [10,20,30,40]
+        "borderRadius" : 3,
+        "backgroundColor" : "transparent",
+        "borderColor" : "white"
+    },
+    "scrollArea.test" : {
+        "size" : [0, 384],
+        "backgroundColor" : "transparent"
+
+    },
+    "spacer.test" : {
+        "size" : [100,100],
+        "backgroundColor" : "green"
+    },
+    "spacer.test:hover" : {
+        "backgroundColor" : "blue"
     }
 }

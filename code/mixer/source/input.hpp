@@ -6,24 +6,20 @@ namespace tabletopify
 {
     typedef int32_t key_code_t;
 
-    namespace mouse_button
-    {
-        enum value
-        {
-            left   = GLFW_MOUSE_BUTTON_LEFT,
-            right  = GLFW_MOUSE_BUTTON_RIGHT,
-            middle = GLFW_MOUSE_BUTTON_MIDDLE,
+    MX_MAKE_ENUM(mouse_button, uint_fast8_t,
+        left,
+        right,
+        middle
+    );
+    static_assert(static_cast<uint_fast8_t>(mouse_button::left) == GLFW_MOUSE_BUTTON_LEFT);
+    static_assert(static_cast<uint_fast8_t>(mouse_button::right) == GLFW_MOUSE_BUTTON_RIGHT);
+    static_assert(static_cast<uint_fast8_t>(mouse_button::middle) == GLFW_MOUSE_BUTTON_MIDDLE);
+    static_assert(static_cast<uint_fast8_t>(mouse_button::count) == 3);
 
-            count
-        };
-    }
-    typedef mouse_button::value mouse_button_t;
-
-    typedef enum class input_frame : int_fast8_t
-    {
+    MX_MAKE_ENUM(input_frame, uint_fast8_t,
         current,
         previous
-    } input_frame_t;
+    );
 
     typedef bool button_state_t;
     namespace button_state
@@ -77,9 +73,7 @@ namespace tabletopify
     };
 
     // raw events from glfw
-    typedef enum class raw_input_event_type
-    {
-        invalid = -1,
+    MX_MAKE_ENUM(raw_input_event_type, uint_fast8_t,
         char_press,
         key_down,
         key_repeat,
@@ -87,8 +81,8 @@ namespace tabletopify
         mouse_move,
         mouse_down,
         mouse_up,
-        scroll,
-    } raw_input_event_type_t;
+        scroll
+    );
 
     struct raw_input_event
     {
@@ -136,32 +130,26 @@ namespace tabletopify
         { }
     };
 
-    namespace input_event_type
-    {
-        enum value
-        {
-            invalid = -1,
-            // keyboard
-            char_press,
-            key_down,
-            key_repeat,
-            key_up,
-            // mouse   
-            mouse_move,
-            mouse_down,
-            mouse_up,
-            mouse_single_click,
-            mouse_double_click,
-            mouse_triple_click,
-            mouse_drag_begin,
-            mouse_drag,
-            mouse_drag_end,
-            // scroll
-            wheel_scroll,
-        };
-    };
-    typedef input_event_type::value input_event_type_t;
-    
+    MX_MAKE_ENUM(input_event_type, uint_fast8_t,
+        // keyboard
+        char_press,
+        key_down,
+        key_repeat,
+        key_up,
+        // mouse
+        mouse_move,
+        mouse_down,
+        mouse_up,
+        mouse_single_click,
+        mouse_double_click,
+        mouse_triple_click,
+        mouse_drag_begin,
+        mouse_drag,
+        mouse_drag_end,
+        // scroll
+        wheel_scroll
+    );
+
     constexpr bool is_keyboard_event(input_event_type_t evt)
     {
         return evt >= input_event_type::char_press &&
@@ -177,7 +165,7 @@ namespace tabletopify
     class input_event
     {
     public:
-        input_event() 
+        input_event()
         : _type(input_event_type::invalid)
         { }
 
@@ -201,7 +189,7 @@ namespace tabletopify
         mouse_button_t mouse_button() const
         {
             MX_ASSERT(is_mouse_event(_type));
-            return _mouse.button;   
+            return _mouse.button;
         }
 
         vec2 position() const
@@ -239,19 +227,12 @@ namespace tabletopify
         friend class click_detector;
     };
 
-    namespace mouse_cursor
-    {
-        enum value
-        {
-            arrow = 0,
-            ibeam,
-            crosshair,
-            hand,
-
-            count
-        };
-    }
-    typedef mouse_cursor::value mouse_cursor_t;
+    MX_MAKE_ENUM(mouse_cursor, uint_fast8_t,
+        arrow,
+        ibeam,
+        crosshair,
+        hand
+    );
 
     class input
     {
@@ -290,7 +271,7 @@ namespace tabletopify
         std::map<key_code_t, utf8_string> _key_names;
         std::vector<raw_input_event> _raw_events;
         std::vector<input_event> _input_events;
-        GLFWcursor* _mouse_cursors[mouse_cursor::count] = {};
+        GLFWcursor* _mouse_cursors[static_cast<size_t>(mouse_cursor::count)] = {};
 
         struct
         {
@@ -298,24 +279,14 @@ namespace tabletopify
             {
                 vec2 position = {-1.0, -1.0};
                 vec2 scroll = {0.0, 0.0};
-                button_state_t buttons[mouse_button::count];
+                button_state_t buttons[static_cast<size_t>(mouse_button::count)];
                 mouse_cursor_t cursor;
             } current, previous;
 
-            click_detector mouse_buttons[mouse_button::count];
+            click_detector mouse_buttons[static_cast<size_t>(mouse_button::count)];
         } _mouse_state;
     };
-
-    inline constexpr input& g_input = singleton<input>::get();
-    inline void init_input()
-    {
-        singleton<input>::construct();
-    }
-
-    constexpr void free_input()
-    {
-        singleton<input>::free();
-    }
+    MX_MAKE_SINGLETON(input);
 }
 
 std::ostream& operator<<(std::ostream&, tabletopify::input_event_type_t);

@@ -20,7 +20,7 @@ namespace tabletopify
                     {
                         if (!point_inside_rect(evt.position(), this->_layout.outerBounds))
                         {
-                            worker(Worker_UI) << [data=this->data()]()
+                            worker(worker_id::ui) << [data=this->data()]()
                             {
                                 data->visible = false;
                             };

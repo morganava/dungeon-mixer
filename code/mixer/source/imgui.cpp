@@ -11,14 +11,6 @@ namespace tabletopify
 {
     namespace imgui
     {
-        widget_id_t next_widget_id()
-        {
-            static widget_id_t nextId = widget_id::null;
-            auto retval = nextId;
-            nextId = static_cast<widget_id_t>(static_cast<size_t>(nextId) + 1);
-            return retval;;
-        }
-
         // render_bounds
 
         rect render_bounds::eval(const rect& desired) const

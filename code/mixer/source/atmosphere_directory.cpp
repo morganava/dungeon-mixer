@@ -7,8 +7,6 @@
 
 namespace tabletopify
 {
-    atmosphere_handle_t atmosphere_directory::_next_handle = 0;
-
     /// Atmosphere Directory
 
     std::vector<atmosphere_handle_t> atmosphere_directory::get_atmosphere_handles() const
@@ -35,7 +33,7 @@ namespace tabletopify
         auto it = _id_map.find(id);
         if(it == _id_map.end())
         {
-            return MX_INVALID_HANDLE;
+            return atmosphere_handle::invalid;
         }
         return it->second;
     }
@@ -50,7 +48,7 @@ namespace tabletopify
 
     atmosphere_handle_t atmosphere_directory::add_entry(atmosphere_entry&& entry)
     {
-        const auto atmosphereHandle = _next_handle++;
+        const auto atmosphereHandle = next_atmosphere_handle();
 
         // give all the tracks their parent atmosphere's handle
         for(auto& trackHandle : entry.tracks)

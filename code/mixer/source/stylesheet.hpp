@@ -7,13 +7,12 @@
 #include "nanovg.hpp"
 #include "utf8_string.hpp"
 #include "motley_buffer.hpp"
+#include "enums.hpp"
 
 namespace tabletopify
 {
-    typedef enum class element_type : uint_fast8_t
-    {
+    MX_MAKE_ENUM(element_type, uint_fast8_t,
         any,
-
         root,
         flex_box,
         scroll_area,
@@ -25,40 +24,17 @@ namespace tabletopify
         slider_track,
         slider_handle,
         checkbox,
-        context_menu,
-
-        count,
-
-    } element_type_t;
-
+        context_menu
+    );
     element_type_t parse_element_type(const std::string&);
 
-    typedef enum class element_state : uint_fast8_t
-    {
-        none = 0,
+    MX_MAKE_FLAG_ENUM(element_state, uint_fast8_t,
         hover = 1 << 0,
         active= 1 << 1,
         disabled= 1 << 2,
         checked= 1 << 3,
-    } element_state_t;
-
-    inline element_state_t operator&(element_state_t left, element_state_t right) {
-        return static_cast<element_state_t>(static_cast<uint_fast8_t>(left) & static_cast<uint_fast8_t>(right));
-    }
-    inline element_state_t operator|(element_state_t left, element_state_t right) {
-        return static_cast<element_state_t>(static_cast<uint_fast8_t>(left) | static_cast<uint_fast8_t>(right));
-    }
-
+    );
     element_state_t parse_element_state(const std::string&);
-
-    namespace sdf
-    {
-        enum style_decleration_flag
-        {
-            none = 0,
-            geometry = 1 << 0,
-        };
-    }
 
     struct style_sheet
     {
@@ -124,5 +100,3 @@ namespace tabletopify
     }
     inline constexpr style_resolver& g_style_resolver = singleton<style_resolver>::get();
 }
-
-std::ostream& operator<<(std::ostream&, const tabletopify::element_state_t&);

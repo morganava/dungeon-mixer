@@ -54,28 +54,28 @@ namespace tabletopify
     // Base Audio Data
     void audio_data::load(std::shared_ptr<audio_data> audio)
     {
-        MX_ASSERT(audio->_state == UNLOADED);
-        audio->_state = LOADING;
+        MX_ASSERT(audio->_state == audio_data_state::unloaded);
+        audio->_state = audio_data_state::loading;
 
-        worker(Worker_FileIO).enqueue([=]() -> void
+        worker(worker_id::fileio).enqueue([=]() -> void
         {
             audio->load_impl();
-            audio->_state = LOADED;
+            audio->_state = audio_data_state::loaded;
         });
     }
 
     void audio_data::unload(std::shared_ptr<audio_data> audio)
     {
-        MX_ASSERT(audio->_state == LOADED);
-        audio->_state = UNLOADING;
+        MX_ASSERT(audio->_state == audio_data_state::loaded);
+        audio->_state = audio_data_state::unloading;
 
-        worker(Worker_FileIO).enqueue([=]() -> void
+        worker(worker_id::fileio).enqueue([=]() -> void
         {
             audio->unload_impl();
             // need to set this to PENDING_UNLOADED because at this point
             // the audio has 2 references to it, so if we set the flag to UNLOADED
             // the audio_directory::update loop could try and load it again
-            audio->_state = PENDING_UNLOADED;
+            audio->_state = audio_data_state::pending_unloaded;
         });
     }
 
@@ -102,9 +102,9 @@ namespace tabletopify
 
     sf::SoundBuffer& one_shot_data::get_sound_buffer(bool positionable)
     {
-        MX_ASSERT(this->_state == LOADED);
+        MX_ASSERT(this->_state == audio_data_state::loaded);
 
-        auto index = worker(Worker_Background).nextIndex(_buffers.size());
+        auto index = worker(worker_id::background).nextIndex(_buffers.size());
         return _buffers[index];
     }
 
@@ -143,7 +143,7 @@ namespace tabletopify
 
     sf::SoundBuffer& loop_data::get_sound_buffer(bool positionable)
     {
-        MX_ASSERT(this->_state == LOADED);
+        MX_ASSERT(this->_state == audio_data_state::loaded);
 
         return positionable ? _mono_loop_buffer : _loop_buffer;
     }

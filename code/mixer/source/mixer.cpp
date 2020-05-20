@@ -31,7 +31,7 @@ namespace tabletopify
         // MX_LOG_INFO("dt: {}, width: {}, height: {}", dt, width, height);
         // do queued UI work
         work_item wi;
-        while(worker(Worker_UI).try_dequeue(wi))
+        while(worker(worker_id::ui).try_dequeue(wi))
         {
             wi.func();
             if(wi.finished)
@@ -51,7 +51,7 @@ namespace tabletopify
         // get_renderer()->update(dt, width, height);
 
         volatile bool finished = false;
-        worker(Worker_Background).enqueue([dt]()
+        worker(worker_id::background).enqueue([dt]()
         {
             get_audio_directory()->update(dt);
             get_playback_manager()->update(dt);
@@ -142,5 +142,5 @@ int main() try
 }
 catch(const std::exception& ex)
 {
-    get_logger()->blocking_log(LogLevel_Error, ex.what());
+    get_logger()->blocking_log(tabletopify::log_level::error, ex.what());
 }

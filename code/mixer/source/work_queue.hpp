@@ -1,6 +1,7 @@
 #pragma once
 
 #include "uuid.hpp"
+#include "enums.hpp"
 
 namespace tabletopify
 {
@@ -78,15 +79,13 @@ namespace tabletopify
         volatile bool* finished;    // TODO: get rid of volatile, replace wth std::mutex* or atomic_flag
     };
 
-    enum worker_id
-    {
-        Worker_UI = 0,
-        Worker_FileIO,
-        Worker_Background,
-        Worker_Logging,
+    MX_MAKE_ENUM(worker_id, uint_fast8_t,
+            ui,
+            fileio,
+            background,
+            logging
+    );
 
-        Worker_Count,
-    };
 
     // https://godbolt.org/z/9L1Rda
 
@@ -100,23 +99,25 @@ namespace tabletopify
     private:
         std::atomic_bool _accepting_work = true;
 
-        std::mutex _mutex[Worker_Count];
-        std::queue<work_item> _queue[Worker_Count];
-        std::thread _threads[Worker_Count];
-        std::thread::id _thread_ids[Worker_Count];
+        constexpr static uint_fast8_t _worker_count = static_cast<uint_fast8_t>(worker_id::count);
 
-        std::minstd_rand _rand[Worker_Count];
+        std::mutex _mutex[_worker_count];
+        std::queue<work_item> _queue[_worker_count];
+        std::thread _threads[_worker_count];
+        std::thread::id _thread_ids[_worker_count];
+
+        std::minstd_rand _rand[_worker_count];
 
         friend class worker;
-        friend void worker_thread(size_t);
+        friend void worker_thread(worker_id_t);
     };
 
     class worker
     {
     private:
-        const size_t _index;
+        const uint_fast8_t _worker_index;
     public:
-        worker(size_t index) : _index(index) {}
+        constexpr worker(worker_id_t id) : _worker_index(static_cast<uint_fast8_t>(id)) {}
         std::thread::id getThreadId() const;
         void enqueue(run_once_task&& work);
         void enqueue(run_once_task&& work, volatile bool* finished);

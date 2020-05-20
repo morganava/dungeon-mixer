@@ -12,7 +12,7 @@ namespace tabletopify
         for(auto& it : _entries)
         {
             auto& playbackEntry = it.second;
-            if(playbackEntry.audioData->state() != LOADED)
+            if(playbackEntry.audioData->state() != audio_data_state::loaded)
             {
                 continue;
             }
@@ -50,7 +50,7 @@ namespace tabletopify
             {
                 if(playbackEntry.seamlessLoop == false && playbackEntry.timeSincePlaybackEnd == 0.0f)
                 {
-                    playbackEntry.repeatDelay = worker(Worker_Background).nextFloat(playbackEntry.repeatMin, playbackEntry.repeatMax);
+                    playbackEntry.repeatDelay = worker(worker_id::background).nextFloat(playbackEntry.repeatMin, playbackEntry.repeatMax);
                 }
 
                 playbackEntry.timeSincePlaybackEnd += dt;
@@ -157,13 +157,13 @@ namespace tabletopify
 
             switch(playbackEntry.audioData->get_type())
             {
-                case ONE_SHOT:
+                case audio_type::one_shot:
                     playbackEntry.seamlessLoop = false;
                     playbackEntry.repeatMin = trackEntry.repeat.min;
                     playbackEntry.repeatMax = trackEntry.repeat.max;
                     playbackEntry.dirtyBuffer = false;
                     break;
-                case LOOP:
+                case audio_type::loop:
                     playbackEntry.seamlessLoop = true;
                     if(playbackEntry.positional != trackEntry.position.enabled)
                     {
@@ -174,6 +174,8 @@ namespace tabletopify
                         playbackEntry.dirtyBuffer = false;
                     }
                     break;
+                default:
+                    MX_FAIL_FAST();
             }
 
             playbackEntry.positional = trackEntry.position.enabled;

@@ -28,35 +28,45 @@ namespace tabletopify
                         draw_edit(dt); break;
                     case screen::about:
                         draw_about(dt); break;
+                    default:
+                        break;
                 }
             }
-
-            for(size_t i = 0; i <= static_cast<size_t>(imgui::render_pass::full); ++i)
-                if (imgui::widget_context_menu wcm(&root.contextMenu); wcm.draw(static_cast<imgui::render_pass_t>(i), [&](auto& self) {
-                    self.tags={"test"};
-                }))
+            if (imgui::widget_context_menu wcm(&root.contextMenu); true)
             {
-                mxSpacer(self.tags={"test"});
-                mxSpacer(self.tags={"test"});
-                mxSpacer(self.tags={"test"});
+                for(size_t i = 0; i <= static_cast<size_t>(imgui::render_pass::full); ++i)
+                    if (wcm.draw(static_cast<imgui::render_pass_t>(i), [&](auto& self) {
+                        self.tags={"test"};
+                    }))
+                    {
+                        mxVScroll(&root.contextMenuScroll, self.tags={"test"})
+                        {
+                            mxSpacer(self.tags={"test"});
+                            mxSpacer(self.tags={"test"});
+                            mxSpacer(self.tags={"test"});
+                            mxSpacer(self.tags={"test"});
+                            mxSpacer(self.tags={"test"});
+                        }
+                    }
             }
-
         }
 
-        g_nanovg.set_draw_layer(draw_layer::foreground);
-        imgui::g_context.push_scissor({{0,0},{(double)width,(double)height}});
-        g_nanovg.color_fill_circle({{64,64}, 32}, color::yellow);
+        // g_nanovg.set_draw_layer(draw_layer::foreground);
+        // imgui::g_context.push_scissor({{0,0},{(double)width,(double)height}});
+        // g_nanovg.color_fill_circle({{64,64}, 32}, color::yellow);
 
-        g_nanovg.set_draw_layer(draw_layer::background);
-        imgui::g_context.push_scissor({{0,0},{(double)width,(double)height}});
-        g_nanovg.color_fill_circle({{48,48}, 32}, color::teal);
+        // g_nanovg.set_draw_layer(draw_layer::background);
+        // imgui::g_context.push_scissor({{0,0},{(double)width,(double)height}});
+        // g_nanovg.color_fill_circle({{48,48}, 32}, color::teal);
 
-        imgui::g_context.pop_scissor();
+        // imgui::g_context.pop_scissor();
+        MX_ASSERT(imgui::g_context.render_bound_stack_size() == 0);
+        // std::exit(0);
     }
 
     void ui::sync_playlists()
     {
-        worker(Worker_Background) << []()
+        worker(worker_id::background) << []()
         {
             std::vector<playlist_widget> playlists;
             std::map<atmosphere_handle_t, atmosphere_widget> atmospheres;
@@ -90,7 +100,7 @@ namespace tabletopify
                 playlists.push_back(std::move(currentPlaylistWidget));
             }
 
-            worker(Worker_UI) << [playlists=std::move(playlists), atmospheres=std::move(atmospheres)]() mutable-> void
+            worker(worker_id::ui) << [playlists=std::move(playlists), atmospheres=std::move(atmospheres)]() mutable-> void
             {
                 g_ui.root.playlist.playlists = std::move(playlists);
                 g_ui.root.playlist.atmospheres = std::move(atmospheres);
@@ -127,7 +137,7 @@ namespace tabletopify
 
     void ui::set_atmosphere_favorite(atmosphere_handle_t handle, bool favorited)
     {
-        worker(Worker_Background) << [=]() -> void
+        worker(worker_id::background) << [=]() -> void
         {
             if (favorited) {
                 g_playlist_directory.favorite_atmosphere(handle);
@@ -135,7 +145,7 @@ namespace tabletopify
                 g_playlist_directory.unfavorite_atmosphere(handle);
             }
 
-            worker(Worker_UI) << [=]() -> void
+            worker(worker_id::ui) << [=]() -> void
             {
                 if (favorited) {
                     g_ui.add_atmosphere_to_playlist(playlist_handle::favorites, handle);
@@ -150,7 +160,7 @@ namespace tabletopify
     {
         widget.volumeVal = volume;
         widget.muteUnmute.checked = false;
-        worker(Worker_Background) << [=]() -> void
+        worker(worker_id::background) << [=]() -> void
         {
             g_playback_manager.set_atmosphere_volume(handle, volume);
             g_playback_manager.set_atmosphere_mute(handle, false);
@@ -160,7 +170,7 @@ namespace tabletopify
     void ui::set_atmosphere_mute(atmosphere_widget& widget, atmosphere_handle_t handle, bool muted)
     {
         widget.volume.currentVal = muted ? 0.0f : widget.volumeVal;
-        worker(Worker_Background) << [=]() -> void
+        worker(worker_id::background) << [=]() -> void
         {
             g_playback_manager.set_atmosphere_mute(handle, muted);
         };
@@ -168,7 +178,7 @@ namespace tabletopify
 
     void ui::set_atmosphere_play(atmosphere_handle_t handle, bool playing)
     {
-        worker(Worker_Background) << [=]()
+        worker(worker_id::background) << [=]()
         {
             if (playing) {
                 g_playback_manager.play_atmosphere(handle);
@@ -178,7 +188,7 @@ namespace tabletopify
                 g_playlist_directory.remove_atmosphere(playlist_handle::playing, handle);
             }
 
-            worker(Worker_UI) << [=]()
+            worker(worker_id::ui) << [=]()
             {
                 if (playing) {
                     g_ui.add_atmosphere_to_playlist(playlist_handle::playing, handle);
@@ -192,11 +202,11 @@ namespace tabletopify
     void ui::create_new_atmosphere(playlist_handle_t playlistHandle)
     {
         constexpr static auto* defaultTitle = "New Mix";
-        worker(Worker_Background) << [=]()
+        worker(worker_id::background) << [=]()
         {
             atmosphere_entry atmosphereEntry =
             {
-                worker(Worker_Background).nextUUID(),
+                worker(worker_id::background).nextUUID(),
                 defaultTitle,
                 1.0f,
                 false,
@@ -213,7 +223,7 @@ namespace tabletopify
             }
             g_playlist_directory.add_atmosphere(playlistHandle, atmosphereHandle);
 
-            worker(Worker_UI) << [=]()
+            worker(worker_id::ui) << [=]()
             {
                 atmosphere_widget atmosphereWidget;
                 atmosphereWidget.title.text = defaultTitle;
@@ -236,7 +246,7 @@ namespace tabletopify
 
     void ui::do_audio_search(const utf8_string& query)
     {
-        worker(Worker_Background) << [=]() -> void
+        worker(worker_id::background) << [=]() -> void
         {
             auto audioHandles = g_audio_directory.get_audio_handles_by_query(query);
             std::vector<audio_query_result_widget> queryWidgets;
@@ -245,7 +255,7 @@ namespace tabletopify
                 queryWidgets.push_back({handle, {entry.title}});
             }
 
-            worker(Worker_UI) << [queryWidgets=std::move(queryWidgets)]() mutable -> void
+            worker(worker_id::ui) << [queryWidgets=std::move(queryWidgets)]() mutable -> void
             {
                 g_ui.root.edit.search.queryResults = std::move(queryWidgets);
             };
@@ -268,7 +278,7 @@ namespace tabletopify
                 mxButton(&currentPlaylist.title, self.tags = {"lightText","sidebarEntry", "indent"};
                     self.on_click = [=]() -> void
                     {
-                        worker(Worker_UI) << [=]() -> void
+                        worker(worker_id::ui) << [=]() -> void
                         {
                             g_ui.root.currentScreen = screen::playlist;
                             g_ui.root.playlist.currentPlaylistHandle = currentPlaylist.handle;
@@ -280,7 +290,7 @@ namespace tabletopify
                 self.on_click = []() -> void
                 {
                     MX_LOG_INFO("EDIT");
-                    worker(Worker_UI) << []() -> void
+                    worker(worker_id::ui) << []() -> void
                     {
                         g_ui.root.currentScreen = screen::edit;
                     };
@@ -289,7 +299,7 @@ namespace tabletopify
                 self.on_click = []() -> void
                 {
                     MX_LOG_INFO("ABOUT");
-                    worker(Worker_UI) << []() -> void
+                    worker(worker_id::ui) << []() -> void
                     {
                         g_ui.root.currentScreen = screen::about;
                     };

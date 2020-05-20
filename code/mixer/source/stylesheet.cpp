@@ -22,7 +22,7 @@ namespace tabletopify
             "contextMenu",
         };
 
-        static_assert(countof(typeStrings) == (size_t)element_type::count, "mismatch of element_type enum and names");
+        static_assert(countof(typeStrings) == static_cast<size_t>(element_type::count), "mismatch of element_type enum and names");
 
         for(uint_fast8_t i = 0; i < countof(typeStrings); ++i)
         {
