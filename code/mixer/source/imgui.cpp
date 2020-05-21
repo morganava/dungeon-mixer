@@ -11,33 +11,28 @@ namespace tabletopify
 {
     namespace imgui
     {
-        // render_bounds
-
-        rect render_bounds::eval(const rect& desired) const
-        {
-            return this->callback(this->widget, desired);
-        }
-
         // context
 
         void context::update(double dt)
         {
-            MX_ASSERT(_render_bounds_stack.size() == 0);
+            MX_ASSERT(_widget_stack.size() == 0);
+            MX_ASSERT(_render_scissor_stack.size() == 0);
         }
 
-        void context::push_render_bounds(const render_bounds& rb)
+        void context::push_widget(widget_base* w)
         {
-            _render_bounds_stack.push_back(rb);
+            _widget_stack.push_back(w);
         }
 
-        const render_bounds& context::peek_render_bounds() const
+        void context::pop_widget()
         {
-            return _render_bounds_stack.back();
+            _widget_stack.pop_back();
         }
 
-        void context::pop_render_bounds()
+        widget_base* context::parent_widget() const
         {
-            _render_bounds_stack.pop_back();
+            MX_ASSERT(_widget_stack.size() > 0);
+            return _widget_stack.back();
         }
 
         void context::focus_window_widget(widget_id_t id)
@@ -87,6 +82,12 @@ namespace tabletopify
 
         }
 
+        rect widget_base::bounds_callback_impl(rect desired)
+        {
+            MX_FAIL_FAST("This method should never be called; widgets that support children must implement this themselves");
+            return {};
+        }
+
         void widget_base::focus_widget()
         {
             g_context.focus_widget(this->get_widget_id());
@@ -109,7 +110,7 @@ namespace tabletopify
 
         void widget_base::resolve_box_layout_impl(element_type_t et, widget_flag_t flag)
         {
-            const auto& rb = g_context.peek_render_bounds();
+            auto* parent = g_context.parent_widget();
 
             // get our box layout based off type and tags
             this->_layout = g_style_resolver.resolve_box_layout(et, this->tags);
@@ -120,10 +121,10 @@ namespace tabletopify
             if (!this->_desiredHeightRequested) desiredBounds.size.y = this->_layout.outerBounds.size.y;
 
             // now get our actual bounds from parent
-            this->_layout.outerBounds = rb.eval(desiredBounds);
+            this->_layout.outerBounds = parent->bounds_callback(desiredBounds);
 
             // increment the number of children our parent has
-            rb.widget->increment_child_count();
+            parent->increment_child_count();
 
             // get our style
             this->_style = g_style_resolver.resolve(et, this->tags, element_state::none);
@@ -131,8 +132,9 @@ namespace tabletopify
 
         void widget_base::resolve_scissor_impl()
         {
-            const auto& rb = g_context.peek_render_bounds();
-            const auto& scissor = rb.widget->childScissor();
+            auto* parent = g_context.parent_widget();
+            const auto& scissor = parent->childScissor();
+
             // calc the scissor geometry for widget specific content
             this->_scissor = get_intersecting_rect(scissor, this->_layout.outerBounds);
             this->_childScissor = get_intersecting_rect(scissor, this->_layout.inner_bounds());
@@ -224,24 +226,34 @@ namespace tabletopify
             _scissor = viewport;
             _childScissor = viewport;
             g_input.set_mouse_cursor(mouse_cursor::arrow);
-            g_context.push_render_bounds({&widget_root::root_bounds_callback, this});
         }
 
         widget_root::~widget_root()
         {
-            g_context.pop_render_bounds();
         }
 
-        rect widget_root::bounds_callback(widget_base* parent, const rect& desired)
+        void widget_root::resolve_box_layout_impl(element_type_t et, widget_flag_t flag)
         {
-            auto& self = *static_cast<widget_root*>(parent);
-            return self._layout.child_bounds();
+            // get our box layout based off type and tags
+            this->_layout = g_style_resolver.resolve_box_layout(et, this->tags);
+
+            // now get our actual bounds from parent
+            this->_layout.outerBounds = this->_viewport;
+
+            // get our style
+            this->_style = g_style_resolver.resolve(et, this->tags, element_state::none);
         }
 
-        rect widget_root::root_bounds_callback(widget_base* parent, const rect& desired)
+        void widget_root::resolve_scissor_impl()
         {
-            auto& self = *static_cast<widget_root*>(parent);
-            return self._viewport;
+            // calc the scissor geometry for widget specific content
+            this->_scissor = this->_layout.outerBounds;
+            this->_childScissor = this->_layout.inner_bounds();
+        }
+
+        rect widget_root::bounds_callback_impl(rect)
+        {
+            return this->_layout.child_bounds();
         }
     }
 }

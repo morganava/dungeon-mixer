@@ -9,6 +9,7 @@
 #define MX_LOG_TRACE(...) tabletopify::g_logger.log(tabletopify::log_level::info, __FILE__"(" __STR_LINE__ "): " __VA_ARGS__)
 #define MX_LOG_VAR(X) MX_LOG_INFO(#X " : {}", X);
 #define MX_LOG_INFO_BLOCKING(...) tabletopify::g_logger.blocking_log(tabletopify::log_level::info, __VA_ARGS__)
+#define MX_LOG_VAR_BLOCKING(X) MX_LOG_INFO_BLOCKING(#X " : {}", X);
 namespace tabletopify
 {
     MX_MAKE_ENUM(log_level, uint_fast8_t,

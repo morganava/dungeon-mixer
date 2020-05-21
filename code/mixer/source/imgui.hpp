@@ -12,19 +12,6 @@ namespace tabletopify
     // immmediate mode gui
     namespace imgui
     {
-        struct widget_base;
-
-        typedef rect (*bounds_callback_t)(widget_base*, const rect&);
-
-        struct render_bounds
-        {
-            bounds_callback_t callback = nullptr;
-            widget_base* widget = nullptr;
-
-            rect eval(const rect& desired) const;
-        };
-
-
         MX_MAKE_ENUM(render_pass, uint_fast8_t,
             geometry, /* only calculates layout information */
             full /* layout, input, render */
@@ -35,20 +22,18 @@ namespace tabletopify
             null
         );
 
-        // context
+        // forward declare for context class
+        struct widget_base;
 
+        // context
         class context
         {
         public:
             void update(double dt);
 
-            // render bound tree
-            void push_render_bounds(const render_bounds&);
-            const render_bounds& peek_render_bounds() const;
-            void pop_render_bounds();
-            size_t render_bound_stack_size() const {
-                return _render_bounds_stack.size();
-            }
+            void push_widget(widget_base*);
+            void pop_widget();
+            widget_base* parent_widget() const;
 
             // root widget focus methods for 'window' like widgets
             void focus_window_widget(widget_id_t);
@@ -79,7 +64,7 @@ namespace tabletopify
         private:
             render_pass_t _currentRenderPass = render_pass::full;
 
-            std::vector<render_bounds> _render_bounds_stack;
+            std::vector<widget_base*> _widget_stack;
             std::vector<rect> _render_scissor_stack;
             widget_id_t _focused_window_widget = widget_id::invalid;
             widget_id_t _focused_widget = widget_id::invalid;
@@ -109,7 +94,6 @@ namespace tabletopify
             {
                 return _data ? _data->id : widget_id::null;
             }
-
         protected:
             void focus_widget();
             void unfocus_widget();
@@ -118,6 +102,8 @@ namespace tabletopify
             constexpr const style_sheet& style() const {return *_style;}
 
             // common funcs
+            virtual rect bounds_callback(rect desiredBounds) = 0;
+
             void resolve_box_layout_impl(element_type_t et, widget_flag_t flags);
             void resolve_scissor_impl();
             element_state_t resolve_element_state_impl();
@@ -125,7 +111,7 @@ namespace tabletopify
             void render_box_layout_impl() const;
 
             // widget interface methods
-            static rect bounds_callback(widget_base* wb, const rect& desired) {  MX_ASSERT(!"Empty bounds callback, widget should not have children"); return {};}
+            rect bounds_callback_impl(rect desired);
             constexpr bool should_draw_impl() const {return true;}
             void first_update_impl() {}
             void middle_update_impl() {}
@@ -190,8 +176,14 @@ namespace tabletopify
                         self.last_render();
                     }
 
-                    g_context.pop_render_bounds();
+                    g_context.pop_widget();
                 }
+            }
+
+            rect bounds_callback(rect desiredBounds) override
+            {
+                auto& self = *static_cast<T*>(this);
+                return self.bounds_callback_impl(desiredBounds);
             }
 
             bool draw(render_pass_t renderPass, auto&& lambda) {
@@ -274,9 +266,7 @@ namespace tabletopify
 
             void push_render_bounds()
             {
-                auto* self = static_cast<T*>(this);
-                render_bounds rb = {&T::bounds_callback, self};
-                g_context.push_render_bounds(rb);
+                g_context.push_widget(this);
                 if constexpr (static_cast<bool>(WIDGET_FLAGS & widget_flag::scissors)) {
                     g_context.push_scissor(this->childScissor());
                 }
@@ -312,8 +302,10 @@ namespace tabletopify
             widget_root(const rect& viewport);
             ~widget_root();
 
-            static rect bounds_callback(widget_base* parent, const rect& desired);
-            static rect root_bounds_callback(widget_base* parent, const rect& desired);
+            void resolve_box_layout_impl(element_type_t et, widget_flag_t flag);
+            void resolve_scissor_impl();
+
+            rect bounds_callback_impl(rect desiredBounds);
         private:
             rect _viewport;
         };
@@ -326,7 +318,7 @@ namespace tabletopify
         MX_MAKE_FLAG_ENUM(scroll_direction, uint_fast8_t,
             horizontal = 1 << 0,
             vertical = 1 << 1,
-            both = (1 << 0) | (1 << 1)
+            both = horizontal | vertical
         );
 
         struct scroll_area_data : public widget_data
@@ -347,7 +339,7 @@ namespace tabletopify
 
             void resolve_scissor_impl();
             void first_update_impl();
-            static rect bounds_callback(widget_base* parent, const rect& desired);
+            rect bounds_callback_impl(rect desiredBounds);
             void last_update_impl();
             void last_render_impl() const;
         private:
@@ -388,7 +380,7 @@ namespace tabletopify
             using widget::widget;
 
             void resolve_box_layout_impl(element_type_t et, widget_flag_t flags);
-            static rect bounds_callback(widget_base* parent, const rect& desired);
+            rect bounds_callback_impl(rect desiredBounds);
 
             layout_direction_t direction;
         private:
@@ -517,7 +509,7 @@ namespace tabletopify
         public:
             using widget::widget;
 
-            static rect bounds_callback(widget_base* parent, const rect& desired);
+            rect bounds_callback_impl(rect desiredBounds);
             void last_update_impl();
 
             callback<double> on_change;
@@ -568,7 +560,7 @@ namespace tabletopify
             bool should_draw_impl() const;
             void first_update_impl();
             void resolve_box_layout_impl(element_type_t et, widget_flag_t flag);
-            static rect bounds_callback(widget_base* parent, const rect& desired);
+            rect bounds_callback_impl(rect desiredBounds);
             void first_render_impl() const;
             void last_render_impl() const;
         private:

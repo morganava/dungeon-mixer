@@ -37,7 +37,7 @@ namespace tabletopify
 
         void widget_context_menu::resolve_box_layout_impl(element_type_t et, widget_flag_t flags)
         {
-            const auto& rb = g_context.peek_render_bounds();
+            auto* parent = g_context.parent_widget();
 
             // get our box layout based off type and tags
             this->_layout = g_style_resolver.resolve_box_layout(et, this->tags);
@@ -58,7 +58,7 @@ namespace tabletopify
             else if (g_context.get_render_pass() == render_pass::full)
             {
                 // we need to pop our old bounds on the second pass
-                g_context.pop_render_bounds();
+                g_context.pop_widget();
 
                 // stored height is what we need our inner height to be, we need to add border,margin and padding
                 // to get our final outer height
@@ -72,25 +72,23 @@ namespace tabletopify
             }
 
             // increment the number of children our parent has
-            rb.widget->increment_child_count();
+            parent->increment_child_count();
 
             // get our style
             this->_style = g_style_resolver.resolve(et, this->tags, element_state::none);
         }
 
-        rect widget_context_menu::bounds_callback(widget_base* parent, const rect& desired)
+        rect widget_context_menu::bounds_callback_impl(rect desired)
         {
-            auto& self = *static_cast<widget_context_menu*>(parent);
-
-            auto childBounds = self._layout.child_bounds();
+            auto childBounds = _layout.child_bounds();
 
             rect retval =
             {
-                {childBounds.left(), childBounds.top() + self.internal_height},
+                {childBounds.left(), childBounds.top() + internal_height},
                 {childBounds.width(), desired.height()}
             };
 
-            self.internal_height += desired.height();
+            internal_height += desired.height();
 
             return retval;
         }

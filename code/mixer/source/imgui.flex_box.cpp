@@ -4,9 +4,7 @@ namespace tabletopify
 {
     namespace imgui
     {
-
         // Flex Box
-
         void widget_flex_box::resolve_box_layout_impl(element_type_t et, widget_flag_t flags)
         {
             // resolve the box layout as normal
@@ -24,10 +22,10 @@ namespace tabletopify
 
         }
 
-        rect widget_flex_box::bounds_callback(widget_base* parent, const rect& desired)
+        rect widget_flex_box::bounds_callback_impl(rect desired)
         {
-            auto& self = *static_cast<widget_flex_box*>(parent);
-            auto fbd = self.data();
+            auto& self = *this;
+            auto* fbd = self.data();
             const float sz = fbd->constraints.sizeAt(self._index++);
 
             rect retval = self._layout.child_bounds();

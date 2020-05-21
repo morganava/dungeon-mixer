@@ -122,12 +122,12 @@ namespace tabletopify
         // Slider
         //
 
-        rect widget_slider::bounds_callback(widget_base* parent, const rect& desired)
+        rect widget_slider::bounds_callback_impl(rect desired)
         {
             constexpr size_t SLIDER_TRACK_ID = 0;
             constexpr size_t SLIDER_HANDLE_ID = 1;
 
-            auto& self = *static_cast<widget_slider*>(parent);
+            auto& self = *this;
 
             switch(self._childCounter) {
                 case SLIDER_TRACK_ID:

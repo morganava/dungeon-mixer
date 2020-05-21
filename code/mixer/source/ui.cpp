@@ -60,8 +60,6 @@ namespace tabletopify
         // g_nanovg.color_fill_circle({{48,48}, 32}, color::teal);
 
         // imgui::g_context.pop_scissor();
-        MX_ASSERT(imgui::g_context.render_bound_stack_size() == 0);
-        // std::exit(0);
     }
 
     void ui::sync_playlists()

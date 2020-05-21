@@ -9,8 +9,8 @@ namespace tabletopify
 
         void widget_scroll_area::resolve_scissor_impl()
         {
-            const auto& rb = g_context.peek_render_bounds();
-            const auto& scissor = rb.widget->scissor();
+            auto* widget = g_context.parent_widget();
+            const auto& scissor = widget->scissor();
 
             // need to exclude the scroll area's scroll bars from scissor
             const bool scroll_vertical = static_cast<bool>(this->data()->direction & scroll_direction::vertical);
@@ -57,9 +57,9 @@ namespace tabletopify
             }
         }
 
-        rect widget_scroll_area::bounds_callback(widget_base* parent, const rect& desired)
+        rect widget_scroll_area::bounds_callback_impl(rect desired)
         {
-            auto& self = *static_cast<widget_scroll_area*>(parent);
+            auto& self = *this;
             const auto& data = *self.data();
             const auto inner_bounds = self._layout.inner_bounds();
             const auto scrollbar_size = self.style().scrollbarSize;
