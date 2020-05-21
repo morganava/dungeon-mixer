@@ -21,7 +21,7 @@ namespace tabletopify
     void init_globals()
     {
         // work queue
-        init_work_manager();
+        init_worker_manager();
 
         // init logger with desired log verbosity
         init_logger(log_level::info);
@@ -82,6 +82,6 @@ namespace tabletopify
         free_nanovg();
 
         // close queues off to new work
-        free_work_manager();
+        free_worker_manager();
     }
 }

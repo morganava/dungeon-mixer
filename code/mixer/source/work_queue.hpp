@@ -2,6 +2,7 @@
 
 #include "uuid.hpp"
 #include "enums.hpp"
+#include "singleton.hpp"
 
 namespace tabletopify
 {
@@ -80,10 +81,10 @@ namespace tabletopify
     };
 
     MX_MAKE_ENUM(worker_id, uint_fast8_t,
-            ui,
-            fileio,
-            background,
-            logging
+        ui,
+        fileio,
+        background,
+        logging
     );
 
 
@@ -92,16 +93,21 @@ namespace tabletopify
     class worker_manager
     {
     public:
+        worker_manager();
+        ~worker_manager();
+
         void initialize();
         bool accepting_work() const { return _accepting_work; }
         void finish();
+
+        void enqueue(run_once_task&& work);
 
     private:
         std::atomic_bool _accepting_work = true;
 
         constexpr static uint_fast8_t _worker_count = static_cast<uint_fast8_t>(worker_id::count);
 
-        std::mutex _mutex[_worker_count];
+        std::mutex _queue_mutex[_worker_count];
         std::queue<work_item> _queue[_worker_count];
         std::thread _threads[_worker_count];
         std::thread::id _thread_ids[_worker_count];
@@ -111,6 +117,7 @@ namespace tabletopify
         friend class worker;
         friend void worker_thread(worker_id_t);
     };
+    MX_MAKE_SINGLETON(worker_manager);
 
     class worker
     {
@@ -132,7 +139,4 @@ namespace tabletopify
         size_t nextIndex(size_t count);
         uuid nextUUID();
     };
-
-    void init_work_manager();
-    void free_work_manager();
 }
