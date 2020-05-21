@@ -5,10 +5,12 @@
 #include "enums.hpp"
 
 #define MX_LOG_ERROR(...) tabletopify::g_logger.log(tabletopify::log_level::error, __VA_ARGS__)
+#define MX_LOG_ERROR_BLOCKING(...) tabletopify::g_logger.blocking_log(tabletopify::log_level::error, __VA_ARGS__)
 #define MX_LOG_INFO(...) tabletopify::g_logger.log(tabletopify::log_level::info, __VA_ARGS__)
-#define MX_LOG_TRACE(...) tabletopify::g_logger.log(tabletopify::log_level::info, __FILE__"(" __STR_LINE__ "): " __VA_ARGS__)
-#define MX_LOG_VAR(X) MX_LOG_INFO(#X " : {}", X);
 #define MX_LOG_INFO_BLOCKING(...) tabletopify::g_logger.blocking_log(tabletopify::log_level::info, __VA_ARGS__)
+#define MX_LOG_TRACE(...) MX_LOG_INFO(__FILE__"(" __STR_LINE__ "): " __VA_ARGS__)
+#define MX_LOG_TRACE_BLOCKING(...) MX_LOG_INFO_BLOCKING(__FILE__"(" __STR_LINE__ "): " __VA_ARGS__)
+#define MX_LOG_VAR(X) MX_LOG_INFO(#X " : {}", X);
 #define MX_LOG_VAR_BLOCKING(X) MX_LOG_INFO_BLOCKING(#X " : {}", X);
 namespace tabletopify
 {
