@@ -80,7 +80,7 @@ namespace tabletopify
         volatile bool* finished;    // TODO: get rid of volatile, replace wth std::mutex* or atomic_flag
     };
 
-    MX_MAKE_ENUM(worker_id, uint_fast8_t,
+    MX_MAKE_ENUM(worker_id, size_t,
         ui,
         fileio,
         background,
@@ -90,22 +90,26 @@ namespace tabletopify
 
     // https://godbolt.org/z/9L1Rda
 
-    class worker_manager
+    class work_manager
     {
     public:
-        worker_manager();
-        ~worker_manager();
+        work_manager();
+        ~work_manager();
 
         void initialize();
         bool accepting_work() const { return _accepting_work; }
         void finish();
 
-        void enqueue(run_once_task&& work);
+        void enqueue(size_t workerIndex, run_once_task&& work);
+        void enqueue(size_t workerIndex, run_once_task&& work, volatile bool* finished);
+        void enqueue(size_t workerIndex, work_item&& workItem);
+
+        std::optional<work_item> dequeue(size_t workerIndex);
 
     private:
         std::atomic_bool _accepting_work = true;
 
-        constexpr static uint_fast8_t _worker_count = static_cast<uint_fast8_t>(worker_id::count);
+        constexpr static size_t _worker_count = static_cast<size_t>(worker_id::count);
 
         std::mutex _queue_mutex[_worker_count];
         std::queue<work_item> _queue[_worker_count];
@@ -117,15 +121,14 @@ namespace tabletopify
         friend class worker;
         friend void worker_thread(worker_id_t);
     };
-    MX_MAKE_SINGLETON(worker_manager);
+    MX_MAKE_SINGLETON(work_manager);
 
     class worker
     {
     private:
-        const uint_fast8_t _worker_index;
+        const size_t _worker_index;
     public:
-        constexpr worker(worker_id_t id) : _worker_index(static_cast<uint_fast8_t>(id)) {}
-        std::thread::id getThreadId() const;
+        constexpr worker(worker_id_t id) : _worker_index(static_cast<size_t>(id)) {}
         void enqueue(run_once_task&& work);
         void enqueue(run_once_task&& work, volatile bool* finished);
 

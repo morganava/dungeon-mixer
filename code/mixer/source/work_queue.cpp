@@ -9,12 +9,12 @@ namespace tabletopify
     void worker_thread(worker_id_t id)
     {
         const uint_fast8_t idx = static_cast<uint_fast8_t>(id);
-        g_worker_manager._thread_ids[idx] = std::this_thread::get_id();
+        g_work_manager._thread_ids[idx] = std::this_thread::get_id();
 
         auto w = worker(id);
         work_item wi;
 
-        while(g_worker_manager.accepting_work())
+        while(g_work_manager.accepting_work())
         {
             // empty queue of work
             while(w.try_dequeue(wi))
@@ -31,7 +31,7 @@ namespace tabletopify
         }
     }
 
-    worker_manager::worker_manager()
+    work_manager::work_manager()
     {
         // set the main thread id
         static_assert(0 == static_cast<uint_fast8_t>(worker_id::ui));
@@ -44,7 +44,7 @@ namespace tabletopify
         }
     }
 
-    worker_manager::~worker_manager()
+    work_manager::~work_manager()
     {
         _accepting_work = false;
 
@@ -54,12 +54,40 @@ namespace tabletopify
         }
     }
 
-    // Worker
-
-    std::thread::id worker::getThreadId() const
+    void work_manager::enqueue(size_t workerIndex, run_once_task&& work)
     {
-        return g_worker_manager._thread_ids[_worker_index];
+        enqueue(workerIndex, {std::move(work), nullptr});
     }
+
+    void work_manager::enqueue(size_t workerIndex, run_once_task&& work, volatile bool* finished)
+    {
+        enqueue(workerIndex, {std::move(work), finished});
+    }
+
+    void work_manager::enqueue(size_t workerIndex, work_item&& workItem)
+    {
+        if (_accepting_work)
+        {
+            std::lock_guard<std::mutex> lock(_queue_mutex[workerIndex]);
+            _queue[workerIndex].push(std::move(workItem));
+        }
+    }
+
+    std::optional<work_item> work_manager::dequeue(size_t workerIndex)
+    {
+        MX_ASSERT(_thread_ids[workerIndex] == std::this_thread::get_id());
+
+        std::lock_guard<std::mutex> lock(_queue_mutex[workerIndex]);
+        if(_queue[workerIndex].size() > 0)
+        {
+            std::optional<work_item> retval = std::move(_queue[workerIndex].front());
+            _queue[workerIndex].pop();
+            return retval;
+        }
+        return std::nullopt;
+    }
+
+    // Worker
 
     void worker::enqueue(run_once_task&& work)
     {
@@ -68,52 +96,44 @@ namespace tabletopify
 
     void worker::enqueue(run_once_task&& work, volatile bool* finished)
     {
-        if(g_worker_manager._accepting_work)
-        {
-            std::lock_guard<std::mutex> lock(g_worker_manager._queue_mutex[_worker_index]);
-            g_worker_manager._queue[_worker_index].push({std::move(work), finished});
-        }
+        g_work_manager.enqueue(_worker_index, std::move(work), finished);
     }
 
     bool worker::try_dequeue(work_item& out_work)
     {
-        MX_ASSERT(g_worker_manager._thread_ids[_worker_index] == std::this_thread::get_id());
-
-        std::lock_guard<std::mutex> lock(g_worker_manager._queue_mutex[_worker_index]);
-        if(g_worker_manager._queue[_worker_index].size() > 0)
-        {
-            out_work = std::move(g_worker_manager._queue[_worker_index].front());
-            g_worker_manager._queue[_worker_index].pop();
-            return true;
+        auto retval = g_work_manager.dequeue(_worker_index);
+        if (retval == std::nullopt) {
+            return false;
         }
-        return false;
+        out_work = std::move(retval.value());
+        return true;
     }
 
     float worker::nextFloat(float min, float max)
     {
         MX_ASSERT(min <= max);
-        MX_ASSERT(g_worker_manager._thread_ids[_worker_index] == std::this_thread::get_id());
+        MX_ASSERT(g_work_manager._thread_ids[_worker_index] == std::this_thread::get_id());
 
         std::uniform_real_distribution<float> uniform(min, max);
-        return uniform(g_worker_manager._rand[_worker_index]);
+        return uniform(g_work_manager._rand[_worker_index]);
     }
 
     size_t worker::nextIndex(size_t count)
     {
         MX_ASSERT(count > 0);
-        MX_ASSERT(g_worker_manager._thread_ids[_worker_index] == std::this_thread::get_id());
+        MX_ASSERT(g_work_manager._thread_ids[_worker_index] == std::this_thread::get_id());
 
         std::uniform_int_distribution<size_t> uniform(size_t(0), count - 1);
-        return  uniform(g_worker_manager._rand[_worker_index]);
+        return  uniform(g_work_manager._rand[_worker_index]);
     }
 
     uuid worker::nextUUID()
     {
-        MX_ASSERT(g_worker_manager._thread_ids[_worker_index] == std::this_thread::get_id());
+        MX_ASSERT(g_work_manager._thread_ids[_worker_index] == std::this_thread::get_id());
 
         uuid result;
         std::uniform_int_distribution<uint64_t> uniform(uint64_t(0), ~uint64_t(0));
-        auto& rand = g_worker_manager._rand[_worker_index];
+        auto& rand = g_work_manager._rand[_worker_index];
         result.qwords[0] = uniform(rand);
         result.qwords[1] = uniform(rand);
 

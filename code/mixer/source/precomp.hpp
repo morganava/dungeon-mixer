@@ -32,6 +32,7 @@ namespace fs = std::filesystem;
 #include <algorithm>
 #include <regex>
 #include <type_traits>
+#include <optional>
 
 // utf8proc : https://github.com/JuliaStrings/utf8proc
 #define UTF8PROC_STATIC
