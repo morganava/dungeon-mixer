@@ -29,13 +29,13 @@ namespace tabletopify
         template<size_t N>
         void log(log_level_t lvl, const char (&msg)[N])
         {
-            log_internal(lvl, nullptr, std::forward<decltype(msg)>(msg));
+            log_internal(lvl, false, std::forward<decltype(msg)>(msg));
         }
 
         template<size_t N, typename... Args>
         void log(log_level_t lvl, const char (&format)[N], Args... args)
         {
-            log_internal(lvl, nullptr, std::forward<decltype(format)>(format), std::move(args)...);
+            log_internal(lvl, false, std::forward<decltype(format)>(format), std::move(args)...);
         }
 
         void blocking_log(log_level_t lvl, std::string msg);
@@ -43,27 +43,23 @@ namespace tabletopify
         template<size_t N>
         void blocking_log(log_level_t lvl, const char (&msg)[N])
         {
-            volatile bool finished = false;
-            log_internal(lvl, &finished, std::forward<decltype(msg)>(msg));
+            log_internal(lvl, true, std::forward<decltype(msg)>(msg));
         }
 
         template<size_t N, typename... Args>
         void blocking_log(log_level_t lvl, const char (&format)[N], Args... args)
         {
-            volatile bool finished = false;
-            log_internal(lvl, &finished, std::forward<decltype(format)>(format), std::move(args)...);
+            log_internal(lvl, true, std::forward<decltype(format)>(format), std::move(args)...);
         }
 
     private:
         void write_message(log_level_t lvl, std::chrono::system_clock::time_point now, const char* msg);
 
-        void log_internal(log_level_t lvl, volatile bool* finished, std::string&& msg);
+        void log_internal(log_level_t lvl, bool blocking, std::string&& msg);
         template<size_t N>
-        void log_internal(log_level_t lvl, volatile bool* finished, const char (&msg)[N]);
+        void log_internal(log_level_t lvl, bool blocking, const char (&msg)[N]);
         template<size_t N, typename... Args>
-        void log_internal(log_level_t lvl, volatile bool* finished, const char (&format)[N], Args&&... args);
-
-        void wait(volatile bool* finished);
+        void log_internal(log_level_t lvl, bool blocking, const char (&format)[N], Args&&... args);
 
         log_level_t _log_level;
         FILE* _log_file;
@@ -77,25 +73,35 @@ namespace tabletopify
     MX_MAKE_SINGLETON(logger);
 
     template<size_t N>
-    void logger::log_internal(log_level_t lvl, volatile bool* finished, const char (&msg)[N])
+    void logger::log_internal(log_level_t lvl, bool blocking, const char (&msg)[N])
     {
         auto now = std::chrono::system_clock::now();
-        worker(worker_id::logging).enqueue([=]() -> void
+        auto log_task = [=]() -> void
         {
             g_logger.write_message(lvl, now, msg);
-        }, finished);
-        wait(finished);
+        };
+
+        if (blocking) {
+            worker(worker_id::logging).enqueue_blocking(std::move(log_task));
+        } else {
+            worker(worker_id::logging).enqueue(std::move(log_task));
+        }
     }
 
     template<size_t N, typename... Args>
-    void logger::log_internal(log_level_t lvl, volatile bool* finished, const char (&format)[N], Args&&... args)
+    void logger::log_internal(log_level_t lvl, bool blocking, const char (&format)[N], Args&&... args)
     {
         auto now = std::chrono::system_clock::now();
-        worker(worker_id::logging).enqueue([=, ...args=std::move(args)]() -> void
+        auto log_task = [=, ...args=std::move(args)]() -> void
         {
             auto msg = fmt::format(format, args...);
             g_logger.write_message(lvl, now, msg.c_str());
-        }, finished);
-        wait(finished);
+        };
+
+        if (blocking) {
+            worker(worker_id::logging).enqueue_blocking(std::move(log_task));
+        } else {
+            worker(worker_id::logging).enqueue(std::move(log_task));
+        }
     }
 }

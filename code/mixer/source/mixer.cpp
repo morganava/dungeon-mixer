@@ -28,37 +28,22 @@ namespace tabletopify
 
     void gui_callback(float dt, int width, int height, double pixel_ratio)
     {
-        // MX_LOG_INFO("dt: {}, width: {}, height: {}", dt, width, height);
-        // do queued UI work
-        work_item wi;
-        while(worker(worker_id::ui).try_dequeue(wi))
+        auto fut = worker(worker_id::background).enqueue([&,dt]() -> void
         {
-            wi.func();
-            if(wi.finished)
-            {
-                *wi.finished = true;
-            }
-            wi = {};
-        }
+            get_audio_directory()->update(dt);
+            get_playback_manager()->update(dt);
+        });
+
+        // do queued UI work
+        g_work_manager.do_tasks(worker_id::ui);
 
         g_input.update(dt);
         g_ui.update(dt, width, height);
         g_nanovg.update(dt, width, height, pixel_ratio);
         g_input.update_cursor();
 
-        // // draw widgets
-        // // update_draw(ctx, width, height);
-        // get_renderer()->update(dt, width, height);
-
-        volatile bool finished = false;
-        worker(worker_id::background).enqueue([dt]()
-        {
-            get_audio_directory()->update(dt);
-            get_playback_manager()->update(dt);
-        }, &finished);
-
-        // busy wait
-        while(!finished) std::this_thread::yield();
+        // wait for background audio task to cmplete
+        fut.wait();
     }
 
     // on window exit

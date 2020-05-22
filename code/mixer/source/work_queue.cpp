@@ -8,24 +8,12 @@ namespace tabletopify
 
     void worker_thread(worker_id_t id)
     {
-        const uint_fast8_t idx = static_cast<uint_fast8_t>(id);
-        g_work_manager._thread_ids[idx] = std::this_thread::get_id();
-
-        auto w = worker(id);
-        work_item wi;
+        g_work_manager._thread_ids[static_cast<size_t>(id)] = std::this_thread::get_id();
 
         while(g_work_manager.accepting_work())
         {
             // empty queue of work
-            while(w.try_dequeue(wi))
-            {
-                wi.func();
-                if(wi.finished != nullptr)
-                {
-                    *wi.finished = true;
-                }
-                wi = {};
-            }
+            g_work_manager.do_tasks(id);
             // sleep for 1 ms before looking for work
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
@@ -34,11 +22,11 @@ namespace tabletopify
     work_manager::work_manager()
     {
         // set the main thread id
-        static_assert(0 == static_cast<uint_fast8_t>(worker_id::ui));
+        static_assert(0 == static_cast<size_t>(worker_id::ui));
         _thread_ids[0] = std::this_thread::get_id();
 
         // init threads, start on 1 because 0 is main thread
-        for(uint_fast8_t k = 1; k < _worker_count; k++)
+        for(size_t k = 1; k < _worker_count; k++)
         {
             _threads[k] = std::thread(&worker_thread, static_cast<worker_id_t>(k));
         }
@@ -54,33 +42,68 @@ namespace tabletopify
         }
     }
 
-    void work_manager::enqueue(size_t workerIndex, run_once_task&& work)
+    void work_manager::do_tasks(worker_id_t id)
     {
-        enqueue(workerIndex, {std::move(work), nullptr});
-    }
-
-    void work_manager::enqueue(size_t workerIndex, run_once_task&& work, volatile bool* finished)
-    {
-        enqueue(workerIndex, {std::move(work), finished});
-    }
-
-    void work_manager::enqueue(size_t workerIndex, work_item&& workItem)
-    {
-        if (_accepting_work)
+        const size_t workerIndex = static_cast<size_t>(id);
+        MX_ASSERT(g_work_manager.current_index() == workerIndex);
+        for(auto opttask = g_work_manager.dequeue(workerIndex);
+            opttask != std::nullopt;
+            opttask = g_work_manager.dequeue(workerIndex))
         {
-            std::lock_guard<std::mutex> lock(_queue_mutex[workerIndex]);
-            _queue[workerIndex].push(std::move(workItem));
+            auto& task = opttask.value();
+            task.function.run();
+            task.promise.set_value();
         }
     }
 
-    std::optional<work_item> work_manager::dequeue(size_t workerIndex)
+    size_t work_manager::current_index() const
+    {
+        const thread_local size_t index = []()
+        {
+            const auto id = std::this_thread::get_id();
+            for(size_t k = 0; k < g_work_manager._worker_count; k++)
+            {
+                if (id == g_work_manager._thread_ids[k]) {
+                    return k;
+                }
+            }
+            MX_FAIL_FAST("current_index called from invalid thread");
+            return static_cast<size_t>(worker_id::invalid);
+        }();
+
+        return index;
+    }
+
+    std::future<void> work_manager::enqueue(size_t workerIndex, run_once_task&& work)
+    {
+        std::future<void> retval;
+        if (_accepting_work)
+        {
+            std::lock_guard<std::mutex> lock(_queue_mutex[workerIndex]);
+            task_item task = {std::move(work)};
+            retval = task.promise.get_future();
+            _queue[workerIndex].push(std::move(task));
+        }
+        return retval;
+    }
+
+     void work_manager::enqueue_blocking(size_t workerIndex, run_once_task&& work)
+    {
+        if (_accepting_work)
+        {
+            auto fut = enqueue(workerIndex, std::move(work));
+            fut.wait();
+        }
+    }
+
+    std::optional<task_item> work_manager::dequeue(size_t workerIndex)
     {
         MX_ASSERT(_thread_ids[workerIndex] == std::this_thread::get_id());
 
         std::lock_guard<std::mutex> lock(_queue_mutex[workerIndex]);
         if(_queue[workerIndex].size() > 0)
         {
-            std::optional<work_item> retval = std::move(_queue[workerIndex].front());
+            std::optional<task_item> retval = std::move(_queue[workerIndex].front());
             _queue[workerIndex].pop();
             return retval;
         }
@@ -89,17 +112,18 @@ namespace tabletopify
 
     // Worker
 
-    void worker::enqueue(run_once_task&& work)
+    std::future<void> worker::enqueue(run_once_task&& task)
     {
-        this->enqueue(std::move(work), nullptr);
+        return g_work_manager.enqueue(_worker_index, std::move(task));
     }
 
-    void worker::enqueue(run_once_task&& work, volatile bool* finished)
+    void worker::enqueue_blocking(run_once_task&& task)
     {
-        g_work_manager.enqueue(_worker_index, std::move(work), finished);
+        g_work_manager.enqueue_blocking(_worker_index, std::move(task));
     }
 
-    bool worker::try_dequeue(work_item& out_work)
+
+    bool worker::try_dequeue(task_item& out_work)
     {
         auto retval = g_work_manager.dequeue(_worker_index);
         if (retval == std::nullopt) {

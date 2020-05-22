@@ -27,31 +27,26 @@ namespace tabletopify
 
     void logger::log(log_level_t lvl, std::string msg)
     {
-        log_internal(lvl, nullptr, std::move(msg));
+        log_internal(lvl, false, std::move(msg));
     }
 
     void logger::blocking_log(log_level_t lvl, std::string msg)
     {
-        volatile bool finished = false;
-        log_internal(lvl, &finished, std::move(msg));
+        log_internal(lvl, true, std::move(msg));
     }
 
-    void logger::log_internal(log_level_t lvl, volatile bool* finished, std::string&& msg)
+    void logger::log_internal(log_level_t lvl, bool blocking, std::string&& msg)
     {
         auto now = std::chrono::system_clock::now();
-        worker(worker_id::logging).enqueue([=,msg=std::move(msg)]() -> void
+
+        auto fut = worker(worker_id::logging).enqueue([=,msg=std::move(msg)]() -> void
         {
             g_logger.write_message(lvl, now, msg.c_str());
-        }, finished);
-        wait(finished);
-    }
+        });
 
-    void logger::wait(volatile bool* finished)
-    {
-        if (finished) {
-            while(!*finished) {
-                std::this_thread::yield();
-            }
+        if (blocking) {
+            fut.wait();
         }
+
     }
 }

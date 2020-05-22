@@ -32,6 +32,11 @@ namespace tabletopify
             // convertible to raw function pointer
             if constexpr (std::is_convertible<func_t, void(*)(void)>::value)
             {
+                _run = [](run_once_task* self)
+                {
+                    auto lambda = reinterpret_cast<void(*)(void)>(self->_callable);
+                    lambda();
+                };
                 _callable = reinterpret_cast<void*>(static_cast<void(*)(void)>(lambda));
             }
             // small lambda optimization
@@ -58,26 +63,23 @@ namespace tabletopify
             }
         }
 
-        void operator()()
+        void run()
         {
             _run(this);
-            std::memset(this, 0x00, sizeof(*this));
+            _run = nullptr;
+            _callable = nullptr;
         };
     private:
-        void(*_run)(run_once_task*) = [](run_once_task* self)
-        {
-            auto lambda = reinterpret_cast<void(*)(void)>(self->_callable);
-            lambda();
-        };
+        void(*_run)(run_once_task*) = nullptr;
         void* _callable = nullptr;
     };
 
-    struct work_item
+    struct task_item
     {
         // work to do
-        run_once_task func;
-        // consumer sets to true when finished
-        volatile bool* finished;    // TODO: get rid of volatile, replace wth std::mutex* or atomic_flag
+        run_once_task function;
+        // promise used to notify the caller's future
+        std::promise<void> promise;
     };
 
     MX_MAKE_ENUM(worker_id, size_t,
@@ -87,32 +89,30 @@ namespace tabletopify
         logging
     );
 
-
-    // https://godbolt.org/z/9L1Rda
-
     class work_manager
     {
     public:
         work_manager();
         ~work_manager();
 
-        void initialize();
         bool accepting_work() const { return _accepting_work; }
-        void finish();
 
-        void enqueue(size_t workerIndex, run_once_task&& work);
-        void enqueue(size_t workerIndex, run_once_task&& work, volatile bool* finished);
-        void enqueue(size_t workerIndex, work_item&& workItem);
+        // run all of the tasks in the given worker's queue
+        void do_tasks(worker_id_t id);
 
-        std::optional<work_item> dequeue(size_t workerIndex);
+        std::future<void> enqueue(size_t workerIndex, run_once_task&& work);
+        void enqueue_blocking(size_t workerIndex, run_once_task&& work);
 
+        std::optional<task_item> dequeue(size_t workerIndex);
     private:
+        size_t current_index() const;
+
         std::atomic_bool _accepting_work = true;
 
         constexpr static size_t _worker_count = static_cast<size_t>(worker_id::count);
 
         std::mutex _queue_mutex[_worker_count];
-        std::queue<work_item> _queue[_worker_count];
+        std::queue<task_item> _queue[_worker_count];
         std::thread _threads[_worker_count];
         std::thread::id _thread_ids[_worker_count];
 
@@ -129,15 +129,15 @@ namespace tabletopify
         const size_t _worker_index;
     public:
         constexpr worker(worker_id_t id) : _worker_index(static_cast<size_t>(id)) {}
-        void enqueue(run_once_task&& work);
-        void enqueue(run_once_task&& work, volatile bool* finished);
+        std::future<void> enqueue(run_once_task&& work);
+        void enqueue_blocking(run_once_task&& task);
 
         worker& operator<<(run_once_task&& work) {
             this->enqueue(std::move(work));
             return *this;
         }
 
-        bool try_dequeue(work_item& out_work);
+        bool try_dequeue(task_item& out_work);
         float nextFloat(float min, float max);
         size_t nextIndex(size_t count);
         uuid nextUUID();
