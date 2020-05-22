@@ -122,17 +122,6 @@ namespace tabletopify
         g_work_manager.enqueue_blocking(_worker_index, std::move(task));
     }
 
-
-    bool worker::try_dequeue(task_item& out_work)
-    {
-        auto retval = g_work_manager.dequeue(_worker_index);
-        if (retval == std::nullopt) {
-            return false;
-        }
-        out_work = std::move(retval.value());
-        return true;
-    }
-
     float worker::nextFloat(float min, float max)
     {
         MX_ASSERT(min <= max);

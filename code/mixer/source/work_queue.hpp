@@ -137,7 +137,6 @@ namespace tabletopify
             return *this;
         }
 
-        bool try_dequeue(task_item& out_work);
         float nextFloat(float min, float max);
         size_t nextIndex(size_t count);
         uuid nextUUID();
