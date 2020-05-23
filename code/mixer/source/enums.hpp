@@ -1,5 +1,7 @@
 #pragma once
 
+#define MX_FLAG(N) (1 << (N))
+
 // standard auto incrementing enum, automatic invalid and count values
 
 #define MX_MAKE_ENUM(NAME, TYPE, FIRST, ...)\
