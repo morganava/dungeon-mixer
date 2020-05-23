@@ -57,7 +57,7 @@ namespace tabletopify
         MX_ASSERT(audio->_state == audio_data_state::unloaded);
         audio->_state = audio_data_state::loading;
 
-        worker(worker_id::fileio).enqueue([=]() -> void
+        worker_fileio.enqueue([=]() -> void
         {
             audio->load_impl();
             audio->_state = audio_data_state::loaded;
@@ -69,7 +69,7 @@ namespace tabletopify
         MX_ASSERT(audio->_state == audio_data_state::loaded);
         audio->_state = audio_data_state::unloading;
 
-        worker(worker_id::fileio).enqueue([=]() -> void
+        worker_fileio.enqueue([=]() -> void
         {
             audio->unload_impl();
             // need to set this to PENDING_UNLOADED because at this point
@@ -104,7 +104,7 @@ namespace tabletopify
     {
         MX_ASSERT(this->_state == audio_data_state::loaded);
 
-        auto index = worker(worker_id::background).nextIndex(_buffers.size());
+        auto index = worker_background.nextIndex(_buffers.size());
         return _buffers[index];
     }
 

@@ -129,16 +129,21 @@ namespace tabletopify
         const size_t _worker_index;
     public:
         constexpr worker(worker_id_t id) : _worker_index(static_cast<size_t>(id)) {}
-        std::future<void> enqueue(run_once_task&& work);
-        void enqueue_blocking(run_once_task&& task);
+        std::future<void> enqueue(run_once_task&& work) const;
+        void enqueue_blocking(run_once_task&& task) const;
 
         worker& operator<<(run_once_task&& work) {
             this->enqueue(std::move(work));
             return *this;
         }
 
-        float nextFloat(float min, float max);
-        size_t nextIndex(size_t count);
-        uuid nextUUID();
+        float nextFloat(float min, float max) const;
+        size_t nextIndex(size_t count) const;
+        uuid nextUUID() const;
     };
+
+    constexpr worker worker_ui(worker_id::ui);
+    constexpr worker worker_fileio(worker_id::fileio);
+    constexpr worker worker_background(worker_id::background);
+    constexpr worker worker_logging(worker_id::logging);
 }

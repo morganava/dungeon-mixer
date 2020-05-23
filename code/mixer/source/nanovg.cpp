@@ -45,12 +45,12 @@ namespace tabletopify
         _font_map.insert({fontFilePath, index});
         _nvg_font_faces.push_back(INVALID_NVG_FONT_ID);
 
-        worker(worker_id::fileio).enqueue([index=index, fontFilePath=std::move(fontFilePath)]() -> void
+        worker_fileio.enqueue([index=index, fontFilePath=std::move(fontFilePath)]() -> void
         {
             memory_buffer fontFile(fontFilePath);
             std::string fontName = fontFilePath.filename();
 
-            worker(worker_id::ui).enqueue([index=static_cast<size_t>(index), fontName=std::move(fontName), fontFile=std::move(fontFile)]() -> void
+            worker_ui.enqueue([index=static_cast<size_t>(index), fontName=std::move(fontName), fontFile=std::move(fontFile)]() -> void
             {
                 g_nanovg._nvg_font_faces[index] = nvgCreateFontMem(g_nanovg._ctx, fontName.c_str(), fontFile.data(), static_cast<int>(fontFile.size()));
                 MX_LOG_INFO("Loaded font: {}", fontName);
@@ -78,7 +78,7 @@ namespace tabletopify
         _image_map.insert({imageFilePath, index});
         _nvg_images.push_back({INVALID_NVG_IMAGE_ID, {}});
 
-        worker(worker_id::fileio).enqueue([index=index, imageFilePath=std::move(imageFilePath)]() -> void
+        worker_fileio.enqueue([index=index, imageFilePath=std::move(imageFilePath)]() -> void
         {
             // load file into memory
             memory_buffer imageFile(imageFilePath);
@@ -99,14 +99,14 @@ namespace tabletopify
                 MX_LOG_ERROR("Failed to load image {}: {}", imageFileName, stbi_failure_reason());
 
                 // use the magenta checkboard image
-                worker(worker_id::ui).enqueue([index=static_cast<size_t>(index)]() -> void
+                worker_ui.enqueue([index=static_cast<size_t>(index)]() -> void
                 {
                     g_nanovg._nvg_images[index] = g_nanovg._nvg_images[static_cast<size_t>(image_handle::debug)];
                 });
             }
             else
             {
-                worker(worker_id::ui).enqueue([index=static_cast<size_t>(index), imageFileName=std::move(imageFileName), pixelData=std::move(pixelData), width=width, height=height]() -> void
+                worker_ui.enqueue([index=static_cast<size_t>(index), imageFileName=std::move(imageFileName), pixelData=std::move(pixelData), width=width, height=height]() -> void
                 {
                     g_nanovg._nvg_images[index] =
                     {

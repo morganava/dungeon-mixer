@@ -64,7 +64,7 @@ namespace tabletopify
 
     void ui::sync_playlists()
     {
-        worker(worker_id::background) << []()
+        worker_background.enqueue([]()
         {
             std::vector<playlist_widget> playlists;
             std::map<atmosphere_handle_t, atmosphere_widget> atmospheres;
@@ -98,12 +98,12 @@ namespace tabletopify
                 playlists.push_back(std::move(currentPlaylistWidget));
             }
 
-            worker(worker_id::ui) << [playlists=std::move(playlists), atmospheres=std::move(atmospheres)]() mutable-> void
+            worker_ui.enqueue([playlists=std::move(playlists), atmospheres=std::move(atmospheres)]() mutable-> void
             {
                 g_ui.root.playlist.playlists = std::move(playlists);
                 g_ui.root.playlist.atmospheres = std::move(atmospheres);
-            };
-        };
+            });
+        });
     }
 
     playlist_widget& ui::get_playlist_widget(playlist_handle_t handle)
@@ -135,7 +135,7 @@ namespace tabletopify
 
     void ui::set_atmosphere_favorite(atmosphere_handle_t handle, bool favorited)
     {
-        worker(worker_id::background) << [=]() -> void
+        worker_background.enqueue([=]() -> void
         {
             if (favorited) {
                 g_playlist_directory.favorite_atmosphere(handle);
@@ -143,40 +143,40 @@ namespace tabletopify
                 g_playlist_directory.unfavorite_atmosphere(handle);
             }
 
-            worker(worker_id::ui) << [=]() -> void
+            worker_ui.enqueue([=]() -> void
             {
                 if (favorited) {
                     g_ui.add_atmosphere_to_playlist(playlist_handle::favorites, handle);
                 } else {
                     g_ui.remove_atmosphere_from_playlist(playlist_handle::favorites, handle);
                 }
-            };
-        };
+            });
+        });
     }
 
     void ui::set_atmosphere_volume(atmosphere_widget& widget, atmosphere_handle_t handle, double volume)
     {
         widget.volumeVal = volume;
         widget.muteUnmute.checked = false;
-        worker(worker_id::background) << [=]() -> void
+        worker_background.enqueue([=]() -> void
         {
             g_playback_manager.set_atmosphere_volume(handle, volume);
             g_playback_manager.set_atmosphere_mute(handle, false);
-        };
+        });
     }
 
     void ui::set_atmosphere_mute(atmosphere_widget& widget, atmosphere_handle_t handle, bool muted)
     {
         widget.volume.currentVal = muted ? 0.0f : widget.volumeVal;
-        worker(worker_id::background) << [=]() -> void
+        worker_background.enqueue([=]() -> void
         {
             g_playback_manager.set_atmosphere_mute(handle, muted);
-        };
+        });
     }
 
     void ui::set_atmosphere_play(atmosphere_handle_t handle, bool playing)
     {
-        worker(worker_id::background) << [=]()
+        worker_background.enqueue([=]()
         {
             if (playing) {
                 g_playback_manager.play_atmosphere(handle);
@@ -186,25 +186,25 @@ namespace tabletopify
                 g_playlist_directory.remove_atmosphere(playlist_handle::playing, handle);
             }
 
-            worker(worker_id::ui) << [=]()
+            worker_ui.enqueue([=]()
             {
                 if (playing) {
                     g_ui.add_atmosphere_to_playlist(playlist_handle::playing, handle);
                 } else {
                     g_ui.remove_atmosphere_from_playlist(playlist_handle::playing, handle);
                 }
-            };
-        };
+            });
+        });
     }
 
     void ui::create_new_atmosphere(playlist_handle_t playlistHandle)
     {
         constexpr static auto* defaultTitle = "New Mix";
-        worker(worker_id::background) << [=]()
+        worker_background.enqueue([=]()
         {
             atmosphere_entry atmosphereEntry =
             {
-                worker(worker_id::background).nextUUID(),
+                worker_background.nextUUID(),
                 defaultTitle,
                 1.0f,
                 false,
@@ -221,7 +221,7 @@ namespace tabletopify
             }
             g_playlist_directory.add_atmosphere(playlistHandle, atmosphereHandle);
 
-            worker(worker_id::ui) << [=]()
+            worker_ui.enqueue([=]()
             {
                 atmosphere_widget atmosphereWidget;
                 atmosphereWidget.title.text = defaultTitle;
@@ -238,13 +238,13 @@ namespace tabletopify
                     g_ui.add_atmosphere_to_playlist(playlist_handle::all, atmosphereHandle);
                 }
                 g_ui.add_atmosphere_to_playlist(playlistHandle, atmosphereHandle);
-            };
-        };
+            });
+        });
     }
 
     void ui::do_audio_search(const utf8_string& query)
     {
-        worker(worker_id::background) << [=]() -> void
+        worker_background.enqueue([=]() -> void
         {
             auto audioHandles = g_audio_directory.get_audio_handles_by_query(query);
             std::vector<audio_query_result_widget> queryWidgets;
@@ -253,11 +253,11 @@ namespace tabletopify
                 queryWidgets.push_back({handle, {entry.title}});
             }
 
-            worker(worker_id::ui) << [queryWidgets=std::move(queryWidgets)]() mutable -> void
+            worker_ui.enqueue([queryWidgets=std::move(queryWidgets)]() mutable -> void
             {
                 g_ui.root.edit.search.queryResults = std::move(queryWidgets);
-            };
-        };
+            });
+        });
     }
 
     /// Draw Methods
@@ -276,11 +276,11 @@ namespace tabletopify
                 mxButton(&currentPlaylist.title, self.tags = {"lightText","sidebarEntry", "indent"};
                     self.on_click = [=]() -> void
                     {
-                        worker(worker_id::ui) << [=]() -> void
+                        worker_ui.enqueue([=]() -> void
                         {
                             g_ui.root.currentScreen = screen::playlist;
                             g_ui.root.playlist.currentPlaylistHandle = currentPlaylist.handle;
-                        };
+                        });
                     };
                 );
             }
@@ -288,19 +288,19 @@ namespace tabletopify
                 self.on_click = []() -> void
                 {
                     MX_LOG_INFO("EDIT");
-                    worker(worker_id::ui) << []() -> void
+                    worker_ui.enqueue([]() -> void
                     {
                         g_ui.root.currentScreen = screen::edit;
-                    };
+                    });
                 });
             mxButton(&root.sidebar.about, self.tags = {"mediumText", "sidebarEntry"};
                 self.on_click = []() -> void
                 {
                     MX_LOG_INFO("ABOUT");
-                    worker(worker_id::ui) << []() -> void
+                    worker_ui.enqueue([]() -> void
                     {
                         g_ui.root.currentScreen = screen::about;
-                    };
+                    });
                 });
         }
     }

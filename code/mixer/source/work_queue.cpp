@@ -112,17 +112,17 @@ namespace tabletopify
 
     // Worker
 
-    std::future<void> worker::enqueue(run_once_task&& task)
+    std::future<void> worker::enqueue(run_once_task&& task) const
     {
         return g_work_manager.enqueue(_worker_index, std::move(task));
     }
 
-    void worker::enqueue_blocking(run_once_task&& task)
+    void worker::enqueue_blocking(run_once_task&& task) const
     {
         g_work_manager.enqueue_blocking(_worker_index, std::move(task));
     }
 
-    float worker::nextFloat(float min, float max)
+    float worker::nextFloat(float min, float max) const
     {
         MX_ASSERT(min <= max);
         MX_ASSERT(g_work_manager._thread_ids[_worker_index] == std::this_thread::get_id());
@@ -131,7 +131,7 @@ namespace tabletopify
         return uniform(g_work_manager._rand[_worker_index]);
     }
 
-    size_t worker::nextIndex(size_t count)
+    size_t worker::nextIndex(size_t count) const
     {
         MX_ASSERT(count > 0);
         MX_ASSERT(g_work_manager._thread_ids[_worker_index] == std::this_thread::get_id());
@@ -140,7 +140,7 @@ namespace tabletopify
         return  uniform(g_work_manager._rand[_worker_index]);
     }
 
-    uuid worker::nextUUID()
+    uuid worker::nextUUID() const
     {
         MX_ASSERT(g_work_manager._thread_ids[_worker_index] == std::this_thread::get_id());
 

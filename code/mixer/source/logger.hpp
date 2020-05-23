@@ -82,9 +82,9 @@ namespace tabletopify
         };
 
         if (blocking) {
-            worker(worker_id::logging).enqueue_blocking(std::move(log_task));
+            worker_logging.enqueue_blocking(std::move(log_task));
         } else {
-            worker(worker_id::logging).enqueue(std::move(log_task));
+            worker_logging.enqueue(std::move(log_task));
         }
     }
 
@@ -99,9 +99,9 @@ namespace tabletopify
         };
 
         if (blocking) {
-            worker(worker_id::logging).enqueue_blocking(std::move(log_task));
+            worker_logging.enqueue_blocking(std::move(log_task));
         } else {
-            worker(worker_id::logging).enqueue(std::move(log_task));
+            worker_logging.enqueue(std::move(log_task));
         }
     }
 }

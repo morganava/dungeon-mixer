@@ -28,7 +28,7 @@ namespace tabletopify
 
     void gui_callback(float dt, int width, int height, double pixel_ratio)
     {
-        auto fut = worker(worker_id::background).enqueue([&,dt]() -> void
+        auto fut = worker_background.enqueue([&,dt]() -> void
         {
             get_audio_directory()->update(dt);
             get_playback_manager()->update(dt);

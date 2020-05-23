@@ -7,7 +7,7 @@ namespace tabletopify
 {
     string_manager::string_manager(fs::path&& stringsPath)
     {
-        worker(worker_id::fileio).enqueue([stringsPath=std::move(stringsPath)]() -> void
+        worker_fileio.enqueue([stringsPath=std::move(stringsPath)]() -> void
         {
             MX_ASSERT(fs::exists(stringsPath));
             auto stringsSize = fs::file_size(stringsPath);
@@ -18,7 +18,7 @@ namespace tabletopify
             stringsFile.read(stringsData.data(), stringsSize);
             stringsFile.close();
 
-            worker(worker_id::background).enqueue([stringsData=std::move(stringsData), stringsPath=std::move(stringsPath)]() -> void
+            worker_background.enqueue([stringsData=std::move(stringsData), stringsPath=std::move(stringsPath)]() -> void
             {
                 auto json = nl::json::parse(stringsData);
                 auto& stringList = json["Strings"];

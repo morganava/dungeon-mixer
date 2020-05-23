@@ -20,10 +20,10 @@ namespace tabletopify
                     {
                         if (!point_inside_rect(evt.position(), this->_layout.outerBounds))
                         {
-                            worker(worker_id::ui) << [data=this->data()]()
+                            worker_ui.enqueue([data=this->data()]()
                             {
                                 data->visible = false;
-                            };
+                            });
                         }
                         break;
                     }

@@ -50,7 +50,7 @@ namespace tabletopify
             {
                 if(playbackEntry.seamlessLoop == false && playbackEntry.timeSincePlaybackEnd == 0.0f)
                 {
-                    playbackEntry.repeatDelay = worker(worker_id::background).nextFloat(playbackEntry.repeatMin, playbackEntry.repeatMax);
+                    playbackEntry.repeatDelay = worker_background.nextFloat(playbackEntry.repeatMin, playbackEntry.repeatMax);
                 }
 
                 playbackEntry.timeSincePlaybackEnd += dt;

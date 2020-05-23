@@ -54,14 +54,14 @@ namespace tabletopify
 
     void load_stylesheet()
     {
-        worker(worker_id::fileio).enqueue([]() -> void
+        worker_fileio.enqueue([]() -> void
         {
             auto skinPath = get_skins_path() / "default.json";
             MX_LOG_INFO("Loading skin: {}", skinPath);
 
             memory_buffer mb(skinPath);
 
-            worker(worker_id::background).enqueue([mb=std::move(mb)]() -> void
+            worker_background.enqueue([mb=std::move(mb)]() -> void
             {
                 auto json = nl::json::parse(mb.begin(), mb.end());
                 g_style_resolver = json.get<style_resolver>();
@@ -71,7 +71,7 @@ namespace tabletopify
 
     void load_audio_manifests()
     {
-        worker(worker_id::fileio).enqueue([]() -> void
+        worker_fileio.enqueue([]() -> void
         {
             // iterate over each subdirectory in the library directory
             for(auto& it : fs::directory_iterator(get_library_path()))
@@ -92,7 +92,7 @@ namespace tabletopify
                 manifestFile.close();
 
                 // create audio entries for listings in manifest
-                worker(worker_id::background).enqueue([basePath=it.path(), manifestData=std::move(manifestData)]() -> void
+                worker_background.enqueue([basePath=it.path(), manifestData=std::move(manifestData)]() -> void
                 {
                     auto json = nl::json::parse(manifestData);
                     auto trackList = json["Tracks"];
@@ -133,7 +133,7 @@ namespace tabletopify
 
     void load_playlists()
     {
-        worker(worker_id::fileio).enqueue([]() -> void
+        worker_fileio.enqueue([]() -> void
         {
             // iterate over each subdirectory in the lilbrary directory
             for(auto& it : fs::directory_iterator(get_playlists_path()))
@@ -141,7 +141,7 @@ namespace tabletopify
                 auto path = it.path();
                 memory_buffer bytes(path);
 
-                worker(worker_id::background) << [=,bytes=std::move(bytes)]() -> void
+                worker_background.enqueue([=,bytes=std::move(bytes)]() -> void
                 {
                     MX_LOG_INFO("Loading playlist : {}", path);
 
@@ -285,19 +285,19 @@ namespace tabletopify
                             g_playlist_directory.add_atmosphere(playlistHandle, atmosphereHandle);
                         }
                     }
-                };
+                });
             }
 
-            worker(worker_id::ui) << []()
+            worker_ui.enqueue([]()
             {
                 g_ui.sync_playlists();
-            };
+            });
         });
     }
 
     void load_playlist(const fs::path& playlistPath)
     {
-        worker(worker_id::fileio).enqueue([=]() -> void
+        worker_fileio.enqueue([=]() -> void
         {
             MX_LOG_INFO("Loading playlist: {}", playlistPath);
         });

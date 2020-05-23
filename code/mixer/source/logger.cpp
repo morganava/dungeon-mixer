@@ -39,7 +39,7 @@ namespace tabletopify
     {
         auto now = std::chrono::system_clock::now();
 
-        auto fut = worker(worker_id::logging).enqueue([=,msg=std::move(msg)]() -> void
+        auto fut = worker_logging.enqueue([=,msg=std::move(msg)]() -> void
         {
             g_logger.write_message(lvl, now, msg.c_str());
         });
