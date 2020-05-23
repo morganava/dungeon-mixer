@@ -3,7 +3,7 @@
 #include "work_queue.hpp"
 #include "logger.hpp"
 #include "audio.hpp"
-
+#include "random.hpp"
 
 namespace tabletopify
 {
@@ -50,7 +50,7 @@ namespace tabletopify
             {
                 if(playbackEntry.seamlessLoop == false && playbackEntry.timeSincePlaybackEnd == 0.0f)
                 {
-                    playbackEntry.repeatDelay = worker_background.nextFloat(playbackEntry.repeatMin, playbackEntry.repeatMax);
+                    playbackEntry.repeatDelay = g_random.next_float(playbackEntry.repeatMin, playbackEntry.repeatMax);
                 }
 
                 playbackEntry.timeSincePlaybackEnd += dt;

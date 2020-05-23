@@ -4,6 +4,7 @@
 #include "logger.hpp"
 #include "audio.hpp"
 #include "serialization.hpp"
+#include "random.hpp"
 
 namespace tabletopify
 {
@@ -104,7 +105,7 @@ namespace tabletopify
     {
         MX_ASSERT(this->_state == audio_data_state::loaded);
 
-        auto index = worker_background.nextIndex(_buffers.size());
+        auto index = g_random.next_index(_buffers.size());
         return _buffers[index];
     }
 

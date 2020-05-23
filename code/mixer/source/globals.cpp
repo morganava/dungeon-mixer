@@ -13,6 +13,7 @@
 #include "input.hpp"
 #include "nanovg.hpp"
 #include "stylesheet.hpp"
+#include "random.hpp"
 
 namespace tabletopify
 {
@@ -22,6 +23,9 @@ namespace tabletopify
     {
         // work queue
         init_work_manager();
+
+        // init random
+        init_random(0);
 
         // init logger with desired log verbosity
         init_logger(log_level::info);
@@ -80,6 +84,8 @@ namespace tabletopify
         free_style_resolver();
 
         free_nanovg();
+
+        free_random();
 
         // close queues off to new work
         free_work_manager();

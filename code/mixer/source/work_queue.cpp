@@ -121,40 +121,4 @@ namespace tabletopify
     {
         g_work_manager.enqueue_blocking(_worker_index, std::move(task));
     }
-
-    float worker::nextFloat(float min, float max) const
-    {
-        MX_ASSERT(min <= max);
-        MX_ASSERT(g_work_manager._thread_ids[_worker_index] == std::this_thread::get_id());
-
-        std::uniform_real_distribution<float> uniform(min, max);
-        return uniform(g_work_manager._rand[_worker_index]);
-    }
-
-    size_t worker::nextIndex(size_t count) const
-    {
-        MX_ASSERT(count > 0);
-        MX_ASSERT(g_work_manager._thread_ids[_worker_index] == std::this_thread::get_id());
-
-        std::uniform_int_distribution<size_t> uniform(size_t(0), count - 1);
-        return  uniform(g_work_manager._rand[_worker_index]);
-    }
-
-    uuid worker::nextUUID() const
-    {
-        MX_ASSERT(g_work_manager._thread_ids[_worker_index] == std::this_thread::get_id());
-
-        uuid result;
-        std::uniform_int_distribution<uint64_t> uniform(uint64_t(0), ~uint64_t(0));
-        auto& rand = g_work_manager._rand[_worker_index];
-        result.qwords[0] = uniform(rand);
-        result.qwords[1] = uniform(rand);
-
-        // set version to 4
-        result.bytes[6] = (result.bytes[6] & 0x0F) | 0x40;
-        // set variant to 1
-        result.bytes[8] = (result.bytes[8] & 0x3F) | 0x80;
-
-        return result;
-    }
 }

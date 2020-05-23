@@ -136,10 +136,6 @@ namespace tabletopify
             this->enqueue(std::move(work));
             return *this;
         }
-
-        float nextFloat(float min, float max) const;
-        size_t nextIndex(size_t count) const;
-        uuid nextUUID() const;
     };
 
     constexpr worker worker_ui(worker_id::ui);

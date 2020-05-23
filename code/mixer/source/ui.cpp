@@ -10,6 +10,7 @@
 #include "linear_constraint_solver.hpp"
 #include "array.hpp"
 #include "audio.hpp"
+#include "random.hpp"
 
 namespace tabletopify
 {
@@ -204,7 +205,7 @@ namespace tabletopify
         {
             atmosphere_entry atmosphereEntry =
             {
-                worker_background.nextUUID(),
+                g_random.next_uuid(),
                 defaultTitle,
                 1.0f,
                 false,

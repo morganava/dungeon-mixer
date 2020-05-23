@@ -18,6 +18,7 @@ add_executable(tabletop_mixer
     motley_buffer.cpp
     linear_constraint_solver.cpp
     color.cpp
+    random.cpp
     # main
     mixer.cpp
     # systems
