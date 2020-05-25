@@ -16,7 +16,7 @@ namespace tabletopify
     struct atmosphere_widget
     {
         imgui::checkbox_data favorite = {false};
-        imgui::label_data title;
+        imgui::button_data title;
         imgui::slider_data volume = {0.0, 1.0, 0.0};
         // duplicate value for toggling mute
         double volumeVal = 0.0;
@@ -29,9 +29,21 @@ namespace tabletopify
     struct playlist_widget
     {
         playlist_handle_t handle;
-        imgui::label_data title;
+        utf8_string title;
 
         std::vector<atmosphere_handle_t> entries;
+    };
+
+    struct atmosphere_context_widget
+    {
+        bool visible = false;
+        atmosphere_handle_t handle = atmosphere_handle::invalid;
+        imgui::button_data edit = {"Edit"};
+        imgui::button_data remove = {"Remove"};
+        imgui::button_data copy_to = {"Copy To..."};
+        imgui::button_data move_to = {"Move To..."};
+
+        std::vector<imgui::button_data> playlists;
     };
 
     struct audio_query_result_widget
@@ -151,6 +163,9 @@ namespace tabletopify
                     MX_ASSERT(playlists.front().handle == playlist_handle::all);
                     return playlists.front();
                 }
+
+                atmosphere_context_widget atmosphereMenu;
+
             } playlist;
             struct
             {
@@ -183,9 +198,6 @@ namespace tabletopify
                 } search;
 
             } edit;
-
-            imgui::context_menu_data contextMenu;
-            imgui::scroll_area_data contextMenuScroll;
         } root;
     };
     MX_MAKE_SINGLETON(ui)

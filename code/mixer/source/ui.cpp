@@ -33,34 +33,7 @@ namespace tabletopify
                         break;
                 }
             }
-            if (imgui::widget_context_menu wcm(&root.contextMenu); true)
-            {
-                for(size_t i = 0; i <= static_cast<size_t>(imgui::render_pass::full); ++i)
-                    if (wcm.draw(static_cast<imgui::render_pass_t>(i), [&](auto& self) {
-                        self.tags={"test"};
-                    }))
-                    {
-                        mxVScroll(&root.contextMenuScroll, self.tags={"test"})
-                        {
-                            mxSpacer(self.tags={"test"});
-                            mxSpacer(self.tags={"test"});
-                            mxSpacer(self.tags={"test"});
-                            mxSpacer(self.tags={"test"});
-                            mxSpacer(self.tags={"test"});
-                        }
-                    }
-            }
         }
-
-        // g_nanovg.set_draw_layer(draw_layer::foreground);
-        // imgui::g_context.push_scissor({{0,0},{(double)width,(double)height}});
-        // g_nanovg.color_fill_circle({{64,64}, 32}, color::yellow);
-
-        // g_nanovg.set_draw_layer(draw_layer::background);
-        // imgui::g_context.push_scissor({{0,0},{(double)width,(double)height}});
-        // g_nanovg.color_fill_circle({{48,48}, 32}, color::teal);
-
-        // imgui::g_context.pop_scissor();
     }
 
     void ui::sync_playlists()
@@ -76,7 +49,7 @@ namespace tabletopify
                 playlist_widget currentPlaylistWidget;
 
                 currentPlaylistWidget.handle = playlistHandle;
-                currentPlaylistWidget.title.text = playlistEntry.title;
+                currentPlaylistWidget.title = playlistEntry.title;
                 for (auto atmosphereHandle : playlistEntry.atmospheres)
                 {
                     // create widget if we haven't already for this atmosphere
@@ -274,7 +247,8 @@ namespace tabletopify
             for( size_t i = 0; i < root.playlist.playlists.size(); ++i)
             {
                 auto& currentPlaylist = root.playlist.playlists[i];
-                mxButton(&currentPlaylist.title, self.tags = {"lightText","sidebarEntry", "indent"};
+                imgui::button_data bd(currentPlaylist.title);
+                mxButton(&bd, self.tags = {"lightText","sidebarEntry", "indent"};
                     self.on_click = [=]() -> void
                     {
                         worker_ui.enqueue([=]() -> void
@@ -317,7 +291,7 @@ namespace tabletopify
         mxVBox(&root.playlist.vflex, self.tags = {"content"})
         {
             mxLabel(&root.playlist.heading, self.tags= {"header", "darkText"});
-            mxLabel(&currentPlaylist.title, self.tags = {"header", "title", "lightText"});
+            mxLabel(&root.playlist.title, self.tags = {"header", "title", "lightText"});
             mxHBox(&root.playlist.buttonFlex)
             {
                 mxButton(&root.playlist.export_,
@@ -355,7 +329,11 @@ namespace tabletopify
                         {
                             g_ui.set_atmosphere_favorite(currentAtmosphereHandle, favorited);
                         }); // FAVORITE
-                        mxLabel(&currentEntry.title, self.tags = {"entryTitle"});
+                        mxButton(&currentEntry.title, self.tags = {"entryTitle"},
+                        self.on_click = [&]() -> void
+                        {
+                            MX_LOG_INFO("Click {}", currentEntry.title.text);
+                        });
                         mxSlider(&currentEntry.volume, self.tags = {"entryVolume"};
                         self.on_change = [&](double volume) -> void
                         {
