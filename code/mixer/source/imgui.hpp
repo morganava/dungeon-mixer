@@ -309,7 +309,7 @@ namespace tabletopify
             }
 
             // widget methods
-
+        protected:
             constexpr WIDGET_DATA* data()
             {
                 return reinterpret_cast<WIDGET_DATA*>(this->_data);
@@ -368,6 +368,8 @@ namespace tabletopify
             rect bounds_callback_impl(rect desiredBounds);
             void last_update_impl();
             void last_render_impl() const;
+
+            scroll_direction_t direction = scroll_direction::none;
         private:
             struct
             {
@@ -615,8 +617,8 @@ namespace tabletopify
 
 #define mxRoot(VIEWPORT) MX_WIDGET_CODEGEN(widget_root, VIEWPORT)
 #define mxScrollArea(DATA, ...) MX_WIDGET_CODEGEN(widget_scroll_area, DATA, __VA_ARGS__)
-#define mxHScroll(DATA, ...) MX_WIDGET_CODEGEN(widget_scroll_area, DATA, self.data()->direction = imgui::scroll_direction::horizontal; __VA_ARGS__)
-#define mxVScroll(DATA, ...) MX_WIDGET_CODEGEN(widget_scroll_area, DATA, self.data()->direction = imgui::scroll_direction::vertical; __VA_ARGS__)
+#define mxHScroll(DATA, ...) MX_WIDGET_CODEGEN(widget_scroll_area, DATA, self.direction = imgui::scroll_direction::horizontal; __VA_ARGS__)
+#define mxVScroll(DATA, ...) MX_WIDGET_CODEGEN(widget_scroll_area, DATA, self.direction = imgui::scroll_direction::vertical; __VA_ARGS__)
 #define mxFlexBox(DATA, ...) MX_WIDGET_CODEGEN(widget_flex_box, DATA, __VA_ARGS__)
 #define mxHBox(DATA, ...) MX_WIDGET_CODEGEN(widget_flex_box, DATA, self.direction = imgui::layout_direction::horizontal; __VA_ARGS__)
 #define mxVBox(DATA, ...) MX_WIDGET_CODEGEN(widget_flex_box, DATA, self.direction = imgui::layout_direction::vertical; __VA_ARGS__)

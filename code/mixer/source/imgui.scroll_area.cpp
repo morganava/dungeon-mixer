@@ -13,8 +13,8 @@ namespace tabletopify
             const auto& scissor = widget->scissor();
 
             // need to exclude the scroll area's scroll bars from scissor
-            const bool scroll_vertical = static_cast<bool>(this->data()->direction & scroll_direction::vertical);
-            const bool scroll_horizontal = static_cast<bool>(this->data()->direction & scroll_direction::horizontal);
+            const bool scroll_vertical = static_cast<bool>(this->direction & scroll_direction::vertical);
+            const bool scroll_horizontal = static_cast<bool>(this->direction & scroll_direction::horizontal);
             const auto scrollbar_size = this->style().scrollbarSize;
 
             // calc the scissor geometry for widget specific contetn
@@ -65,7 +65,7 @@ namespace tabletopify
             const auto scrollbar_size = self.style().scrollbarSize;
 
             rect retval;
-            switch(data.direction)
+            switch(this->direction)
             {
                 // stack vertically
                 case scroll_direction::vertical:
@@ -117,8 +117,8 @@ namespace tabletopify
             const auto scroll_step = this->style().scrollbarStep;
 
             const auto bounds = this->_layout.border_inner_bounds();
-            const bool scroll_vertical = static_cast<bool>(this->data()->direction & scroll_direction::vertical);
-            const bool scroll_horizontal = static_cast<bool>(this->data()->direction & scroll_direction::horizontal);
+            const bool scroll_vertical = static_cast<bool>(this->direction & scroll_direction::vertical);
+            const bool scroll_horizontal = static_cast<bool>(this->direction & scroll_direction::horizontal);
 
             // valid scrollable range  (0 to scrollable_height)
 
@@ -348,8 +348,8 @@ namespace tabletopify
 
         void widget_scroll_area::last_render_impl() const
         {
-            const bool scroll_vertical = static_cast<bool>(this->data()->direction & scroll_direction::vertical);
-            const bool scroll_horizontal = static_cast<bool>(this->data()->direction & scroll_direction::horizontal);
+            const bool scroll_vertical = static_cast<bool>(this->direction & scroll_direction::vertical);
+            const bool scroll_horizontal = static_cast<bool>(this->direction & scroll_direction::horizontal);
             const auto back_color = this->style().scrollbarBackColor;
             const auto fore_color = this->style().scrollbarForeColor;
             const auto active_color = this->style().scrollbarActiveColor;
