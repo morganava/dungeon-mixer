@@ -112,6 +112,7 @@ namespace tabletopify
             // widget interface methods
             rect bounds_callback_impl(rect desired);
             constexpr bool should_draw_impl() const {return true;}
+            void handle_input_impl() {}
             void first_update_impl() {}
             void middle_update_impl() {}
             void first_render_impl() const {}
@@ -211,6 +212,7 @@ namespace tabletopify
                         return true;
                     case render_pass::full:
                         self.resolve_box_layout(); /* for click detection */
+                        self.handle_input_impl();
                         self.first_update(); /* post geometry but pre style */
                         self.resolve_style(); /* get the style */
                         self.middle_update(); /* post style resolution but pre render */
@@ -244,6 +246,11 @@ namespace tabletopify
                 auto self = static_cast<T*>(this);
                 self->resolve_box_layout_impl(ELEMENT_TYPE, WIDGET_FLAGS);
                 self->resolve_scissor_impl();
+            }
+
+            void handle_input()
+            {
+                static_cast<T*>(this)->handle_input_impl();
             }
 
             void first_update()
@@ -577,6 +584,7 @@ namespace tabletopify
             using widget::widget;
 
             bool should_draw_impl() const;
+            void handle_input_impl();
             void first_update_impl();
             void resolve_box_layout_impl(element_type_t et, widget_flag_t flag);
             rect bounds_callback_impl(rect desiredBounds);
@@ -600,6 +608,11 @@ namespace tabletopify
 #define MX_WIDGET_CODEGEN(X, PDATA, ...)\
     if (imgui::X widget##__LINE__(PDATA); widget##__LINE__.draw(imgui::g_context.get_render_pass(),[&](auto& self){__VA_ARGS__;}))
 
+#define MX_MULTIPASS_WIDGET_CODEGEN(X, PDATA, ...)\
+    if (imgui::X widget##__LINE__(PDATA); true)\
+        for (size_t i##__LINE__ = 0; i##__LINE__ <= static_cast<size_t>(imgui::render_pass::full); ++i##__LINE__)\
+             if (widget##__LINE__.draw(static_cast<imgui::render_pass_t>(i##__LINE__), [&](auto& self) {__VA_ARGS__;}))
+
 #define mxRoot(VIEWPORT) MX_WIDGET_CODEGEN(widget_root, VIEWPORT)
 #define mxScrollArea(DATA, ...) MX_WIDGET_CODEGEN(widget_scroll_area, DATA, __VA_ARGS__)
 #define mxHScroll(DATA, ...) MX_WIDGET_CODEGEN(widget_scroll_area, DATA, self.data()->direction = imgui::scroll_direction::horizontal; __VA_ARGS__)
@@ -613,3 +626,4 @@ namespace tabletopify
 #define mxTextBox(DATA, ...) MX_WIDGET_CODEGEN(widget_text_box, DATA, __VA_ARGS__)
 #define mxSlider(DATA, ...) MX_WIDGET_CODEGEN(widget_slider, DATA, __VA_ARGS__)
 #define mxCheckbox(DATA, ...) MX_WIDGET_CODEGEN(widget_checkbox, DATA, __VA_ARGS__)
+#define mxContextMenu(DATA, ...) MX_MULTIPASS_WIDGET_CODEGEN(widget_context_menu, DATA, __VA_ARGS__)

@@ -144,6 +144,10 @@ namespace tabletopify
         {
             const auto mouse_position = g_input.get_mouse_position(input_frame::current);
 
+            if (!g_context.is_current_window_widget_focused()) {
+                return element_state::none;
+            }
+
             if (point_inside_rect(
                     mouse_position,
                     this->scissor()) &&
@@ -226,6 +230,7 @@ namespace tabletopify
             _scissor = viewport;
             _childScissor = viewport;
             g_input.set_mouse_cursor(mouse_cursor::arrow);
+            g_context.focus_window_widget(this->get_widget_id());
         }
 
         widget_root::~widget_root()

@@ -1,5 +1,6 @@
 #include "imgui.hpp"
 #include "input.hpp"
+#include "logger.hpp"
 
 namespace tabletopify
 {
@@ -8,6 +9,13 @@ namespace tabletopify
         bool widget_context_menu::should_draw_impl() const
         {
             return this->data()->visible;
+        }
+
+        void widget_context_menu::handle_input_impl()
+        {
+            if (data()->visible) {
+                g_context.focus_window_widget(get_widget_id());
+            }
         }
 
         void widget_context_menu::first_update_impl()
