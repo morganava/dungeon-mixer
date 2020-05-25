@@ -154,7 +154,7 @@ namespace tabletopify
             widget(const widget&) = delete;
             widget(widget&&) = delete;
 
-            constexpr widget(widget_data* pdata)
+            constexpr widget(WIDGET_DATA* pdata)
             : widget_base(pdata)
             { }
 
