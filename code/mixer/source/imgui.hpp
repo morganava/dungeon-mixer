@@ -86,8 +86,6 @@ namespace tabletopify
 
         struct widget_base
         {
-        public:
-            widget_base(widget_data* data);
         protected:
             constexpr const style_sheet& style() const {return *_style;}
 
@@ -124,7 +122,6 @@ namespace tabletopify
             void increment_child_count() { _childCounter++; }
 
         protected:
-
             const style_sheet* _style = nullptr;
             box_layout _layout = {};
             rect _scissor = {};
@@ -132,29 +129,25 @@ namespace tabletopify
             rect _desiredBounds = {};
             bool _desiredWidthRequested = false;
             bool _desiredHeightRequested = false;
-            widget_data* _data = nullptr;
             size_t _childCounter = 0;
         };
 
         template<typename T, element_type ELEMENT_TYPE, typename WIDGET_DATA=widget_data, widget_flag_t WIDGET_FLAGS=widget_flag::none>
         struct widget : public widget_base
         {
-        protected:
-            widget() : widget(nullptr) {};
         public:
             widget(const widget&) = delete;
             widget(widget&&) = delete;
 
             constexpr widget(WIDGET_DATA* pdata)
-            : widget_base(pdata)
+            : _widget_data(std::nullopt)
+            , _data(pdata)
             { }
 
             constexpr widget(WIDGET_DATA&& rdata)
-            : widget_base(nullptr)
-            , _widget_data(std::make_optional(std::move(rdata)))
-            {
-                _data = &_widget_data.value();
-            }
+            : _widget_data(std::make_optional(std::move(rdata)))
+            , _data(&_widget_data.value())
+            { }
 
             // destructor called after child widgets have been handled
             ~widget()
@@ -246,7 +239,6 @@ namespace tabletopify
                 return g_context.is_focused(this->get_widget_id());
             }
 
-        protected:
             // determines whether draw() should be a noop
             bool should_draw() const
             {
@@ -342,6 +334,7 @@ namespace tabletopify
             }
         private:
             std::optional<WIDGET_DATA> _widget_data = std::nullopt;
+            widget_data* const _data = nullptr;
         };
 
         // the root widget with viewport info

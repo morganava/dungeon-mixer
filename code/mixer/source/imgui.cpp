@@ -76,12 +76,6 @@ namespace tabletopify
 
         // widget_base
 
-        widget_base::widget_base(widget_data* data)
-        : _data(data)
-        {
-
-        }
-
         rect widget_base::bounds_callback_impl(rect desired)
         {
             MX_FAIL_FAST("This method should never be called; widgets that support children must implement this themselves");
