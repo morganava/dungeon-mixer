@@ -88,16 +88,7 @@ namespace tabletopify
         {
         public:
             widget_base(widget_data* data);
-
-            constexpr widget_id_t get_widget_id() const
-            {
-                return _data ? _data->id : widget_id::null;
-            }
         protected:
-            void focus_widget();
-            void unfocus_widget();
-            bool is_focused() const;
-
             constexpr const style_sheet& style() const {return *_style;}
 
             // common funcs
@@ -195,6 +186,7 @@ namespace tabletopify
                 }
             }
 
+            // internalish draw methods
             bool draw(render_pass_t renderPass, auto&& lambda) {
 
                 auto& self = static_cast<T&>(*this);
@@ -232,7 +224,29 @@ namespace tabletopify
                 }
                 return false;
             }
+        protected:
+            // public methods
+            constexpr widget_id_t get_widget_id() const
+            {
+                return _data ? _data->id : widget_id::null;
+            }
 
+            void focus_widget()
+            {
+                g_context.focus_widget(this->get_widget_id());
+            }
+
+            void unfocus_widget()
+            {
+                g_context.unfocus_widget(this->get_widget_id());
+            }
+
+            bool is_focused() const
+            {
+                return g_context.is_focused(this->get_widget_id());
+            }
+
+        protected:
             // determines whether draw() should be a noop
             bool should_draw() const
             {

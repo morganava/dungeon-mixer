@@ -88,21 +88,6 @@ namespace tabletopify
             return {};
         }
 
-        void widget_base::focus_widget()
-        {
-            g_context.focus_widget(this->get_widget_id());
-        }
-
-         void widget_base::unfocus_widget()
-        {
-            g_context.unfocus_widget(this->get_widget_id());
-        }
-
-        bool widget_base::is_focused() const
-        {
-            return g_context.is_focused(this->get_widget_id());
-        }
-
         void widget_base::resolve_style_impl(element_type_t et, element_state_t es)
         {
             this->_style = g_style_resolver.resolve(et, this->tags, es);
