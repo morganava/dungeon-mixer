@@ -158,6 +158,13 @@ namespace tabletopify
             : widget_base(pdata)
             { }
 
+            constexpr widget(WIDGET_DATA&& rdata)
+            : widget_base(nullptr)
+            , _widget_data(std::make_optional(std::move(rdata)))
+            {
+                _data = &_widget_data.value();
+            }
+
             // destructor called after child widgets have been handled
             ~widget()
             {
@@ -319,6 +326,8 @@ namespace tabletopify
             {
                 return reinterpret_cast<const WIDGET_DATA*>(this->_data);
             }
+        private:
+            std::optional<WIDGET_DATA> _widget_data = std::nullopt;
         };
 
         // the root widget with viewport info
