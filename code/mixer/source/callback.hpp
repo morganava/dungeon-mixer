@@ -30,7 +30,7 @@ namespace tabletopify
                 MX_ASSERT(singleton<FUNCTOR>::assigned() == false);
 
                 // move to static storage
-                singleton<FUNCTOR>::move(std::move(functor));
+                singleton<FUNCTOR>::construct(std::move(functor));
 
                 this->exec_func = [](ARGS... args) -> void
                 {
@@ -50,17 +50,6 @@ namespace tabletopify
             }
         }
     private:
-
-        template<typename FUNCTOR>
-        constexpr void set_callbacks()
-        {
-            delete_func = &singleton<FUNCTOR>::free;
-            exec_func = [](ARGS... args) -> void
-            {
-                singleton<FUNCTOR>::get()(args...);
-            };
-        }
-
         void(*delete_func)() = nullptr;
         void(*exec_func)(ARGS...) = nullptr;
     };

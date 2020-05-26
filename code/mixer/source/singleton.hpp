@@ -8,60 +8,35 @@ namespace tabletopify
     public:
         static constexpr TYPE* addr()
         {
-            return &data.value;
+            return &(*data);
         }
 
         static constexpr TYPE& get()
         {
-            return data.value;
+            return *data;
         }
 
         template<typename... ARGS>
         static void construct(ARGS&&... args)
         {
-            if (data.assigned) {
-                free();
-            }
-            new (addr()) TYPE(std::forward<ARGS>(args)...);
-            data.assigned = true;
-        }
-
-        static void move(TYPE&& that)
-        {
-            construct(std::forward<TYPE&&>(that));
+            data.emplace(std::forward<ARGS>(args)...);
         }
 
         static constexpr void free()
         {
-            data.value.~TYPE();
-            data.assigned = false;
+            data.reset();
         }
 
         static constexpr bool assigned()
         {
-            return data.assigned;
+            return data.has_value();
         }
 
     private:
-        struct singleton_data
-        {
-            union
-            {
-                TYPE value;
-                uint8_t raw[sizeof(TYPE)];
-            };
-            bool assigned;
-            singleton_data()
-            : raw()
-            , assigned(false)
-            { }
-
-            ~singleton_data() {}
-        };
-        static singleton_data data;
+        static std::optional<TYPE> data;
     };
     template<typename TYPE>
-    typename singleton<TYPE>::singleton_data singleton<TYPE>::singleton::data;
+    typename std::optional<TYPE> singleton<TYPE>::singleton::data;
 
     #define MX_MAKE_SINGLETON(TYPE) \
     constexpr TYPE* get_##TYPE() { return tabletopify::singleton<TYPE>::addr(); } \
