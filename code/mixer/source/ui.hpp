@@ -32,18 +32,11 @@ namespace tabletopify
         utf8_string title;
 
         std::vector<atmosphere_handle_t> entries;
-    };
 
-    struct atmosphere_context_widget
-    {
-        bool visible = false;
-        atmosphere_handle_t handle = atmosphere_handle::invalid;
-        imgui::button_data edit = {"Edit"};
-        imgui::button_data remove = {"Remove"};
-        imgui::button_data copy_to = {"Copy To..."};
-        imgui::button_data move_to = {"Move To..."};
-
-        std::vector<imgui::button_data> playlists;
+        struct {
+            bool visible = false;
+            atmosphere_handle_t atmosphereHandle = atmosphere_handle::invalid;
+        } atmosphereContextMenu;
     };
 
     struct audio_query_result_widget
@@ -61,8 +54,11 @@ namespace tabletopify
         void sync_playlists();
     private:
         playlist_widget& get_playlist_widget(playlist_handle_t handle);
+        playlist_widget& get_current_playlist_widget();
         void remove_atmosphere_from_playlist(playlist_handle_t playlist, atmosphere_handle_t atmosphere);
         void add_atmosphere_to_playlist(playlist_handle_t playlist, atmosphere_handle_t atmosphere);
+
+        // sidebar methods
 
         // playlist screen methods
         void set_atmosphere_favorite(atmosphere_handle_t handle, bool favorited);
@@ -70,6 +66,7 @@ namespace tabletopify
         void set_atmosphere_mute(atmosphere_widget& widget, atmosphere_handle_t handle, bool muted);
         void set_atmosphere_play(atmosphere_handle_t handle, bool playing);
         void create_new_atmosphere(playlist_handle_t handle);
+        void toggle_atmosphere_context_menu(playlist_handle_t playlistHandle, atmosphere_handle_t atmosphereHandle);
 
         // edit screen methods
         void do_audio_search(const utf8_string& query);
@@ -145,26 +142,10 @@ namespace tabletopify
                 imgui::label_data trackVolume = {"Volume"};
                 imgui::slider_data slider = {0.0f, 100.0f, 50.0f};
 
-                playlist_handle_t currentPlaylistHandle = playlist_handle::invalid;
-                size_t currentPlaylistIndex = -1;
+                playlist_handle_t currentPlaylistHandle = playlist_handle::all;
 
                 std::vector<playlist_widget> playlists;
                 std::map<atmosphere_handle_t, atmosphere_widget> atmospheres;
-
-                playlist_widget& currentPlaylist()
-                {
-                    for(auto& currentWidget : playlists) {
-                        if (currentWidget.handle == currentPlaylistHandle) {
-                            return currentWidget;
-                        }
-                    }
-
-                    // fallback to 'all'
-                    MX_ASSERT(playlists.front().handle == playlist_handle::all);
-                    return playlists.front();
-                }
-
-                atmosphere_context_widget atmosphereMenu;
 
             } playlist;
             struct

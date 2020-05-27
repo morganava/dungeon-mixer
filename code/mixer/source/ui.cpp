@@ -88,7 +88,14 @@ namespace tabletopify
             }
         }
 
+        MX_FAIL_FAST("No playlist_widget exists for handle {}", handle);
+
         return *static_cast<playlist_widget*>(nullptr);
+    }
+
+    playlist_widget& ui::get_current_playlist_widget()
+    {
+        return get_playlist_widget(root.playlist.currentPlaylistHandle);
     }
 
     void ui::remove_atmosphere_from_playlist(playlist_handle_t playlist, atmosphere_handle_t atmosphere)
@@ -106,6 +113,8 @@ namespace tabletopify
 
         entries.push_back(atmosphere);
     }
+
+    // Playlist Screen Methods
 
     void ui::set_atmosphere_favorite(atmosphere_handle_t handle, bool favorited)
     {
@@ -216,6 +225,28 @@ namespace tabletopify
         });
     }
 
+    void ui::toggle_atmosphere_context_menu(playlist_handle_t playlistHandle, atmosphere_handle_t atmosphereHandle)
+    {
+        worker_ui.enqueue([=]() -> void
+        {
+            auto& playlist = g_ui.get_playlist_widget(playlistHandle);
+            auto& acm = playlist.atmosphereContextMenu;
+
+            if (acm.visible && acm.atmosphereHandle == atmosphereHandle)
+            {
+                acm.visible = false;
+                acm.atmosphereHandle = atmosphere_handle::invalid;
+            } else
+            {
+                acm.visible = true;
+                acm.atmosphereHandle = atmosphereHandle;
+            }
+        });
+
+    }
+
+    // Edit Screen Methods
+
     void ui::do_audio_search(const utf8_string& query)
     {
         worker_background.enqueue([=]() -> void
@@ -248,7 +279,7 @@ namespace tabletopify
             {
                 auto& currentPlaylist = root.playlist.playlists[i];
                 imgui::button_data bd(currentPlaylist.title);
-                mxButton(&bd, self.tags = {"lightText","sidebarEntry", "indent"};
+                mxButton(currentPlaylist.title, self.tags = {"lightText","sidebarEntry", "indent"};
                     self.on_click = [=]() -> void
                     {
                         worker_ui.enqueue([=]() -> void
@@ -287,11 +318,11 @@ namespace tabletopify
             return;
         }
 
-        auto& currentPlaylist = root.playlist.currentPlaylist();
+        auto& currentPlaylist = get_current_playlist_widget();
         mxVBox(&root.playlist.vflex, self.tags = {"content"})
         {
             mxLabel(&root.playlist.heading, self.tags= {"header", "darkText"});
-            mxLabel(&root.playlist.title, self.tags = {"header", "title", "lightText"});
+            mxLabel(currentPlaylist.title, self.tags = {"header", "title", "lightText"});
             mxHBox(&root.playlist.buttonFlex)
             {
                 mxButton(&root.playlist.export_,
@@ -318,9 +349,11 @@ namespace tabletopify
             }
             mxVScroll(&root.playlist.scroll)
             {
-                for (auto& currentAtmosphereHandle : currentPlaylist.entries) {
-                    MX_ASSERT(root.playlist.atmospheres.find(currentAtmosphereHandle) != root.playlist.atmospheres.end());
-                    auto& currentEntry = root.playlist.atmospheres[currentAtmosphereHandle];
+                for (auto& currentAtmosphereHandle : currentPlaylist.entries)
+                {
+                    auto it = root.playlist.atmospheres.find(currentAtmosphereHandle);
+                    MX_ASSERT(it != root.playlist.atmospheres.end());
+                    auto& currentEntry = it->second;
 
                     mxHBox(&root.playlist.rowFlex, self.tags={"playlistEntry"})
                     {
@@ -330,10 +363,11 @@ namespace tabletopify
                             g_ui.set_atmosphere_favorite(currentAtmosphereHandle, favorited);
                         }); // FAVORITE
                         mxButton(&currentEntry.title, self.tags = {"entryTitle"},
-                        self.on_click = [&]() -> void
+                        self.on_click = [=]() -> void
                         {
-                            MX_LOG_INFO("Click {}", currentEntry.title.text);
-                        });
+                            g_ui.toggle_atmosphere_context_menu(currentPlaylist.handle, currentAtmosphereHandle);
+
+                        }); // TOGGLE CONTEXT MENU
                         mxSlider(&currentEntry.volume, self.tags = {"entryVolume"};
                         self.on_change = [&](double volume) -> void
                         {
@@ -349,6 +383,46 @@ namespace tabletopify
                         {
                             g_ui.set_atmosphere_play(currentAtmosphereHandle, playing);
                         }); // PLAY/STOP BUTTON
+                    }
+
+                    if (currentPlaylist.atmosphereContextMenu.visible &&
+                        currentPlaylist.atmosphereContextMenu.atmosphereHandle == currentAtmosphereHandle)
+                    {
+                        mxButton({"Edit"}, self.tags={"indent", "contextMenuEntry"},
+                        self.on_click = []() -> void
+                        {
+                            MX_LOG_INFO("EDIT");
+                        });
+
+                        if (currentPlaylist.handle >= playlist_handle::__first_generated)
+                        {
+                            mxButton({"Remove"}, self.tags={"indent", "contextMenuEntry"},
+                            self.on_click = []() -> void
+                            {
+                                MX_LOG_INFO("REMOVE");
+                            });
+                        }
+
+                        mxButton({"Copy..."}, self.tags={"indent", "contextMenuEntry"},
+                        self.on_click = []() -> void
+                        {
+                            MX_LOG_INFO("COPY");
+                        });
+
+                        if (currentPlaylist.handle >= playlist_handle::__first_generated)
+                        {
+                            mxButton({"Move..."}, self.tags={"indent", "contextMenuEntry"},
+                            self.on_click = []() -> void
+                            {
+                                MX_LOG_INFO("MOVE");
+                            });
+                        }
+
+                        mxButton({"Delete"}, self.tags={"indent", "contextMenuEntry"},
+                        self.on_click = []() -> void
+                        {
+                            MX_LOG_INFO("DELETE");
+                        });
                     }
                 }
             }

@@ -169,6 +169,10 @@
         "backgroundColor" : "transparent"
 
     },
+    ".contextMenuEntry" : {
+        "textHalign" : "left",
+        "size" : [0, 36]
+    },
     "spacer.test" : {
         "size" : [100,100],
         "backgroundColor" : "green"
