@@ -57,6 +57,10 @@ enum class NAME : size_t {\
     invalid = static_cast<size_t>(~size_t(0)),\
     MX_GLUE(MX_ENUM_VALUES, __VA_OPT__(_N))(__VA_ARGS__)\
 };\
+constexpr bool operator<(NAME##_t left, NAME##_t right) { return static_cast<size_t>(left) < static_cast<size_t>(right); }\
+constexpr bool operator<=(NAME##_t left, NAME##_t right) { return static_cast<size_t>(left) <= static_cast<size_t>(right); }\
+constexpr bool operator>(NAME##_t left, NAME##_t right) { return static_cast<size_t>(left) > static_cast<size_t>(right); }\
+constexpr bool operator>=(NAME##_t left, NAME##_t right) { return static_cast<size_t>(left) >= static_cast<size_t>(right); }\
 inline NAME##_t next_##NAME() {\
     static size_t next = static_cast<size_t>(NAME::__first_generated);\
     return static_cast<NAME##_t>(next++);\
