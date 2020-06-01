@@ -114,6 +114,43 @@ namespace tabletopify
         entries.push_back(atmosphere);
     }
 
+    // Sidebar Methods
+
+    void ui::set_screen(screen_t screen)
+    {
+        root.currentScreen = screen;
+
+        g_ui.root.playlist.atmosphereContextMenu.visible = false;
+        g_ui.root.playlist.atmosphereContextMenu.atmosphereHandle = atmosphere_handle::invalid;
+    }
+
+    void ui::set_screen_playlist(playlist_handle_t handle)
+    {
+        if (handle != root.playlist.currentPlaylistHandle) {
+            worker_ui.enqueue([=]() -> void
+            {
+                g_ui.set_screen(screen::playlist);
+                g_ui.root.playlist.currentPlaylistHandle = handle;
+            });
+        }
+    }
+
+    void ui::set_screen_edit(atmosphere_handle_t handle)
+    {
+        worker_ui.enqueue([=]() -> void
+        {
+            g_ui.set_screen(screen::edit);
+        });
+    }
+
+    void ui::set_screen_about()
+    {
+        worker_ui.enqueue([=]() -> void
+        {
+            g_ui.set_screen(screen::about);
+        });
+    }
+
     // Playlist Screen Methods
 
     void ui::set_atmosphere_favorite(atmosphere_handle_t handle, bool favorited)
@@ -229,8 +266,7 @@ namespace tabletopify
     {
         worker_ui.enqueue([=]() -> void
         {
-            auto& playlist = g_ui.get_playlist_widget(playlistHandle);
-            auto& acm = playlist.atmosphereContextMenu;
+            auto& acm = g_ui.root.playlist.atmosphereContextMenu;
 
             if (acm.visible && acm.atmosphereHandle == atmosphereHandle)
             {
@@ -282,31 +318,19 @@ namespace tabletopify
                 mxButton(currentPlaylist.title, self.tags = {"lightText","sidebarEntry", "indent"};
                     self.on_click = [=]() -> void
                     {
-                        worker_ui.enqueue([=]() -> void
-                        {
-                            g_ui.root.currentScreen = screen::playlist;
-                            g_ui.root.playlist.currentPlaylistHandle = currentPlaylist.handle;
-                        });
+                        g_ui.set_screen_playlist(currentPlaylist.handle);
                     };
                 );
             }
             mxButton(&root.sidebar.edit, self.tags = {"mediumText", "sidebarEntry"};
                 self.on_click = []() -> void
                 {
-                    MX_LOG_INFO("EDIT");
-                    worker_ui.enqueue([]() -> void
-                    {
-                        g_ui.root.currentScreen = screen::edit;
-                    });
+                    g_ui.set_screen_edit(atmosphere_handle::invalid);
                 });
             mxButton(&root.sidebar.about, self.tags = {"mediumText", "sidebarEntry"};
                 self.on_click = []() -> void
                 {
-                    MX_LOG_INFO("ABOUT");
-                    worker_ui.enqueue([]() -> void
-                    {
-                        g_ui.root.currentScreen = screen::about;
-                    });
+                    g_ui.set_screen_about();
                 });
         }
     }
@@ -385,8 +409,8 @@ namespace tabletopify
                         }); // PLAY/STOP BUTTON
                     }
 
-                    if (currentPlaylist.atmosphereContextMenu.visible &&
-                        currentPlaylist.atmosphereContextMenu.atmosphereHandle == currentAtmosphereHandle)
+                    if (root.playlist.atmosphereContextMenu.visible &&
+                        root.playlist.atmosphereContextMenu.atmosphereHandle == currentAtmosphereHandle)
                     {
                         mxButton({"Edit"}, self.tags={"indent", "contextMenuEntry"},
                         self.on_click = []() -> void

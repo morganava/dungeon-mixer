@@ -32,11 +32,6 @@ namespace tabletopify
         utf8_string title;
 
         std::vector<atmosphere_handle_t> entries;
-
-        struct {
-            bool visible = false;
-            atmosphere_handle_t atmosphereHandle = atmosphere_handle::invalid;
-        } atmosphereContextMenu;
     };
 
     struct audio_query_result_widget
@@ -59,6 +54,10 @@ namespace tabletopify
         void add_atmosphere_to_playlist(playlist_handle_t playlist, atmosphere_handle_t atmosphere);
 
         // sidebar methods
+        void set_screen(screen_t screen);
+        void set_screen_playlist(playlist_handle_t handle);
+        void set_screen_edit(atmosphere_handle_t handle);
+        void set_screen_about();
 
         // playlist screen methods
         void set_atmosphere_favorite(atmosphere_handle_t handle, bool favorited);
@@ -147,6 +146,10 @@ namespace tabletopify
                 std::vector<playlist_widget> playlists;
                 std::map<atmosphere_handle_t, atmosphere_widget> atmospheres;
 
+                struct {
+                    bool visible = false;
+                    atmosphere_handle_t atmosphereHandle = atmosphere_handle::invalid;
+                } atmosphereContextMenu;
             } playlist;
             struct
             {
