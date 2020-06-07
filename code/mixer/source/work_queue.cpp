@@ -100,14 +100,16 @@ namespace tabletopify
     {
         MX_ASSERT(_thread_ids[workerIndex] == std::this_thread::get_id());
 
-        std::lock_guard<std::mutex> lock(_queue_mutex[workerIndex]);
-        if(_queue[workerIndex].size() > 0)
+        std::optional<task_item> retval = std::nullopt;
         {
-            std::optional<task_item> retval = std::move(_queue[workerIndex].front());
-            _queue[workerIndex].pop();
-            return retval;
+            std::lock_guard<std::mutex> lock(_queue_mutex[workerIndex]);
+            if(_queue[workerIndex].size() > 0)
+            {
+                retval = std::move(_queue[workerIndex].front());
+                _queue[workerIndex].pop();
+            }
         }
-        return std::nullopt;
+        return retval;
     }
 
     // Worker
