@@ -37,7 +37,7 @@ namespace tabletopify
     struct audio_query_result_widget
     {
         audio_handle_t handle;
-        imgui::button_data title;
+        utf8_string title;
     };
 
     class ui
@@ -54,6 +54,7 @@ namespace tabletopify
         playlist_widget& get_current_playlist_widget();
         void remove_atmosphere_from_playlist(playlist_handle_t playlist, atmosphere_handle_t atmosphere);
         void add_atmosphere_to_playlist(playlist_handle_t playlist, atmosphere_handle_t atmosphere);
+        void hide_atmosphere_context_menu();
 
         // sidebar methods
         void on_set_screen_playlist(playlist_handle_t handle);
@@ -68,6 +69,8 @@ namespace tabletopify
         void on_create_new_atmosphere(playlist_handle_t handle);
         void on_toggle_atmosphere_context_menu(playlist_handle_t playlistHandle, atmosphere_handle_t atmosphereHandle);
         void on_remove_atmosphere(playlist_handle_t playlistHandle, atmosphere_handle_t atmosphereHandle);
+        void on_open_atmosphere_copy_menu();
+        void on_copy_atmosphere(playlist_handle_t playlist, atmosphere_handle_t atmosphere);
 
         // edit screen methods
         void on_do_audio_search(const utf8_string& query);
@@ -146,9 +149,11 @@ namespace tabletopify
                 std::map<atmosphere_handle_t, atmosphere_widget> atmospheres;
 
                 struct {
-                    bool visible = false;
                     atmosphere_handle_t atmosphereHandle = atmosphere_handle::invalid;
+                    bool visible = false;
+                    bool copyVisible = false;
                 } atmosphereContextMenu;
+
             } playlist;
             struct
             {

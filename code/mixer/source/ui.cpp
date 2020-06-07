@@ -86,9 +86,7 @@ namespace tabletopify
     {
         root.currentScreen = screen;
 
-        // hide the atmopshere context menu in the playlist screen
-        g_ui.root.playlist.atmosphereContextMenu.visible = false;
-        g_ui.root.playlist.atmosphereContextMenu.atmosphereHandle = atmosphere_handle::invalid;
+        hide_atmosphere_context_menu();
     }
 
     playlist_widget& ui::get_playlist_widget(playlist_handle_t handle)
@@ -122,7 +120,17 @@ namespace tabletopify
         auto& widget = get_playlist_widget(playlist);
         auto& entries = widget.entries;
 
-        entries.push_back(atmosphere);
+        if(std::find(entries.begin(), entries.end(), atmosphere) == entries.end())
+        {
+            entries.push_back(atmosphere);
+        }
+    }
+
+    void ui::hide_atmosphere_context_menu()
+    {
+        g_ui.root.playlist.atmosphereContextMenu.visible = false;
+        g_ui.root.playlist.atmosphereContextMenu.copyVisible = false;
+        g_ui.root.playlist.atmosphereContextMenu.atmosphereHandle = atmosphere_handle::invalid;
     }
 
     // Sidebar Methods
@@ -260,10 +268,10 @@ namespace tabletopify
             worker_ui.enqueue([=]()
             {
                 atmosphere_widget atmosphereWidget;
-                atmosphereWidget.title.text = defaultTitle;
+                atmosphereWidget.title = imgui::button_data(defaultTitle);
                 atmosphereWidget.atmosphereHandle = atmosphereHandle;
 
-                MX_LOG_INFO("title : {}", atmosphereWidget.title.text);
+                MX_LOG_INFO("title : {}", atmosphereWidget.title.text());
 
                 // this atmosphere should not exist in our map yet
                 MX_ASSERT(g_ui.root.playlist.atmospheres.find(atmosphereHandle) == g_ui.root.playlist.atmospheres.end());
@@ -301,11 +309,34 @@ namespace tabletopify
         worker_ui.enqueue([=]() -> void
         {
             g_ui.remove_atmosphere_from_playlist(playlistHandle, atmosphereHandle);
+            g_ui.hide_atmosphere_context_menu();
         });
 
         worker_background.enqueue([=]() -> void
         {
             g_playlist_directory.remove_atmosphere(playlistHandle, atmosphereHandle);
+        });
+    }
+
+    void ui::on_open_atmosphere_copy_menu()
+    {
+        worker_ui.enqueue([]() -> void
+        {
+            g_ui.root.playlist.atmosphereContextMenu.copyVisible = true;
+        });
+    }
+
+    void ui::on_copy_atmosphere(playlist_handle_t playlistHandle, atmosphere_handle_t atmosphereHandle)
+    {
+        worker_ui.enqueue([=]() -> void
+        {
+           g_ui.hide_atmosphere_context_menu();
+           g_ui.add_atmosphere_to_playlist(playlistHandle, atmosphereHandle);
+        });
+
+        worker_background.enqueue([=]() -> void
+        {
+            g_playlist_directory.add_atmosphere(playlistHandle, atmosphereHandle);
         });
     }
 
@@ -461,8 +492,24 @@ namespace tabletopify
                         mxButton({"Copy..."}, self.tags={"indent", "contextMenuEntry"},
                         self.on_click = []() -> void
                         {
-                            MX_LOG_INFO("COPY");
+                            g_ui.on_open_atmosphere_copy_menu();
                         });
+
+                        if (g_ui.root.playlist.atmosphereContextMenu.copyVisible)
+                        {
+                            for(auto& playlist : g_ui.root.playlist.playlists) {
+                                if (playlist.handle >= playlist_handle::__first_generated)
+                                {
+                                    mxButton(playlist.title, self.tags={"indent", "contextMenuEntry"},
+                                    self.on_click = [&]() -> void
+                                    {
+                                        MX_LOG_INFO("Copy {}", playlist.title);
+                                        g_ui.on_copy_atmosphere(playlist.handle, currentAtmosphereHandle);
+
+                                    });
+                                }
+                            }
+                        }
 
                         if (currentPlaylistHandle >= playlist_handle::__first_generated)
                         {
@@ -509,10 +556,10 @@ namespace tabletopify
                 {
                     for(auto& queryResult : root.edit.search.queryResults)
                     {
-                        mxButton(&queryResult.title, self.tags={"audioResult"};
+                        mxButton(queryResult.title, self.tags={"audioResult"};
                         self.on_click = [&]() -> void
                         {
-                            MX_LOG_INFO("CLICKED : {}, {}", queryResult.title.text, queryResult.handle);
+                            MX_LOG_INFO("CLICKED : {}, {}", queryResult.title, queryResult.handle);
                         });
                         mxSpacer();
                     }

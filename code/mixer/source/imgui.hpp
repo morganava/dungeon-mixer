@@ -463,9 +463,12 @@ namespace tabletopify
 
         struct button_data : widget_data
         {
-            utf8_string text;
             button_data() = default;
-            button_data(utf8_string text) : text(std::move(text)) {}
+            button_data(utf8_string text) : _text(std::move(text)) {}
+            const utf8_string& text() const { return _text; }
+        private:
+            utf8_string _text;
+            friend struct widget_button;
         };
 
         struct widget_button : public widget<widget_button, element_type::button, button_data, widget_flag::scissors>
