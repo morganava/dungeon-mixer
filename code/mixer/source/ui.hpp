@@ -57,6 +57,7 @@ namespace tabletopify
         void hide_atmosphere_context_menu();
 
         // sidebar methods
+        void on_create_new_playlist();
         void on_set_screen_playlist(playlist_handle_t handle);
         void on_set_screen_edit(atmosphere_handle_t handle);
         void on_set_screen_about();

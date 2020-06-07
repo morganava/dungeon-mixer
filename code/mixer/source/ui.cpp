@@ -135,6 +135,20 @@ namespace tabletopify
 
     // Sidebar Methods
 
+    void ui::on_create_new_playlist()
+    {
+        worker_background.enqueue([]() -> void
+        {
+            auto playlistHandle = g_playlist_directory.create_playlist();
+            MX_LOG_INFO("Create new playlist : {}", playlistHandle);
+
+            worker_ui.enqueue([=]() -> void
+            {
+                g_ui.root.playlist.playlists.push_back({playlistHandle, "New Playlist"});
+            });
+        });
+    }
+
     void ui::on_set_screen_playlist(playlist_handle_t handle)
     {
         worker_ui.enqueue([=]() -> void
@@ -369,7 +383,10 @@ namespace tabletopify
             mxSpacer(self.requestHeight(100.0));
             mxButton(&root.sidebar.playlists, self.tags = {"mediumText", "sidebarEntry"});
             mxButton(&root.sidebar.newPlaylist, self.tags = {"lightText", "sidebarEntry", "indent"};
-                self.on_click = []() -> void {MX_LOG_INFO("NEW PLAYLIST");});
+            self.on_click = []() -> void
+            {
+                g_ui.on_create_new_playlist();
+            });
             for( size_t i = 0; i < root.playlist.playlists.size(); ++i)
             {
                 auto& currentPlaylist = root.playlist.playlists[i];
@@ -382,15 +399,15 @@ namespace tabletopify
                 );
             }
             mxButton(&root.sidebar.edit, self.tags = {"mediumText", "sidebarEntry"};
-                self.on_click = []() -> void
-                {
-                    g_ui.on_set_screen_edit(atmosphere_handle::invalid);
-                });
+            self.on_click = []() -> void
+            {
+                g_ui.on_set_screen_edit(atmosphere_handle::invalid);
+            });
             mxButton(&root.sidebar.about, self.tags = {"mediumText", "sidebarEntry"};
-                self.on_click = []() -> void
-                {
-                    g_ui.on_set_screen_about();
-                });
+            self.on_click = []() -> void
+            {
+                g_ui.on_set_screen_about();
+            });
         }
     }
 
