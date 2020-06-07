@@ -394,6 +394,32 @@ namespace tabletopify
         }
     }
 
+    void ui::on_delete_atmosphere(atmosphere_handle_t atmosphereHandle)
+    {
+        worker_ui.enqueue([=]() -> void
+        {
+            for(auto& widget : g_ui.root.playlist.playlists)
+            {
+                auto& entries = widget.entries;
+                auto it = std::find(entries.begin(), entries.end(), atmosphereHandle);
+                if (it != entries.end())
+                {
+                    entries.erase(it);
+                }
+            }
+        });
+
+        worker_background.enqueue([=]() -> void
+        {
+            g_playback_manager.stop_atmosphere(atmosphereHandle);
+            for(auto playlistHandle : g_playlist_directory.get_playlist_handles())
+            {
+                g_playlist_directory.remove_atmosphere(playlistHandle, atmosphereHandle);
+            }
+            g_atmosphere_directory.remove_entry(atmosphereHandle);
+        });
+    }
+
     // Edit Screen Methods
 
     void ui::on_do_audio_search(const utf8_string& query)
@@ -593,9 +619,10 @@ namespace tabletopify
                         }
 
                         mxButton({"Delete"}, self.tags={"indent", "contextMenuEntry"},
-                        self.on_click = []() -> void
+                        self.on_click = [=]() -> void
                         {
-                            MX_LOG_INFO("DELETE");
+                            MX_LOG_INFO("Delete atmosphere : {}", currentAtmosphereHandle);
+                            g_ui.on_delete_atmosphere(currentAtmosphereHandle);
                         });
                     }
                 }

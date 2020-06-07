@@ -138,9 +138,11 @@ namespace tabletopify
     void playback_manager::stop_track(track_handle_t trackHandle)
     {
         auto it = _entries.find(trackHandle);
-        MX_ASSERT(it != _entries.end());
-        it->second.sound.stop();
-        _entries.erase(it);
+        if (it != _entries.end())
+        {
+            it->second.sound.stop();
+            _entries.erase(it);
+        }
     }
 
     void playback_manager::sync_track(track_handle_t trackHandle)

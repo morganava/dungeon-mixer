@@ -61,7 +61,9 @@ namespace tabletopify
         auto& playlistEntry = this->get_entry(playlist);
         // remove atmosphere
         auto it = std::find(playlistEntry.atmospheres.begin(), playlistEntry.atmospheres.end(), atmosphere);
-        MX_ASSERT(it != playlistEntry.atmospheres.end());
-        playlistEntry.atmospheres.erase(it);
+        if (it != playlistEntry.atmospheres.end())
+        {
+            playlistEntry.atmospheres.erase(it);
+        }
     }
 }
