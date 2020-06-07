@@ -130,6 +130,7 @@ namespace tabletopify
     {
         g_ui.root.playlist.atmosphereContextMenu.visible = false;
         g_ui.root.playlist.atmosphereContextMenu.copyVisible = false;
+        g_ui.root.playlist.atmosphereContextMenu.moveVisible = false;
         g_ui.root.playlist.atmosphereContextMenu.atmosphereHandle = atmosphere_handle::invalid;
     }
 
@@ -337,6 +338,7 @@ namespace tabletopify
         worker_ui.enqueue([]() -> void
         {
             g_ui.root.playlist.atmosphereContextMenu.copyVisible = true;
+            g_ui.root.playlist.atmosphereContextMenu.moveVisible = false;
         });
     }
 
@@ -352,6 +354,44 @@ namespace tabletopify
         {
             g_playlist_directory.add_atmosphere(playlistHandle, atmosphereHandle);
         });
+    }
+
+    void ui::on_open_atmosphere_move_menu()
+    {
+        worker_ui.enqueue([]() -> void
+        {
+            g_ui.root.playlist.atmosphereContextMenu.copyVisible = false;
+            g_ui.root.playlist.atmosphereContextMenu.moveVisible = true;
+        });
+    }
+
+    void ui::on_move_atmosphere(playlist_handle_t playlistSrc, playlist_handle_t playlistDest, atmosphere_handle_t atmosphereHandle)
+    {
+        MX_ASSERT(playlistSrc >= playlist_handle::__first_generated);
+        MX_ASSERT(playlistDest >= playlist_handle::__first_generated);
+
+        if (playlistSrc != playlistDest)
+        {
+            worker_ui.enqueue([=]() -> void
+            {
+               g_ui.hide_atmosphere_context_menu();
+               g_ui.add_atmosphere_to_playlist(playlistDest, atmosphereHandle);
+               g_ui.remove_atmosphere_from_playlist(playlistSrc, atmosphereHandle);
+            });
+
+            worker_background.enqueue([=]() -> void
+            {
+                g_playlist_directory.add_atmosphere(playlistDest, atmosphereHandle);
+                g_playlist_directory.remove_atmosphere(playlistSrc, atmosphereHandle);
+            });
+        }
+        else
+        {
+            worker_ui.enqueue([]() -> void
+            {
+                g_ui.hide_atmosphere_context_menu();
+            });
+        }
     }
 
     // Edit Screen Methods
@@ -520,7 +560,7 @@ namespace tabletopify
                                     mxButton(playlist.title, self.tags={"indent", "contextMenuEntry"},
                                     self.on_click = [&]() -> void
                                     {
-                                        MX_LOG_INFO("Copy {}", playlist.title);
+                                        MX_LOG_INFO("Copy to '{}'", playlist.title);
                                         g_ui.on_copy_atmosphere(playlist.handle, currentAtmosphereHandle);
 
                                     });
@@ -533,8 +573,23 @@ namespace tabletopify
                             mxButton({"Move..."}, self.tags={"indent", "contextMenuEntry"},
                             self.on_click = []() -> void
                             {
-                                MX_LOG_INFO("MOVE");
+                                g_ui.on_open_atmosphere_move_menu();
                             });
+
+                            if (g_ui.root.playlist.atmosphereContextMenu.moveVisible)
+                            {
+                                for(auto& playlist : g_ui.root.playlist.playlists) {
+                                    if (playlist.handle >= playlist_handle::__first_generated)
+                                    {
+                                        mxButton(playlist.title, self.tags={"indent", "contextMenuEntry"},
+                                        self.on_click = [&]() -> void
+                                        {
+                                            MX_LOG_INFO("Move to '{}'", playlist.title);
+                                            g_ui.on_move_atmosphere(currentPlaylistHandle, playlist.handle, currentAtmosphereHandle);
+                                        });
+                                    }
+                                }
+                            }
                         }
 
                         mxButton({"Delete"}, self.tags={"indent", "contextMenuEntry"},

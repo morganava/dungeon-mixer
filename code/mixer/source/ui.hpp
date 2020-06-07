@@ -72,6 +72,8 @@ namespace tabletopify
         void on_remove_atmosphere(playlist_handle_t playlistHandle, atmosphere_handle_t atmosphereHandle);
         void on_open_atmosphere_copy_menu();
         void on_copy_atmosphere(playlist_handle_t playlist, atmosphere_handle_t atmosphere);
+        void on_open_atmosphere_move_menu();
+        void on_move_atmosphere(playlist_handle_t playlistSrc, playlist_handle_t playlistDest, atmosphere_handle_t atmosphere);
 
         // edit screen methods
         void on_do_audio_search(const utf8_string& query);
@@ -153,6 +155,7 @@ namespace tabletopify
                     atmosphere_handle_t atmosphereHandle = atmosphere_handle::invalid;
                     bool visible = false;
                     bool copyVisible = false;
+                    bool moveVisible = false;
                 } atmosphereContextMenu;
 
             } playlist;
