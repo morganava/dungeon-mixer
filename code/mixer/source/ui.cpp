@@ -80,6 +80,17 @@ namespace tabletopify
         });
     }
 
+    // Mutators
+
+    void ui::set_screen(screen_t screen)
+    {
+        root.currentScreen = screen;
+
+        // hide the atmopshere context menu in the playlist screen
+        g_ui.root.playlist.atmosphereContextMenu.visible = false;
+        g_ui.root.playlist.atmosphereContextMenu.atmosphereHandle = atmosphere_handle::invalid;
+    }
+
     playlist_widget& ui::get_playlist_widget(playlist_handle_t handle)
     {
         for(auto& playlistWidget : root.playlist.playlists) {
@@ -116,23 +127,13 @@ namespace tabletopify
 
     // Sidebar Methods
 
-    void ui::set_screen(screen_t screen)
-    {
-        root.currentScreen = screen;
-
-        g_ui.root.playlist.atmosphereContextMenu.visible = false;
-        g_ui.root.playlist.atmosphereContextMenu.atmosphereHandle = atmosphere_handle::invalid;
-    }
-
     void ui::set_screen_playlist(playlist_handle_t handle)
     {
-        if (handle != root.playlist.currentPlaylistHandle) {
-            worker_ui.enqueue([=]() -> void
-            {
-                g_ui.set_screen(screen::playlist);
-                g_ui.root.playlist.currentPlaylistHandle = handle;
-            });
-        }
+        worker_ui.enqueue([=]() -> void
+        {
+            g_ui.set_screen(screen::playlist);
+            g_ui.root.playlist.currentPlaylistHandle = handle;
+        });
     }
 
     void ui::set_screen_edit(atmosphere_handle_t handle)
@@ -155,29 +156,39 @@ namespace tabletopify
 
     void ui::set_atmosphere_favorite(atmosphere_handle_t handle, bool favorited)
     {
-        worker_background.enqueue([=]() -> void
+        worker_ui.enqueue([=]() -> void
         {
             if (favorited) {
-                g_playlist_directory.favorite_atmosphere(handle);
+                g_ui.add_atmosphere_to_playlist(playlist_handle::favorites, handle);
             } else {
-                g_playlist_directory.unfavorite_atmosphere(handle);
+                g_ui.remove_atmosphere_from_playlist(playlist_handle::favorites, handle);
             }
+        });
 
-            worker_ui.enqueue([=]() -> void
-            {
-                if (favorited) {
-                    g_ui.add_atmosphere_to_playlist(playlist_handle::favorites, handle);
-                } else {
-                    g_ui.remove_atmosphere_from_playlist(playlist_handle::favorites, handle);
-                }
-            });
+        worker_background.enqueue([=]() -> void
+        {
+            auto& entry = g_atmosphere_directory.get_entry(handle);
+            entry.favorite = favorited;
+
+            if (favorited) {
+                g_playlist_directory.add_atmosphere(playlist_handle::favorites, handle);
+            } else {
+                g_playlist_directory.remove_atmosphere(playlist_handle::favorites, handle);
+            }
         });
     }
 
     void ui::set_atmosphere_volume(atmosphere_widget& widget, atmosphere_handle_t handle, double volume)
     {
-        widget.volumeVal = volume;
-        widget.muteUnmute.checked = false;
+        worker_ui.enqueue([=]() -> void
+        {
+            auto it = g_ui.root.playlist.atmospheres.find(handle);
+            MX_ASSERT(it != g_ui.root.playlist.atmospheres.end());
+            auto& widget = it->second;
+            widget.volumeVal = volume;
+            widget.muteUnmute.checked  = false;
+        });
+
         worker_background.enqueue([=]() -> void
         {
             g_playback_manager.set_atmosphere_volume(handle, volume);
@@ -187,7 +198,14 @@ namespace tabletopify
 
     void ui::set_atmosphere_mute(atmosphere_widget& widget, atmosphere_handle_t handle, bool muted)
     {
-        widget.volume.currentVal = muted ? 0.0f : widget.volumeVal;
+        worker_ui.enqueue([=]() -> void
+        {
+            auto it = g_ui.root.playlist.atmospheres.find(handle);
+            MX_ASSERT(it != g_ui.root.playlist.atmospheres.end());
+            auto& widget = it->second;
+            widget.volume.currentVal = muted ? 0.0f : widget.volumeVal;
+        });
+
         worker_background.enqueue([=]() -> void
         {
             g_playback_manager.set_atmosphere_mute(handle, muted);
@@ -196,30 +214,28 @@ namespace tabletopify
 
     void ui::set_atmosphere_play(atmosphere_handle_t handle, bool playing)
     {
+        worker_ui.enqueue([=]()
+        {
+            if (playing) {
+                g_ui.add_atmosphere_to_playlist(playlist_handle::playing, handle);
+            } else {
+                g_ui.remove_atmosphere_from_playlist(playlist_handle::playing, handle);
+            }
+        });
+
         worker_background.enqueue([=]()
         {
             if (playing) {
                 g_playback_manager.play_atmosphere(handle);
-                g_playlist_directory.add_atmosphere(playlist_handle::playing, handle);
             } else {
                 g_playback_manager.stop_atmosphere(handle);
-                g_playlist_directory.remove_atmosphere(playlist_handle::playing, handle);
             }
-
-            worker_ui.enqueue([=]()
-            {
-                if (playing) {
-                    g_ui.add_atmosphere_to_playlist(playlist_handle::playing, handle);
-                } else {
-                    g_ui.remove_atmosphere_from_playlist(playlist_handle::playing, handle);
-                }
-            });
         });
     }
 
     void ui::create_new_atmosphere(playlist_handle_t playlistHandle)
     {
-        constexpr static auto* defaultTitle = "New Mix";
+        constexpr auto* defaultTitle = "New Mix";
         worker_background.enqueue([=]()
         {
             atmosphere_entry atmosphereEntry =
@@ -418,12 +434,14 @@ namespace tabletopify
                             MX_LOG_INFO("EDIT");
                         });
 
+                        // only enable removal from user created playlists
                         if (currentPlaylist.handle >= playlist_handle::__first_generated)
                         {
                             mxButton({"Remove"}, self.tags={"indent", "contextMenuEntry"},
-                            self.on_click = []() -> void
+                            self.on_click = [=]() -> void
                             {
                                 MX_LOG_INFO("REMOVE");
+                                // g_ui.remove_at
                             });
                         }
 

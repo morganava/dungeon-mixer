@@ -48,13 +48,14 @@ namespace tabletopify
         // populates backend playlist data to ui
         void sync_playlists();
     private:
+        // ui mutator methods
+        void set_screen(screen_t screen);
         playlist_widget& get_playlist_widget(playlist_handle_t handle);
         playlist_widget& get_current_playlist_widget();
         void remove_atmosphere_from_playlist(playlist_handle_t playlist, atmosphere_handle_t atmosphere);
         void add_atmosphere_to_playlist(playlist_handle_t playlist, atmosphere_handle_t atmosphere);
 
         // sidebar methods
-        void set_screen(screen_t screen);
         void set_screen_playlist(playlist_handle_t handle);
         void set_screen_edit(atmosphere_handle_t handle);
         void set_screen_about();
@@ -69,9 +70,6 @@ namespace tabletopify
 
         // edit screen methods
         void do_audio_search(const utf8_string& query);
-
-        // TODO: nuke this
-        friend class playlist_directory;
 
         // draw methods
         void draw_playlist(float dt);

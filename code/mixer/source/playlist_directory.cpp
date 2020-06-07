@@ -64,30 +64,4 @@ namespace tabletopify
         MX_ASSERT(it != playlistEntry.atmospheres.end());
         playlistEntry.atmospheres.erase(it);
     }
-
-    void playlist_directory::favorite_atmosphere(atmosphere_handle_t handle)
-    {
-        MX_LOG_INFO("Favoriting : {}", handle);
-
-        // update the atmopshere_entry
-        auto& atmosphere = g_atmosphere_directory.get_entry(handle);
-        MX_ASSERT(atmosphere.favorite == false);
-        atmosphere.favorite = true;
-
-        // add to the favorites playlist
-        add_atmosphere(playlist_handle::favorites, handle);
-    }
-
-    void playlist_directory::unfavorite_atmosphere(atmosphere_handle_t handle)
-    {
-        MX_LOG_INFO("Unfavoriting : {}", handle);
-
-        // update the atmopshere_entry
-        auto& atmosphere = g_atmosphere_directory.get_entry(handle);
-        MX_ASSERT(atmosphere.favorite == true);
-        atmosphere.favorite = false;
-
-        // remove from the favorites playlist
-        remove_atmosphere(playlist_handle::favorites, handle);
-    }
 }

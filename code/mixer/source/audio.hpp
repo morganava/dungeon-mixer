@@ -222,8 +222,6 @@ namespace tabletopify
         void delete_playlist(playlist_handle_t);
         void add_atmosphere(playlist_handle_t, atmosphere_handle_t);
         void remove_atmosphere(playlist_handle_t, atmosphere_handle_t);
-        void favorite_atmosphere(atmosphere_handle_t);
-        void unfavorite_atmosphere(atmosphere_handle_t);
 
         // updates all the playlist and atmospheres in ui
         void sync_all_playlists();
