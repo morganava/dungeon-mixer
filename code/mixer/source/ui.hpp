@@ -56,20 +56,20 @@ namespace tabletopify
         void add_atmosphere_to_playlist(playlist_handle_t playlist, atmosphere_handle_t atmosphere);
 
         // sidebar methods
-        void set_screen_playlist(playlist_handle_t handle);
-        void set_screen_edit(atmosphere_handle_t handle);
-        void set_screen_about();
+        void on_set_screen_playlist(playlist_handle_t handle);
+        void on_set_screen_edit(atmosphere_handle_t handle);
+        void on_set_screen_about();
 
         // playlist screen methods
-        void set_atmosphere_favorite(atmosphere_handle_t handle, bool favorited);
-        void set_atmosphere_volume(atmosphere_widget& widget, atmosphere_handle_t handle, double volume);
-        void set_atmosphere_mute(atmosphere_widget& widget, atmosphere_handle_t handle, bool muted);
-        void set_atmosphere_play(atmosphere_handle_t handle, bool playing);
-        void create_new_atmosphere(playlist_handle_t handle);
-        void toggle_atmosphere_context_menu(playlist_handle_t playlistHandle, atmosphere_handle_t atmosphereHandle);
+        void on_set_atmosphere_favorite(atmosphere_handle_t handle, bool favorited);
+        void on_set_atmosphere_volume(atmosphere_widget& widget, atmosphere_handle_t handle, double volume);
+        void on_set_atmosphere_mute(atmosphere_widget& widget, atmosphere_handle_t handle, bool muted);
+        void on_set_atmosphere_play(atmosphere_handle_t handle, bool playing);
+        void on_create_new_atmosphere(playlist_handle_t handle);
+        void on_toggle_atmosphere_context_menu(playlist_handle_t playlistHandle, atmosphere_handle_t atmosphereHandle);
 
         // edit screen methods
-        void do_audio_search(const utf8_string& query);
+        void on_do_audio_search(const utf8_string& query);
 
         // draw methods
         void draw_playlist(float dt);

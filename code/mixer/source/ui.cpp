@@ -127,7 +127,7 @@ namespace tabletopify
 
     // Sidebar Methods
 
-    void ui::set_screen_playlist(playlist_handle_t handle)
+    void ui::on_set_screen_playlist(playlist_handle_t handle)
     {
         worker_ui.enqueue([=]() -> void
         {
@@ -136,7 +136,7 @@ namespace tabletopify
         });
     }
 
-    void ui::set_screen_edit(atmosphere_handle_t handle)
+    void ui::on_set_screen_edit(atmosphere_handle_t handle)
     {
         worker_ui.enqueue([=]() -> void
         {
@@ -144,7 +144,7 @@ namespace tabletopify
         });
     }
 
-    void ui::set_screen_about()
+    void ui::on_set_screen_about()
     {
         worker_ui.enqueue([=]() -> void
         {
@@ -154,7 +154,7 @@ namespace tabletopify
 
     // Playlist Screen Methods
 
-    void ui::set_atmosphere_favorite(atmosphere_handle_t handle, bool favorited)
+    void ui::on_set_atmosphere_favorite(atmosphere_handle_t handle, bool favorited)
     {
         worker_ui.enqueue([=]() -> void
         {
@@ -178,7 +178,7 @@ namespace tabletopify
         });
     }
 
-    void ui::set_atmosphere_volume(atmosphere_widget& widget, atmosphere_handle_t handle, double volume)
+    void ui::on_set_atmosphere_volume(atmosphere_widget& widget, atmosphere_handle_t handle, double volume)
     {
         worker_ui.enqueue([=]() -> void
         {
@@ -196,7 +196,7 @@ namespace tabletopify
         });
     }
 
-    void ui::set_atmosphere_mute(atmosphere_widget& widget, atmosphere_handle_t handle, bool muted)
+    void ui::on_set_atmosphere_mute(atmosphere_widget& widget, atmosphere_handle_t handle, bool muted)
     {
         worker_ui.enqueue([=]() -> void
         {
@@ -212,7 +212,7 @@ namespace tabletopify
         });
     }
 
-    void ui::set_atmosphere_play(atmosphere_handle_t handle, bool playing)
+    void ui::on_set_atmosphere_play(atmosphere_handle_t handle, bool playing)
     {
         worker_ui.enqueue([=]()
         {
@@ -233,7 +233,7 @@ namespace tabletopify
         });
     }
 
-    void ui::create_new_atmosphere(playlist_handle_t playlistHandle)
+    void ui::on_create_new_atmosphere(playlist_handle_t playlistHandle)
     {
         constexpr auto* defaultTitle = "New Mix";
         worker_background.enqueue([=]()
@@ -278,7 +278,7 @@ namespace tabletopify
         });
     }
 
-    void ui::toggle_atmosphere_context_menu(playlist_handle_t playlistHandle, atmosphere_handle_t atmosphereHandle)
+    void ui::on_toggle_atmosphere_context_menu(playlist_handle_t playlistHandle, atmosphere_handle_t atmosphereHandle)
     {
         worker_ui.enqueue([=]() -> void
         {
@@ -299,7 +299,7 @@ namespace tabletopify
 
     // Edit Screen Methods
 
-    void ui::do_audio_search(const utf8_string& query)
+    void ui::on_do_audio_search(const utf8_string& query)
     {
         worker_background.enqueue([=]() -> void
         {
@@ -334,19 +334,19 @@ namespace tabletopify
                 mxButton(currentPlaylist.title, self.tags = {"lightText","sidebarEntry", "indent"};
                     self.on_click = [=]() -> void
                     {
-                        g_ui.set_screen_playlist(currentPlaylist.handle);
+                        g_ui.on_set_screen_playlist(currentPlaylist.handle);
                     };
                 );
             }
             mxButton(&root.sidebar.edit, self.tags = {"mediumText", "sidebarEntry"};
                 self.on_click = []() -> void
                 {
-                    g_ui.set_screen_edit(atmosphere_handle::invalid);
+                    g_ui.on_set_screen_edit(atmosphere_handle::invalid);
                 });
             mxButton(&root.sidebar.about, self.tags = {"mediumText", "sidebarEntry"};
                 self.on_click = []() -> void
                 {
-                    g_ui.set_screen_about();
+                    g_ui.on_set_screen_about();
                 });
         }
     }
@@ -374,7 +374,7 @@ namespace tabletopify
                 self.on_click = [&]() -> void
                 {
                     MX_LOG_INFO("NEW MIX");
-                    g_ui.create_new_atmosphere(currentPlaylist.handle);
+                    g_ui.on_create_new_atmosphere(currentPlaylist.handle);
                 };);
                 mxTextBox(&root.playlist.searchBox, self.tags = {"search"};
                 self.on_submit = [](const utf8_string& str) -> void
@@ -400,28 +400,28 @@ namespace tabletopify
                         mxCheckbox(&currentEntry.favorite, self.tags = {"entryFavorite"};
                         self.on_change = [=](bool favorited) -> void
                         {
-                            g_ui.set_atmosphere_favorite(currentAtmosphereHandle, favorited);
+                            g_ui.on_set_atmosphere_favorite(currentAtmosphereHandle, favorited);
                         }); // FAVORITE
                         mxButton(&currentEntry.title, self.tags = {"entryTitle"},
                         self.on_click = [=]() -> void
                         {
-                            g_ui.toggle_atmosphere_context_menu(currentPlaylist.handle, currentAtmosphereHandle);
+                            g_ui.on_toggle_atmosphere_context_menu(currentPlaylist.handle, currentAtmosphereHandle);
 
                         }); // TOGGLE CONTEXT MENU
                         mxSlider(&currentEntry.volume, self.tags = {"entryVolume"};
                         self.on_change = [&](double volume) -> void
                         {
-                            g_ui.set_atmosphere_volume(currentEntry, currentAtmosphereHandle, volume);
+                            g_ui.on_set_atmosphere_volume(currentEntry, currentAtmosphereHandle, volume);
                         }); // VOLUME
                         mxCheckbox(&currentEntry.muteUnmute, self.tags = {"entryMute"};
                         self.on_change = [&](bool muted) -> void
                         {
-                            g_ui.set_atmosphere_mute(currentEntry, currentAtmosphereHandle, muted);
+                            g_ui.on_set_atmosphere_mute(currentEntry, currentAtmosphereHandle, muted);
                         }); // MUTE
                         mxCheckbox(&currentEntry.playStop, self.tags = {"entryPlay"};
                         self.on_change = [=](bool playing) -> void
                         {
-                            g_ui.set_atmosphere_play(currentAtmosphereHandle, playing);
+                            g_ui.on_set_atmosphere_play(currentAtmosphereHandle, playing);
                         }); // PLAY/STOP BUTTON
                     }
 
@@ -483,7 +483,7 @@ namespace tabletopify
                 mxTextBox(&root.edit.searchBox, self.tags = {"search"};
                 self.on_submit = [](const utf8_string& query) -> void
                 {
-                    g_ui.do_audio_search(query);
+                    g_ui.on_do_audio_search(query);
                 });
             }
             mxHBox(&root.edit.hflex)
