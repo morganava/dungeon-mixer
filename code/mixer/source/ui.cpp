@@ -294,7 +294,19 @@ namespace tabletopify
                 acm.atmosphereHandle = atmosphereHandle;
             }
         });
+    }
 
+    void ui::on_remove_atmosphere(playlist_handle_t playlistHandle, atmosphere_handle_t atmosphereHandle)
+    {
+        worker_ui.enqueue([=]() -> void
+        {
+            g_ui.remove_atmosphere_from_playlist(playlistHandle, atmosphereHandle);
+        });
+
+        worker_background.enqueue([=]() -> void
+        {
+            g_playlist_directory.remove_atmosphere(playlistHandle, atmosphereHandle);
+        });
     }
 
     // Edit Screen Methods
@@ -359,6 +371,7 @@ namespace tabletopify
         }
 
         auto& currentPlaylist = get_current_playlist_widget();
+        const auto currentPlaylistHandle = currentPlaylist.handle;
         mxVBox(&root.playlist.vflex, self.tags = {"content"})
         {
             mxLabel(&root.playlist.heading, self.tags= {"header", "darkText"});
@@ -435,13 +448,13 @@ namespace tabletopify
                         });
 
                         // only enable removal from user created playlists
-                        if (currentPlaylist.handle >= playlist_handle::__first_generated)
+                        if (currentPlaylistHandle >= playlist_handle::__first_generated)
                         {
                             mxButton({"Remove"}, self.tags={"indent", "contextMenuEntry"},
                             self.on_click = [=]() -> void
                             {
-                                MX_LOG_INFO("REMOVE");
-                                // g_ui.remove_at
+                                MX_LOG_INFO("Remove atmosphere {} from playlist {}", currentAtmosphereHandle, currentPlaylistHandle);
+                                g_ui.on_remove_atmosphere(currentPlaylistHandle, currentAtmosphereHandle);
                             });
                         }
 
@@ -451,7 +464,7 @@ namespace tabletopify
                             MX_LOG_INFO("COPY");
                         });
 
-                        if (currentPlaylist.handle >= playlist_handle::__first_generated)
+                        if (currentPlaylistHandle >= playlist_handle::__first_generated)
                         {
                             mxButton({"Move..."}, self.tags={"indent", "contextMenuEntry"},
                             self.on_click = []() -> void

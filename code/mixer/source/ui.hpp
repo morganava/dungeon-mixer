@@ -67,6 +67,7 @@ namespace tabletopify
         void on_set_atmosphere_play(atmosphere_handle_t handle, bool playing);
         void on_create_new_atmosphere(playlist_handle_t handle);
         void on_toggle_atmosphere_context_menu(playlist_handle_t playlistHandle, atmosphere_handle_t atmosphereHandle);
+        void on_remove_atmosphere(playlist_handle_t playlistHandle, atmosphere_handle_t atmosphereHandle);
 
         // edit screen methods
         void on_do_audio_search(const utf8_string& query);
