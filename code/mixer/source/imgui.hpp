@@ -481,8 +481,10 @@ namespace tabletopify
             void last_update_impl();
 
             callback<> on_click;
+            callback<> on_double_click;
         private:
             bool _clicked = false;
+            bool _double_clicked = false;
         };
 
         /// text box

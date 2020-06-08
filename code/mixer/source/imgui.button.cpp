@@ -11,20 +11,35 @@ namespace tabletopify
         {
             for(auto evt : g_input.get_input_events())
             {
-                if (evt.type() == input_event_type::mouse_single_click)
+                switch(evt.type())
                 {
-                    if (point_inside_rect(evt.position(), this->scissor()) &&
-                        point_inside_rounded_rect(evt.position(),
-                                                  this->_layout.border_outer_bounds(),
-                                                  this->_layout.borderRadius))
+                    case input_event_type::mouse_single_click:
+                    case input_event_type::mouse_double_click:
                     {
-                        this->focus_widget();
-                        this->_clicked = true;
+                        if (point_inside_rect(evt.position(), this->scissor()) &&
+                            point_inside_rounded_rect(evt.position(),
+                                                      this->_layout.border_outer_bounds(),
+                                                      this->_layout.borderRadius))
+                        {
+                            this->focus_widget();
+                            if (evt.type() == input_event_type::mouse_single_click)
+                            {
+                                this->_clicked = true;
+                            }
+                            else
+                            {
+                                this->_double_clicked = true;
+                            }
+
+                        }
+                        else
+                        {
+                            this->unfocus_widget();
+                        }
                     }
-                    else
-                    {
-                        this->unfocus_widget();
-                    }
+                    break;
+                    default:
+                    break;
                 }
             }
         }
@@ -47,6 +62,10 @@ namespace tabletopify
             if (this->_clicked)
             {
                 this->on_click();
+            }
+            if (this->_double_clicked)
+            {
+                this->on_double_click();
             }
         }
     }
