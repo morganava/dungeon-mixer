@@ -12,6 +12,9 @@ namespace tabletopify
             g_ui.root.playlist.edit_title = true;
             auto& playlist = g_ui.get_playlist_widget(playlistHandle);
             playlist.title_textbox = imgui::text_box_data(playlist.title, "Playlist Name");
+            playlist.title_textbox.selectBegin = 0;
+            playlist.title_textbox.selectEnd = playlist.title_textbox.sb.size();
+            imgui::g_context.focus_widget(playlist.title_textbox.id);
         });
     }
 
@@ -299,7 +302,7 @@ namespace tabletopify
                 if (currentPlaylistHandle >= playlist_handle::__first_generated)
                 {
                     mxButton(currentPlaylist.title, self.tags = {"header", "title", "lightText"},
-                    self.on_click = [=]() -> void
+                    self.on_double_click = [=]() -> void
                     {
                         g_ui.on_start_playlist_rename(currentPlaylistHandle);
                     });
