@@ -30,6 +30,7 @@ namespace tabletopify
     {
         playlist_handle_t handle;
         utf8_string title;
+        imgui::text_box_data title_textbox;
 
         std::vector<atmosphere_handle_t> entries;
     };
@@ -63,6 +64,8 @@ namespace tabletopify
         void on_set_screen_about();
 
         // playlist screen methods
+        void on_start_playlist_rename(playlist_handle_t playlist);
+        void on_set_playlist_name(playlist_handle_t playlist, utf8_string name);
         void on_set_atmosphere_favorite(atmosphere_handle_t handle, bool favorited);
         void on_set_atmosphere_volume(atmosphere_widget& widget, atmosphere_handle_t handle, double volume);
         void on_set_atmosphere_mute(atmosphere_widget& widget, atmosphere_handle_t handle, bool muted);
@@ -117,7 +120,7 @@ namespace tabletopify
                     constraint{0.0, unconstrained, 1.0},
                 };
                 imgui::label_data heading = {"Playlist"};
-                imgui::label_data title = {"All"};
+                bool edit_title = false;
                 imgui::flex_box_data buttonFlex =
                 {
                     constraint{128,128, 2.0},
