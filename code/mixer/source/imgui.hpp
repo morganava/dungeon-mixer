@@ -217,8 +217,7 @@ namespace tabletopify
                 }
                 return false;
             }
-        protected:
-            // public methods
+
             constexpr widget_id_t get_widget_id() const
             {
                 return _data ? _data->id : widget_id::null;
@@ -239,6 +238,7 @@ namespace tabletopify
                 return g_context.is_focused(this->get_widget_id());
             }
 
+        protected:
             // determines whether draw() should be a noop
             bool should_draw() const
             {
@@ -536,6 +536,7 @@ namespace tabletopify
             void first_render_impl() const;
 
             callback<const utf8_string&> on_submit;
+            const utf8_string& text() const;
         };
 
         // slider

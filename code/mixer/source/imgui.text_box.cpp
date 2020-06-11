@@ -600,5 +600,10 @@ namespace tabletopify
             }
             g_context.pop_scissor();
         }
+
+        const utf8_string& widget_text_box::text() const
+        {
+            return this->data()->text;
+        }
     }
 }
