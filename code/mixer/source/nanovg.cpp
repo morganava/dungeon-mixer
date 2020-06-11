@@ -487,21 +487,31 @@ namespace tabletopify
                     float lineHeight;
                     nvgTextMetrics(_ctx, nullptr, nullptr, &lineHeight);
 
-                    if (caretIndex > 0)
-                    {
-                        // glyph positions
-                        const auto caretCount = caretIndex + 1;
-                        NVGglyphPosition glyphPositions[caretCount];
-                        const auto glyphCount = nvgTextGlyphPositions(_ctx, startPosition.x, startPosition.y, str.begin(), str.end(), glyphPositions, caretCount);
+                    // calculate caret position
+                    const auto caretCount = caretIndex + 1;
+                    NVGglyphPosition glyphPositions[caretCount];
+                    const auto glyphCount = nvgTextGlyphPositions(_ctx, startPosition.x, startPosition.y, str.begin(), str.end(), glyphPositions, caretCount);
+                    MX_THROW_IF_FALSE(glyphCount >= caretIndex);
 
-                        MX_THROW_IF_FALSE(glyphCount >= caretIndex);
-                        caretBounds.position.x = glyphPositions[caretIndex - 1].maxx;
+                    float caretPosition;
+                    // caret within the string
+                    // caret at the end of the string
+                    if (caretIndex == 0)
+                    {
+                        caretPosition = startPosition.x;
+                    }
+                    else if (caretIndex == glyphCount)
+                    {
+                        MX_ASSERT(caretIndex > 0);
+                        caretPosition = glyphPositions[caretIndex - 1].maxx;
                     }
                     else
                     {
-                        caretBounds.position.x = startPosition.x;
+                        MX_ASSERT(caretIndex < glyphCount);
+                        caretPosition = glyphPositions[caretIndex].minx;
                     }
-                    caretBounds.position.x = std::round(caretBounds.position.x);
+
+                    caretBounds.position.x = std::round(caretPosition);
 
                     switch(valign)
                     {
