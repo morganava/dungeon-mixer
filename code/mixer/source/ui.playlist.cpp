@@ -295,6 +295,10 @@ namespace tabletopify
                 self.on_submit = [=](const utf8_string& str) -> void
                 {
                     g_ui.on_set_playlist_name(currentPlaylistHandle, str);
+                };
+                if (!self.is_focused())
+                {
+                    g_ui.on_set_playlist_name(currentPlaylistHandle, self.text());
                 });
             }
             else
