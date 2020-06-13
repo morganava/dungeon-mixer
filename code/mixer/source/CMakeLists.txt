@@ -50,7 +50,8 @@ add_executable(tabletop_mixer
     playback_manager.cpp
     # ui
     ui.cpp
-    ui.playlist.cpp)
+    ui.playlist.cpp
+    ui.edit.cpp)
 
 target_precompile_headers(tabletop_mixer PRIVATE precomp.hpp)
 

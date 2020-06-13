@@ -264,6 +264,11 @@ namespace tabletopify
                     entries.erase(it);
                 }
             }
+
+            if (atmosphereHandle == g_ui.root.edit.handle)
+            {
+                g_ui.root.edit.handle = atmosphere_handle::invalid;
+            }
         });
 
         worker_background.enqueue([=]() -> void
@@ -383,9 +388,9 @@ namespace tabletopify
                         root.playlist.atmosphereContextMenu.atmosphereHandle == currentAtmosphereHandle)
                     {
                         mxButton({"Edit"}, self.tags={"indent", "contextMenuEntry"},
-                        self.on_click = []() -> void
+                        self.on_click = [=]() -> void
                         {
-                            MX_LOG_INFO("EDIT");
+                            g_ui.on_set_screen_edit(currentAtmosphereHandle);
                         });
 
                         // only enable removal from user created playlists

@@ -35,6 +35,13 @@ namespace tabletopify
         std::vector<atmosphere_handle_t> entries;
     };
 
+    struct track_edit_widget
+    {
+        imgui::checkbox_data visible = {false};
+        track_handle_t track_handle;
+        utf8_string audio_title;
+    };
+
     struct audio_query_result_widget
     {
         audio_handle_t handle;
@@ -165,6 +172,7 @@ namespace tabletopify
             } playlist;
             struct
             {
+                atmosphere_handle_t handle = atmosphere_handle::invalid;
                 imgui::flex_box_data vflex =
                 {
                     constraint{35, 35, 1.0},
@@ -185,6 +193,13 @@ namespace tabletopify
                 struct
                 {
                     imgui::scroll_area_data scroll;
+                    imgui::flex_box_data title_hflex =
+                    {
+                        constraint{35, 35, 1.0},
+                        constraint{0.0, unconstrained, 1.0},
+                    };
+                    utf8_string title;
+                    std::vector<track_edit_widget> widgets;
                 } tracks;
 
                 struct

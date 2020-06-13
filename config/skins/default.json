@@ -100,6 +100,7 @@
         "fontSize" : 32
     },
     ".title" : {
+        "size" : [0, 120],
         "fontSize" : 80
     },
     ".entryTitle" : {
@@ -179,5 +180,8 @@
     },
     "spacer.test:hover" : {
         "backgroundColor" : "blue"
+    },
+    "flexBox.atmosphereTitle" : {
+        "size" : [0, 48]
     }
 }
