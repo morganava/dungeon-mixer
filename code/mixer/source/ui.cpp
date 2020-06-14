@@ -87,6 +87,10 @@ namespace tabletopify
         root.currentScreen = screen;
 
         hide_atmosphere_context_menu();
+        if (screen != screen::edit)
+        {
+            stop_edit_playback();
+        }
     }
 
     playlist_widget& ui::get_playlist_widget(playlist_handle_t handle)
@@ -132,6 +136,30 @@ namespace tabletopify
         g_ui.root.playlist.atmosphereContextMenu.copyVisible = false;
         g_ui.root.playlist.atmosphereContextMenu.moveVisible = false;
         g_ui.root.playlist.atmosphereContextMenu.atmosphereHandle = atmosphere_handle::invalid;
+    }
+
+    void ui::stop_edit_playback()
+    {
+        // stop the edit playback and restore atmosphere's volume and mute settings
+        worker_ui.enqueue([]() -> void
+        {
+            const auto atmosphereHandle = g_ui.root.edit.handle;
+            auto it = g_ui.root.playlist.atmospheres.find(atmosphereHandle);
+            MX_ASSERT(it != g_ui.root.playlist.atmospheres.end());
+            auto& widget = it->second;
+
+            const bool muted = widget.muteUnmute.checked;
+            const double volume = widget.volumeVal;
+
+            worker_background.enqueue([=]() -> void
+            {
+                g_playback_manager.stop_atmosphere(atmosphereHandle);
+
+                auto& entry = g_atmosphere_directory.get_entry(atmosphereHandle);
+                entry.muted = muted;
+                entry.volume = static_cast<float>(volume);
+            });
+        });
     }
 
     // Sidebar Methods
@@ -189,13 +217,32 @@ namespace tabletopify
                 }
             }
 
+            // populate ui
             worker_ui.enqueue([=, atmosphereTitle=std::move(atmosphereTitle), editWidgets=std::move(editWidgets)]() -> void
             {
+                // set all the atmosphere widgets playing to false
+                for (auto& [handle, widget] : g_ui.root.playlist.atmospheres)
+                {
+                    widget.playStop.checked = false;
+                }
+
+                // populate edit widgets
                 g_ui.root.edit.handle = handle;
                 g_ui.root.edit.tracks.title = std::move(atmosphereTitle);
                 g_ui.root.edit.tracks.widgets = std::move(editWidgets);
                 g_ui.set_screen(screen::edit);
             });
+
+            MX_LOG_INFO("playing : {}", handle);
+
+            // stop all currently playing tracks
+            g_playback_manager.stop_all_tracks();
+
+            // begin playing the editing atmosphere
+            auto& atmosphereEntry = g_atmosphere_directory.get_entry(handle);
+            atmosphereEntry.volume = 1.0f;
+            atmosphereEntry.muted = false;
+            g_playback_manager.play_atmosphere(handle);
         });
     }
 

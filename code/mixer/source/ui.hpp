@@ -63,6 +63,7 @@ namespace tabletopify
         void remove_atmosphere_from_playlist(playlist_handle_t playlist, atmosphere_handle_t atmosphere);
         void add_atmosphere_to_playlist(playlist_handle_t playlist, atmosphere_handle_t atmosphere);
         void hide_atmosphere_context_menu();
+        void stop_edit_playback();
 
         // sidebar methods
         void on_create_new_playlist();
