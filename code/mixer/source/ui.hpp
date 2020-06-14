@@ -89,6 +89,7 @@ namespace tabletopify
 
         // edit screen methods
         void on_do_audio_search(const utf8_string& query);
+        void on_add_audio_to_atmosphere(atmosphere_handle_t atmosphereHandle, audio_handle_t audioHandle);
 
         // draw methods
         void draw_playlist(float dt);

@@ -22,6 +22,43 @@ namespace tabletopify
         });
     }
 
+    void ui::on_add_audio_to_atmosphere(atmosphere_handle_t atmosphereHandle, audio_handle_t audioHandle)
+    {
+        // create new track for atmosphere and begin playing it
+        worker_background.enqueue([=]() -> void
+        {
+            auto& audioEntry = g_audio_directory.get_entry(audioHandle);
+
+            auto trackTitle = audioEntry.title;
+
+            // create new track entry for atmosphere
+            track_entry trackEntry;
+            trackEntry.atmosphereHandle = atmosphereHandle;
+            trackEntry.audioTitle = trackTitle;
+            trackEntry.audioData = audioEntry.data;
+
+            // add it to the track directory
+            auto trackHandle = g_track_directory.add_entry(std::move(trackEntry));
+
+            // add track to atmosphere
+            auto& atmosphereEntry = g_atmosphere_directory.get_entry(atmosphereHandle);
+            atmosphereEntry.tracks.push_back(trackHandle);
+
+            // add track widget to ui
+            worker_ui.enqueue([=,title=std::move(trackTitle)]() -> void
+            {
+                track_edit_widget widget;
+                widget.track_handle = trackHandle;
+                widget.audio_title = std::move(title);
+
+                g_ui.root.edit.tracks.widgets.push_back(std::move(widget));
+            });
+
+            // finally play the track
+            g_playback_manager.play_track(trackHandle);
+        });
+    }
+
     void ui::draw_edit(float dt)
     {
         mxVBox(&root.edit.vflex, self.tags = {"content"})
@@ -59,7 +96,7 @@ namespace tabletopify
                         mxButton(queryResult.title, self.tags={"audioResult"};
                         self.on_click = [&]() -> void
                         {
-                            MX_LOG_INFO("CLICKED : {}, {}", queryResult.title, queryResult.handle);
+                            g_ui.on_add_audio_to_atmosphere(g_ui.root.edit.handle, queryResult.handle);
                         });
                         mxSpacer();
                     }

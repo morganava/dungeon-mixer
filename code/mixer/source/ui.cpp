@@ -140,14 +140,20 @@ namespace tabletopify
 
     void ui::stop_edit_playback()
     {
+        if (g_ui.root.edit.handle == atmosphere_handle::invalid)
+        {
+            return;
+        }
+
         // stop the edit playback and restore atmosphere's volume and mute settings
         worker_ui.enqueue([]() -> void
         {
             const auto atmosphereHandle = g_ui.root.edit.handle;
             auto it = g_ui.root.playlist.atmospheres.find(atmosphereHandle);
             MX_ASSERT(it != g_ui.root.playlist.atmospheres.end());
-            auto& widget = it->second;
+            g_ui.root.edit.handle = atmosphere_handle::invalid;
 
+            auto& widget = it->second;
             const bool muted = widget.muteUnmute.checked;
             const double volume = widget.volumeVal;
 
@@ -192,18 +198,26 @@ namespace tabletopify
         // populate the track edit widgets
         worker_background.enqueue([=]() -> void
         {
+            auto atmosphereHandle = handle;
             utf8_string atmosphereTitle;
             std::vector<track_edit_widget> editWidgets;
 
             // create a new atmosphere and begin editing
-            if (handle == atmosphere_handle::invalid)
+            if (atmosphereHandle == atmosphere_handle::invalid)
             {
+                atmosphereTitle = "New Atmosphere";
+                atmosphere_entry atmosphereEntry =
+                {
+                    g_random.next_uuid(),
+                    atmosphereTitle
+                };
 
+                atmosphereHandle = g_atmosphere_directory.add_entry(std::move(atmosphereEntry));
             }
             // get existing atmosphere data
             else
             {
-                auto& atmosphere = g_atmosphere_directory.get_entry(handle);
+                auto& atmosphere = g_atmosphere_directory.get_entry(atmosphereHandle);
                 atmosphereTitle = atmosphere.title;
                 for(auto trackHandle : atmosphere.tracks)
                 {
@@ -221,28 +235,28 @@ namespace tabletopify
             worker_ui.enqueue([=, atmosphereTitle=std::move(atmosphereTitle), editWidgets=std::move(editWidgets)]() -> void
             {
                 // set all the atmosphere widgets playing to false
-                for (auto& [handle, widget] : g_ui.root.playlist.atmospheres)
+                for (auto& [atmosphereHandle, widget] : g_ui.root.playlist.atmospheres)
                 {
                     widget.playStop.checked = false;
                 }
 
                 // populate edit widgets
-                g_ui.root.edit.handle = handle;
+                g_ui.root.edit.handle = atmosphereHandle;
                 g_ui.root.edit.tracks.title = std::move(atmosphereTitle);
                 g_ui.root.edit.tracks.widgets = std::move(editWidgets);
                 g_ui.set_screen(screen::edit);
             });
 
-            MX_LOG_INFO("playing : {}", handle);
+            MX_LOG_INFO("playing : {}", atmosphereHandle);
 
             // stop all currently playing tracks
             g_playback_manager.stop_all_tracks();
 
             // begin playing the editing atmosphere
-            auto& atmosphereEntry = g_atmosphere_directory.get_entry(handle);
+            auto& atmosphereEntry = g_atmosphere_directory.get_entry(atmosphereHandle);
             atmosphereEntry.volume = 1.0f;
             atmosphereEntry.muted = false;
-            g_playback_manager.play_atmosphere(handle);
+            g_playback_manager.play_atmosphere(atmosphereHandle);
         });
     }
 
