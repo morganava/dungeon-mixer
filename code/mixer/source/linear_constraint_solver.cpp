@@ -45,7 +45,7 @@ namespace tabletopify
 
     void linear_constraint_solver::update_size(double totalSize)
     {
-        MX_ASSERT(totalSize > 0.0);
+        totalSize = std::max(0.0, totalSize);
         // nothing to do
         if(totalSize == _total_size)
         {
@@ -53,7 +53,15 @@ namespace tabletopify
         }
         _total_size = totalSize;
 
-        if(_total_size <= _min_size)
+
+        if (totalSize == 0.0)
+        {
+            for(size_t i = 0; i < N; ++i)
+            {
+                _sizes[i] = 0.0;
+            }
+        }
+        else if(_total_size <= _min_size)
         {
             for(size_t i = 0; i < N; ++i)
             {
