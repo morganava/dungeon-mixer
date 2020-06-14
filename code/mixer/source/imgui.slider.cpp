@@ -25,7 +25,7 @@ namespace tabletopify
             const auto sliderBounds = _slider->_layout.child_bounds();
             const auto handleWidth = this->_layout.outerBounds.width();
             const auto handleBounds = this->_layout.border_outer_bounds();
-            const auto startVal = _slider->data()->currentVal;
+            const auto startVal = _slider->data()->value;
             const auto minVal = _slider->data()->minVal;
             const auto maxVal = _slider->data()->maxVal;
 
@@ -153,7 +153,7 @@ namespace tabletopify
 
         vec2 widget_slider::handle_center(double sliderWidth) const
         {
-            const auto val = data()->currentVal;
+            const auto val = data()->value;
             const auto minVal = data()->minVal;
             const auto maxVal = data()->maxVal;
 
@@ -165,7 +165,11 @@ namespace tabletopify
             double y = bounds.top() + bounds.height() / 2.0;
 
             return {x, y};
+        }
 
+        double widget_slider::value() const
+        {
+            return this->data()->value;
         }
     }
 }

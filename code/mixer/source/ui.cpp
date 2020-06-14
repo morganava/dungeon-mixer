@@ -151,7 +151,6 @@ namespace tabletopify
             const auto atmosphereHandle = g_ui.root.edit.handle;
             auto it = g_ui.root.playlist.atmospheres.find(atmosphereHandle);
             MX_ASSERT(it != g_ui.root.playlist.atmospheres.end());
-            g_ui.root.edit.handle = atmosphere_handle::invalid;
 
             auto& widget = it->second;
             const bool muted = widget.muteUnmute.checked;
@@ -211,8 +210,19 @@ namespace tabletopify
                     g_random.next_uuid(),
                     atmosphereTitle
                 };
-
                 atmosphereHandle = g_atmosphere_directory.add_entry(std::move(atmosphereEntry));
+
+                // add this new atmosphere to the All playlist
+                worker_ui.enqueue([=,title=atmosphereTitle]() -> void
+                {
+                    atmosphere_widget atmosphereWidget;
+                    atmosphereWidget.title.text = std::move(title);
+                    atmosphereWidget.volume.value = 1.0;
+                    atmosphereWidget.volumeVal = 1.0;
+
+                    g_ui.root.playlist.atmospheres.insert({atmosphereHandle, std::move(atmosphereWidget)});
+                    g_ui.add_atmosphere_to_playlist(playlist_handle::all, atmosphereHandle);
+                });
             }
             // get existing atmosphere data
             else
@@ -222,12 +232,14 @@ namespace tabletopify
                 for(auto trackHandle : atmosphere.tracks)
                 {
                     auto& track = g_track_directory.get_entry(trackHandle);
-                    editWidgets.push_back(
-                    {
-                        false,
-                        trackHandle,
-                        track.audioTitle,
-                    });
+
+                    track_edit_widget widget;
+                    widget.visible.checked = false;
+                    widget.handle = trackHandle;
+                    widget.audio_title = track.audioTitle;
+                    widget.volume_slider.value = track.volume;
+
+                    editWidgets.push_back(std::move(widget));
                 }
             }
 

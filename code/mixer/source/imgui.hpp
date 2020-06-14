@@ -464,10 +464,8 @@ namespace tabletopify
         struct button_data : widget_data
         {
             button_data() = default;
-            button_data(utf8_string text) : _text(std::move(text)) {}
-            const utf8_string& text() const { return _text; }
-        private:
-            utf8_string _text;
+            button_data(utf8_string text) : text(std::move(text)) {}
+            utf8_string text;
             friend struct widget_button;
         };
 
@@ -543,8 +541,8 @@ namespace tabletopify
 
         struct slider_data : widget_data
         {
-            const double minVal;
-            const double maxVal;
+            double minVal;
+            double maxVal;
             double value;
 
             slider_data(double minVal, double maxVal, double value)
@@ -563,6 +561,7 @@ namespace tabletopify
             void last_update_impl();
 
             callback<double> on_change;
+            double value() const;
         private:
             vec2 handle_center(double width) const;
             friend struct widget_slider_handle;

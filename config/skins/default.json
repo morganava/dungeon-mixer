@@ -183,5 +183,8 @@
     },
     "flexBox.atmosphereTitle" : {
         "size" : [0, 48]
+    },
+    "flexBox.trackSetting" : {
+        "size" : [0, 36]
     }
 }

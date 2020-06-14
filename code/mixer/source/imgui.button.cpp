@@ -54,7 +54,7 @@ namespace tabletopify
                 this->style().fontColor,
                 this->style().textHalign,
                 this->style().textValign,
-                data()->text());
+                data()->text);
         }
 
         void widget_button::last_update_impl()

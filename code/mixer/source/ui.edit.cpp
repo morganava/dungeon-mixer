@@ -48,8 +48,10 @@ namespace tabletopify
             worker_ui.enqueue([=,title=std::move(trackTitle)]() -> void
             {
                 track_edit_widget widget;
-                widget.track_handle = trackHandle;
+                widget.visible.checked = true;
+                widget.handle = trackHandle;
                 widget.audio_title = std::move(title);
+                widget.volume_slider.value = 1.0;
 
                 g_ui.root.edit.tracks.widgets.push_back(std::move(widget));
             });
@@ -58,6 +60,18 @@ namespace tabletopify
             g_playback_manager.play_track(trackHandle);
         });
     }
+
+    void ui::on_set_track_volume(track_handle_t trackHandle, double volume)
+    {
+        worker_background.enqueue([=]() -> void
+        {
+            auto& entry = g_track_directory.get_entry(trackHandle);
+            entry.volume = volume;
+            g_playback_manager.sync_track(trackHandle);
+        });
+    }
+
+    // Draw
 
     void ui::draw_edit(float dt)
     {
@@ -81,10 +95,23 @@ namespace tabletopify
                 {
                     for(auto& editWidget : root.edit.tracks.widgets)
                     {
+                        const auto trackHandle = editWidget.handle;
                         mxHBox(&root.edit.tracks.title_hflex, self.tags={"atmosphereTitle"})
                         {
                             mxCheckbox(&editWidget.visible, self.tags={"entryTitle"});
                             mxLabel(editWidget.audio_title, self.tags={"entryTitle"});
+                        }
+                        if (editWidget.visible.checked)
+                        {
+                            mxHBox(&root.edit.tracks.settings_hflex, self.tags={"trackSetting"})
+                            {
+                                mxLabel({"VOLUME"})
+                                mxSlider(&editWidget.volume_slider,
+                                self.on_change = [=](double value) -> void
+                                {
+                                    g_ui.on_set_track_volume(trackHandle, value);
+                                });
+                            }
                         }
                     }
                 }

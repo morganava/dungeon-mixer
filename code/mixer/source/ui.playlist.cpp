@@ -83,7 +83,7 @@ namespace tabletopify
             auto it = g_ui.root.playlist.atmospheres.find(handle);
             MX_ASSERT(it != g_ui.root.playlist.atmospheres.end());
             auto& widget = it->second;
-            widget.volume.currentVal = muted ? 0.0f : widget.volumeVal;
+            widget.volume.value = muted ? 0.0f : widget.volumeVal;
         });
 
         worker_background.enqueue([=]() -> void
@@ -113,6 +113,7 @@ namespace tabletopify
         });
     }
 
+    // this functionality needs to be pulled out into helper functions for EDIT button
     void ui::on_create_new_atmosphere(playlist_handle_t playlistHandle)
     {
         constexpr auto* defaultTitle = "New Mix";
@@ -142,8 +143,6 @@ namespace tabletopify
                 atmosphere_widget atmosphereWidget;
                 atmosphereWidget.title = imgui::button_data(defaultTitle);
                 atmosphereWidget.atmosphereHandle = atmosphereHandle;
-
-                MX_LOG_INFO("title : {}", atmosphereWidget.title.text());
 
                 // this atmosphere should not exist in our map yet
                 MX_ASSERT(g_ui.root.playlist.atmospheres.find(atmosphereHandle) == g_ui.root.playlist.atmospheres.end());
@@ -281,6 +280,8 @@ namespace tabletopify
             g_atmosphere_directory.remove_entry(atmosphereHandle);
         });
     }
+
+    // Draw
 
     void ui::draw_playlist(float dt)
     {

@@ -37,9 +37,10 @@ namespace tabletopify
 
     struct track_edit_widget
     {
+        track_handle_t handle;
         imgui::checkbox_data visible = {false};
-        track_handle_t track_handle;
         utf8_string audio_title;
+        imgui::slider_data volume_slider = {0.0, 1.0, 0.0};
     };
 
     struct audio_query_result_widget
@@ -90,6 +91,7 @@ namespace tabletopify
         // edit screen methods
         void on_do_audio_search(const utf8_string& query);
         void on_add_audio_to_atmosphere(atmosphere_handle_t atmosphereHandle, audio_handle_t audioHandle);
+        void on_set_track_volume(track_handle_t trackHandle, double volume);
 
         // draw methods
         void draw_playlist(float dt);
@@ -199,6 +201,17 @@ namespace tabletopify
                     {
                         constraint{35, 35, 1.0},
                         constraint{0.0, unconstrained, 1.0},
+                    };
+                    imgui::flex_box_data settings_hflex =
+                    {
+                        constraint{196, 384, 1.0},
+                        constraint{0.0, unconstrained, 2.0},
+                    };
+                    imgui::flex_box_data volume_hflex =
+                    {
+                        constraint{0.0, unconstrained, 1.0},
+                        constraint{35, 35, 1.0},
+                        constraint{0.0, 128, 1.0}
                     };
                     utf8_string title;
                     std::vector<track_edit_widget> widgets;
