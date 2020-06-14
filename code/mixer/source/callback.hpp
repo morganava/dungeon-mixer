@@ -2,6 +2,7 @@
 
 namespace tabletopify
 {
+    // todo rename singleton_callback
     template<typename... ARGS>
     class callback
     {
