@@ -9,7 +9,6 @@ add_executable(tabletop_mixer
     precomp.cpp
     # utilities
     tag_map.cpp
-    text_buffer.cpp
     hash.cpp
     utf8_string.cpp
     utilities.cpp
