@@ -543,14 +543,14 @@ namespace tabletopify
 
         struct slider_data : widget_data
         {
-            double minVal;
-            double maxVal;
-            double currentVal;
+            const double minVal;
+            const double maxVal;
+            double value;
 
-            slider_data(double minVal, double maxVal, double currentVal)
+            slider_data(double minVal, double maxVal, double value)
             : minVal(minVal)
             , maxVal(maxVal)
-            , currentVal(currentVal)
+            , value(value)
             { }
         };
 

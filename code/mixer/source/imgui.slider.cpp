@@ -52,7 +52,7 @@ namespace tabletopify
                             {
                                 _slider->focus_widget();
                                 auto x = evt.position().x;
-                                _slider->data()->currentVal = position_to_val(x);
+                                _slider->data()->value = position_to_val(x);
                             }
                         }
                     }
@@ -62,7 +62,7 @@ namespace tabletopify
                         if (_slider->is_focused())
                         {
                             auto x = evt.position().x;
-                            _slider->data()->currentVal = position_to_val(x);
+                            _slider->data()->value = position_to_val(x);
                         }
                     }
                     break;
@@ -77,7 +77,7 @@ namespace tabletopify
                             point_inside_rect(evt.position(), sliderBounds))
                         {
                             auto x = evt.position().x;
-                            _slider->data()->currentVal = position_to_val(x);
+                            _slider->data()->value = position_to_val(x);
                         }
                         else
                         {
@@ -90,8 +90,8 @@ namespace tabletopify
                 }
             }
 
-            if (startVal != _slider->data()->currentVal) {
-                _slider->on_change(_slider->data()->currentVal);
+            if (startVal != _slider->data()->value) {
+                _slider->on_change(_slider->data()->value);
             }
         }
 
