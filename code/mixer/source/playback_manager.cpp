@@ -71,6 +71,7 @@ namespace tabletopify
 
     void playback_manager::play_atmosphere(atmosphere_handle_t atmosphereHandle)
     {
+        MX_LOG_INFO("playing atmosphere {}", atmosphereHandle);
         auto& atmosphereEntry = g_atmosphere_directory.get_entry(atmosphereHandle);
         for(auto trackHandle : atmosphereEntry.tracks)
         {
@@ -80,6 +81,7 @@ namespace tabletopify
 
     void playback_manager::stop_atmosphere(atmosphere_handle_t atmosphereHandle)
     {
+        MX_LOG_INFO("stopping atmosphere {}", atmosphereHandle);
         auto& atmosphereEntry = g_atmosphere_directory.get_entry(atmosphereHandle);
         for(auto trackHandle : atmosphereEntry.tracks)
         {
@@ -122,7 +124,7 @@ namespace tabletopify
 
     void playback_manager::play_track(track_handle_t trackHandle)
     {
-        MX_LOG_INFO("playing track handle {0}", trackHandle);
+        MX_LOG_INFO("playing track {}", trackHandle);
 
         MX_ASSERT(_entries.find(trackHandle) == _entries.end());
 
@@ -137,6 +139,8 @@ namespace tabletopify
 
     void playback_manager::stop_track(track_handle_t trackHandle)
     {
+        MX_LOG_INFO("stopping track {}", trackHandle);
+
         auto it = _entries.find(trackHandle);
         if (it != _entries.end())
         {
@@ -147,6 +151,8 @@ namespace tabletopify
 
     void playback_manager::sync_track(track_handle_t trackHandle)
     {
+        MX_LOG_INFO("syncing track {}", trackHandle);
+
         auto& trackEntry = g_track_directory.get_entry(trackHandle);
         auto it = _entries.find(trackHandle);
         // if this track isn't playing nothing to do
@@ -190,6 +196,8 @@ namespace tabletopify
 
     void playback_manager::stop_all_tracks()
     {
+        MX_LOG_INFO("stopping all tracks");
+
         for(auto& it : _entries)
         {
             it.second.sound.stop();
