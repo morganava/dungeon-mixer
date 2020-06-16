@@ -4,7 +4,7 @@
 
 namespace tabletopify
 {
-    struct motley_buffer
+    struct serialization_buffer
     {
         template<typename T>
         typename std::enable_if<!std::is_trivially_copyable<T>::value, void>::type
@@ -14,13 +14,10 @@ namespace tabletopify
         typename std::enable_if<std::is_trivially_copyable<T>::value, void>::type
         write(const T& val)
         {
-            const auto offset = _raw.data() - _read_head;
-
-            auto ptr = reinterpret_cast<const uint8_t*>(&val);
-            _raw.insert(_raw.end(), ptr, ptr+sizeof(val));
-
-            _read_head = _raw.data() + offset;
+            write(reinterpret_cast<const uint8_t*>(&val), sizeof(val));
         }
+
+        void write(const uint8_t* data, size_t count);
 
         template<typename T>
         typename std::enable_if<!std::is_trivially_copyable<T>::value, bool>::type
@@ -30,14 +27,10 @@ namespace tabletopify
         typename std::enable_if<std::is_trivially_copyable<T>::value, bool>::type
         read(T& outval)
         {
-            if (_read_head + sizeof(T) <= _raw.data() + _raw.size())
-            {
-                std::memcpy(&outval, _read_head, sizeof(T));
-                _read_head += sizeof(T);
-                return true;
-            }
-            return false;
+            return read(reinterpret_cast<uint8_t*>(&outval), sizeof(outval));
         }
+
+        bool read(uint8_t* out, size_t count);
 
         void clear()
         {
@@ -60,7 +53,7 @@ namespace tabletopify
             return _raw.size();
         }
 
-        bool operator==(const motley_buffer& that) const
+        bool operator==(const serialization_buffer& that) const
         {
             if (this == &that)
             {
@@ -83,7 +76,7 @@ namespace tabletopify
     class utf8_string_view;
 
     template<>
-    void motley_buffer::write<utf8_string>(const utf8_string& str);
+    void serialization_buffer::write<utf8_string>(const utf8_string& str);
     template<>
-    bool motley_buffer::read<utf8_string_view>(utf8_string_view& sv);
+    bool serialization_buffer::read<utf8_string_view>(utf8_string_view& sv);
 }

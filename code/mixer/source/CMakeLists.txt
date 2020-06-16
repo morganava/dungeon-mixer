@@ -14,7 +14,7 @@ add_executable(tabletop_mixer
     utilities.cpp
     format.cpp
     json.cpp
-    motley_buffer.cpp
+    serialization_buffer.cpp
     linear_constraint_solver.cpp
     color.cpp
     random.cpp

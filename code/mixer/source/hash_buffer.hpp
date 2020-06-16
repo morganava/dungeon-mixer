@@ -1,4 +1,4 @@
-#include "motley_buffer.hpp"
+#include "serialization_buffer.hpp"
 #include "hash.hpp"
 #include "utilities.hpp"
 
@@ -50,6 +50,6 @@ namespace tabletopify
 
     private:
         size_t _hash = 0;
-        motley_buffer _buffer;
+        serialization_buffer _buffer;
     };
 }

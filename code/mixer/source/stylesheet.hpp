@@ -6,7 +6,7 @@
 #include "color.hpp"
 #include "nanovg.hpp"
 #include "utf8_string.hpp"
-#include "motley_buffer.hpp"
+#include "serialization_buffer.hpp"
 #include "enums.hpp"
 
 namespace tabletopify
@@ -54,7 +54,7 @@ namespace tabletopify
     {
         style_sheet apply(const style_sheet&) const;
     private:
-        mutable motley_buffer _declarations;
+        mutable serialization_buffer _declarations;
         friend void from_json(const nl::json&, element_state_t, style_declaration_set&);
     };
 
