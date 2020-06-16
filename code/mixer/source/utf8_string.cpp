@@ -2,11 +2,10 @@
 #include "utilities.hpp"
 #include "hash.hpp"
 #include "logger.hpp"
+#include "serialization_buffer.hpp"
 
 namespace tabletopify
 {
-    const char* utf8_string::_emptyString = "";
-
     utf8_codepoint::utf8_codepoint(utf8proc_int32_t codepoint)
     : _codepoint(codepoint)
     { }
@@ -278,6 +277,11 @@ namespace tabletopify
         return reinterpret_cast<const char*>(_data.get());
     }
 
+    const uint8_t* utf8_string::data() const
+    {
+        return reinterpret_cast<const uint8_t*>(this->c_str());
+    }
+
     size_t utf8_string::size() const
     {
         return this->_size;
@@ -296,6 +300,12 @@ namespace tabletopify
         utf8proc_uint8_t* head = reinterpret_cast<utf8proc_uint8_t*>(const_cast<char*>(this->c_str()));
         auto tail = head + this->_size;
         return utf8_string_iterator(tail, tail);
+    }
+
+    void serialization_buffer_write(serialization_buffer& self, const utf8_string& str)
+    {
+        self.write(str.size());
+        self.write(str.data(), str.size());
     }
 
     // Helper Functions
@@ -370,6 +380,24 @@ namespace tabletopify
     utf8_string_iterator utf8_string_view::end() const
     {
         return utf8_string_iterator(_end, _end);
+    }
+
+    bool serialization_buffer_read(serialization_buffer& self, utf8_string_view& out)
+    {
+        size_t len = 0;
+        if (self.read<size_t>(len))
+        {
+            const auto* read_head = self.read_head();
+            if (self.skip(len))
+            {
+                out = utf8_string_view {
+                    reinterpret_cast<const utf8proc_uint8_t*>(read_head),
+                    reinterpret_cast<const utf8proc_uint8_t*>(read_head) + len
+                };
+                return true;
+            }
+        }
+        return false;
     }
 
     // UTF8 Stringbuffer

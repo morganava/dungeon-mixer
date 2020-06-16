@@ -1,6 +1,7 @@
 #pragma once
 
 #include "utilities.hpp"
+#include "serialization_buffer.hpp"
 
 namespace tabletopify
 {
@@ -57,6 +58,7 @@ namespace tabletopify
 
         std::string str() const;
         const char* c_str() const;
+        const uint8_t* data() const;
         // number of bytes used to encode this string (not counting null terminator)
         size_t size() const;
 
@@ -73,13 +75,15 @@ namespace tabletopify
         size_t _size;
         // data buffer
         std::unique_ptr<utf8proc_uint8_t[], decltype(&std::free)> _data;
-        static const char* _emptyString;
+        constexpr static const char* _emptyString = "";
 
         friend struct uf8_string_hash;
         friend void to_json(nl::json&, const utf8_string&);
         friend void from_json(const nl::json&, utf8_string&);
         friend class utf8_string_iterator;
     };
+
+    void serialization_buffer_write(serialization_buffer& self, const utf8_string& val);
 
     void to_json(nl::json&, const utf8_string&);
     void from_json(const nl::json&, utf8_string&);
@@ -114,6 +118,10 @@ namespace tabletopify
     {
     public:
         utf8_string_view() = default;
+        utf8_string_view(const utf8_string_view& sv)
+        : _begin(sv._begin)
+        , _end(sv._end)
+        { }
         utf8_string_view(const utf8proc_uint8_t* begin, const utf8proc_uint8_t* end)
         : _begin(begin)
         , _end(end)
@@ -130,6 +138,8 @@ namespace tabletopify
         const utf8proc_uint8_t* _begin = nullptr;
         const utf8proc_uint8_t* _end = nullptr;
     };
+
+    bool serialization_buffer_read(serialization_buffer& self, utf8_string_view& out);
 
     class utf8_stringbuffer : public std::vector<utf8_codepoint>
     {
