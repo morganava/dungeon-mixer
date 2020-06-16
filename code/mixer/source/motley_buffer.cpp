@@ -4,7 +4,7 @@
 namespace tabletopify
 {
     template<>
-    void motley_buffer::push_back<utf8_string>(const utf8_string& str)
+    void motley_buffer::write<utf8_string>(const utf8_string& str)
     {
         const auto offset = _raw.data() - _read_head;
 
@@ -17,10 +17,10 @@ namespace tabletopify
     }
 
     template<>
-    bool motley_buffer::next<utf8_string_view>(utf8_string_view& sv)
+    bool motley_buffer::read<utf8_string_view>(utf8_string_view& sv)
     {
         size_t len = 0;
-        if (next<size_t>(len))
+        if (read<size_t>(len))
         {
             if (_read_head + len <= _raw.data() + _raw.size())
             {

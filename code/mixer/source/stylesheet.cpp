@@ -73,7 +73,7 @@ namespace tabletopify
         style_sheet retval = base;
 
         style_entry_t se;
-        while(_declarations.next(se))
+        while(_declarations.read(se))
         {
             switch(se)
             {
@@ -81,7 +81,7 @@ namespace tabletopify
                 case style_entry::NAME:\
                     {\
                         typedef std::remove_const<std::remove_reference<decltype(VAL)>::type>::type TYPE;\
-                        _declarations.next<TYPE>(retval.NAME);\
+                        _declarations.read<TYPE>(retval.NAME);\
                     }\
                     break;
 

@@ -9,14 +9,14 @@ namespace tabletopify
         template<typename TYPE>
         void push_back(const TYPE& val)
         {
-            _buffer.push_back(val);
+            _buffer.write(val);
             _hash = calc_hash(val, _hash);
         }
 
         template<typename TYPE>
         bool next(TYPE& outval)
         {
-            return _buffer.next<TYPE>(outval);
+            return _buffer.read<TYPE>(outval);
         }
 
         void clear()

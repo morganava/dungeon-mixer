@@ -43,7 +43,7 @@ namespace tabletopify
         #undef STYLE_SHEET_ENTRY
     };
 
-    typedef enum style_entry
+    typedef enum class style_entry
     {
         #define STYLE_SHEET_ENTRY(NAME, VAL, FLAGS) NAME,
         #include "stylesheet.inl"

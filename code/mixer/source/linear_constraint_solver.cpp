@@ -36,13 +36,14 @@ namespace tabletopify
         }
     }
 
+#if 0
     linear_constraint_solver& linear_constraint_solver::operator=(const std::initializer_list<constraint>& constraints)
     {
         this->~linear_constraint_solver();
         auto _this = new(this) linear_constraint_solver(constraints);
         return *_this;
     }
-
+#endif
     void linear_constraint_solver::update_size(double totalSize)
     {
         totalSize = std::max(0.0, totalSize);

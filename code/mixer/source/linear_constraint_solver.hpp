@@ -18,20 +18,18 @@ namespace tabletopify
     public:
         linear_constraint_solver();
         linear_constraint_solver(linear_constraint_solver&&) = default;
-        linear_constraint_solver& operator=(linear_constraint_solver&&) = default;
+        linear_constraint_solver& operator=(linear_constraint_solver&&) = delete;
 
         linear_constraint_solver(const std::initializer_list<constraint>& constraints);
         linear_constraint_solver& operator=(const std::initializer_list<constraint>& constraints);
         void update_size(double totalSize);
-        const array_view<double> sizes() const
-        {
-            return array_view<double>(_sizes.get(), _sizes.get() + N);
-        }
-
         const double sizeAt(size_t idx) const
         {
-            MX_ASSERT(idx < N);
-            return _sizes[idx];
+            if (idx < N)
+            {
+                return _sizes[idx];
+            }
+            return 0.0;
         }
 
     private:

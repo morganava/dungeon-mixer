@@ -8,11 +8,11 @@ namespace tabletopify
     {
         template<typename T>
         typename std::enable_if<!std::is_trivially_copyable<T>::value, void>::type
-        push_back(const T& val);
+        write(const T& val);
 
         template<typename T>
         typename std::enable_if<std::is_trivially_copyable<T>::value, void>::type
-        push_back(const T& val)
+        write(const T& val)
         {
             const auto offset = _raw.data() - _read_head;
 
@@ -24,11 +24,11 @@ namespace tabletopify
 
         template<typename T>
         typename std::enable_if<!std::is_trivially_copyable<T>::value, bool>::type
-        next(T& outval);
+        read(T& outval);
 
         template<typename T>
         typename std::enable_if<std::is_trivially_copyable<T>::value, bool>::type
-        next(T& outval)
+        read(T& outval)
         {
             if (_read_head + sizeof(T) <= _raw.data() + _raw.size())
             {
@@ -83,7 +83,7 @@ namespace tabletopify
     class utf8_string_view;
 
     template<>
-    void motley_buffer::push_back<utf8_string>(const utf8_string& str);
+    void motley_buffer::write<utf8_string>(const utf8_string& str);
     template<>
-    bool motley_buffer::next<utf8_string_view>(utf8_string_view& sv);
+    bool motley_buffer::read<utf8_string_view>(utf8_string_view& sv);
 }
