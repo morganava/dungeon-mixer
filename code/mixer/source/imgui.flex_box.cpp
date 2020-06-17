@@ -26,7 +26,7 @@ namespace tabletopify
         {
             auto& self = *this;
             auto* fbd = self.data();
-            const float sz = fbd->constraints.sizeAt(self._index++);
+            const double sz = fbd->constraints.size_at(self._index++);
 
             rect retval = self._layout.child_bounds();
             if (self.direction == layout_direction::horizontal)

@@ -3,47 +3,61 @@
 
 namespace tabletopify
 {
+    static void normalize_ratios(array<constraint>& constraints)
+    {
+        double ratio_sum = 0.0;
+        for(auto& c : constraints) ratio_sum += c.ratio;
+        for(auto& c : constraints) c.ratio /= ratio_sum;
+    }
+
     linear_constraint_solver::linear_constraint_solver()
-    : N(0)
-    , _min_size(0.0)
+    : _min_size(0.0)
     , _max_size(0.0)
     , _total_size(0.0)
     { }
 
-    linear_constraint_solver::linear_constraint_solver(const std::initializer_list<constraint>& constraints)
-    : N(constraints.size())
-    , _min_size([&]() {double retval = 0.0; for(const auto& c : constraints) retval += c.min; return retval;}())
-    , _max_size([&]() {double retval = 0.0; for(const auto& c : constraints) retval += c.max; return retval;}())
-    , _total_size(0.0)
-    , _sizes(std::make_unique<double[]>(N))
-    , _constraints(std::make_unique<constraint[]>(N))
+    linear_constraint_solver::linear_constraint_solver(linear_constraint_solver&& that)
+    : _min_size(that._min_size)
+    , _max_size(that._max_size)
+    , _constraints(std::move(that._constraints))
+    , _total_size(that._total_size)
+    , _sizes(std::move(that._sizes))
     {
-        // copy constraints over
-        std::copy(constraints.begin(), constraints.end(), _constraints.get());
-
-        // normalize the ratios
-        double ratio_sum = 0.0;
-        for(size_t i = 0; i < N; ++i)
-        {
-            const auto& c = _constraints[i];
-            ratio_sum += c.ratio;
-        }
-
-        for(size_t i = 0; i < N; ++i)
-        {
-            auto& c = _constraints[i];
-            c.ratio /= ratio_sum;
-        }
+        that.~linear_constraint_solver();
+        new (&that) linear_constraint_solver();
     }
 
-#if 0
-    linear_constraint_solver& linear_constraint_solver::operator=(const std::initializer_list<constraint>& constraints)
+    linear_constraint_solver::linear_constraint_solver(const array<constraint>& constraints)
+    : _min_size([&]() {double retval = 0.0; for(const auto& c : constraints) retval += c.min; return retval;}())
+    , _max_size([&]() {double retval = 0.0; for(const auto& c : constraints) retval += c.max; return retval;}())
+    , _constraints([&]() {
+        array<constraint> retval(constraints);
+        normalize_ratios(retval);
+        return retval;
+    }())
+    , _total_size(0.0)
+    , _sizes(_constraints.size())
+    { }
+
+    linear_constraint_solver::linear_constraint_solver(std::initializer_list<constraint> constraints)
+    : _min_size([&]() {double retval = 0.0; for(const auto& c : constraints) retval += c.min; return retval;}())
+    , _max_size([&]() {double retval = 0.0; for(const auto& c : constraints) retval += c.max; return retval;}())
+    , _constraints([&]() {
+        array<constraint> retval(constraints);
+        normalize_ratios(retval);
+        return retval;
+    }())
+    , _total_size(0.0)
+    , _sizes(_constraints.size())
+    { }
+
+    linear_constraint_solver& linear_constraint_solver::operator=(linear_constraint_solver&& that)
     {
         this->~linear_constraint_solver();
-        auto _this = new(this) linear_constraint_solver(constraints);
-        return *_this;
+        new (this) linear_constraint_solver(std::move(that));
+        return *this;
     }
-#endif
+
     void linear_constraint_solver::update_size(double totalSize)
     {
         totalSize = std::max(0.0, totalSize);
@@ -53,14 +67,10 @@ namespace tabletopify
             return;
         }
         _total_size = totalSize;
-
-
-        if (totalSize == 0.0)
+        const size_t N = _constraints.size();
+        if (N == 0)
         {
-            for(size_t i = 0; i < N; ++i)
-            {
-                _sizes[i] = 0.0;
-            }
+            return;
         }
         else if(_total_size <= _min_size)
         {
@@ -150,5 +160,31 @@ namespace tabletopify
                 }
             }
         }
+    }
+
+    double linear_constraint_solver::size_at(size_t idx) const
+    {
+        if (idx < _sizes.size())
+        {
+            return _sizes[idx];
+        }
+        return 0.0;
+    }
+
+    void serialization_buffer_write(serialization_buffer& self, const linear_constraint_solver& val)
+    {
+        self.write(val._constraints);
+    }
+
+    bool serialization_buffer_read(serialization_buffer& self, linear_constraint_solver& out)
+    {
+        array<constraint> constraints;
+        if (self.read(constraints))
+        {
+            linear_constraint_solver retval(constraints);
+            out = std::move(retval);
+            return true;
+        }
+        return false;
     }
 }

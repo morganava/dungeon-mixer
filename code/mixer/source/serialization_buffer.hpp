@@ -3,7 +3,7 @@
 namespace tabletopify
 {
     // non-POD read and write methods for types to override
-    struct serialization_buffer;
+    class serialization_buffer;
     void serialization_buffer_write(serialization_buffer&, const auto&);
     bool serialization_buffer_read(serialization_buffer&, auto&);
 
