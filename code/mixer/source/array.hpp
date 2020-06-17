@@ -1,6 +1,7 @@
  #pragma once
 
 #include "utilities.hpp"
+#include "serialization_buffer.hpp"
 
 namespace tabletopify
 {
@@ -18,7 +19,8 @@ namespace tabletopify
         : _size(that._size)
         , _data(std::move(that._data))
         {
-            that._size = 0;
+            that.~array();
+            new(&that) array();
         }
 
         explicit array(size_t N)
@@ -45,15 +47,17 @@ namespace tabletopify
         array& operator=(std::initializer_list<T> il)
         {
             const auto N = il.size();
-            if(N != this->_size)
+            if(N == this->_size)
             {
-                this->_size = N;
-                this->_data = std::make_unique<T[]>(N);
+                for(size_t i = 0; i < N; ++i)
+                {
+                    this->_data[i] = std::move(il.begin()[i]);
+                }
             }
-
-            for(size_t i = 0; i < N; ++i)
+            else
             {
-                this->_data[i] = std::move(il.begin()[i]);
+                this->~array();
+                new (this) array(il);
             }
 
             return *this;
@@ -61,13 +65,8 @@ namespace tabletopify
 
         array& operator=(const array& that)
         {
-            const auto N = that.size();
-            if(this->_size != N)
-            {
-                this->_size = N;
-                this->_data = std::make_unique<T[]>(N);
-            }
-            std::copy(that.begin(), that.end(), _data.get());
+            this->~array();
+            new (this) array(that);
             return *this;
         }
 
@@ -123,9 +122,44 @@ namespace tabletopify
         }
 
     private:
-        size_t _size = 0;
+        const size_t _size = 0;
         std::unique_ptr<T[]> _data;
     };
+
+    template<typename T>
+    void serialization_buffer_write(serialization_buffer& self, const array<T>& array)
+    {
+        self.write(array.size());
+        for(const auto& val : array)
+        {
+            self.write(val);
+        }
+    }
+
+    template<typename T>
+    bool serialization_buffer_read(serialization_buffer& self, array<T>& out)
+    {
+        size_t size;
+        if (self.read(size))
+        {
+            array<T> retval(size);
+            for(size_t i = 0; i < size; ++i)
+            {
+                T val;
+                if(self.read(val))
+                {
+                    retval[i] = std::move(val);
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            out = std::move(retval);
+            return true;
+        }
+        return false;
+    }
 
     template<typename T>
     class array_view
