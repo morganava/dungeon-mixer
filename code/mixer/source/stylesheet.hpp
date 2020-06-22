@@ -8,6 +8,7 @@
 #include "utf8_string.hpp"
 #include "serialization_buffer.hpp"
 #include "enums.hpp"
+#include "linear_constraint_solver.hpp"
 
 namespace tabletopify
 {

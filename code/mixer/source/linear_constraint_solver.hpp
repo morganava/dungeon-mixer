@@ -18,8 +18,9 @@ namespace tabletopify
     {
     public:
         linear_constraint_solver();
+        linear_constraint_solver(const linear_constraint_solver&) = default;
         linear_constraint_solver(linear_constraint_solver&&);
-        linear_constraint_solver(const array<constraint>& constraints);
+        linear_constraint_solver(array<constraint>&& constraints);
         linear_constraint_solver(std::initializer_list<constraint> constraints);
         linear_constraint_solver& operator=(linear_constraint_solver&&);
         void update_size(double totalSize);
@@ -40,4 +41,7 @@ namespace tabletopify
 
     void serialization_buffer_write(serialization_buffer&, const linear_constraint_solver&);
     bool serialization_buffer_read(serialization_buffer&, linear_constraint_solver&);
+
+    void from_json(const nl::json&, constraint&);
+    void from_json(const nl::json&, linear_constraint_solver&);
 }

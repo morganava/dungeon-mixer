@@ -6,6 +6,7 @@
 #include "geometry.hpp"
 #include "stylesheet.hpp"
 #include "nanovg.hpp"
+#include "linear_constraint_solver.hpp"
 
 namespace tabletopify
 {
