@@ -162,6 +162,18 @@ namespace tabletopify
     }
 
     template<typename T>
+    void from_json(const nl::json& js, tabletopify::array<T>& array)
+    {
+        MX_THROW_IF_FALSE(js.is_array());
+        tabletopify::array<T> retval(js.size());
+        for(size_t i = 0; i < retval.size(); ++i)
+        {
+            retval[i] = js[i].get<T>();
+        }
+        array = std::move(retval);
+    }
+
+    template<typename T>
     class array_view
     {
     public:
