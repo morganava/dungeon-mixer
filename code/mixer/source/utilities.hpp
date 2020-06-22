@@ -85,24 +85,6 @@ namespace tabletopify
         std::unique_ptr<uint8_t[]> _memory;
         size_t _bytes;
     };
-
-    template<typename T>
-    struct strong_handle
-    {
-        constexpr strong_handle() = default;
-        constexpr strong_handle(size_t handle)
-        : _handle(handle)
-        { }
-        constexpr strong_handle(const strong_handle&) = default;
-        constexpr strong_handle(strong_handle&&) = default;
-        strong_handle& operator=(const strong_handle&) = default;
-        strong_handle& operator=(strong_handle&&) = default;
-        constexpr operator size_t() const { return _handle; }
-        constexpr const static T invalid = T();
-    private:
-        size_t _handle = ~size_t(0);
-    };
-    #define MX_STRONG_HANDLE(NAME) struct NAME : public strong_handle<NAME> { using strong_handle::strong_handle; using strong_handle::operator=;}; typedef NAME NAME##_t;
 }
 
 namespace std
