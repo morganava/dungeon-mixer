@@ -13,6 +13,142 @@
 
 namespace tabletopify
 {
+    // todo: probably find a better place than this
+    nl::json parse_json(const memory_buffer& mb)
+    {
+        std::vector<uint8_t> js;
+        js.reserve(mb.size());
+
+        const uint8_t* read = mb.begin();
+        const uint8_t* end = mb.end();
+
+        while(read < end)
+        {
+            // string
+            if (read[0] == '"')
+            {
+                // advance until we get to end of string
+                js.push_back(*read);
+                read++;
+                // ensure we're not dealing with an escaped quote
+                while(read[0] != '"' ||
+                      read[-1] == '\\')
+                {
+                    js.push_back(*read);
+                    read++;
+                }
+                js.push_back(*read);
+                read++;
+            }
+            // single line comment
+            else if (read[0] == '/' &&
+                     read + 1 < end &&
+                     read[1] == '/')
+            {
+                // skip over the '//'
+                read += 2;
+                // keep skipping until we get to the newline
+                while(read < end &&
+                      read[0] != '\n') {
+                    read++;
+                }
+            }
+            // block comment
+            else if (read[0] == '/' &&
+                     read +1 < end &&
+                     read[1] == '*')
+            {
+                // skip over the '/*'
+                read += 2;
+                // keep skipping until we get to the '*/'
+                while(read < end &&
+                      (read[0] != '/' || read[-1] != '*'))
+                {
+                    read++;
+                }
+                read++;
+            }
+            // trailing comma
+            else if (read[0] == ',')
+            {
+                const uint8_t* lookahead = read;
+                lookahead++;
+                bool done = false;
+                // skip over whitespace until
+                // we get to a } or ]
+                while(!done)
+                {
+                    switch(*lookahead)
+                    {
+                        // whitespace
+                        case ' ':
+                        case '\t':
+                        case '\r':
+                        case '\n':
+                            lookahead++;
+                            break;
+                        // found end of array or object
+                        case ']':
+                        case '}':
+                            // push a space instead of comma
+                            js.push_back(' ');
+                            read++;
+                            done = true;
+                            break;
+                        default:
+                            // found something else, so we are
+                            // in the middle
+                            js.push_back(*read);
+                            read++;
+                            done = true;
+                            break;
+                    }
+                }
+            }
+            // everything else
+            else
+            {
+                js.push_back(*read);
+                read++;
+            }
+        }
+
+        // second pass to overwrite trailing commas
+
+        for(auto it = js.begin(); it < js.end(); it++)
+        {
+            if (*it == ',')
+            {
+                auto comma = it;
+                bool done = false;
+                while(!done)
+                {
+                    it++;
+                    switch(*it)
+                    {
+                        // whitespace
+                        case ' ':
+                        case '\t':
+                        case '\r':
+                        case '\n':
+                            break;
+                        case ']':
+                        case '}':
+                            *comma = ' ';
+                        default:
+                            done = true;
+                            break;
+                    }
+                }
+            }
+        }
+
+        js.push_back(0);
+        MX_LOG_INFO_BLOCKING("json :\n{}", (char*)js.data());
+
+        return nl::json::parse(js.begin(), js.end());
+    }
+
     const char MIX_VERSION[] = "0.1";
 
     // https://stackoverflow.com/questions/2552416/how-can-i-find-the-users-home-dir-in-a-cross-platform-manner-using-c
@@ -63,7 +199,7 @@ namespace tabletopify
 
             worker_background.enqueue([mb=std::move(mb)]() -> void
             {
-                auto json = nl::json::parse(mb.begin(), mb.end());
+                auto json = parse_json(mb);
                 g_style_resolver = json.get<style_resolver>();
             });
         });
