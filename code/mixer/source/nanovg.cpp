@@ -191,10 +191,9 @@ namespace tabletopify
                 const float s_h = dim.height() / image.height();
 
                 vec2f size;
-                if (s_w * image.height() <= dim.height()) {
+                if (s_w  < s_h) {
                     size = image.size * s_w;
                 } else {
-                    MX_ASSERT(s_h * image.width() <= dim.width());
                     size = image.size * s_h;
                 }
 
