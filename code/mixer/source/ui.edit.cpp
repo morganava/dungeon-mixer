@@ -75,11 +75,11 @@ namespace tabletopify
 
     void ui::draw_edit(float dt)
     {
-        mxVBox(&root.edit.vflex, self.tags = {"content"})
+        mxVBox(self.tags={"content"})
         {
             mxLabel(&root.edit.heading, self.tags= {"header", "darkText"});
             mxButton(g_ui.root.edit.tracks.title, self.tags = {"header", "title", "lightText"});
-            mxHBox(&root.edit.hflex)
+            mxHBox(self.tags={"editButtonRow"})
             {
                 mxSpacer();
                 mxTextBox(&root.edit.searchBox, self.tags = {"search"};
@@ -88,7 +88,7 @@ namespace tabletopify
                     g_ui.on_do_audio_search(query);
                 });
             }
-            mxHBox(&root.edit.hflex)
+            mxHBox(self.tags = {"editHBox"})
             {
                 // track edit screen
                 mxVScroll(&root.edit.tracks.scroll)
@@ -96,14 +96,14 @@ namespace tabletopify
                     for(auto& editWidget : root.edit.tracks.widgets)
                     {
                         const auto trackHandle = editWidget.handle;
-                        mxHBox(&root.edit.tracks.title_hflex, self.tags={"atmosphereTitle"})
+                        mxHBox(self.tags={"trackTitle"})
                         {
                             mxCheckbox(&editWidget.visible, self.tags={"entryTitle"});
                             mxLabel(editWidget.audio_title, self.tags={"entryTitle"});
                         }
                         if (editWidget.visible.checked)
                         {
-                            mxHBox(&root.edit.tracks.settings_hflex, self.tags={"trackSetting"})
+                            mxHBox(self.tags={"trackSetting"})
                             {
                                 mxLabel({"VOLUME"})
                                 mxSlider(&editWidget.volume_slider,

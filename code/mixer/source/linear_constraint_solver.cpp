@@ -58,7 +58,7 @@ namespace tabletopify
         return *this;
     }
 
-    void linear_constraint_solver::update_size(double totalSize)
+    void linear_constraint_solver::update_size(double totalSize) const
     {
         totalSize = std::max(0.0, totalSize);
         // nothing to do
@@ -162,10 +162,11 @@ namespace tabletopify
         }
     }
 
-    double linear_constraint_solver::size_at(size_t idx) const
+    double linear_constraint_solver::size_at(double totalSize, size_t idx) const
     {
         if (idx < _sizes.size())
         {
+            update_size(totalSize);
             return _sizes[idx];
         }
         return 0.0;
@@ -176,6 +177,7 @@ namespace tabletopify
         self.write(val._constraints);
     }
 
+    static_assert(!std::is_trivially_copyable<linear_constraint_solver>::value);
     bool serialization_buffer_read(serialization_buffer& self, linear_constraint_solver& out)
     {
         array<constraint> constraints;

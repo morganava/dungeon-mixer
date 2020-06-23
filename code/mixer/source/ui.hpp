@@ -101,12 +101,6 @@ namespace tabletopify
 
         struct
         {
-            imgui::flex_box_data flex =
-            {
-                constraint{0.0, unconstrained, 1.0},
-                constraint{0.0, unconstrained, 4.0},
-            };
-
             struct
             {
                 imgui::scroll_area_data scroll;
@@ -123,24 +117,8 @@ namespace tabletopify
 
             struct
             {
-                imgui::flex_box_data vflex =
-                {
-                    constraint{35, 35, 1.0},
-                    constraint{70, 70, 1.0},
-                    constraint{50, 50, 1.0},
-                    constraint{0.0, unconstrained, 1.0},
-                };
                 imgui::label_data heading = {"Playlist"};
                 bool edit_title = false;
-                imgui::flex_box_data buttonFlex =
-                {
-                    constraint{128,128, 2.0},
-                    constraint{128,128, 2.0},
-                    constraint{0, unconstrained, 2.0},
-                    constraint{128,128, 2.0},
-                    constraint{256,unconstrained, 1.0},
-                    constraint{32,32, 1.0},
-                };
                 imgui::button_data export_ = {"Export"};
                 imgui::button_data import = {"Import"};
                 imgui::button_data newMix = {"New Mix"};
@@ -148,15 +126,6 @@ namespace tabletopify
                 imgui::button_data searchButton = {};
 
                 imgui::scroll_area_data scroll;
-                imgui::flex_box_data rowFlex =
-                {
-                    constraint{64,64,1.0},
-                    constraint{256,unconstrained,2.0},
-                    constraint{256,256,1.0},
-                    constraint{64,64,1.0},
-                    constraint{64,64,1.0},
-                };
-
                 imgui::label_data trackTitle = {"Title"};
                 imgui::label_data trackVolume = {"Volume"};
                 imgui::slider_data slider = {0.0f, 100.0f, 50.0f};
@@ -177,42 +146,14 @@ namespace tabletopify
             struct
             {
                 atmosphere_handle_t handle = atmosphere_handle::invalid;
-                imgui::flex_box_data vflex =
-                {
-                    constraint{35, 35, 1.0},
-                    constraint{70, 70, 1.0},
-                    constraint{50, 50, 1.0},
-                    constraint{0.0, unconstrained, 1.0},
-                };
                 imgui::label_data heading = {"Edit"};
                 imgui::button_data title = {"New Mix"};
-                imgui::flex_box_data hflex =
-                {
-                    constraint{0, unconstrained, 2.0},
-                    constraint{0,unconstrained, 1.0},
-                };
                 imgui::text_box_data searchBox = {"", "Track Search"};
                 imgui::button_data searchButton = {};
 
                 struct
                 {
                     imgui::scroll_area_data scroll;
-                    imgui::flex_box_data title_hflex =
-                    {
-                        constraint{35, 35, 1.0},
-                        constraint{0.0, unconstrained, 1.0},
-                    };
-                    imgui::flex_box_data settings_hflex =
-                    {
-                        constraint{196, 384, 1.0},
-                        constraint{0.0, unconstrained, 2.0},
-                    };
-                    imgui::flex_box_data volume_hflex =
-                    {
-                        constraint{0.0, unconstrained, 1.0},
-                        constraint{35, 35, 1.0},
-                        constraint{0.0, 128, 1.0}
-                    };
                     utf8_string title;
                     std::vector<track_edit_widget> widgets;
                 } tracks;

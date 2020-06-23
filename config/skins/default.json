@@ -85,10 +85,6 @@
         "textHalign" : "left",
         "padding" : { "left" : 16}
     },
-    ".content" : {
-        "backgroundColor" : "#676767",
-        "padding" : {"left" : 32}
-    },
     "button.sidebarEntry:hover" : {
         "backgroundColor" : "#A50",
         "fontColor" : "black"
@@ -102,11 +98,6 @@
     ".title" : {
         "size" : [0, 120],
         "fontSize" : 80
-    },
-    ".entryTitle" : {
-        "fontSize" : 26,
-        "textHalign" : "left"
-
     },
     "textBox.search" :
     {
@@ -123,10 +114,6 @@
         "backgroundImage" : "magnifying-glass-dark.png",
         "backgroundImageMode" : "contain"
 
-    },
-    "flexBox.playlistEntry" :
-    {
-        "size" : [0, 50]
     },
     "checkbox.entryFavorite" : {
         "size" : [32,32],
@@ -168,23 +155,100 @@
     "scrollArea.test" : {
         "size" : [0, 384],
         "backgroundColor" : "transparent"
+    },
+    "flexBox.editHBox" : {
+        "constraints" : [
+            ["none", "none", 2.0],
+            {"min" : "none", "max" : "none", "ratio" : 1.0}
+        ],
+    },
 
+    /** Common **/
+
+    /** Root **/
+    "flexBox.root" : {
+        "constraints" : [
+            ["none", 384, 1.0],
+            ["none", "none", 4.0]
+        ]
     },
-    ".contextMenuEntry" : {
-        "textHalign" : "left",
+
+    /** Sidebar **/
+
+    /** Content **/
+
+    ".content" : {
+        "backgroundColor" : "#676767",       
+    },
+
+    "flexBox.content" : {
+        "constraints" : [
+            [42, 42, 1.0],
+            [96, 96, 1.0],
+            [64, 64, 1.0],
+            ["none", "none", 1.0],
+        ],
+    },
+
+    /** Playlist **/
+
+    "flexBox.playlistButtonRow" :
+    {
+        "constraints" : [
+            [128, 128, 2.0],
+            [128, 128, 2.0],
+            ["none", "none", 2.0],
+            [128, 128, 2.0],
+            [256, "none", 1.0],
+            [32, 32, 1.0],
+        ]
+    },
+
+    "button.contextMenuEntry" :
+    {
         "size" : [0, 36]
     },
-    "spacer.test" : {
-        "size" : [100,100],
-        "backgroundColor" : "green"
+
+    "flexBox.playlistEntry" :
+    {
+        "size" : [0, 64],
+        "constraints" : [
+            [64, 64, 1.0],
+            [256, "none", 2.0],
+            [256, 256, 1.0],
+            [64, 64, 1.0],
+            [64, 64, 1.0],
+        ]
     },
-    "spacer.test:hover" : {
-        "backgroundColor" : "blue"
+
+    /** Edit **/
+
+    "flexBox.editButtonRow" :
+    {
+        "constraints" : [
+            ["none", "none", 2.0],
+            ["none", "none", 1.0]
+        ]
     },
-    "flexBox.atmosphereTitle" : {
-        "size" : [0, 48]
+
+    "flexBox.trackTitle" : {
+        "size" : [0, 48],
+        "constraints" : [
+            [36, 36, 1.0],
+            ["none", "none", 1.0],
+        ]
     },
+
     "flexBox.trackSetting" : {
-        "size" : [0, 36]
-    }
+        "size" : [0, 36],
+        "constraints" : [
+            [196, 384, 1.0],
+            ["none", "none", 2.0],
+        ]
+    },
+
+    ".entryTitle" : {
+        "fontSize" : 26,
+        "textHalign" : "left"
+    },
 }

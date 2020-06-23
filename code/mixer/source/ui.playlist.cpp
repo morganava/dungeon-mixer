@@ -292,7 +292,7 @@ namespace tabletopify
 
         auto& currentPlaylist = get_current_playlist_widget();
         const auto currentPlaylistHandle = currentPlaylist.handle;
-        mxVBox(&root.playlist.vflex, self.tags = {"content"})
+        mxVBox(self.tags = {"content"})
         {
             mxLabel(&root.playlist.heading, self.tags= {"header", "darkText"});
             if (root.playlist.edit_title)
@@ -323,7 +323,7 @@ namespace tabletopify
                 }
             }
 
-            mxHBox(&root.playlist.buttonFlex)
+            mxHBox(self.tags={"playlistButtonRow"})
             {
                 mxButton(&root.playlist.export_,
                     self.on_click = []() -> void {MX_LOG_INFO("EXPORT");};);
@@ -355,7 +355,7 @@ namespace tabletopify
                     MX_ASSERT(it != root.playlist.atmospheres.end());
                     auto& currentEntry = it->second;
 
-                    mxHBox(&root.playlist.rowFlex, self.tags={"playlistEntry"})
+                    mxHBox(self.tags={"playlistEntry"})
                     {
                         mxCheckbox(&currentEntry.favorite, self.tags = {"entryFavorite"};
                         self.on_change = [=](bool favorited) -> void

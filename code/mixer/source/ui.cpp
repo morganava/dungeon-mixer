@@ -18,7 +18,7 @@ namespace tabletopify
     {
         mxRoot(rect(vec2::zero, vec2(width, height)))
         {
-            mxHBox(&root.flex)
+            mxHBox(self.tags={"root"})
             {
                 draw_sidebar(dt);
                 switch(root.currentScreen)

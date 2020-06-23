@@ -411,19 +411,10 @@ namespace tabletopify
         }
         typedef layout_direction::values layout_direction_t;
 
-        struct flex_box_data : public widget_data
-        {
-            linear_constraint_solver constraints;
-
-            flex_box_data() = default;
-            flex_box_data(const std::initializer_list<constraint>& constraintList) : constraints(constraintList) { }
-        };
-
-        struct widget_flex_box : public widget<widget_flex_box, element_type::flex_box, flex_box_data, widget_flag::has_children | widget_flag::scissors>
+        struct widget_flex_box : public widget<widget_flex_box, element_type::flex_box, widget_data, widget_flag::has_children | widget_flag::scissors>
         {
             using widget::widget;
 
-            void resolve_box_layout_impl(element_type_t et, widget_flag_t flags);
             rect bounds_callback_impl(rect desiredBounds);
 
             layout_direction_t direction;
@@ -641,8 +632,8 @@ namespace tabletopify
 #define mxHScroll(DATA, ...) MX_WIDGET_CODEGEN(widget_scroll_area, DATA, self.direction = imgui::scroll_direction::horizontal; __VA_ARGS__)
 #define mxVScroll(DATA, ...) MX_WIDGET_CODEGEN(widget_scroll_area, DATA, self.direction = imgui::scroll_direction::vertical; __VA_ARGS__)
 #define mxFlexBox(DATA, ...) MX_WIDGET_CODEGEN(widget_flex_box, DATA, __VA_ARGS__)
-#define mxHBox(DATA, ...) MX_WIDGET_CODEGEN(widget_flex_box, DATA, self.direction = imgui::layout_direction::horizontal; __VA_ARGS__)
-#define mxVBox(DATA, ...) MX_WIDGET_CODEGEN(widget_flex_box, DATA, self.direction = imgui::layout_direction::vertical; __VA_ARGS__)
+#define mxHBox(...) MX_WIDGET_CODEGEN(widget_flex_box, nullptr, self.direction = imgui::layout_direction::horizontal; __VA_ARGS__)
+#define mxVBox(...) MX_WIDGET_CODEGEN(widget_flex_box, nullptr, self.direction = imgui::layout_direction::vertical; __VA_ARGS__)
 #define mxSpacer(...) MX_WIDGET_CODEGEN(widget_spacer, nullptr, __VA_ARGS__)
 #define mxLabel(DATA, ...) MX_WIDGET_CODEGEN(widget_label, DATA, __VA_ARGS__)
 #define mxButton(DATA, ...) MX_WIDGET_CODEGEN(widget_button, DATA, __VA_ARGS__)

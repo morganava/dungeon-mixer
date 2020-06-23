@@ -31,4 +31,4 @@ STYLE_SHEET_ENTRY(selectionColor, color::rgb(0xFF,0x88,0x00), element_state::non
 STYLE_SHEET_ENTRY(textHalign, halign::left, element_state::none)
 STYLE_SHEET_ENTRY(textValign, valign::middle, element_state::none)
 // flexbox
-STYLE_SHEET_ENTRY(constraints, linear_constraint_solver(), element_state::none)
+STYLE_SHEET_ENTRY(constraints, linear_constraint_solver(), element_state::hover)
