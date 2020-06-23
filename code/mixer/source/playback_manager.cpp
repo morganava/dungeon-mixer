@@ -151,8 +151,6 @@ namespace tabletopify
 
     void playback_manager::sync_track(track_handle_t trackHandle)
     {
-        MX_LOG_INFO("syncing track {}", trackHandle);
-
         auto& trackEntry = g_track_directory.get_entry(trackHandle);
         auto it = _entries.find(trackHandle);
         // if this track isn't playing nothing to do
