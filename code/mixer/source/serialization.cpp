@@ -143,9 +143,6 @@ namespace tabletopify
             }
         }
 
-        js.push_back(0);
-        MX_LOG_INFO_BLOCKING("json :\n{}", (char*)js.data());
-
         return nl::json::parse(js.begin(), js.end());
     }
 
@@ -217,20 +214,14 @@ namespace tabletopify
                     continue;
                 }
 
-                // TODO: use memory_buffer here
                 auto manifestPath = it.path() / "manifest.json";
                 MX_LOG_INFO("Loading manifest: {}", manifestPath);
-                auto manifestSize = fs::file_size(manifestPath);
-
-                std::ifstream manifestFile(manifestPath.native(), std::ios_base::in | std::ios_base::binary);
-                std::string manifestData(manifestSize, 0);
-                manifestFile.read(manifestData.data(), manifestSize);
-                manifestFile.close();
+                memory_buffer manifestData(manifestPath);          
 
                 // create audio entries for listings in manifest
                 worker_background.enqueue([basePath=it.path(), manifestData=std::move(manifestData)]() -> void
                 {
-                    auto json = nl::json::parse(manifestData);
+                    auto json = parse_json(manifestData);
                     auto trackList = json["Tracks"];
                     for(auto track : trackList)
                     {
@@ -281,7 +272,7 @@ namespace tabletopify
                 {
                     MX_LOG_INFO("Loading playlist : {}", path);
 
-                    auto json = nl::json::parse(bytes.begin(), bytes.end());
+                    auto json = parse_json(bytes);
                     utf8_string version = json["Version"];
                     MX_LOG_INFO(" Version : {}", version);
                     MX_LOG_INFO(" Atmospheres :");

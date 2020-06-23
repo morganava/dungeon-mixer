@@ -2,6 +2,7 @@
 #include "utilities.hpp"
 #include "work_queue.hpp"
 #include "logger.hpp"
+#include "serialization.hpp"
 
 namespace tabletopify
 {
@@ -9,18 +10,11 @@ namespace tabletopify
     {
         worker_fileio.enqueue([stringsPath=std::move(stringsPath)]() -> void
         {
-            MX_ASSERT(fs::exists(stringsPath));
-            auto stringsSize = fs::file_size(stringsPath);
-
-            // TODO: switch to use memory_buffer
-            std::ifstream stringsFile(stringsPath.native(), std::ios_base::in | std::ios_base::binary);
-            std::string stringsData(stringsSize, 0);
-            stringsFile.read(stringsData.data(), stringsSize);
-            stringsFile.close();
+            memory_buffer stringsData(stringsPath);
 
             worker_background.enqueue([stringsData=std::move(stringsData), stringsPath=std::move(stringsPath)]() -> void
             {
-                auto json = nl::json::parse(stringsData);
+                auto json = parse_json(stringsData);
                 auto& stringList = json["Strings"];
                 MX_ASSERT(stringList.size() == static_cast<size_t>(mixer_string::count));
                 for(size_t idx = 0; idx < stringList.size(); ++idx)
