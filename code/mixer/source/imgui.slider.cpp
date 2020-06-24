@@ -34,7 +34,7 @@ namespace tabletopify
                 return clamp(
                     0.0,
                     (pos - (sliderBounds.left() + handleWidth / 2.0)) / (sliderBounds.width() - handleWidth),
-                    1.0) * (maxVal - minVal);
+                    1.0) * (maxVal - minVal) + minVal;
             };
 
             for(auto& evt : g_input.get_input_events())
@@ -54,7 +54,7 @@ namespace tabletopify
                                 auto x = evt.position().x;
                                 _slider->data()->value = position_to_val(x);
                             }
-                        }
+                        } 
                     }
                     break;
                     case input_event_type::mouse_drag:
