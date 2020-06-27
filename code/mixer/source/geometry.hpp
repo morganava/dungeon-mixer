@@ -1,7 +1,16 @@
 #pragma once
 
+#include "utilities.hpp"
+
 namespace tabletopify
 {
+    // constants
+    template<typename T>
+    struct constants
+    {
+        constexpr static T pi = 3.14159265358979323846;
+    };
+
     // math functions
 
     template<typename T>
@@ -175,6 +184,11 @@ namespace tabletopify
             return vec3_(this->x * d, this->y * d, this->z * d);
         }
 
+        friend constexpr vec3_ operator*(T d, const vec3_& v)
+        {
+            return v * d;
+        }
+
         constexpr vec3_ operator/(T d) const
         {
             return vec3_(this->x / d, this->y / d, this->z * d);
@@ -227,17 +241,128 @@ namespace tabletopify
         }
 
         constexpr static const vec3_ zero = {0,0,0};
+
+        constexpr T& operator[](size_t idx)
+        {
+            switch(idx)
+            {
+                case 0: return x;
+                case 1: return y;
+                case 2: return z;
+            }
+            return *static_cast<T*>(nullptr);
+        }
+
+        constexpr T operator[](size_t idx) const
+        {
+            switch(idx)
+            {
+                case 0: return x;
+                case 1: return y;
+                case 2: return z;
+            }
+            return *static_cast<T*>(nullptr);
+        }
+
+        // convert to SFML vector
+        operator sf::Vector3f() const
+        {
+            return {(float)x, (float)y, (float)z};
+        }
     };
 
-    template<typename T>
-    constexpr vec3_<T> operator*(double d, const vec3_<T>& v)
-    {
-        return v * d;
-    }
+
     typedef vec3_<double> vec3;
     typedef vec3_<float> vec3f;
 
     void from_json(const nl::json&, vec3&);
+
+    template<typename T, size_t ROWS, size_t COLS>
+    struct matrix_
+    {
+        constexpr matrix_(std::initializer_list<T> lst)
+        {
+            std::copy(lst.begin(), lst.end(), elements);
+        }
+
+        constexpr matrix_(const matrix_&) = default;
+        constexpr matrix_(matrix_&&) = default;
+
+        // multiple an LxM matrix by an MxN matrix to get an LxN marix
+        template<size_t N>
+        constexpr matrix_<T,COLS,N> operator*(const matrix_<T,COLS,N>& B)
+        {
+            constexpr size_t L = ROWS;
+            constexpr size_t M = COLS;
+
+            const auto& A = *this;
+
+            matrix_<T,L,N> C;
+            for(auto i = 0; i < L; ++i)
+            {
+                for(auto j = 0; j < N; ++j)
+                {
+                    auto& c_ij = C(i,j);
+                    c_ij = T(0);
+                    for(auto k = 0; k < M; ++k)
+                    {
+                        c_ij += A(i,k) * B(k,j);
+                    }
+                }
+            }
+            return C;
+        }
+
+        template<size_t I, size_t J>
+        constexpr T& get()
+        {
+            static_assert(I < ROWS);
+            static_assert(J < COLS);
+
+            return elements[I * COLS + J];
+        }
+
+        constexpr T& operator()(size_t i, size_t j)
+        {
+            MX_ASSERT(i < ROWS);
+            MX_ASSERT(j < COLS);
+
+            return elements[i * COLS + j];
+        }
+
+        constexpr T operator()(size_t i, size_t j) const
+        {
+            MX_ASSERT(i < ROWS);
+            MX_ASSERT(j < COLS);
+
+            return elements[i * COLS + j];
+        }
+    private:
+        T elements[ROWS*COLS] = {0};
+    };
+
+    template<typename T>
+    struct matrix3x3_ : public matrix_<T, 3, 3>
+    {
+        using matrix_<T,3,3>::matrix_;
+        using matrix_<T,3,3>::operator*;
+
+        constexpr friend vec3_<T> operator*(const vec3_<T>& V, const matrix3x3_& M)
+        {
+            vec3_<T> R;
+            for(auto i = 0; i < 3; ++i)
+            {
+                auto& r = R[i];
+                for(auto j = 0; j < 3; ++j)
+                {
+                    r += V[j] * M(i,j);
+                }
+            }
+            return R;
+        }
+    };
+    typedef matrix3x3_<double> matrix3x3;
+    typedef matrix3x3_<float> matrix3x3f;
 
     // point
 
