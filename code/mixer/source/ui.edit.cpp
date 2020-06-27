@@ -71,6 +71,36 @@ namespace tabletopify
         });
     }
 
+    void ui::on_set_track_position_enabled(track_handle_t trackHandle, bool enabled)
+    {
+        worker_background.enqueue([=]() -> void
+        {
+            auto& entry = g_track_directory.get_entry(trackHandle);
+            entry.position.enabled = enabled;
+            g_playback_manager.sync_track(trackHandle);
+        });
+    }
+
+    void ui::on_set_track_azimuth(track_handle_t trackHandle, double azimuth)
+    {
+        worker_background.enqueue([=]() -> void
+        {
+            auto& entry = g_track_directory.get_entry(trackHandle);
+            entry.position.azimuth = azimuth;
+            g_playback_manager.sync_track(trackHandle);
+        });
+    }
+
+    void ui::on_set_track_elevation(track_handle_t trackHandle, double elevation)
+    {
+        worker_background.enqueue([=]() -> void
+        {
+            auto& entry = g_track_directory.get_entry(trackHandle);
+            entry.position.elevation = elevation;
+            g_playback_manager.sync_track(trackHandle);
+        });
+    }
+
     // Draw
 
     void ui::draw_edit(float dt)
@@ -105,12 +135,55 @@ namespace tabletopify
                         {
                             mxHBox(self.tags={"trackSetting"})
                             {
-                                mxLabel({"VOLUME"})
+                                mxLabel({"VOLUME"});
                                 mxSlider(&editWidget.volume_slider,
                                 self.on_change = [=](double value) -> void
                                 {
                                     g_ui.on_set_track_volume(trackHandle, value);
                                 });
+                            }
+                            mxHBox(self.tags={"trackSetting"})
+                            {
+                                mxLabel({"POSITION"});
+                                mxHBox(self.tags={"trackPositionCheckbox"})
+                                {
+                                    mxCheckbox(&editWidget.position_checkbox,
+                                    self.on_change = [=](bool value) -> void{
+                                        g_ui.on_set_track_position_enabled(trackHandle, value);
+                                    });
+                                    mxLabel({"ENABLED"});
+                                }
+                            }
+                            if (editWidget.position_checkbox.checked)
+                            {
+                                // azimuth is the horizontal angle
+                                mxHBox(self.tags={"trackSetting"})
+                                {
+                                    mxLabel({"AZIMUTH"});
+                                    mxSlider(&editWidget.azimuth_slider,
+                                    self.on_change = [=](double value) -> void
+                                    {
+                                        g_ui.on_set_track_azimuth(trackHandle, value);
+                                    });
+                                }
+                                mxHBox(self.tags={"trackSetting"})
+                                {
+                                    mxLabel({"ELEVATION"});
+                                    mxSlider(&editWidget.elevation_slider,
+                                    self.on_change = [=](double value) -> void
+                                    {
+                                        g_ui.on_set_track_elevation(trackHandle, value);
+                                    });
+                                }
+                            }
+                            mxHBox(self.tags={"trackSetting"})
+                            {
+                                mxLabel({"REPEAT"});
+                                mxHBox(self.tags={"trackPositionCheckbox"})
+                                {
+                                    mxCheckbox(&editWidget.repeat_checkbox);
+                                    mxLabel({"ENABLED"});
+                                }
                             }
                         }
                     }

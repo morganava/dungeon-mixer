@@ -4,6 +4,7 @@
 #include "logger.hpp"
 #include "audio.hpp"
 #include "random.hpp"
+#include "geometry.hpp"
 
 namespace tabletopify
 {
@@ -184,8 +185,33 @@ namespace tabletopify
                     MX_FAIL_FAST();
             }
 
-            playbackEntry.positional = trackEntry.position.enabled;
-            playbackEntry.position = {trackEntry.position.x, trackEntry.position.y, trackEntry.position.z};
+            const auto& [enabled, elevation, azimuth] = trackEntry.position;
+            auto calc_cartesian = [&]()
+            {
+                vec3 look = {0.0, 0.0, -1.0};
+                double theta = elevation * (constants<double>::pi / 180.0);
+                double phi = azimuth * (constants<double>::pi / 180.0);
+
+                matrix3x3 Rx = {
+                    1.0, 0.0, 0.0,
+                    0.0, cos(theta), -sin(theta),
+                    0.0, sin(theta), cos(theta),
+                };
+
+                // negate phi because we want 90 degrees to be to the right, not the left
+                matrix3x3 Ry = {
+                    cos(-phi), 0.0, sin(-phi),
+                    0.0, 1.0, 0.0,
+                    -sin(-phi), 0.0, cos(-phi),
+                };
+
+                auto position = look * Rx * Ry;
+                MX_LOG_INFO("position : {}", position);
+                return position;
+            };
+
+            playbackEntry.positional = enabled;
+            playbackEntry.position = calc_cartesian();
 
             playbackEntry.timeSincePlaybackEnd = 0.0f;
             playbackEntry.dirtyProperties = true;

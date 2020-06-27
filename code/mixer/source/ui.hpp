@@ -41,6 +41,11 @@ namespace tabletopify
         imgui::checkbox_data visible = {false};
         utf8_string audio_title;
         imgui::slider_data volume_slider = {0.0, 1.0, 0.0};
+        imgui::checkbox_data position_checkbox = {false};
+        // 0 degrees directly forward, -90 directly left, 90 directly right
+        imgui::slider_data azimuth_slider = {-180.0, 180.0, 0.0};
+        imgui::slider_data elevation_slider = {-90, 90.0, 0.0};
+        imgui::checkbox_data repeat_checkbox = {false};
     };
 
     struct audio_query_result_widget
@@ -92,6 +97,9 @@ namespace tabletopify
         void on_do_audio_search(const utf8_string& query);
         void on_add_audio_to_atmosphere(atmosphere_handle_t atmosphereHandle, audio_handle_t audioHandle);
         void on_set_track_volume(track_handle_t trackHandle, double volume);
+        void on_set_track_position_enabled(track_handle_t trackHandle, bool enabled);
+        void on_set_track_azimuth(track_handle_t trackHandle, double azimuth);
+        void on_set_track_elevation(track_handle_t trackHandle, double elevation);
 
         // draw methods
         void draw_playlist(float dt);

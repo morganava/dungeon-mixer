@@ -1,6 +1,6 @@
 {
     "" : {
-        "borderSize" : 2,
+        "borderSize" : 1,
         "borderRadius" : 0.0,
         "borderColor" : "#000",
         "padding" : 0,
@@ -250,5 +250,12 @@
     ".entryTitle" : {
         "fontSize" : 26,
         "textHalign" : "left"
+    },
+
+    "flexBox.trackPositionCheckbox" : {
+        "constraints" : [
+            [36, 36, 1.0],
+            ["none", "none", 1.0]
+        ]
     },
 }

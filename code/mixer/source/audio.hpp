@@ -142,16 +142,9 @@ namespace tabletopify
         struct
         {
             bool enabled = false;
-            union
-            {
-                struct
-                {
-                    float x;
-                    float y;
-                    float z;
-                };
-                float raw[3];
-            };
+            double elevation = 0.0;
+            double azimuth = 0.0;
+
         } position;
     };
 

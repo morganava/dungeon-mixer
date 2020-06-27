@@ -216,7 +216,7 @@ namespace tabletopify
 
                 auto manifestPath = it.path() / "manifest.json";
                 MX_LOG_INFO("Loading manifest: {}", manifestPath);
-                memory_buffer manifestData(manifestPath);          
+                memory_buffer manifestData(manifestPath);
 
                 // create audio entries for listings in manifest
                 worker_background.enqueue([basePath=it.path(), manifestData=std::move(manifestData)]() -> void
@@ -362,13 +362,39 @@ namespace tabletopify
                             }
 
                             if (trackJson.contains("Position")) {
-                                vec3 position = trackJson["Position"].get<vec3>();
-                                trackEntry.position.x = position.x;
-                                trackEntry.position.y = position.y;
-                                trackEntry.position.z = position.z;
-                                trackEntry.position.enabled = true;
+                                auto positionJson = trackJson["Position"];
+                                auto& [enabled, elevation, azimuth] = trackEntry.position;
+                                if (positionJson.is_array())
+                                {
+                                    MX_THROW_IF_FALSE(positionJson.size() == 2);
+                                    switch(positionJson.size())
+                                    {
+                                        case 2:
+                                            MX_THROW_IF_FALSE(positionJson[1].is_number());
+                                            azimuth = positionJson[1].get<double>();
+                                        case 1:
+                                            MX_THROW_IF_FALSE(positionJson[0].is_number());
+                                            elevation = positionJson[0].get<double>();
+                                    }
+                                }
+                                else if (positionJson.is_object())
+                                {
+                                    if (positionJson.contains("Azimuth"))
+                                    {
+                                        const auto& azimuthJson = positionJson["Azimuth"];
+                                        MX_THROW_IF_FALSE(azimuthJson.is_number());
+                                        azimuth = azimuthJson.get<double>();
+                                    }
+                                    if (positionJson.contains("Elevation"))
+                                    {
+                                        const auto& elevationJson = positionJson["Elevation"];
+                                        MX_THROW_IF_FALSE(elevationJson.is_number());
+                                        elevation = elevationJson.get<double>();
+                                    }
+                                }
 
-                                MX_LOG_INFO("   Position : {}", position);
+
+                                MX_LOG_INFO("   Position : {{ elevation : {}, azimuth : {} }}", elevation, azimuth);
                             } else {
                                 trackEntry.position.enabled = false;
                             }
