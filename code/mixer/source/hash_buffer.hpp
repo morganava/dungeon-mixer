@@ -10,7 +10,8 @@ namespace tabletopify
         void push_back(const TYPE& val)
         {
             _buffer.write(val);
-            _hash = calc_hash(val, _hash);
+            hash<TYPE> typeHash;
+            _hash = typeHash(val, _hash);
         }
 
         template<typename TYPE>

@@ -43,7 +43,7 @@ namespace tabletopify
 }
 
 std::ostream& operator<<(std::ostream& out, const struct tabletopify::uuid& id);
-template <> struct std::hash<class tabletopify::uuid>
+template <> struct std::hash<tabletopify::uuid>
 {
-    size_t operator()(const class tabletopify::uuid&) const;
+    size_t operator()(const tabletopify::uuid&) const;
 };

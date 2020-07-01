@@ -18,6 +18,7 @@ add_executable(tabletop_mixer
     linear_constraint_solver.cpp
     color.cpp
     random.cpp
+    uuid.cpp
     # main
     mixer.cpp
     # systems

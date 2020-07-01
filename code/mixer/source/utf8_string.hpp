@@ -2,6 +2,7 @@
 
 #include "utilities.hpp"
 #include "serialization_buffer.hpp"
+#include "hash.hpp"
 
 namespace tabletopify
 {
@@ -81,6 +82,11 @@ namespace tabletopify
         friend void to_json(nl::json&, const utf8_string&);
         friend void from_json(const nl::json&, utf8_string&);
         friend class utf8_string_iterator;
+    };
+
+    template <> struct hash<tabletopify::utf8_string>
+    {
+        size_t operator()(const tabletopify::utf8_string&, size_t seed) const;
     };
 
     void serialization_buffer_write(serialization_buffer& self, const utf8_string& val);

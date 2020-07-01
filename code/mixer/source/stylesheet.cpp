@@ -176,3 +176,18 @@ namespace tabletopify
         return retval;
     }
 }
+
+size_t std::hash<tabletopify::selector>::operator()(const tabletopify::selector& sel) const
+{
+    tabletopify::hash<tabletopify::element_type_t> elementTypeHash;
+    tabletopify::hash<tabletopify::element_state_t> elementStateHash;
+    tabletopify::hash<tabletopify::utf8_string> utf8StringHash;
+
+    auto retval = elementTypeHash(sel.type, 0);
+    for(auto& currentTag : sel.tags)
+    {
+        retval = utf8StringHash(currentTag, retval);
+    }
+    retval = elementStateHash(sel.state, retval);
+    return retval;
+};

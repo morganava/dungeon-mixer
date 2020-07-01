@@ -301,7 +301,27 @@ namespace tabletopify
         auto tail = head + this->_size;
         return utf8_string_iterator(tail, tail);
     }
+//
+// Hash objects
+//
 
+    size_t hash<tabletopify::utf8_string>::operator()(const utf8_string& str, size_t seed) const
+    {
+        return calc_hash_raw(str.data(), str.size(), seed);
+    };
+}
+
+namespace std
+{
+    size_t hash<tabletopify::utf8_string>::operator()(const tabletopify::utf8_string& str) const
+    {
+        tabletopify::hash<tabletopify::utf8_string> h;
+        return h(str, 0);
+    }
+}
+
+namespace tabletopify
+{
     void serialization_buffer_write(serialization_buffer& self, const utf8_string& str)
     {
         self.write(str.size());

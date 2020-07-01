@@ -137,6 +137,28 @@ namespace tabletopify
         std::unique_ptr<T[]> _data;
     };
 
+
+    template<typename T>
+    struct hash<array<T>>
+    {
+        size_t operator()(const array<T>& val, size_t seed) const
+        {
+            if constexpr (std::is_trivially_copyable<T>::value)
+            {
+                return calc_hash_raw(val.data(), sizeof(T) * val.size(), seed);
+            }
+            else
+            {
+                auto hash = seed;
+                for(const auto& v : val)
+                {
+                    hash = calc_hash_raw(&v, sizeof(T), hash);
+                }
+                return hash;
+            }
+        }
+    };
+
     template<typename T>
     void serialization_buffer_write(serialization_buffer& self, const array<T>& array)
     {
