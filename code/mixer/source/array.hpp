@@ -2,6 +2,7 @@
 
 #include "utilities.hpp"
 #include "serialization_buffer.hpp"
+#include "hash.hpp"
 
 namespace tabletopify
 {
@@ -121,6 +122,16 @@ namespace tabletopify
             return _size;
         }
 
+        const T* data() const
+        {
+            return _data.get();
+        }
+
+        T* data()
+        {
+            return _data.get();
+        }
+
     private:
         const size_t _size = 0;
         std::unique_ptr<T[]> _data;
@@ -130,9 +141,16 @@ namespace tabletopify
     void serialization_buffer_write(serialization_buffer& self, const array<T>& array)
     {
         self.write(array.size());
-        for(const auto& val : array)
+        if constexpr (std::is_trivially_copyable<T>::value)
         {
-            self.write(val);
+            self.write(reinterpret_cast<const uint8_t*>(array.data()), array.size() * sizeof(T));
+        }
+        else
+        {
+            for(const auto& val : array)
+            {
+                self.write(val);
+            }
         }
     }
 
@@ -143,18 +161,29 @@ namespace tabletopify
         if (self.read(size))
         {
             array<T> retval(size);
-            for(size_t i = 0; i < size; ++i)
+            if constexpr (std::is_trivially_copyable<T>::value)
             {
-                T val;
-                if(self.read(val))
-                {
-                    retval[i] = std::move(val);
-                }
-                else
+                if (!self.read(reinterpret_cast<uint8_t*>(retval.data()), size * sizeof(T)))
                 {
                     return false;
                 }
             }
+            else
+            {
+                for(size_t i = 0; i < size; ++i)
+                {
+                    T val;
+                    if(self.read(val))
+                    {
+                        retval[i] = std::move(val);
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+            }
+
             out = std::move(retval);
             return true;
         }
