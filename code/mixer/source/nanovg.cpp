@@ -6,6 +6,7 @@
 #include "singleton.hpp"
 #include "work_queue.hpp"
 #include "utf8_string.hpp"
+#include "array.hpp"
 
 namespace tabletopify
 {
@@ -158,6 +159,7 @@ namespace tabletopify
         stroke_rect,
         stroke_rounded_rect,
         stroke_circle,
+        stroke_path,
         draw_text,
         draw_text_with_caret,
         draw_text_with_selection
@@ -412,6 +414,34 @@ namespace tabletopify
 
                     nvgBeginPath(_ctx);
                     nvgCircle(_ctx, c.position.x, c.position.y, c.radius);
+                    nvgStrokeWidth(_ctx, strokeWidth);
+                    nvgStrokeColor(_ctx, col);
+                    nvgStroke(_ctx);
+                }
+                break;
+                case draw_command::stroke_path:
+                {
+                    size_t pointCount = 0;
+                    MX_THROW_IF_FALSE(cq.next(pointCount));
+                    MX_THROW_IF_FALSE(pointCount >= 2);
+
+                    nvgBeginPath(_ctx);
+                    vec2f pt;
+                    MX_THROW_IF_FALSE(cq.next(pt));
+                    nvgMoveTo(_ctx, pt.x, pt.y);
+                    for(size_t k = 1; k < pointCount; k++)
+                    {
+                        MX_THROW_IF_FALSE(cq.next(pt));
+                        nvgLineTo(_ctx, pt.x, pt.y);
+                    }
+                    nvgClosePath(_ctx);
+
+                    float strokeWidth;
+                    color col;
+                    MX_THROW_IF_FALSE(cq.next(strokeWidth));
+                    MX_THROW_IF_FALSE(cq.next(col));
+
+                    nvgStrokeWidth(_ctx, strokeWidth);
                     nvgStrokeColor(_ctx, col);
                     nvgStroke(_ctx);
                 }
@@ -770,6 +800,15 @@ namespace tabletopify
         auto& cq = _current;
         cq.push_back(draw_command::stroke_circle);
         cq.push_back(c);
+        cq.push_back(strokeWidth);
+        cq.push_back(col);
+    }
+
+    void nanovg::stroke_path(const tabletopify::array<vec2f>& path, float strokeWidth, const color& col)
+    {
+        auto& cq = _current;
+        cq.push_back(draw_command::stroke_path);
+        cq.push_back(path);
         cq.push_back(strokeWidth);
         cq.push_back(col);
     }

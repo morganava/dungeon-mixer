@@ -7,6 +7,7 @@
 #include "color.hpp"
 #include "hash_buffer.hpp"
 #include "enums.hpp"
+#include "array.hpp"
 
 namespace tabletopify
 {
@@ -65,6 +66,8 @@ namespace tabletopify
         void stroke_rect(const rectf&, float strokeWidth, const color&);
         void stroke_rounded_rect(const rectf&, const cornersf&, float strokeWidth, const color&);
         void stroke_circle(const circlef&, float strokeWidth, const color&);
+        void stroke_path(const tabletopify::array<vec2f>&, float strokeWidth, const color&);
+
         void draw_text(const rectf& bounds, float textOffset, font_handle_t font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const utf8_string& str);
         void draw_text_with_caret(const rectf& bounds, float textOffset, font_handle_t font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const utf8_string& str, int32_t caretIndex, float caretWidth, const color& caretColor);
         void draw_text_with_selection(const rectf& bounds, float textOffset, font_handle_t font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const utf8_string& str, int32_t selectBegin, int32_t selectEnd, const color& selectedFontColor, const color& selectionColor);
