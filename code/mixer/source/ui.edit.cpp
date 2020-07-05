@@ -37,6 +37,8 @@ namespace tabletopify
             trackEntry.audioTitle = trackTitle;
             trackEntry.audioData = audioEntry.data;
 
+            const auto audioType = audioEntry.type();
+
             // add it to the track directory
             auto trackHandle = g_track_directory.add_entry(std::move(trackEntry));
 
@@ -48,10 +50,10 @@ namespace tabletopify
             worker_ui.enqueue([=,title=std::move(trackTitle)]() -> void
             {
                 track_edit_widget widget;
-                widget.visible.checked = true;
                 widget.handle = trackHandle;
+                widget.type = audioType;
+                widget.visible.checked = true;
                 widget.audio_title = std::move(title);
-                widget.volume_slider.value = 1.0;
 
                 g_ui.root.edit.tracks.widgets.push_back(std::move(widget));
             });
@@ -97,6 +99,27 @@ namespace tabletopify
         {
             auto& entry = g_track_directory.get_entry(trackHandle);
             entry.position.elevation = elevation;
+            g_playback_manager.sync_track(trackHandle);
+        });
+    }
+
+    void ui::on_set_track_repeat_enabled(track_handle_t trackHandle, bool enabled)
+    {
+        worker_background.enqueue([=]() -> void
+        {
+            auto& entry = g_track_directory.get_entry(trackHandle);
+            entry.repeat.enabled = enabled;
+            g_playback_manager.sync_track(trackHandle);
+        });
+    }
+
+    void ui::on_set_track_repeat(track_handle_t trackHandle, double minRepeat, double maxRepeat)
+    {
+        worker_background.enqueue([=]() -> void
+        {
+            auto& entry = g_track_directory.get_entry(trackHandle);
+            entry.repeat.min = minRepeat;
+            entry.repeat.max = maxRepeat;
             g_playback_manager.sync_track(trackHandle);
         });
     }
@@ -176,13 +199,34 @@ namespace tabletopify
                                     });
                                 }
                             }
-                            mxHBox(self.tags={"trackSetting"})
+
+                            if (editWidget.type == audio_type::one_shot)
                             {
-                                mxLabel({"REPEAT"});
-                                mxHBox(self.tags={"trackPositionCheckbox"})
+                                mxHBox(self.tags={"trackSetting"})
                                 {
-                                    mxCheckbox(&editWidget.repeat_checkbox);
-                                    mxLabel({"ENABLED"});
+                                    mxLabel({"REPEAT"});
+                                    mxHBox(self.tags={"trackPositionCheckbox"})
+                                    {
+                                        mxCheckbox(&editWidget.repeat_checkbox,
+                                        self.on_change=[=](bool value)
+                                        {
+                                            g_ui.on_set_track_repeat_enabled(trackHandle, value);
+                                        });
+                                        mxLabel({"ENABLED"});
+                                    }
+                                }
+                                if (editWidget.repeat_checkbox.checked)
+                                {
+                                    mxHBox(self.tags={"trackSetting"})
+                                    {
+                                        mxLabel({"DELAY"});
+                                        mxRangeSlider(&editWidget.repeat_slider,
+                                        self.on_change=[=](double low, double high)
+                                        {
+                                            MX_LOG_INFO("low : {}, high : {}", low, high);
+                                            g_ui.on_set_track_repeat(trackHandle, low, high);
+                                        });
+                                    }
                                 }
                             }
                         }

@@ -38,14 +38,16 @@ namespace tabletopify
     struct track_edit_widget
     {
         track_handle_t handle;
+        audio_type_t type;
         imgui::checkbox_data visible = {false};
         utf8_string audio_title;
-        imgui::slider_data volume_slider = {0.0, 1.0, 0.0};
+        imgui::slider_data volume_slider = {0.0, 1.0, 1.0};
         imgui::checkbox_data position_checkbox = {false};
         // 0 degrees directly forward, -90 directly left, 90 directly right
         imgui::slider_data azimuth_slider = {-180.0, 180.0, 0.0};
         imgui::slider_data elevation_slider = {-90, 90.0, 0.0};
         imgui::checkbox_data repeat_checkbox = {false};
+        imgui::range_slider_data repeat_slider = {0.0, 60.0, 0.0, 15.0};
     };
 
     struct audio_query_result_widget
@@ -100,6 +102,8 @@ namespace tabletopify
         void on_set_track_position_enabled(track_handle_t trackHandle, bool enabled);
         void on_set_track_azimuth(track_handle_t trackHandle, double azimuth);
         void on_set_track_elevation(track_handle_t trackHandle, double elevation);
+        void on_set_track_repeat_enabled(track_handle_t trackHandle, bool enabled);
+        void on_set_track_repeat(track_handle_t trackHandle, double minRepeat, double maxRepeat);
 
         // draw methods
         void draw_playlist(float dt);

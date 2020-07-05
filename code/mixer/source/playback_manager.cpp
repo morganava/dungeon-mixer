@@ -21,6 +21,7 @@ namespace tabletopify
             if(playbackEntry.dirtyProperties == true)
             {
                 playbackEntry.sound.setAttenuation(1.0f);
+                playbackEntry.sound.setMinDistance(1.0f);
                 playbackEntry.sound.setVolume(100.0f * playbackEntry.volume);
                 if(playbackEntry.positional == true)
                 {
@@ -165,12 +166,23 @@ namespace tabletopify
             switch(playbackEntry.audioData->get_type())
             {
                 case audio_type::one_shot:
+                {
                     playbackEntry.seamlessLoop = false;
-                    playbackEntry.repeatMin = trackEntry.repeat.min;
-                    playbackEntry.repeatMax = trackEntry.repeat.max;
+                    if (trackEntry.repeat.enabled)
+                    {
+                        playbackEntry.repeatMin = (float)trackEntry.repeat.min;
+                        playbackEntry.repeatMax = (float)trackEntry.repeat.max;
+                    }
+                    else
+                    {
+                        playbackEntry.repeatMin = playbackEntry.repeatMax = std::numeric_limits<float>::max();
+                    }
+
                     playbackEntry.dirtyBuffer = false;
-                    break;
+                }
+                break;
                 case audio_type::loop:
+                {
                     playbackEntry.seamlessLoop = true;
                     if(playbackEntry.positional != trackEntry.position.enabled)
                     {
@@ -180,38 +192,44 @@ namespace tabletopify
                     {
                         playbackEntry.dirtyBuffer = false;
                     }
-                    break;
+                }
+                break;
                 default:
                     MX_FAIL_FAST();
             }
 
-            const auto& [enabled, elevation, azimuth] = trackEntry.position;
-            auto calc_cartesian = [&]()
+            // position calculation
             {
-                vec3 look = {0.0, 0.0, -1.0};
-                double theta = elevation * (constants<double>::pi / 180.0);
-                double phi = azimuth * (constants<double>::pi / 180.0);
+                const auto& [enabled, elevation, azimuth] = trackEntry.position;
+                auto calc_cartesian = [&]()
+                {
+                    // forward vector
+                    vec3 look = {0.0, 0.0, -1.0};
+                    double theta = elevation * (constants<double>::pi / 180.0);
+                    double phi = azimuth * (constants<double>::pi / 180.0);
 
-                matrix3x3 Rx = {
-                    1.0, 0.0, 0.0,
-                    0.0, cos(theta), -sin(theta),
-                    0.0, sin(theta), cos(theta),
+                    // elevation
+                    matrix3x3 Rx = {
+                        1.0, 0.0, 0.0,
+                        0.0, cos(theta), -sin(theta),
+                        0.0, sin(theta), cos(theta),
+                    };
+
+                    // azimuth
+                    // negate phi because we want 90 degrees to be to the right, not the left
+                    matrix3x3 Ry = {
+                        cos(-phi), 0.0, sin(-phi),
+                        0.0, 1.0, 0.0,
+                        -sin(-phi), 0.0, cos(-phi),
+                    };
+
+                    auto position = look * Rx * Ry;
+                    return position;
                 };
 
-                // negate phi because we want 90 degrees to be to the right, not the left
-                matrix3x3 Ry = {
-                    cos(-phi), 0.0, sin(-phi),
-                    0.0, 1.0, 0.0,
-                    -sin(-phi), 0.0, cos(-phi),
-                };
-
-                auto position = look * Rx * Ry;
-                MX_LOG_INFO("position : {}", position);
-                return position;
-            };
-
-            playbackEntry.positional = enabled;
-            playbackEntry.position = calc_cartesian();
+                playbackEntry.positional = enabled;
+                playbackEntry.position = calc_cartesian();
+            }
 
             playbackEntry.timeSincePlaybackEnd = 0.0f;
             playbackEntry.dirtyProperties = true;

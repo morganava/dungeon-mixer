@@ -57,13 +57,16 @@ namespace tabletopify
                         const auto& atmosphereEntry = g_atmosphere_directory.get_entry(atmosphereHandle);
                         utf8_string atmosphereEntry_title = atmosphereEntry.title;
 
-                        atmosphere_widget currentAtmosphereWidget;
-                        currentAtmosphereWidget.favorite =  {atmosphereEntry.favorite};
-                        currentAtmosphereWidget.title = {atmosphereEntry.title};
-                        currentAtmosphereWidget.volume = {0.0, 1.0, atmosphereEntry.muted ? 0.0 : atmosphereEntry.volume};
-                        currentAtmosphereWidget.volumeVal = atmosphereEntry.volume;
-                        currentAtmosphereWidget.muteUnmute = {atmosphereEntry.muted};
-                        currentAtmosphereWidget.atmosphereHandle = atmosphereHandle;
+                        atmosphere_widget currentAtmosphereWidget =
+                        {
+                            atmosphereEntry.favorite,
+                            atmosphereEntry.title,
+                            {0.0, 1.0, atmosphereEntry.muted ? 0.0 : atmosphereEntry.volume},
+                            atmosphereEntry.volume,
+                            atmosphereEntry.muted,
+                            false,
+                            atmosphereHandle
+                        };
 
                         atmospheres.insert({atmosphereHandle, std::move(currentAtmosphereWidget)});
                     }
@@ -234,10 +237,20 @@ namespace tabletopify
                     auto& track = g_track_directory.get_entry(trackHandle);
 
                     track_edit_widget widget;
+                    widget.handle = trackHandle;
+                    widget.type = track.audioData->get_type();
                     widget.visible.checked = false;
                     widget.handle = trackHandle;
                     widget.audio_title = track.audioTitle;
                     widget.volume_slider.value = track.volume;
+                    // position
+                    widget.position_checkbox.checked = track.position.enabled;
+                    widget.azimuth_slider.value = track.position.azimuth;
+                    widget.elevation_slider.value = track.position.elevation;
+                    // repeat
+                    widget.repeat_checkbox.checked = track.repeat.enabled;
+                    widget.repeat_slider.lowValue = track.repeat.min;
+                    widget.repeat_slider.highValue = track.repeat.max;
 
                     editWidgets.push_back(std::move(widget));
                 }

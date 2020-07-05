@@ -136,8 +136,9 @@ namespace tabletopify
         bool muted = false;
         struct
         {
-            float min;
-            float max;
+            bool enabled = true;
+            double min = 0.0;
+            double max = 15.0;
         } repeat;
         struct
         {
