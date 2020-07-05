@@ -197,80 +197,93 @@ namespace tabletopify
 
     void ui::on_set_screen_edit(atmosphere_handle_t handle)
     {
+        const auto prevAtmosphereHandle = g_ui.root.edit.handle;
         // populate the track edit widgets
         worker_background.enqueue([=]() -> void
         {
             auto atmosphereHandle = handle;
-            utf8_string atmosphereTitle;
-            std::vector<track_edit_widget> editWidgets;
 
-            // create a new atmosphere and begin editing
-            if (atmosphereHandle == atmosphere_handle::invalid)
+            // just use the previous widgets if we haen't changed the handle
+            if(prevAtmosphereHandle != atmosphereHandle || atmosphereHandle == atmosphere_handle::invalid)
             {
-                atmosphereTitle = "New Atmosphere";
-                atmosphere_entry atmosphereEntry =
-                {
-                    g_random.next_uuid(),
-                    atmosphereTitle
-                };
-                atmosphereHandle = g_atmosphere_directory.add_entry(std::move(atmosphereEntry));
+                utf8_string atmosphereTitle;
+                std::vector<track_edit_widget> editWidgets;
 
-                // add this new atmosphere to the All playlist
-                worker_ui.enqueue([=,title=atmosphereTitle]() -> void
+                // create a new atmosphere and begin editing
+                if (atmosphereHandle == atmosphere_handle::invalid)
                 {
-                    atmosphere_widget atmosphereWidget;
-                    atmosphereWidget.title.text = std::move(title);
-                    atmosphereWidget.volume.value = 1.0;
-                    atmosphereWidget.volumeVal = 1.0;
+                    atmosphereTitle = "New Atmosphere";
+                    atmosphere_entry atmosphereEntry =
+                    {
+                        g_random.next_uuid(),
+                        atmosphereTitle
+                    };
+                    atmosphereHandle = g_atmosphere_directory.add_entry(std::move(atmosphereEntry));
 
-                    g_ui.root.playlist.atmospheres.insert({atmosphereHandle, std::move(atmosphereWidget)});
-                    g_ui.add_atmosphere_to_playlist(playlist_handle::all, atmosphereHandle);
+                    // add this new atmosphere to the All playlist
+                    worker_ui.enqueue([=,title=atmosphereTitle]() -> void
+                    {
+                        atmosphere_widget atmosphereWidget;
+                        atmosphereWidget.title.text = std::move(title);
+                        atmosphereWidget.volume.value = 1.0;
+                        atmosphereWidget.volumeVal = 1.0;
+
+                        g_ui.root.playlist.atmospheres.insert({atmosphereHandle, std::move(atmosphereWidget)});
+                        g_ui.add_atmosphere_to_playlist(playlist_handle::all, atmosphereHandle);
+                    });
+                }
+                // get existing atmosphere data
+                else
+                {
+                    auto& atmosphere = g_atmosphere_directory.get_entry(atmosphereHandle);
+                    atmosphereTitle = atmosphere.title;
+                    for(auto trackHandle : atmosphere.tracks)
+                    {
+                        auto& track = g_track_directory.get_entry(trackHandle);
+
+                        track_edit_widget widget;
+                        widget.handle = trackHandle;
+                        widget.type = track.audioData->get_type();
+                        widget.visible.checked = false;
+                        widget.handle = trackHandle;
+                        widget.audio_title = track.audioTitle;
+                        widget.volume_slider.value = track.volume;
+                        // position
+                        widget.position_checkbox.checked = track.position.enabled;
+                        widget.azimuth_slider.value = track.position.azimuth;
+                        widget.elevation_slider.value = track.position.elevation;
+                        // repeat
+                        widget.repeat_checkbox.checked = track.repeat.enabled;
+                        widget.repeat_slider.lowValue = track.repeat.min;
+                        widget.repeat_slider.highValue = track.repeat.max;
+
+                        editWidgets.push_back(std::move(widget));
+                    }
+                }
+
+                // populate ui
+                worker_ui.enqueue([=, atmosphereTitle=std::move(atmosphereTitle), editWidgets=std::move(editWidgets)]() -> void
+                {
+                    // set all the atmosphere widgets playing to false
+                    for (auto& [atmosphereHandle, widget] : g_ui.root.playlist.atmospheres)
+                    {
+                        widget.playStop.checked = false;
+                    }
+
+                    // populate edit widgets
+                    g_ui.root.edit.handle = atmosphereHandle;
+                    g_ui.root.edit.tracks.title = std::move(atmosphereTitle);
+                    g_ui.root.edit.tracks.widgets = std::move(editWidgets);
+                    g_ui.set_screen(screen::edit);
                 });
             }
-            // get existing atmosphere data
             else
             {
-                auto& atmosphere = g_atmosphere_directory.get_entry(atmosphereHandle);
-                atmosphereTitle = atmosphere.title;
-                for(auto trackHandle : atmosphere.tracks)
+                worker_ui.enqueue([=]() -> void
                 {
-                    auto& track = g_track_directory.get_entry(trackHandle);
-
-                    track_edit_widget widget;
-                    widget.handle = trackHandle;
-                    widget.type = track.audioData->get_type();
-                    widget.visible.checked = false;
-                    widget.handle = trackHandle;
-                    widget.audio_title = track.audioTitle;
-                    widget.volume_slider.value = track.volume;
-                    // position
-                    widget.position_checkbox.checked = track.position.enabled;
-                    widget.azimuth_slider.value = track.position.azimuth;
-                    widget.elevation_slider.value = track.position.elevation;
-                    // repeat
-                    widget.repeat_checkbox.checked = track.repeat.enabled;
-                    widget.repeat_slider.lowValue = track.repeat.min;
-                    widget.repeat_slider.highValue = track.repeat.max;
-
-                    editWidgets.push_back(std::move(widget));
-                }
+                    g_ui.set_screen(screen::edit);
+                });
             }
-
-            // populate ui
-            worker_ui.enqueue([=, atmosphereTitle=std::move(atmosphereTitle), editWidgets=std::move(editWidgets)]() -> void
-            {
-                // set all the atmosphere widgets playing to false
-                for (auto& [atmosphereHandle, widget] : g_ui.root.playlist.atmospheres)
-                {
-                    widget.playStop.checked = false;
-                }
-
-                // populate edit widgets
-                g_ui.root.edit.handle = atmosphereHandle;
-                g_ui.root.edit.tracks.title = std::move(atmosphereTitle);
-                g_ui.root.edit.tracks.widgets = std::move(editWidgets);
-                g_ui.set_screen(screen::edit);
-            });
 
             MX_LOG_INFO("playing : {}", atmosphereHandle);
 
