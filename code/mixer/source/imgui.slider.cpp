@@ -54,7 +54,7 @@ namespace tabletopify
                                 auto x = evt.position().x;
                                 _slider->data()->value = position_to_val(x);
                             }
-                        } 
+                        }
                     }
                     break;
                     case input_event_type::mouse_drag:
@@ -101,18 +101,7 @@ namespace tabletopify
                 return element_state::active;
             }
 
-            const auto mouse_position = g_input.get_mouse_position(input_frame::current);
-            if (point_inside_rect(
-                    mouse_position,
-                    this->scissor()) &&
-                point_inside_rounded_rect(
-                    mouse_position,
-                    this->_layout.border_outer_bounds(),
-                    this->_layout.borderRadius))
-            {
-                return element_state::hover;
-            }
-            return element_state::none;
+            return widget_base::resolve_element_state_impl();
         }
 
         #define mxSliderTrack(...) MX_WIDGET_CODEGEN(widget_slider_track, nullptr, __VA_ARGS__)

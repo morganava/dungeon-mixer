@@ -121,11 +121,11 @@ namespace tabletopify
 
         element_state_t widget_base::resolve_element_state_impl()
         {
-            const auto mouse_position = g_input.get_mouse_position(input_frame::current);
-
             if (!g_context.is_current_window_widget_focused()) {
                 return element_state::none;
             }
+
+            const auto mouse_position = g_input.get_mouse_position(input_frame::current);
 
             if (point_inside_rect(
                     mouse_position,
@@ -135,6 +135,10 @@ namespace tabletopify
                     this->_layout.border_outer_bounds(),
                     this->_layout.borderRadius))
             {
+                if (g_input.get_mouse_button_state(mouse_button::left, input_frame::current))
+                {
+                    return element_state::hover | element_state::active;
+                }
                 return element_state::hover;
             }
             return element_state::none;

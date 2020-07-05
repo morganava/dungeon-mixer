@@ -24,16 +24,19 @@ namespace tabletopify
         slider,
         slider_track,
         slider_handle,
+        range_slider,
+        range_slider_track,
+        range_slider_handle,
         checkbox,
         context_menu
     );
     element_type_t parse_element_type(const std::string&);
 
     MX_MAKE_FLAG_ENUM(element_state, uint_fast8_t,
-        hover = 1 << 0,
-        active= 1 << 1,
-        disabled= 1 << 2,
-        checked= 1 << 3,
+        hover    = 1 << 0,
+        active   = 1 << 1,
+        disabled = 1 << 2,
+        checked  = 1 << 3,
     );
     element_state_t parse_element_state(const std::string&);
 

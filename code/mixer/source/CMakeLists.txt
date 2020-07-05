@@ -39,6 +39,7 @@ add_executable(tabletop_mixer
     imgui.button.cpp
     imgui.text_box.cpp
     imgui.slider.cpp
+    imgui.range_slider.cpp
     imgui.checkbox.cpp
     imgui.context_menu.cpp
     # audio backend

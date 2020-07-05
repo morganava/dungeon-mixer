@@ -18,6 +18,9 @@ namespace tabletopify
             "slider",
             "sliderTrack",
             "sliderHandle",
+            "rangeSlider",
+            "rangeSliderTrack",
+            "rangeSliderHandle",
             "checkbox",
             "contextMenu",
         };

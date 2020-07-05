@@ -532,6 +532,7 @@ namespace tabletopify
 
         struct slider_data : widget_data
         {
+        public:
             double minVal;
             double maxVal;
             double value;
@@ -557,6 +558,56 @@ namespace tabletopify
             vec2 handle_center(double width) const;
             friend struct widget_slider_handle;
 
+        };
+
+        // range slider
+
+        MX_MAKE_ENUM(range_slider_handle, uint_fast8_t,
+            low,
+            high
+        );
+
+        struct range_slider_data : widget_data
+        {
+        public:
+            double minValue;
+            double maxValue;
+
+            double lowValue;
+            double highValue;
+
+            range_slider_data(double minValue, double maxValue, double lowValue, double highValue)
+            : minValue(minValue)
+            , maxValue(maxValue)
+            , lowValue(lowValue)
+            , highValue(highValue)
+            { }
+        private:
+            // offset from the 'value point' of slider (right edge for low, left edge for high)
+            double mouseDelta = 0.0;
+            range_slider_handle_t focusedHandle = range_slider_handle::invalid;
+            // size of the handles so we can correctly calculate the slider geometry
+            double lowWidth = 0.0;
+            double highWidth = 0.0;
+
+            friend struct widget_range_slider;
+            friend struct widget_range_slider_handle;
+        };
+
+        struct widget_range_slider : public widget<widget_range_slider, element_type::range_slider, range_slider_data, widget_flag::has_children>
+        {
+        public:
+            using widget::widget;
+
+            rect bounds_callback_impl(rect desiredBounds);
+            void last_update_impl();
+
+            callback<double,double> on_change;
+            double lowValue() const;
+            double highValue() const;
+        private:
+            friend struct widget_range_slider_handle;
+            friend struct widget_slider_track;
         };
 
         // checkbox
@@ -639,5 +690,6 @@ namespace tabletopify
 #define mxButton(DATA, ...) MX_WIDGET_CODEGEN(widget_button, DATA, __VA_ARGS__)
 #define mxTextBox(DATA, ...) MX_WIDGET_CODEGEN(widget_text_box, DATA, __VA_ARGS__)
 #define mxSlider(DATA, ...) MX_WIDGET_CODEGEN(widget_slider, DATA, __VA_ARGS__)
+#define mxRangeSlider(DATA, ...) MX_WIDGET_CODEGEN(widget_range_slider, DATA, __VA_ARGS__)
 #define mxCheckbox(DATA, ...) MX_WIDGET_CODEGEN(widget_checkbox, DATA, __VA_ARGS__)
 #define mxContextMenu(DATA, ...) MX_MULTIPASS_WIDGET_CODEGEN(widget_context_menu, DATA, __VA_ARGS__)

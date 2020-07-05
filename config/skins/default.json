@@ -42,10 +42,9 @@
     },
     "sliderHandle" :
     {
-        "size" : [40,40],
-        "borderRadius" : 20,
+        "size" : [30,30],
+        "borderRadius" : 15,
         "backgroundColor" : "#888",
-        "margin" : 5
     },
     "sliderHandle:hover" :
     {
@@ -54,6 +53,35 @@
     "sliderHandle:active" :
     {
         "backgroundColor" : "#555"
+    },
+    "rangeSliderTrack" :
+    {
+        "borderRadius" : 0,
+        "backgroundColor" : "#F80",
+        "margin" : 10
+    },
+    "rangeSliderHandle" :
+    {
+        "size" : [30,30],
+        "borderRadius" : 5,
+        "backgroundColor" : "#888",
+        "margin" : 0,
+    },
+    "rangeSliderHandle:hover" :
+    {
+        "backgroundColor" : "#AAA"
+    },
+    "rangeSliderHandle:active" :
+    {
+        "backgroundColor" : "#555"
+    },
+    "rangeSliderHandle.low" :
+    {
+        "borderRadius" : [15, 0, 0, 15],
+    },
+    "rangeSliderHandle.high" :
+    {
+        "borderRadius" : [0, 15, 15, 0],
     },
     "checkbox" : {
         "size" : [24,24],
@@ -178,7 +206,7 @@
     /** Content **/
 
     ".content" : {
-        "backgroundColor" : "#676767",       
+        "backgroundColor" : "#676767",
     },
 
     "flexBox.content" : {
