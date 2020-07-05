@@ -114,6 +114,14 @@ namespace tabletopify
         return get_playlist_widget(root.playlist.currentPlaylistHandle);
     }
 
+
+    atmosphere_widget& ui::get_atmosphere_widget(atmosphere_handle_t handle)
+    {
+        auto it = root.playlist.atmospheres.find(handle);
+        MX_ASSERT(it != root.playlist.atmospheres.end());
+        return it->second;
+    }
+
     void ui::remove_atmosphere_from_playlist(playlist_handle_t playlist, atmosphere_handle_t atmosphere)
     {
         auto& widget = get_playlist_widget(playlist);
@@ -272,7 +280,7 @@ namespace tabletopify
 
                     // populate edit widgets
                     g_ui.root.edit.handle = atmosphereHandle;
-                    g_ui.root.edit.tracks.title = std::move(atmosphereTitle);
+                    g_ui.root.edit.title = std::move(atmosphereTitle);
                     g_ui.root.edit.tracks.widgets = std::move(editWidgets);
                     g_ui.set_screen(screen::edit);
                 });

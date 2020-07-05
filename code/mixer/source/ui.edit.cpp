@@ -4,6 +4,36 @@ namespace tabletopify
 {
     // Edit Screen Methods
 
+    void ui::on_start_atmosphere_rename(atmosphere_handle_t atmosphere)
+    {
+        worker_ui.enqueue([=]() -> void
+        {
+            g_ui.root.edit.edit_title = true;
+            g_ui.root.edit.title_textbox = imgui::text_box_data(g_ui.root.edit.title, "Atmosphere Name");
+            g_ui.root.edit.title_textbox.selectBegin = 0;
+            g_ui.root.edit.title_textbox.selectEnd = g_ui.root.edit.title_textbox.sb.size();
+            imgui::g_context.focus_widget(g_ui.root.edit.title_textbox.id);
+        });
+    }
+
+    void ui::on_set_atmosphere_name(atmosphere_handle_t atmosphereHandle, utf8_string name)
+    {
+        worker_ui.enqueue([=,name=std::move(name)]() -> void
+        {
+            g_ui.root.edit.title = name;
+            g_ui.root.edit.edit_title = false;
+
+            auto& atmosphereWidget = g_ui.get_atmosphere_widget(atmosphereHandle);
+            atmosphereWidget.title.text = name;
+
+            worker_background.enqueue([=,name=std::move(name)]() -> void
+            {
+                auto& entry = g_atmosphere_directory.get_entry(atmosphereHandle);
+                entry.title = std::move(name);
+            });
+        });
+    }
+
     void ui::on_do_audio_search(const utf8_string& query)
     {
         worker_background.enqueue([=]() -> void
@@ -128,10 +158,30 @@ namespace tabletopify
 
     void ui::draw_edit(float dt)
     {
+        const auto currentAtmosphereHandle = g_ui.root.edit.handle;
         mxVBox(self.tags={"content"})
         {
             mxLabel(&root.edit.heading, self.tags= {"header", "darkText"});
-            mxButton(g_ui.root.edit.tracks.title, self.tags = {"header", "title", "lightText"});
+            if (root.edit.edit_title)
+            {
+                mxTextBox(&root.edit.title_textbox, self.tags = {"header", "title", "lightText"},
+                self.on_submit = [=](const utf8_string& str) -> void
+                {
+                    g_ui.on_set_atmosphere_name(currentAtmosphereHandle, str);
+                };
+                if (!self.is_focused())
+                {
+                    g_ui.on_set_atmosphere_name(currentAtmosphereHandle, self.text());
+                });
+            }
+            else
+            {
+                mxButton(g_ui.root.edit.title, self.tags = {"header", "title", "lightText"},
+                self.on_double_click = [=]() -> void{
+                    g_ui.on_start_atmosphere_rename(currentAtmosphereHandle);
+                });
+            }
+
             mxHBox(self.tags={"editButtonRow"})
             {
                 mxSpacer();

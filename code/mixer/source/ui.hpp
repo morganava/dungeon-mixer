@@ -68,6 +68,7 @@ namespace tabletopify
         void set_screen(screen_t screen);
         playlist_widget& get_playlist_widget(playlist_handle_t handle);
         playlist_widget& get_current_playlist_widget();
+        atmosphere_widget& get_atmosphere_widget(atmosphere_handle_t handle);
         void remove_atmosphere_from_playlist(playlist_handle_t playlist, atmosphere_handle_t atmosphere);
         void add_atmosphere_to_playlist(playlist_handle_t playlist, atmosphere_handle_t atmosphere);
         void hide_atmosphere_context_menu();
@@ -96,6 +97,8 @@ namespace tabletopify
         void on_delete_atmosphere(atmosphere_handle_t atmosphere);
 
         // edit screen methods
+        void on_start_atmosphere_rename(atmosphere_handle_t atmosphere);
+        void on_set_atmosphere_name(atmosphere_handle_t atmosphere, utf8_string name);
         void on_do_audio_search(const utf8_string& query);
         void on_add_audio_to_atmosphere(atmosphere_handle_t atmosphereHandle, audio_handle_t audioHandle);
         void on_set_track_volume(track_handle_t trackHandle, double volume);
@@ -155,18 +158,20 @@ namespace tabletopify
                 } atmosphereContextMenu;
 
             } playlist;
+
             struct
             {
                 atmosphere_handle_t handle = atmosphere_handle::invalid;
                 imgui::label_data heading = {"Edit"};
-                imgui::button_data title = {"New Mix"};
+                bool edit_title = false;
+                utf8_string title = "New Mix";
+                imgui::text_box_data title_textbox;
                 imgui::text_box_data searchBox = {"", "Track Search"};
                 imgui::button_data searchButton = {};
 
                 struct
                 {
                     imgui::scroll_area_data scroll;
-                    utf8_string title;
                     std::vector<track_edit_widget> widgets;
                 } tracks;
 
