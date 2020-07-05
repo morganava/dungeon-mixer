@@ -71,6 +71,17 @@ namespace tabletopify
             return *this;
         }
 
+        array concat(std::initializer_list<T> il) const
+        {
+            array retval(this->size() + il.size());
+            // copy over this array's data
+            std::copy(this->begin(), this->end(), retval._data.get());
+            // copy over the new data
+            std::copy(il.begin(), il.end(), retval._data.get() + this->size());
+
+            return retval;
+        }
+
         bool operator==(const array& that) const
         {
             if (this == &that) return true;
