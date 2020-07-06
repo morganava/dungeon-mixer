@@ -249,21 +249,18 @@ namespace tabletopify
                     {
                         auto& track = g_track_directory.get_entry(trackHandle);
 
-                        track_edit_widget widget;
-                        widget.handle = trackHandle;
-                        widget.type = track.audioData->get_type();
-                        widget.visible.checked = false;
-                        widget.handle = trackHandle;
-                        widget.audio_title = track.audioTitle;
-                        widget.volume_slider.value = track.volume;
-                        // position
-                        widget.position_checkbox.checked = track.position.enabled;
-                        widget.azimuth_slider.value = track.position.azimuth;
-                        widget.elevation_slider.value = track.position.elevation;
-                        // repeat
-                        widget.repeat_checkbox.checked = track.repeat.enabled;
-                        widget.repeat_slider.lowValue = track.repeat.min;
-                        widget.repeat_slider.highValue = track.repeat.max;
+                        track_edit_widget widget = {
+                            trackHandle,
+                            track.audioData->get_type(),
+                            track.audioTitle,
+                            track.volume,
+                            track.position.enabled,
+                            track.position.azimuth,
+                            track.position.elevation,
+                            track.repeat.enabled,
+                            track.repeat.min,
+                            track.repeat.max
+                        };
 
                         editWidgets.push_back(std::move(widget));
                     }

@@ -79,11 +79,12 @@ namespace tabletopify
             // add track widget to ui
             worker_ui.enqueue([=,title=std::move(trackTitle)]() -> void
             {
-                track_edit_widget widget;
-                widget.handle = trackHandle;
-                widget.type = audioType;
-                widget.visible.checked = true;
-                widget.audio_title = std::move(title);
+                track_edit_widget widget =
+                {
+                    trackHandle,
+                    audioType,
+                    std::move(title)
+                };
 
                 g_ui.root.edit.tracks.widgets.push_back(std::move(widget));
             });
@@ -113,8 +114,11 @@ namespace tabletopify
         });
     }
 
-    void ui::on_set_track_azimuth(track_handle_t trackHandle, double azimuth)
+    void ui::on_set_track_azimuth(track_edit_widget& widget, double azimuth)
     {
+        widget.azimuth_string = fmt::format("{:.1f}°", azimuth);
+        const auto trackHandle = widget.handle;
+
         worker_background.enqueue([=]() -> void
         {
             auto& entry = g_track_directory.get_entry(trackHandle);
@@ -123,8 +127,11 @@ namespace tabletopify
         });
     }
 
-    void ui::on_set_track_elevation(track_handle_t trackHandle, double elevation)
+    void ui::on_set_track_elevation(track_edit_widget& widget, double elevation)
     {
+        widget.elevation_string = fmt::format("{:.1f}°", elevation);
+        const auto trackHandle = widget.handle;
+
         worker_background.enqueue([=]() -> void
         {
             auto& entry = g_track_directory.get_entry(trackHandle);
@@ -135,16 +142,22 @@ namespace tabletopify
 
     void ui::on_set_track_repeat_enabled(track_handle_t trackHandle, bool enabled)
     {
+        MX_LOG_VAR_BLOCKING(trackHandle);
         worker_background.enqueue([=]() -> void
         {
+            MX_LOG_VAR_BLOCKING(trackHandle);
             auto& entry = g_track_directory.get_entry(trackHandle);
             entry.repeat.enabled = enabled;
             g_playback_manager.sync_track(trackHandle);
         });
     }
 
-    void ui::on_set_track_repeat(track_handle_t trackHandle, double minRepeat, double maxRepeat)
+    void ui::on_set_track_repeat(track_edit_widget& widget, double minRepeat, double maxRepeat)
     {
+        widget.repeat_min_string = fmt::format("{:.1f}s", minRepeat);
+        widget.repeat_max_string = fmt::format("{:.1f}s", maxRepeat);
+        const auto trackHandle = widget.handle;
+
         worker_background.enqueue([=]() -> void
         {
             auto& entry = g_track_directory.get_entry(trackHandle);
@@ -202,7 +215,7 @@ namespace tabletopify
                         mxHBox(self.tags={"trackTitle"})
                         {
                             mxCheckbox(&editWidget.visible, self.tags={"entryTitle"});
-                            mxLabel(editWidget.audio_title, self.tags={"entryTitle"});
+                            mxLabel(editWidget.title, self.tags={"entryTitle"});
                         }
                         if (editWidget.visible.checked)
                         {
@@ -233,20 +246,29 @@ namespace tabletopify
                                 mxHBox(self.tags={"trackSetting"})
                                 {
                                     mxLabel({"AZIMUTH"});
-                                    mxSlider(&editWidget.azimuth_slider,
-                                    self.on_change = [=](double value) -> void
+                                    mxHBox(self.tags={"sliderSetting"})
                                     {
-                                        g_ui.on_set_track_azimuth(trackHandle, value);
-                                    });
+                                        mxSlider(&editWidget.azimuth_slider,
+                                        self.on_change = [&](double value) -> void
+                                        {
+                                            g_ui.on_set_track_azimuth(editWidget, value);
+                                        });
+                                        mxLabel(editWidget.azimuth_string);
+                                    }
                                 }
+                                // elevation is the vertical angle
                                 mxHBox(self.tags={"trackSetting"})
                                 {
                                     mxLabel({"ELEVATION"});
-                                    mxSlider(&editWidget.elevation_slider,
-                                    self.on_change = [=](double value) -> void
+                                    mxHBox(self.tags={"sliderSetting"})
                                     {
-                                        g_ui.on_set_track_elevation(trackHandle, value);
-                                    });
+                                        mxSlider(&editWidget.elevation_slider,
+                                        self.on_change = [&](double value) -> void
+                                        {
+                                            g_ui.on_set_track_elevation(editWidget, value);
+                                        });
+                                        mxLabel(editWidget.elevation_string);
+                                    }
                                 }
                             }
 
@@ -270,12 +292,16 @@ namespace tabletopify
                                     mxHBox(self.tags={"trackSetting"})
                                     {
                                         mxLabel({"DELAY"});
-                                        mxRangeSlider(&editWidget.repeat_slider,
-                                        self.on_change=[=](double low, double high)
+                                        mxHBox(self.tags={"rangeSliderSetting"})
                                         {
-                                            MX_LOG_INFO("low : {}, high : {}", low, high);
-                                            g_ui.on_set_track_repeat(trackHandle, low, high);
-                                        });
+                                            mxLabel(editWidget.repeat_min_string);
+                                            mxRangeSlider(&editWidget.repeat_slider,
+                                            self.on_change=[&](double low, double high)
+                                            {
+                                                g_ui.on_set_track_repeat(editWidget, low, high);
+                                            });
+                                            mxLabel(editWidget.repeat_max_string);
+                                        }
                                     }
                                 }
                             }

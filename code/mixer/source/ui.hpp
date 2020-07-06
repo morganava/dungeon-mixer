@@ -39,15 +39,56 @@ namespace tabletopify
     {
         track_handle_t handle;
         audio_type_t type;
-        imgui::checkbox_data visible = {false};
-        utf8_string audio_title;
+        imgui::checkbox_data visible = {true};
+        utf8_string title;
         imgui::slider_data volume_slider = {0.0, 1.0, 1.0};
         imgui::checkbox_data position_checkbox = {false};
         // 0 degrees directly forward, -90 directly left, 90 directly right
         imgui::slider_data azimuth_slider = {-180.0, 180.0, 0.0};
+        utf8_string azimuth_string = "0.0°";
         imgui::slider_data elevation_slider = {-90, 90.0, 0.0};
+        utf8_string elevation_string = "0.0°";
         imgui::checkbox_data repeat_checkbox = {false};
         imgui::range_slider_data repeat_slider = {0.0, 60.0, 0.0, 15.0};
+        utf8_string repeat_min_string = "0.0s";
+        utf8_string repeat_max_string = "15.0s";
+
+        track_edit_widget(
+            track_handle_t handle,
+            audio_type_t type,
+            utf8_string title)
+        : handle(handle)
+        , type(type)
+        , title(std::move(title))
+        { }
+
+        track_edit_widget(
+            track_handle_t handle,
+            audio_type_t type,
+            utf8_string title,
+            double volume,
+            bool positionEnabled,
+            double azimuth,
+            double elevation,
+            bool repeatEnabled,
+            double repeatMin,
+            double repeatMax)
+        : handle(handle)
+        , type(type)
+        , visible(false)
+        , title(std::move(title))
+        , volume_slider(0.0, 1.0, volume)
+        , position_checkbox(positionEnabled)
+        , azimuth_slider({-180, 180, azimuth})
+        , azimuth_string(fmt::format("{:.1f}°", azimuth))
+        , elevation_slider({-90,90,elevation})
+        , elevation_string(fmt::format("{:.1f}°", elevation))
+        , repeat_checkbox(repeatEnabled)
+        , repeat_slider(0,60,repeatMin,repeatMax)
+        , repeat_min_string(fmt::format("{:.1f}s", repeatMin))
+        , repeat_max_string(fmt::format("{:.1f}s", repeatMax))
+        { }
+
     };
 
     struct audio_query_result_widget
@@ -103,10 +144,10 @@ namespace tabletopify
         void on_add_audio_to_atmosphere(atmosphere_handle_t atmosphereHandle, audio_handle_t audioHandle);
         void on_set_track_volume(track_handle_t trackHandle, double volume);
         void on_set_track_position_enabled(track_handle_t trackHandle, bool enabled);
-        void on_set_track_azimuth(track_handle_t trackHandle, double azimuth);
-        void on_set_track_elevation(track_handle_t trackHandle, double elevation);
+        void on_set_track_azimuth(track_edit_widget& widget, double azimuth);
+        void on_set_track_elevation(track_edit_widget& widget, double elevation);
         void on_set_track_repeat_enabled(track_handle_t trackHandle, bool enabled);
-        void on_set_track_repeat(track_handle_t trackHandle, double minRepeat, double maxRepeat);
+        void on_set_track_repeat(track_edit_widget& widget, double minRepeat, double maxRepeat);
 
         // draw methods
         void draw_playlist(float dt);

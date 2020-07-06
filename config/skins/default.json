@@ -286,4 +286,19 @@
             ["none", "none", 1.0]
         ]
     },
+
+    "flexBox.sliderSetting" : {
+        "constraints" : [
+            ["none", "none", 2.0],
+            [96, 96, 1.0],
+        ]
+    },
+
+    "flexBox.rangeSliderSetting" : {
+        "constraints" : [
+            [96,96,1.0],
+            ["none", "none", 2.0],
+            [96,96,1.0]
+        ]
+    },
 }
