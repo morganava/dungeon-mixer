@@ -28,7 +28,7 @@ namespace tabletopify
 
     void gui_callback(float dt, int width, int height, double pixel_ratio)
     {
-        auto fut = worker_background.enqueue([&,dt]() -> void
+        auto fut = worker_background.enqueue([=]() -> void
         {
             g_audio_directory.update(dt);
             g_playback_manager.update(dt);
