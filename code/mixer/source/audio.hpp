@@ -90,9 +90,6 @@ namespace tabletopify
         uuid id;
         // display title
         utf8_string title;
-        // query tags
-        // todo: seems like we don't need to store this here
-        std::vector<utf8_string> tags;
         // backing SoundBuffers
         std::shared_ptr<audio_data> data;
         // time since able to unload data in seconds

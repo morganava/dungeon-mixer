@@ -4,6 +4,7 @@
 
 namespace tabletopify
 {
+    // the implementation assumes passed in tags and queries are normalized utf8 strings
     class tag_map_impl
     {
     public:
@@ -21,8 +22,9 @@ namespace tabletopify
     {
         static_assert(std::is_same<size_t,typename std::underlying_type<HANDLE>::type>::value);
     public:
-        std::vector<HANDLE> get_keys_by_tag_query(const std::vector<utf8_string>& query_tags) const
+        std::vector<HANDLE> get_keys_by_tag_query(const utf8_string& query) const
         {
+            auto query_tags = query.normalized().split();
             auto keys = _tag_map.get_keys_by_tag_query(query_tags);
 
             std::vector<HANDLE> retval;
@@ -38,7 +40,15 @@ namespace tabletopify
         }
         void add_key(HANDLE key, const std::vector<utf8_string>& tags)
         {
-            _tag_map.add_key(static_cast<size_t>(key), tags);
+            std::vector<utf8_string> normalized_tags;
+            normalized_tags.reserve(tags.size());
+
+            for(const auto& tag : tags)
+            {
+                normalized_tags.push_back(tag.normalized());
+            }
+
+            _tag_map.add_key(static_cast<size_t>(key), normalized_tags);
         }
     private:
         tag_map_impl _tag_map;

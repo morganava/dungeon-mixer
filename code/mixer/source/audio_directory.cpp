@@ -97,12 +97,12 @@ namespace tabletopify
         }
 
         // construct audio_entry
-        audio_entry entry = {id, title, tags, data, 0.0f};
+        audio_entry entry = {id, std::move(title), data, 0.0f};
         // get key
         audio_handle_t key = next_audio_handle();
         MX_ASSERT(static_cast<size_t>(key) == _entries.size());
         // update tag map
-        _tag_map.add_key(key, entry.tags);
+        _tag_map.add_key(key, tags);
         // update our id map (checking for collisions)
         auto idIt = _id_map.find(id);
         MX_ASSERT(idIt == _id_map.end());
@@ -124,9 +124,6 @@ namespace tabletopify
 
     std::vector<audio_handle_t> audio_directory::get_audio_handles_by_query(const utf8_string& query) const
     {
-        auto norm = query.normalized();
-        auto query_tags = norm.split();
-
-        return _tag_map.get_keys_by_tag_query(query_tags);
+        return _tag_map.get_keys_by_tag_query(query);
     }
 }
