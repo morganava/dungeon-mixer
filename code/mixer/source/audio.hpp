@@ -124,8 +124,6 @@ namespace tabletopify
     // description for how audio is to played in an atmosphere
     struct track_entry
     {
-        // the atmosphere this track belongs to
-        atmosphere_handle_t atmosphereHandle;
         // TODO: we might be able to replace these with the audio_handle?
         utf8_string title;
         std::shared_ptr<audio_data> audioData;
@@ -153,7 +151,6 @@ namespace tabletopify
         void remove_entry(track_handle_t handle);
 
         // setters
-        void set_atmosphere(track_handle_t, atmosphere_handle_t atmosphere);
         void set_title(track_handle_t, utf8_string&& title);
         void set_audio(track_handle_t, std::shared_ptr<audio_data>& audio);
         void set_volume(track_handle_t, double volume);
@@ -192,11 +189,12 @@ namespace tabletopify
 
         // entry management
         atmosphere_handle_t get_atmosphere_handle_by_id(const uuid& id) const;
+        atmosphere_handle_t get_atmosphere_handle_by_track(track_handle_t track) const;
         const atmosphere_entry& get_entry(atmosphere_handle_t handle);
         atmosphere_handle_t add_entry(atmosphere_entry&& entry);
         void remove_entry(atmosphere_handle_t handle);
 
-        // setter
+        // mutators
         void set_title(atmosphere_handle_t, utf8_string&& name);
         void set_volume(atmosphere_handle_t, float volume);
         void set_muted(atmosphere_handle_t, bool muted);
@@ -205,10 +203,14 @@ namespace tabletopify
         void remove_track(atmosphere_handle_t, track_handle_t track);
 
     private:
-        std::map<atmosphere_handle_t, atmosphere_entry> _entries;
+        // map tag to atmosphere handle
         tag_map<atmosphere_handle_t> _tag_map;
-        // map track id to atmosphere handle
+        // map id to atmosphere handle
         std::unordered_map<uuid, atmosphere_handle_t> _id_map;
+        // map track handle to atmosphere handle
+        std::unordered_map<track_handle_t, atmosphere_handle_t> _track_map;
+        // atmoshere_handle_t to entry
+        std::map<atmosphere_handle_t, atmosphere_entry> _entries;
     };
     MX_MAKE_SINGLETON(atmosphere_directory)
 
@@ -287,7 +289,7 @@ namespace tabletopify
         void sync_track(track_handle_t);
         void stop_all_tracks();
     private:
-        void sync_atmosphere(const atmosphere_entry& entry);
+        void sync_track(const atmosphere_entry&, track_handle_t);
         std::unordered_map<track_handle_t, playback_entry> _entries;
     };
     MX_MAKE_SINGLETON(playback_manager);

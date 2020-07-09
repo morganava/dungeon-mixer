@@ -36,6 +36,16 @@ namespace tabletopify
         return it->second;
     }
 
+    atmosphere_handle_t atmosphere_directory::get_atmosphere_handle_by_track(track_handle_t track) const
+    {
+        auto it = _track_map.find(track);
+        if (it == _track_map.end())
+        {
+            return atmosphere_handle::invalid;
+        }
+        return it->second;
+    }
+
     const atmosphere_entry& atmosphere_directory::get_entry(atmosphere_handle_t handle)
     {
         auto it = _entries.find(handle);
@@ -48,30 +58,47 @@ namespace tabletopify
     {
         const auto atmosphereHandle = next_atmosphere_handle();
 
-        // give all the tracks their parent atmosphere's handle
-        for(auto& trackHandle : entry.tracks)
-        {
-            g_track_directory.set_atmosphere(trackHandle, atmosphereHandle);
-        }
-
+        // tag map
         std::vector<utf8_string> tags = entry.title.split();
         _tag_map.add_key(atmosphereHandle, tags);
 
+        // id map
         _id_map.insert({entry.id, atmosphereHandle});
+
+        // track map
+        for(auto& trackHandle : entry.tracks)
+        {
+            _track_map.insert({trackHandle, atmosphereHandle});
+        }
+
+        // entry map
         _entries.insert({atmosphereHandle, std::move(entry)});
 
         return atmosphereHandle;
     }
 
-    void atmosphere_directory::remove_entry(atmosphere_handle_t handle)
+    void atmosphere_directory::remove_entry(atmosphere_handle_t atmosphere)
     {
-        auto it = _entries.find(handle);
-        MX_ASSERT(it != _entries.end());
+        MX_LOG_TRACE();
+        auto it = _entries.find(atmosphere);
+        if (it == _entries.end()) return;
 
-        _id_map.erase(_id_map.find(it->second.id));
+        auto& entry = it->second;
+
+        // tag map
+        _tag_map.remove_key(atmosphere);
+
+        // id map
+        _id_map.erase(entry.id);
+
+        // track map
+        for(auto& trackHandle : entry.tracks)
+        {
+            _track_map.erase(trackHandle);
+        }
+
+        // entry map
         _entries.erase(it);
-
-        _tag_map.remove_key(handle);
     }
 
     void atmosphere_directory::set_title(atmosphere_handle_t atmosphere, utf8_string&& newName)
@@ -147,7 +174,12 @@ namespace tabletopify
         // verify track isn't already in atmosphere
         MX_ASSERT(std::find(entry.tracks.begin(), entry.tracks.end(), track) == entry.tracks.end());
 
+        // track map
+        _track_map.insert({track, atmosphere});
+
+        // entry
         entry.tracks.push_back(track);
+
         g_serialization_manager.request_autosave(content_type::playlist);
     }
 
@@ -158,7 +190,10 @@ namespace tabletopify
 
         auto& entry = it->second;
 
-        // verify track isn't already in atmosphere
+        // track map
+        _track_map.erase(track);
+
+        // entry
         if(auto it = std::find(entry.tracks.begin(), entry.tracks.end(), track); it != entry.tracks.end())
         {
             entry.tracks.erase(it);

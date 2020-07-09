@@ -62,7 +62,6 @@ namespace tabletopify
 
             // create new track entry for atmosphere
             track_entry trackEntry;
-            trackEntry.atmosphereHandle = atmosphereHandle;
             trackEntry.title = trackTitle;
             trackEntry.audioData = audioEntry.data;
 

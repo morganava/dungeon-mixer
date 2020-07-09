@@ -34,17 +34,6 @@ namespace tabletopify
         }
     }
 
-    void track_directory::set_atmosphere(track_handle_t track, atmosphere_handle_t atmosphere)
-    {
-        auto it = _entries.find(track);
-        if (it == _entries.end()) return;
-
-        auto& trackEntry = it->second;
-        if (trackEntry.atmosphereHandle == atmosphere) return;
-
-        trackEntry.atmosphereHandle = atmosphere;
-        g_serialization_manager.request_autosave(content_type::playlist);
-    }
 #if 0
     void track_directory::set_title(track_handle_t track, utf8_string&& title)
     {

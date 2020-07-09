@@ -94,14 +94,9 @@ namespace tabletopify
     void playback_manager::sync_atmosphere(atmosphere_handle_t handle)
     {
         const auto& atmosphereEntry = g_atmosphere_directory.get_entry(handle);
-        sync_atmosphere(atmosphereEntry);
-    }
-
-    void playback_manager::sync_atmosphere(const atmosphere_entry& entry)
-    {
-        for(const auto trackHandle : entry.tracks)
+        for(auto trackHandle : atmosphereEntry.tracks)
         {
-            sync_track(trackHandle);
+            sync_track(atmosphereEntry, trackHandle);
         }
     }
 
@@ -136,12 +131,19 @@ namespace tabletopify
 
     void playback_manager::sync_track(track_handle_t trackHandle)
     {
-        auto& trackEntry = g_track_directory.get_entry(trackHandle);
+        auto atmosphereHandle = g_atmosphere_directory.get_atmosphere_handle_by_track(trackHandle);
+        const auto& atmosphereEntry = g_atmosphere_directory.get_entry(atmosphereHandle);
+        sync_track(atmosphereEntry, trackHandle);
+    }
+
+    void playback_manager::sync_track(const atmosphere_entry& atmosphereEntry, track_handle_t trackHandle)
+    {
         auto it = _entries.find(trackHandle);
+
         // if this track isn't playing nothing to do
         if(it != _entries.end())
         {
-            const auto& atmosphereEntry = g_atmosphere_directory.get_entry(trackEntry.atmosphereHandle);
+            const auto& trackEntry = g_track_directory.get_entry(trackHandle);
             auto& playbackEntry = it->second;
 
             playbackEntry.volume = (atmosphereEntry.muted ? 0.0f : atmosphereEntry.volume) * (trackEntry.muted ? 0.0f : trackEntry.volume);
