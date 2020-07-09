@@ -324,12 +324,12 @@ namespace tabletopify
                             // get rest of data from audio directory
                             auto& audioEntry = g_audio_directory.get_entry(audioHandle);
 
-                            trackEntry.title = audioEntry.title;
+                            trackEntry.audio = audioHandle;
                             trackEntry.audioData = audioEntry.data;
                             trackEntry.volume = 1.0f;
                             trackEntry.muted = false;
 
-                            MX_LOG_INFO("   AudioTitle : {}", trackEntry.title);
+                            MX_LOG_INFO("   AudioTitle : {}", audioEntry.title);
 
                             if (trackJson.contains("Volume")) {
                                 trackEntry.volume = trackJson["Volume"].get<float>();

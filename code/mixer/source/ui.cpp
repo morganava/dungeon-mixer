@@ -261,11 +261,12 @@ namespace tabletopify
                     for(auto trackHandle : atmosphere.tracks)
                     {
                         auto& track = g_track_directory.get_entry(trackHandle);
+                        auto& audio = g_audio_directory.get_entry(track.audio);
 
                         track_edit_widget widget = {
                             trackHandle,
                             track.audioData->get_type(),
-                            track.title,
+                            audio.title,
                             track.volume,
                             track.position.enabled,
                             track.position.azimuth,
