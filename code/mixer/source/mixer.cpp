@@ -30,8 +30,8 @@ namespace tabletopify
     {
         auto fut = worker_background.enqueue([&,dt]() -> void
         {
-            get_audio_directory()->update(dt);
-            get_playback_manager()->update(dt);
+            g_audio_directory.update(dt);
+            g_playback_manager.update(dt);
         });
 
         // do queued UI work
