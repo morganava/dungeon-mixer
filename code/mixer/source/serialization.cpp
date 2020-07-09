@@ -325,7 +325,6 @@ namespace tabletopify
                             auto& audioEntry = g_audio_directory.get_entry(audioHandle);
 
                             trackEntry.audio = audioHandle;
-                            trackEntry.audioData = audioEntry.data;
                             trackEntry.volume = 1.0f;
                             trackEntry.muted = false;
 

@@ -123,8 +123,6 @@ namespace tabletopify
     struct track_entry
     {
         audio_handle_t audio = audio_handle::invalid;
-        // TODO: we might be able to replace these with the audio_handle?
-        std::shared_ptr<audio_data> audioData;
         double volume = 1.0;
         bool muted = false;
         struct

@@ -109,9 +109,11 @@ namespace tabletopify
         MX_ASSERT(_entries.find(trackHandle) == _entries.end());
 
         auto& trackEntry = g_track_directory.get_entry(trackHandle);
+        auto audioHandle = trackEntry.audio;
+        auto& audioEntry = g_audio_directory.get_entry(audioHandle);
 
         playback_entry playbackEntry;
-        playbackEntry.audioData = trackEntry.audioData;
+        playbackEntry.audioData = audioEntry.data;
         _entries.emplace(trackHandle, std::move(playbackEntry));
 
         this->sync_track(trackHandle);

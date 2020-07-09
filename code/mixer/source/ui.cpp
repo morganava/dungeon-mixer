@@ -265,7 +265,7 @@ namespace tabletopify
 
                         track_edit_widget widget = {
                             trackHandle,
-                            track.audioData->get_type(),
+                            audio.type(),
                             audio.title,
                             track.volume,
                             track.position.enabled,

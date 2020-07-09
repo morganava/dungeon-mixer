@@ -63,7 +63,6 @@ namespace tabletopify
             // create new track entry for atmosphere
             track_entry trackEntry;
             trackEntry.audio = audioHandle;
-            trackEntry.audioData = audioEntry.data;
 
             const auto audioType = audioEntry.type();
 
