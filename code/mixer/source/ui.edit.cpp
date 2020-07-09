@@ -26,10 +26,9 @@ namespace tabletopify
             auto& atmosphereWidget = g_ui.get_atmosphere_widget(atmosphereHandle);
             atmosphereWidget.title.text = name;
 
-            worker_background.enqueue([=,name=std::move(name)]() -> void
+            worker_background.enqueue([=,name=std::move(name)]() mutable -> void
             {
-                auto& entry = g_atmosphere_directory.get_entry(atmosphereHandle);
-                entry.title = std::move(name);
+                g_atmosphere_directory.set_title(atmosphereHandle, std::move(name));
             });
         });
     }
@@ -64,7 +63,7 @@ namespace tabletopify
             // create new track entry for atmosphere
             track_entry trackEntry;
             trackEntry.atmosphereHandle = atmosphereHandle;
-            trackEntry.audioTitle = trackTitle;
+            trackEntry.title = trackTitle;
             trackEntry.audioData = audioEntry.data;
 
             const auto audioType = audioEntry.type();
@@ -73,8 +72,7 @@ namespace tabletopify
             auto trackHandle = g_track_directory.add_entry(std::move(trackEntry));
 
             // add track to atmosphere
-            auto& atmosphereEntry = g_atmosphere_directory.get_entry(atmosphereHandle);
-            atmosphereEntry.tracks.push_back(trackHandle);
+            g_atmosphere_directory.add_track(atmosphereHandle, trackHandle);
 
             // add track widget to ui
             worker_ui.enqueue([=,title=std::move(trackTitle)]() -> void
@@ -98,8 +96,7 @@ namespace tabletopify
     {
         worker_background.enqueue([=]() -> void
         {
-            auto& entry = g_track_directory.get_entry(trackHandle);
-            entry.volume = volume;
+            g_track_directory.set_volume(trackHandle, volume);
             g_playback_manager.sync_track(trackHandle);
         });
     }
@@ -108,8 +105,7 @@ namespace tabletopify
     {
         worker_background.enqueue([=]() -> void
         {
-            auto& entry = g_track_directory.get_entry(trackHandle);
-            entry.position.enabled = enabled;
+            g_track_directory.set_position_enabled(trackHandle, enabled);
             g_playback_manager.sync_track(trackHandle);
         });
     }
@@ -121,8 +117,7 @@ namespace tabletopify
 
         worker_background.enqueue([=]() -> void
         {
-            auto& entry = g_track_directory.get_entry(trackHandle);
-            entry.position.azimuth = azimuth;
+            g_track_directory.set_position_azimuth(trackHandle, azimuth);
             g_playback_manager.sync_track(trackHandle);
         });
     }
@@ -134,20 +129,16 @@ namespace tabletopify
 
         worker_background.enqueue([=]() -> void
         {
-            auto& entry = g_track_directory.get_entry(trackHandle);
-            entry.position.elevation = elevation;
+            g_track_directory.set_position_elevation(trackHandle, elevation);
             g_playback_manager.sync_track(trackHandle);
         });
     }
 
     void ui::on_set_track_repeat_enabled(track_handle_t trackHandle, bool enabled)
     {
-        MX_LOG_VAR_BLOCKING(trackHandle);
         worker_background.enqueue([=]() -> void
         {
-            MX_LOG_VAR_BLOCKING(trackHandle);
-            auto& entry = g_track_directory.get_entry(trackHandle);
-            entry.repeat.enabled = enabled;
+            g_track_directory.set_repeat_enabled(trackHandle, enabled);
             g_playback_manager.sync_track(trackHandle);
         });
     }
@@ -160,9 +151,8 @@ namespace tabletopify
 
         worker_background.enqueue([=]() -> void
         {
-            auto& entry = g_track_directory.get_entry(trackHandle);
-            entry.repeat.min = minRepeat;
-            entry.repeat.max = maxRepeat;
+            g_track_directory.set_repeat_min(trackHandle, minRepeat);
+            g_track_directory.set_repeat_max(trackHandle, maxRepeat);
             g_playback_manager.sync_track(trackHandle);
         });
     }

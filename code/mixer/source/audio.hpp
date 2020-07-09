@@ -130,9 +130,9 @@ namespace tabletopify
         // the atmosphere this track belongs to
         atmosphere_handle_t atmosphereHandle;
         // TODO: we might be able to replace these with the audio_handle?
-        utf8_string audioTitle;
+        utf8_string title;
         std::shared_ptr<audio_data> audioData;
-        float volume = 1.0f;
+        double volume = 1.0;
         bool muted = false;
         struct
         {
@@ -145,16 +145,28 @@ namespace tabletopify
             bool enabled = false;
             double elevation = 0.0;
             double azimuth = 0.0;
-
         } position;
     };
 
     class track_directory
     {
     public:
-        track_entry& get_entry(track_handle_t handle);
+        const track_entry& get_entry(track_handle_t handle);
         track_handle_t add_entry(track_entry&& entry);
         void remove_entry(track_handle_t handle);
+
+        // setters
+        void set_atmosphere(track_handle_t, atmosphere_handle_t atmosphere);
+        void set_title(track_handle_t, utf8_string&& title);
+        void set_audio(track_handle_t, std::shared_ptr<audio_data>& audio);
+        void set_volume(track_handle_t, double volume);
+        void set_muted(track_handle_t, bool muted);
+        void set_repeat_enabled(track_handle_t, bool enabled);
+        void set_repeat_min(track_handle_t, double min);
+        void set_repeat_max(track_handle_t, double max);
+        void set_position_enabled(track_handle_t, bool enabled);
+        void set_position_elevation(track_handle_t, double elevation);
+        void set_position_azimuth(track_handle_t, double azimuth);
     private:
         std::unordered_map<track_handle_t, track_entry> _entries;
     };
@@ -181,11 +193,20 @@ namespace tabletopify
         std::vector<atmosphere_handle_t> get_atmosphere_handles() const;
         std::vector<atmosphere_handle_t> get_atmosphere_handles_by_query(const utf8_string& query) const;
 
+        // entry management
         atmosphere_handle_t get_atmosphere_handle_by_id(const uuid& id) const;
-        atmosphere_entry& get_entry(atmosphere_handle_t handle);
+        const atmosphere_entry& get_entry(atmosphere_handle_t handle);
         atmosphere_handle_t add_entry(atmosphere_entry&& entry);
         void remove_entry(atmosphere_handle_t handle);
-        void rename_entry(atmosphere_handle_t handle, const utf8_string& newName);
+
+        // setter
+        void set_title(atmosphere_handle_t, utf8_string&& name);
+        void set_volume(atmosphere_handle_t, float volume);
+        void set_muted(atmosphere_handle_t, bool muted);
+        void set_favorite(atmosphere_handle_t, bool favorite);
+        void add_track(atmosphere_handle_t, track_handle_t track);
+        void remove_track(atmosphere_handle_t, track_handle_t track);
+
     private:
         std::map<atmosphere_handle_t, atmosphere_entry> _entries;
         tag_map<atmosphere_handle_t> _tag_map;
@@ -211,10 +232,12 @@ namespace tabletopify
 
         std::vector<playlist_handle_t> get_playlist_handles() const;
 
-        playlist_handle_t create_playlist();
-        playlist_entry& get_entry(playlist_handle_t);
+        const playlist_entry& get_entry(playlist_handle_t);
         playlist_handle_t add_entry(playlist_entry&&);
-        void delete_playlist(playlist_handle_t);
+        void remove_entry(playlist_handle_t);
+
+        // playlist mutators
+        void set_title(playlist_handle_t, utf8_string&& name);
         void add_atmosphere(playlist_handle_t, atmosphere_handle_t);
         void remove_atmosphere(playlist_handle_t, atmosphere_handle_t);
 
@@ -259,8 +282,6 @@ namespace tabletopify
         /// Atmosphere methods
         void play_atmosphere(atmosphere_handle_t);
         void stop_atmosphere(atmosphere_handle_t);
-        void set_atmosphere_volume(atmosphere_handle_t, float);
-        void set_atmosphere_mute(atmosphere_handle_t, bool);
         void sync_atmosphere(atmosphere_handle_t);
 
         /// Track methods

@@ -4,6 +4,7 @@
 #include "logger.hpp"
 #include "audio.hpp"
 #include "string_manager.hpp"
+#include "serialization.hpp"
 
 namespace tabletopify
 {
@@ -38,7 +39,7 @@ namespace tabletopify
         return it->second;
     }
 
-    atmosphere_entry& atmosphere_directory::get_entry(atmosphere_handle_t handle)
+    const atmosphere_entry& atmosphere_directory::get_entry(atmosphere_handle_t handle)
     {
         auto it = _entries.find(handle);
         MX_ASSERT(it != _entries.end());
@@ -53,8 +54,7 @@ namespace tabletopify
         // give all the tracks their parent atmosphere's handle
         for(auto& trackHandle : entry.tracks)
         {
-            auto& trackEntry = g_track_directory.get_entry(trackHandle);
-            trackEntry.atmosphereHandle = atmosphereHandle;
+            g_track_directory.set_atmosphere(trackHandle, atmosphereHandle);
         }
 
         std::vector<utf8_string> tags = entry.title.split();
@@ -77,17 +77,95 @@ namespace tabletopify
         _tag_map.remove_key(handle);
     }
 
-    void atmosphere_directory::rename_entry(atmosphere_handle_t handle, const utf8_string& newName)
+    void atmosphere_directory::set_title(atmosphere_handle_t atmosphere, utf8_string&& newName)
     {
-        auto it = _entries.find(handle);
-        MX_ASSERT(it != _entries.end());
+        auto it = _entries.find(atmosphere);
+        if (it == _entries.end()) return;
+
+        auto& entry = it->second;
 
         // early out if the same name
-        if(it->second.title == newName) return;
-        it->second.title = newName;
+        if(entry.title == newName) return;
 
-        _tag_map.remove_key(handle);
-        std::vector<utf8_string> tags = newName.split();
-        _tag_map.add_key(handle, tags);
+        // update the name and tags
+        auto tags = newName.split();
+        entry.title = std::move(newName);
+
+        // update tag map
+        _tag_map.remove_key(atmosphere);
+        _tag_map.add_key(atmosphere, tags);
+
+        g_serialization_manager.request_autosave(content_type::playlist);
+    }
+
+    void atmosphere_directory::set_volume(atmosphere_handle_t atmosphere, float volume)
+    {
+        auto it = _entries.find(atmosphere);
+        if (it == _entries.end()) return;
+
+        auto& entry = it->second;
+
+        // early out if same
+        if (entry.volume == volume) return;
+
+        entry.volume = volume;
+        g_serialization_manager.request_autosave(content_type::playlist);
+    }
+
+    void atmosphere_directory::set_muted(atmosphere_handle_t atmosphere, bool muted)
+    {
+        auto it = _entries.find(atmosphere);
+        if (it == _entries.end()) return;
+
+        auto& entry = it->second;
+
+        // early out if same
+        if (entry.muted == muted) return;
+
+        entry.muted = muted;
+        g_serialization_manager.request_autosave(content_type::playlist);
+    }
+
+    void atmosphere_directory::set_favorite(atmosphere_handle_t atmosphere, bool favorite)
+    {
+        auto it = _entries.find(atmosphere);
+        if (it == _entries.end()) return;
+
+        auto& entry = it->second;
+
+        // early out if same
+        if (entry.favorite == favorite) return;
+
+        entry.favorite = favorite;
+        g_serialization_manager.request_autosave(content_type::playlist);
+    }
+
+    void atmosphere_directory::add_track(atmosphere_handle_t atmosphere, track_handle_t track)
+    {
+        auto it = _entries.find(atmosphere);
+        if (it == _entries.end()) return;
+
+        auto& entry = it->second;
+
+        // verify track isn't already in atmosphere
+        MX_ASSERT(std::find(entry.tracks.begin(), entry.tracks.end(), track) == entry.tracks.end());
+
+        entry.tracks.push_back(track);
+        g_serialization_manager.request_autosave(content_type::playlist);
+    }
+
+    void atmosphere_directory::remove_track(atmosphere_handle_t atmosphere, track_handle_t track)
+    {
+        auto it = _entries.find(atmosphere);
+        if (it == _entries.end()) return;
+
+        auto& entry = it->second;
+
+        // verify track isn't already in atmosphere
+        if(auto it = std::find(entry.tracks.begin(), entry.tracks.end(), track); it != entry.tracks.end())
+        {
+            entry.tracks.erase(it);
+            g_serialization_manager.request_autosave(content_type::playlist);
+        }
     }
 }

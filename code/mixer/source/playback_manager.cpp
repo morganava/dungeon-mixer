@@ -74,7 +74,7 @@ namespace tabletopify
     void playback_manager::play_atmosphere(atmosphere_handle_t atmosphereHandle)
     {
         MX_LOG_INFO("playing atmosphere {}", atmosphereHandle);
-        auto& atmosphereEntry = g_atmosphere_directory.get_entry(atmosphereHandle);
+        const auto& atmosphereEntry = g_atmosphere_directory.get_entry(atmosphereHandle);
         for(auto trackHandle : atmosphereEntry.tracks)
         {
             this->play_track(trackHandle);
@@ -84,33 +84,16 @@ namespace tabletopify
     void playback_manager::stop_atmosphere(atmosphere_handle_t atmosphereHandle)
     {
         MX_LOG_INFO("stopping atmosphere {}", atmosphereHandle);
-        auto& atmosphereEntry = g_atmosphere_directory.get_entry(atmosphereHandle);
+        const auto& atmosphereEntry = g_atmosphere_directory.get_entry(atmosphereHandle);
         for(auto trackHandle : atmosphereEntry.tracks)
         {
             this->stop_track(trackHandle);
         }
     }
 
-    void playback_manager::set_atmosphere_volume(atmosphere_handle_t handle, float volume)
-    {
-        MX_ASSERT(volume >= 0.0f && volume <= 1.0f);
-
-        auto& atmosphereEntry = g_atmosphere_directory.get_entry(handle);
-        atmosphereEntry.volume = volume;
-        sync_atmosphere(atmosphereEntry);
-    }
-
-    void playback_manager::set_atmosphere_mute(atmosphere_handle_t handle, bool muted)
-    {
-        auto& atmosphereEntry = g_atmosphere_directory.get_entry(handle);
-        atmosphereEntry.muted = muted;
-        sync_atmosphere(atmosphereEntry);
-
-    }
-
     void playback_manager::sync_atmosphere(atmosphere_handle_t handle)
     {
-        auto& atmosphereEntry = g_atmosphere_directory.get_entry(handle);
+        const auto& atmosphereEntry = g_atmosphere_directory.get_entry(handle);
         sync_atmosphere(atmosphereEntry);
     }
 
@@ -158,7 +141,7 @@ namespace tabletopify
         // if this track isn't playing nothing to do
         if(it != _entries.end())
         {
-            auto& atmosphereEntry = g_atmosphere_directory.get_entry(trackEntry.atmosphereHandle);
+            const auto& atmosphereEntry = g_atmosphere_directory.get_entry(trackEntry.atmosphereHandle);
             auto& playbackEntry = it->second;
 
             playbackEntry.volume = (atmosphereEntry.muted ? 0.0f : atmosphereEntry.volume) * (trackEntry.muted ? 0.0f : trackEntry.volume);

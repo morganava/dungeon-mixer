@@ -45,7 +45,7 @@ namespace tabletopify
 
             for (auto playlistHandle : g_playlist_directory.get_playlist_handles())
             {
-                auto& playlistEntry = g_playlist_directory.get_entry(playlistHandle);
+                const auto& playlistEntry = g_playlist_directory.get_entry(playlistHandle);
                 playlist_widget currentPlaylistWidget;
 
                 currentPlaylistWidget.handle = playlistHandle;
@@ -87,13 +87,21 @@ namespace tabletopify
 
     void ui::set_screen(screen_t screen)
     {
-        root.currentScreen = screen;
+        const auto prevScreen = root.currentScreen;
 
-        hide_atmosphere_context_menu();
-        if (screen != screen::edit)
+        switch(prevScreen)
         {
-            stop_edit_playback();
+            case screen::edit:
+                stop_edit_playback();
+                break;
+            case screen::playlist:
+                hide_atmosphere_context_menu();
+                break;
+            default:
+                break;
         }
+
+        root.currentScreen = screen;
     }
 
     playlist_widget& ui::get_playlist_widget(playlist_handle_t handle)
@@ -170,10 +178,9 @@ namespace tabletopify
             worker_background.enqueue([=]() -> void
             {
                 g_playback_manager.stop_atmosphere(atmosphereHandle);
-
-                auto& entry = g_atmosphere_directory.get_entry(atmosphereHandle);
-                entry.muted = muted;
-                entry.volume = static_cast<float>(volume);
+                g_atmosphere_directory.set_volume(atmosphereHandle, volume);
+                g_atmosphere_directory.set_muted(atmosphereHandle, muted);
+                g_playback_manager.sync_atmosphere(atmosphereHandle);
             });
         });
     }
@@ -184,7 +191,13 @@ namespace tabletopify
     {
         worker_background.enqueue([]() -> void
         {
-            auto playlistHandle = g_playlist_directory.create_playlist();
+            auto playlistHandle = g_playlist_directory.add_entry(
+            {
+                g_random.next_uuid(),
+                "New Playlist",
+                {}
+            });
+
             MX_LOG_INFO("Create new playlist : {}", playlistHandle);
 
             worker_ui.enqueue([=]() -> void
@@ -243,7 +256,7 @@ namespace tabletopify
                 // get existing atmosphere data
                 else
                 {
-                    auto& atmosphere = g_atmosphere_directory.get_entry(atmosphereHandle);
+                    const auto& atmosphere = g_atmosphere_directory.get_entry(atmosphereHandle);
                     atmosphereTitle = atmosphere.title;
                     for(auto trackHandle : atmosphere.tracks)
                     {
@@ -252,7 +265,7 @@ namespace tabletopify
                         track_edit_widget widget = {
                             trackHandle,
                             track.audioData->get_type(),
-                            track.audioTitle,
+                            track.title,
                             track.volume,
                             track.position.enabled,
                             track.position.azimuth,
@@ -296,9 +309,8 @@ namespace tabletopify
             g_playback_manager.stop_all_tracks();
 
             // begin playing the editing atmosphere
-            auto& atmosphereEntry = g_atmosphere_directory.get_entry(atmosphereHandle);
-            atmosphereEntry.volume = 1.0f;
-            atmosphereEntry.muted = false;
+            g_atmosphere_directory.set_volume(atmosphereHandle, 1.0f);
+            g_atmosphere_directory.set_muted(atmosphereHandle, false);
             g_playback_manager.play_atmosphere(atmosphereHandle);
         });
     }

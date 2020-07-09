@@ -26,19 +26,18 @@ namespace tabletopify
             playlist.title = name;
             g_ui.root.playlist.edit_title = false;
 
-            worker_background.enqueue([=,name=std::move(name)]() -> void
+            worker_background.enqueue([=,name=std::move(name)]() mutable -> void
             {
-                auto& entry = g_playlist_directory.get_entry(playlistHandle);
-                entry.title = std::move(name);
+                g_playlist_directory.set_title(playlistHandle, std::move(name));
             });
         });
     }
 
-    void ui::on_set_atmosphere_favorite(atmosphere_handle_t handle, bool favorited)
+    void ui::on_set_atmosphere_favorite(atmosphere_handle_t handle, bool favorite)
     {
         worker_ui.enqueue([=]() -> void
         {
-            if (favorited) {
+            if (favorite) {
                 g_ui.add_atmosphere_to_playlist(playlist_handle::favorites, handle);
             } else {
                 g_ui.remove_atmosphere_from_playlist(playlist_handle::favorites, handle);
@@ -47,10 +46,9 @@ namespace tabletopify
 
         worker_background.enqueue([=]() -> void
         {
-            auto& entry = g_atmosphere_directory.get_entry(handle);
-            entry.favorite = favorited;
+            g_atmosphere_directory.set_favorite(handle, favorite);
 
-            if (favorited) {
+            if (favorite) {
                 g_playlist_directory.add_atmosphere(playlist_handle::favorites, handle);
             } else {
                 g_playlist_directory.remove_atmosphere(playlist_handle::favorites, handle);
@@ -71,8 +69,9 @@ namespace tabletopify
 
         worker_background.enqueue([=]() -> void
         {
-            g_playback_manager.set_atmosphere_volume(handle, volume);
-            g_playback_manager.set_atmosphere_mute(handle, false);
+            g_atmosphere_directory.set_volume(handle, volume);
+            g_atmosphere_directory.set_muted(handle, false);
+            g_playback_manager.sync_atmosphere(handle);
         });
     }
 
@@ -88,7 +87,8 @@ namespace tabletopify
 
         worker_background.enqueue([=]() -> void
         {
-            g_playback_manager.set_atmosphere_mute(handle, muted);
+            g_atmosphere_directory.set_muted(handle, muted);
+            g_playback_manager.sync_atmosphere(handle);
         });
     }
 
