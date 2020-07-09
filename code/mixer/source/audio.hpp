@@ -33,7 +33,7 @@ namespace tabletopify
     class audio_data
     {
     public:
-        virtual ~audio_data() {}
+        virtual ~audio_data() = default;
 
         virtual audio_type_t get_type() = 0;
         virtual sf::SoundBuffer& get_sound_buffer(bool positionable) = 0;
@@ -54,7 +54,6 @@ namespace tabletopify
     {
     public:
         one_shot_data(std::vector<fs::path>&& paths);
-        ~one_shot_data() override;
 
         audio_type_t get_type() override {return audio_type::one_shot;}
         sf::SoundBuffer& get_sound_buffer(bool positionable) override;
@@ -70,7 +69,6 @@ namespace tabletopify
     {
     public:
         loop_data(fs::path&& loop_path);
-        ~loop_data() override;
 
         audio_type_t get_type() override {return audio_type::loop;}
         sf::SoundBuffer& get_sound_buffer(bool positionable) override;

@@ -96,11 +96,6 @@ namespace tabletopify
         }
     }
 
-    one_shot_data::~one_shot_data()
-    {
-
-    }
-
     sf::SoundBuffer& one_shot_data::get_sound_buffer(bool positionable)
     {
         MX_ASSERT(this->_state == audio_data_state::loaded);
@@ -135,11 +130,6 @@ namespace tabletopify
     : _loop_path(std::move(loop_path))
     {
         MX_ASSERT(fs::exists(_loop_path));
-    }
-
-    loop_data::~loop_data()
-    {
-
     }
 
     sf::SoundBuffer& loop_data::get_sound_buffer(bool positionable)
