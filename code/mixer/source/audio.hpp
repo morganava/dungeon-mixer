@@ -226,6 +226,7 @@ namespace tabletopify
         playlist_directory();
 
         std::vector<playlist_handle_t> get_playlist_handles() const;
+        std::vector<playlist_handle_t> get_user_playlist_handles() const;
 
         const playlist_entry& get_entry(playlist_handle_t);
         playlist_handle_t add_entry(playlist_entry&&);

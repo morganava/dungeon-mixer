@@ -10,15 +10,33 @@ namespace tabletopify
     {
         std::vector<playlist_handle_t> retval;
 		retval.reserve(_entries.size());
-        for (auto val : _entries)
+        for (auto& [handle, entry] : _entries)
         {
-            retval.push_back(val.first);
+            retval.push_back(handle);
+        }
+        return retval;
+    }
+
+    std::vector<playlist_handle_t> playlist_directory::get_user_playlist_handles() const
+    {
+        MX_ASSERT(_entries.size() > playlist_handle::__first_generated);
+
+        std::vector<playlist_handle_t> retval;
+        // exclude the builtin playlists
+        retval.reserve(_entries.size() - static_cast<size_t>(playlist_handle::__first_generated));
+        for(auto& [handle, entry] : _entries)
+        {
+            if (handle >= playlist_handle::__first_generated) {
+                retval.push_back(handle);
+            }
         }
         return retval;
     }
 
     void playlist_directory::remove_entry(playlist_handle_t playlist)
     {
+        MX_ASSERT(playlist >= playlist_handle::__first_generated);
+
         _entries.erase(playlist);
 
         g_serialization_manager.request_autosave(content_type::playlist);
