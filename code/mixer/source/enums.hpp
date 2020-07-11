@@ -11,6 +11,14 @@ constexpr bool operator<(NAME##_t left, NAME##_t right) { return static_cast<TYP
 constexpr bool operator<=(NAME##_t left, NAME##_t right) { return static_cast<TYPE>(left) <= static_cast<TYPE>(right); }\
 constexpr bool operator>(NAME##_t left, NAME##_t right) { return static_cast<TYPE>(left) > static_cast<TYPE>(right); }\
 constexpr bool operator>=(NAME##_t left, NAME##_t right) { return static_cast<TYPE>(left) >= static_cast<TYPE>(right); }\
+constexpr bool operator<(TYPE left, NAME##_t right) { return left < static_cast<TYPE>(right); }\
+constexpr bool operator<=(TYPE left, NAME##_t right) { return left <= static_cast<TYPE>(right); }\
+constexpr bool operator>(TYPE left, NAME##_t right) { return left > static_cast<TYPE>(right); }\
+constexpr bool operator>=(TYPE left, NAME##_t right) { return left >= static_cast<TYPE>(right); }\
+constexpr bool operator<(NAME##_t left, TYPE right) { return static_cast<TYPE>(left) < right; }\
+constexpr bool operator<=(NAME##_t left, TYPE right) { return static_cast<TYPE>(left) <= right; }\
+constexpr bool operator>(NAME##_t left, TYPE right) { return static_cast<TYPE>(left) > right; }\
+constexpr bool operator>=(NAME##_t left, TYPE right) { return static_cast<TYPE>(left) >= right; }\
 enum class NAME : TYPE {\
     invalid = static_cast<TYPE>(~TYPE(0)),\
     FIRST = 0,\
@@ -64,12 +72,21 @@ constexpr bool operator<(NAME##_t left, NAME##_t right) { return static_cast<siz
 constexpr bool operator<=(NAME##_t left, NAME##_t right) { return static_cast<size_t>(left) <= static_cast<size_t>(right); }\
 constexpr bool operator>(NAME##_t left, NAME##_t right) { return static_cast<size_t>(left) > static_cast<size_t>(right); }\
 constexpr bool operator>=(NAME##_t left, NAME##_t right) { return static_cast<size_t>(left) >= static_cast<size_t>(right); }\
+constexpr bool operator<(size_t left, NAME##_t right) { return left < static_cast<size_t>(right); }\
+constexpr bool operator<=(size_t left, NAME##_t right) { return left <= static_cast<size_t>(right); }\
+constexpr bool operator>(size_t left, NAME##_t right) { return left > static_cast<size_t>(right); }\
+constexpr bool operator>=(size_t left, NAME##_t right) { return left >= static_cast<size_t>(right); }\
+constexpr bool operator<(NAME##_t left, size_t right) { return static_cast<size_t>(left) < right; }\
+constexpr bool operator<=(NAME##_t left, size_t right) { return static_cast<size_t>(left) <= right; }\
+constexpr bool operator>(NAME##_t left, size_t right) { return static_cast<size_t>(left) > right; }\
+constexpr bool operator>=(NAME##_t left, size_t right) { return static_cast<size_t>(left) >= right; }\
 inline NAME##_t next_##NAME() {\
     static size_t next = static_cast<size_t>(NAME::__first_generated);\
     return static_cast<NAME##_t>(next++);\
 };\
 inline std::ostream& operator<<(std::ostream& out, NAME##_t val) {\
-    out << static_cast<size_t>(val);\
+    if (val == NAME::invalid) out << MX_STRINGIFY(NAME::invalid);\
+    else out << static_cast<size_t>(val);\
     return out;\
 }
 
