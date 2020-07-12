@@ -34,7 +34,7 @@ namespace tabletopify
             return color(r / 255.0f, g / 255.0f, b / 255.0f, a);
         }
 
-        operator NVGcolor() const
+        constexpr operator NVGcolor() const
         {
             NVGcolor retval;
             retval.r = r;
