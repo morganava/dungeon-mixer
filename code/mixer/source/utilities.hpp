@@ -1,7 +1,5 @@
 #pragma once
 
-#include "logger.hpp"
-
 #define MX_DEBUGBREAK(...) __builtin_trap()
 
 #define MX_STRINGIFY(X) MX_STRINGIFY_IMPL(X)
@@ -20,6 +18,8 @@
 
 #define MX_FORCE_INLINE __attribute__ ((always_inline))
 #define MX_NEVER_INLINE __attribute__ ((noinline))
+
+#include "logger.hpp"
 
 // extra print operators
 std::ostream& operator<<(std::ostream& out, const sf::Vector3f& vec);

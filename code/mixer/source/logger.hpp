@@ -1,7 +1,6 @@
 #pragma once
 
 #include "singleton.hpp"
-#include "work_queue.hpp"
 #include "enums.hpp"
 
 #define MX_LOG_ERROR(...) tabletopify::g_logger.log(tabletopify::log_level::error, __VA_ARGS__)
@@ -12,6 +11,7 @@
 #define MX_LOG_TRACE_BLOCKING(...) MX_LOG_INFO_BLOCKING(__FILE__"(" __STR_LINE__ "): " __VA_ARGS__)
 #define MX_LOG_VAR(X) MX_LOG_INFO(#X " : {}", X);
 #define MX_LOG_VAR_BLOCKING(X) MX_LOG_INFO_BLOCKING(#X " : {}", X);
+
 namespace tabletopify
 {
     MX_MAKE_ENUM(log_level, uint_fast8_t,
@@ -71,7 +71,11 @@ namespace tabletopify
         };
     };
     MX_MAKE_SINGLETON(logger);
+}
+#include "work_queue.hpp"
 
+namespace tabletopify
+{
     template<size_t N>
     void logger::log_internal(log_level_t lvl, bool blocking, const char (&msg)[N])
     {
@@ -94,7 +98,7 @@ namespace tabletopify
         auto now = std::chrono::system_clock::now();
         auto log_task = [=, ...args=std::move(args)]() -> void
         {
-            auto msg = fmt::format(format, args...);
+            auto msg = fmt::format(format, std::move(args)...);
             g_logger.write_message(lvl, now, msg.c_str());
         };
 
