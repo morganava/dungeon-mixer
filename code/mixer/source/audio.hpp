@@ -245,9 +245,9 @@ namespace tabletopify
         // init with our builtin playlists
         std::map<playlist_handle_t, playlist_entry> _entries =
         {
-            {playlist_handle::all,       {uuid(0,static_cast<uint64_t>(playlist_handle::all)),       "All",     {}}},
-            {playlist_handle::favorites, {uuid(0,static_cast<uint64_t>(playlist_handle::favorites)), "Starred", {}}},
-            {playlist_handle::playing,   {uuid(0,static_cast<uint64_t>(playlist_handle::playing)),   "Playing", {}}},
+            {playlist_handle::all,       {"00000000-0000-0000-0000-000000000A11", "All",     {}}},
+            {playlist_handle::favorites, {"00000000-0000-0000-0000-00057A1212ED", "Starred", {}}},
+            {playlist_handle::playing,   {"00000000-0000-0000-0000-000001D1A149", "Playing", {}}},
         };
     };
     MX_MAKE_SINGLETON(playlist_directory)

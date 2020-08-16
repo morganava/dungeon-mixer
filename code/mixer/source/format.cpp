@@ -129,8 +129,7 @@ ostream& operator<<(ostream& out, const struct uuid& id)
 {
     const auto& bytes = id.bytes;
 
-    fmt::fprintf(
-        out, uuid::format_string,
+    fmt::print(out, uuid::format_string,
         bytes[0], bytes[1], bytes[2], bytes[3],
         bytes[4], bytes[5], bytes[6], bytes[7],
         bytes[8], bytes[9], bytes[10], bytes[11],
@@ -142,7 +141,7 @@ ostream& operator<<(ostream& out, const struct uuid& id)
 // color
 ostream& operator<<(ostream& out, const color& col)
 {
-    fmt::fprintf(out, "#%02x%02x%02x",
+    fmt::print(out, "#{:02x}{:02x}{:02x}",
         static_cast<uint8_t>(255.0 * col.r),
         static_cast<uint8_t>(255.0 * col.g),
         static_cast<uint8_t>(255.0 * col.b));

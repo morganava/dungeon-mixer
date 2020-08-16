@@ -31,9 +31,11 @@ namespace tabletopify
         uuid result;
         {
             std::lock_guard<std::mutex> lock(_mutex);
-            std::uniform_int_distribution<uint64_t> uniform(uint64_t(0), ~uint64_t(0));
-            result.qwords[0] = uniform(_rand);
-            result.qwords[1] = uniform(_rand);
+            std::uniform_int_distribution<uint8_t> uniform(0x00, 0xFF);
+            for(auto& byte : result.bytes)
+            {
+                byte = uniform(_rand);
+            }
         }
 
         // set version to 4

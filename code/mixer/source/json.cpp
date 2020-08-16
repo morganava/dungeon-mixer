@@ -118,7 +118,7 @@ namespace tabletopify
     void to_json(nl::json& j, const struct uuid& id)
     {
         const auto& bytes = id.bytes;
-        j = fmt::sprintf(
+        j = fmt::format(
             uuid::format_string,
             bytes[0], bytes[1], bytes[2], bytes[3],
             bytes[4], bytes[5], bytes[6], bytes[7],
@@ -130,16 +130,7 @@ namespace tabletopify
     {
         MX_THROW_IF_FALSE(j.is_string());
 
-        auto& bytes = id.bytes;
-        std::string uuidString = j;
-
-        MX_THROW_IF_FALSE(uuidString.size() == uuid::string_length);
-        MX_THROW_IF_FALSE(16 == sscanf(uuidString.data(),
-            uuid::format_string,
-            &bytes[0], &bytes[1], &bytes[2], &bytes[3],
-            &bytes[4], &bytes[5], &bytes[6], &bytes[7],
-            &bytes[8], &bytes[9], &bytes[10], &bytes[11],
-            &bytes[12], &bytes[13], &bytes[14], &bytes[15]));
+        id = uuid(j.get<std::string>());
     }
 
     // Geometry
