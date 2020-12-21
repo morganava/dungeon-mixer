@@ -1,7 +1,6 @@
 find_package(OpenGL REQUIRED COMPONENTS OpenGL)
 find_package(GLEW REQUIRED)
 find_package(SFML 2.4 REQUIRED COMPONENTS audio)
-find_package(GTK3 3.0 REQUIRED gtk)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -Wfatal-errors -fconcepts")
 
@@ -67,7 +66,6 @@ target_link_libraries(tabletop_mixer GLEW)
 target_link_libraries(tabletop_mixer nanovg)
 target_link_libraries(tabletop_mixer ${SFML_LIBRARIES})
 target_link_libraries(tabletop_mixer nativefiledialog)
-target_link_libraries(tabletop_mixer ${GTK3_LIBRARIES})
 target_link_libraries(tabletop_mixer pthread)
 target_link_libraries(tabletop_mixer stdc++fs)
 
