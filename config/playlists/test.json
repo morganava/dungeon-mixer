@@ -1,52 +1,48 @@
 {
-  "Version" : "0.1",
-  "Atmospheres" :
-  [
+  "Atmospheres": [
     {
-      "AtmosphereId" : "5f96dcd9-015c-4525-868a-ae6b8b8e1d02",
-      "Title" : "Rainy Cow Field",
-      "Volume" : 0.5,
-      "Muted" : false,
-      "Favorite" : true,
-      "Tracks" :
-      [
+      "Favorite": true,
+      "Id": "5f96dcd9-015c-4525-868a-ae6b8b8e1d02",
+      "Title": "Rainy Cow Field",
+      "Tracks": [
         {
-          "AudioId" : "6891dad7-09f9-4fdb-916c-ce37d49bd4fe",
-          "Volume" : 1.0,
-          "RepeatRange" : [0, 1.0],
-          "Position" : [5.0, 0]
+          "Id": "6891dad7-09f9-4fdb-916c-ce37d49bd4fe",
+          "Position": [
+            5.0,
+            0.0
+          ],
+          "RepeatRange": [
+            0.0,
+            1.0
+          ]
         },
         {
-          "AudioId" : "dc0a450c-81e9-42c6-a557-ca635468ba77",
-          "Volume" : 0.25
+          "Id": "dc0a450c-81e9-42c6-a557-ca635468ba77",
+          "Volume": 0.25
         }
-      ]
+      ],
+      "Volume": 0.5
     },
     {
-      "AtmosphereId" : "eb315e50-6e94-45a4-aece-e6f73704b04e",
-      "Title" : "Heavy Rain",
-      "Volume" : 0.5,
-      "Muted" : false,
-      "Tracks" :
-      [
+      "Id": "eb315e50-6e94-45a4-aece-e6f73704b04e",
+      "Title": "Heavy Rain",
+      "Tracks": [
         {
-          "AudioId" : "b5610cdd-a56a-423f-9da6-82fffd399550",
-          "Volume" : 1.0
+          "Id": "b5610cdd-a56a-423f-9da6-82fffd399550"
         }
-      ]
+      ],
+      "Volume": 0.5
     }
   ],
-  "Playlists" :
-  [
+  "Playlists": [
     {
-      "PlaylistId" : "e495fc80-53b3-43ef-baa6-d61aa188f7cb",
-      "Title" : "Test",
-      "Atmospheres":
-      [
+      "Atmospheres": [
         "5f96dcd9-015c-4525-868a-ae6b8b8e1d02",
-        "eb315e50-6e94-45a4-aece-e6f73704b04e",
         "eb315e50-6e94-45a4-aece-e6f73704b04e"
-      ]
+      ],
+      "Id": "e495fc80-53b3-43ef-baa6-d61aa188f7cb",
+      "Title": "Test"
     }
-  ]
+  ],
+  "Version": "0.1"
 }

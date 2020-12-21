@@ -1,5 +1,6 @@
 #include "ui.hpp"
 #include "random.hpp"
+#include "serialization.hpp"
 
 namespace tabletopify
 {
@@ -326,7 +327,13 @@ namespace tabletopify
             mxHBox(self.tags={"playlistButtonRow"})
             {
                 mxButton(&root.playlist.export_,
-                    self.on_click = []() -> void {MX_LOG_INFO("EXPORT");};);
+                    self.on_click = []() -> void
+                    {
+                        g_serialization_manager.save_playlist(
+                            "/tmp/playlist.json",
+                            g_playlist_directory.get_playlist_handles());
+                        MX_LOG_INFO("EXPORT");
+                    });
                 mxButton(&root.playlist.import,
                     self.on_click = []() -> void {MX_LOG_INFO("IMPORT");};);
                 mxSpacer();

@@ -65,6 +65,10 @@ namespace tabletopify
             trackEntry.audio = audioHandle;
 
             const auto audioType = audioEntry.type();
+            if (audioType == audio_type::one_shot)
+            {
+                trackEntry.repeat.enabled = true;
+            }
 
             // add it to the track directory
             auto trackHandle = g_track_directory.add_entry(std::move(trackEntry));

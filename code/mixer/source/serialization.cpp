@@ -1,3 +1,4 @@
+#include "serialization.hpp"
 #include "uuid.hpp"
 #include "utilities.hpp"
 #include "work_queue.hpp"
@@ -262,7 +263,7 @@ namespace tabletopify
     {
         worker_fileio.enqueue([]() -> void
         {
-            // iterate over each subdirectory in the lilbrary directory
+            // iterate over each subdirectory in the library directory
             for(auto& it : fs::directory_iterator(get_playlists_path()))
             {
                 auto path = it.path();
@@ -281,12 +282,20 @@ namespace tabletopify
                     auto atmosphereList = json["Atmospheres"];
                     for (auto atmosphereJson : atmosphereList)
                     {
+                        auto atmosphereId = atmosphereJson["Id"].get<uuid>();
+                        if (g_atmosphere_directory.get_atmosphere_handle_by_id(atmosphereId) !=
+                            atmosphere_handle::invalid)
+                        {
+                            MX_LOG_INFO("Skipping DOUBLE load");
+                            continue;
+                        }
+
                         atmosphere_entry atmosphereEntry;
-                        atmosphereEntry.id = atmosphereJson["AtmosphereId"].get<uuid>();
+                        atmosphereEntry.id = atmosphereId;
                         atmosphereEntry.title = atmosphereJson["Title"].get<utf8_string>();
 
                         MX_LOG_INFO(" AtmosphereTitle : {}", atmosphereEntry.title);
-                        MX_LOG_INFO(" AtmosphereId : {}", atmosphereEntry.id);
+                        MX_LOG_INFO(" Id : {}", atmosphereEntry.id);
 
                         if (atmosphereJson.contains("Volume")) {
                             atmosphereEntry.volume = atmosphereJson["Volume"].get<float>();
@@ -309,11 +318,11 @@ namespace tabletopify
                         {
                             track_entry trackEntry;
 
-                            // AudioId is the id of the audio_entry referenced
-                            const auto audioId = trackJson["AudioId"].get<uuid>();
+                            // Id is the id of the audio_entry referenced
+                            const auto audioId = trackJson["Id"].get<uuid>();
                             auto audioHandle = g_audio_directory.get_audio_handle_by_id(audioId);
 
-                            MX_LOG_INFO("  AudioId : {}", audioId);
+                            MX_LOG_INFO("  Id : {}", audioId);
                             MX_LOG_INFO("   AudioHandle : {}", audioHandle);
 
                             if (audioHandle == audio_handle::invalid) {
@@ -327,6 +336,9 @@ namespace tabletopify
                             trackEntry.audio = audioHandle;
                             trackEntry.volume = 1.0f;
                             trackEntry.muted = false;
+                            trackEntry.repeat.enabled = false;
+                            trackEntry.position.enabled = false;
+
 
                             MX_LOG_INFO("   AudioTitle : {}", audioEntry.title);
 
@@ -351,6 +363,7 @@ namespace tabletopify
                                         float range0 = range[0].get<float>();
                                         float range1 = range[1].get<float>();
 
+                                        trackEntry.repeat.enabled = true;
                                         trackEntry.repeat.min = std::min(range0, range1);
                                         trackEntry.repeat.max = std::max(range0, range1);
 
@@ -391,11 +404,9 @@ namespace tabletopify
                                         elevation = elevationJson.get<double>();
                                     }
                                 }
-
+                                trackEntry.position.enabled = true;
 
                                 MX_LOG_INFO("   Position : {{ elevation : {}, azimuth : {} }}", elevation, azimuth);
-                            } else {
-                                trackEntry.position.enabled = false;
                             }
 
                             auto trackHandle = g_track_directory.add_entry(std::move(trackEntry));
@@ -417,9 +428,9 @@ namespace tabletopify
                     for (auto playlistJson : playlistList)
                     {
                         playlist_entry playlistEntry;
-                        playlistEntry.id = playlistJson["PlaylistId"].get<uuid>();
+                        playlistEntry.id = playlistJson["Id"].get<uuid>();
                         playlistEntry.title = playlistJson["Title"].get<utf8_string>();
-                        MX_LOG_INFO("  PlaylistId : {}", playlistEntry.id);
+                        MX_LOG_INFO("  Id : {}", playlistEntry.id);
                         MX_LOG_INFO("  PlaylistTitle : {}", playlistEntry.title);
                         MX_LOG_INFO("  Atmospheres : ");
 
@@ -431,7 +442,7 @@ namespace tabletopify
                             const auto id = atmosphereId.get<uuid>();
                             auto atmosphereHandle = g_atmosphere_directory.get_atmosphere_handle_by_id(id);
                             if (atmosphereHandle == atmosphere_handle::invalid) {
-                                MX_LOG_ERROR("Atmosphere with id '{}' does not exist", atmosphereId);
+                                MX_LOG_ERROR("Atmosphere with id '{}' does not exist", id);
                             }
                             MX_LOG_INFO("  AtmosphereId : {}", id);
                             g_playlist_directory.add_atmosphere(playlistHandle, atmosphereHandle);
@@ -453,6 +464,98 @@ namespace tabletopify
         {
             MX_LOG_INFO("Loading playlist: {}", playlistPath);
         });
+    }
 
+    void serialization_manager::save_playlist(fs::path&& dest, std::vector<playlist_handle_t>&& playlistHandles)
+    {
+        worker_background.enqueue([playlistHandles=std::move(playlistHandles),dest=std::move(dest)]() -> void
+        {
+            // convert playlist, atmosphere and track entries into an nl::json object
+            auto atmospheresJson = nl::json::array();
+            auto playlistsJson = nl::json::array();
+
+            std::set<atmosphere_handle_t> recordedAtmospheres;
+
+            for(auto playlistHandle : playlistHandles)
+            {
+                // skip over builtin playlists
+                if (is_builtin_playlist(playlistHandle))
+                {
+                    continue;
+                }
+
+                const auto& playlistEntry = g_playlist_directory.get_entry(playlistHandle);
+                auto currentPlaylistJson = nl::json::object();
+                auto currentPlaylistAtmospheresJson = nl::json::array();
+                currentPlaylistJson["Id"] = playlistEntry.id;
+                currentPlaylistJson["Title"] = playlistEntry.title;
+
+                for(auto atmosphereHandle : playlistEntry.atmospheres)
+                {
+                    const auto& atmosphereEntry = g_atmosphere_directory.get_entry(atmosphereHandle);
+                    if (recordedAtmospheres.find(atmosphereHandle) == recordedAtmospheres.end())
+                    {
+                        // ensure we don't multiply define atmosphere's that live in multiple playlists
+                        recordedAtmospheres.insert(atmosphereHandle);
+
+                        // construct atmosphere object
+                        auto currentAtmosphereJson = nl::json::object();
+                        currentAtmosphereJson["Id"] = atmosphereEntry.id;
+                        currentAtmosphereJson["Title"] = atmosphereEntry.title;
+                        if (atmosphereEntry.volume != 1.0) {
+                           currentAtmosphereJson["Volume"] = atmosphereEntry.volume;
+                        }
+                        if (atmosphereEntry.muted) {
+                            currentAtmosphereJson["Muted"] = atmosphereEntry.muted;
+                        }
+                        if (atmosphereEntry.favorite) {
+                            currentAtmosphereJson["Favorite"] = atmosphereEntry.favorite;
+                        }
+                        auto tracksJson = nl::json::array();
+
+                        for(auto trackHandle : atmosphereEntry.tracks)
+                        {
+                            const auto& trackEntry = g_track_directory.get_entry(trackHandle);
+                            const auto& audioHandle = trackEntry.audio;
+                            const auto& audioEntry = g_audio_directory.get_entry(audioHandle);
+                            auto trackJson = nl::json::object();
+                            trackJson["Id"] = audioEntry.id;
+                            if (trackEntry.volume != 1.0) {
+                                trackJson["Volume"] = trackEntry.volume;
+                            }
+                            if (trackEntry.muted) {
+                                trackJson["Muted"] = trackEntry.muted;
+                            }
+                            if (trackEntry.repeat.enabled) {
+                                trackJson["RepeatRange"] = {trackEntry.repeat.min, trackEntry.repeat.max};
+                            }
+                            if (trackEntry.position.enabled) {
+                                trackJson["Position"] = {trackEntry.position.elevation, trackEntry.position.azimuth};
+                            }
+                            tracksJson.push_back(std::move(trackJson));
+                        }
+                        currentAtmosphereJson["Tracks"] = std::move(tracksJson);
+                        atmospheresJson.push_back(std::move(currentAtmosphereJson));
+                    }
+
+                    // push atmosphere id to playlist
+                    currentPlaylistAtmospheresJson.push_back(atmosphereEntry.id);
+                }
+                currentPlaylistJson["Atmospheres"] = std::move(currentPlaylistAtmospheresJson);
+
+                playlistsJson.push_back(std::move(currentPlaylistJson));
+            }
+            auto objectJson = nl::json::object();
+            objectJson["Version"] = "0.1";
+            objectJson["Atmospheres"] = std::move(atmospheresJson);
+            objectJson["Playlists"] = std::move(playlistsJson);
+
+            worker_fileio.enqueue([objectJson=std::move(objectJson),dest=std::move(dest)]() -> void
+            {
+                // serialize json object to string
+                std::fstream fout(dest, std::ios::out | std::ios::binary);
+                fout << std::setw(2) << std::setfill(' ') << objectJson;
+            });
+        });
     }
 }

@@ -18,6 +18,19 @@ namespace tabletopify
         favorites,
         playing);
 
+    constexpr bool is_builtin_playlist(playlist_handle_t handle)
+    {
+        switch(handle)
+        {
+            case playlist_handle::all:
+            case playlist_handle::favorites:
+            case playlist_handle::playing:
+                return true;
+            default:
+                return false;
+        }
+    }
+
     MX_MAKE_ENUM(audio_type, uint_fast8_t,
         one_shot,
         loop
@@ -127,7 +140,7 @@ namespace tabletopify
         bool muted = false;
         struct
         {
-            bool enabled = true;
+            bool enabled = false;
             double min = 0.0;
             double max = 15.0;
         } repeat;
