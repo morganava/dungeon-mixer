@@ -7,6 +7,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -Wfatal-errors -fconcepts"
 add_executable(tabletop_mixer
     precomp.cpp
     # utilities
+    file_dialog.cpp
     tag_map.cpp
     hash.cpp
     utf8_string.cpp
