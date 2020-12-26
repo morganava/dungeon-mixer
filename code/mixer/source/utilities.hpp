@@ -132,6 +132,112 @@ namespace tabletopify
     {
         return {ptr};
     }
+
+    template<typename T>
+    class range
+    {
+        range() = delete;
+        range(const range&) = delete;
+        range& operator=(const range&) = delete;
+        range& operator=(range&&) = delete;
+    public:
+        constexpr range(range&&) = default;
+
+        constexpr range(T from, T to) : range(from, to, from <= to ? 1 : -1)
+        { }
+
+        constexpr range(T from, T to, T inc)
+        : from(std::move(from))
+        , to(std::move(to))
+        , inc(std::move(inc))
+        { }
+
+        class iterator
+        {
+            iterator() = delete;
+            iterator& operator=(const iterator&) = delete;
+            iterator& operator=(iterator&&) = delete;
+        public:
+
+            constexpr iterator(const iterator&) = default;
+            constexpr iterator(iterator&&) = default;
+
+            iterator(T first, T last, T inc)
+            : first(first)
+            , last(last)
+            , inc(inc)
+            , index(0)
+            , count((size_t)((last - first) / inc) + 1)
+            { }
+
+            constexpr iterator& operator++()
+            {
+                increment();
+                return *this;
+            }
+
+            constexpr iterator operator++(int)
+            {
+                auto retval = *this;
+                increment();
+                return retval;
+            }
+
+            constexpr bool operator==(const iterator& that) const
+            {
+                return index == that.index;
+            }
+
+            constexpr bool operator!=(const iterator& that) const
+            {
+                return index != that.index;
+            }
+
+            constexpr T operator*() const
+            {
+                return this->value();
+            }
+
+        private:
+            constexpr void increment()
+            {
+                index = std::min(index + 1, count);
+            }
+
+            constexpr T value() const
+            {
+                if (index == 0) return first;
+                if (index == (count - 1)) return last;
+                return first + index * inc;
+            }
+
+            const T first;
+            const T last;
+            const T inc;
+            size_t index;
+            const size_t count;
+
+            friend class range;
+        };
+
+        constexpr range::iterator begin()
+        {
+            return range::iterator(from, to, inc);
+        }
+
+        constexpr range::iterator end()
+        {
+            auto retval = begin();
+            retval.index = retval.count;
+            return retval;
+        }
+    private:
+
+        const T from;
+        const T to;
+        const T inc;
+    };
+
 }
 
 namespace std
