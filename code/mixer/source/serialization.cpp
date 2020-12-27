@@ -198,7 +198,11 @@ namespace tabletopify
             worker_background.enqueue([mb=std::move(mb)]() -> void
             {
                 auto json = parse_json(mb);
-                g_style_resolver = json.get<style_resolver>();
+                auto resolver = json.get<style_resolver>();
+                worker_ui.enqueue([resolver=std::move(resolver)] () mutable -> void
+                {
+                    g_style_resolver = std::move(resolver);
+                });
             });
         });
     }
@@ -220,7 +224,7 @@ namespace tabletopify
                 memory_buffer manifestData(manifestPath);
 
                 // create audio entries for listings in manifest
-                worker_background.enqueue([basePath=it.path(), manifestData=std::move(manifestData)]() -> void
+                worker_audio.enqueue([basePath=it.path(), manifestData=std::move(manifestData)]() -> void
                 {
                     auto json = parse_json(manifestData);
                     auto trackList = json["Tracks"];
@@ -269,7 +273,7 @@ namespace tabletopify
                 auto path = it.path();
                 memory_buffer bytes(path);
 
-                worker_background.enqueue([=,bytes=std::move(bytes)]() -> void
+                worker_audio.enqueue([=,bytes=std::move(bytes)]() -> void
                 {
                     MX_LOG_INFO("Loading playlist : {}", path);
 
@@ -468,7 +472,7 @@ namespace tabletopify
 
     void serialization_manager::save_playlist(fs::path&& dest, std::vector<playlist_handle_t>&& playlistHandles)
     {
-        worker_background.enqueue([playlistHandles=std::move(playlistHandles),dest=std::move(dest)]() -> void
+        worker_audio.enqueue([playlistHandles=std::move(playlistHandles),dest=std::move(dest)]() -> void
         {
             // convert playlist, atmosphere and track entries into an nl::json object
             auto atmospheresJson = nl::json::array();

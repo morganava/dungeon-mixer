@@ -85,6 +85,7 @@ namespace tabletopify
         ui,
         fileio,
         background,
+		audio,
         logging
     );
 
@@ -140,5 +141,6 @@ namespace tabletopify
     constexpr worker worker_ui(worker_id::ui);
     constexpr worker worker_fileio(worker_id::fileio);
     constexpr worker worker_background(worker_id::background);
+    constexpr worker worker_audio(worker_id::audio);
     constexpr worker worker_logging(worker_id::logging);
 }

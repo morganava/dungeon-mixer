@@ -38,7 +38,7 @@ namespace tabletopify
 
     void ui::sync_playlists()
     {
-        worker_background.enqueue([]()
+        worker_audio.enqueue([]()
         {
             std::vector<playlist_widget> playlists;
             std::map<atmosphere_handle_t, atmosphere_widget> atmospheres;
@@ -175,7 +175,7 @@ namespace tabletopify
             const bool muted = widget.muteUnmute.checked;
             const double volume = widget.volumeVal;
 
-            worker_background.enqueue([=]() -> void
+            worker_audio.enqueue([=]() -> void
             {
                 g_playback_manager.stop_atmosphere(atmosphereHandle);
                 g_atmosphere_directory.set_volume(atmosphereHandle, volume);
@@ -189,7 +189,7 @@ namespace tabletopify
 
     void ui::on_create_new_playlist()
     {
-        worker_background.enqueue([]() -> void
+        worker_audio.enqueue([]() -> void
         {
             auto playlistHandle = g_playlist_directory.add_entry(
             {
@@ -220,7 +220,7 @@ namespace tabletopify
     {
         const auto prevAtmosphereHandle = g_ui.root.edit.handle;
         // populate the track edit widgets
-        worker_background.enqueue([=]() -> void
+        worker_audio.enqueue([=]() -> void
         {
             auto atmosphereHandle = handle;
 

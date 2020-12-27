@@ -26,7 +26,7 @@ namespace tabletopify
             auto& atmosphereWidget = g_ui.get_atmosphere_widget(atmosphereHandle);
             atmosphereWidget.title.text = name;
 
-            worker_background.enqueue([=,name=std::move(name)]() mutable -> void
+            worker_audio.enqueue([=,name=std::move(name)]() mutable -> void
             {
                 g_atmosphere_directory.set_title(atmosphereHandle, std::move(name));
             });
@@ -35,7 +35,7 @@ namespace tabletopify
 
     void ui::on_do_audio_search(const utf8_string& query)
     {
-        worker_background.enqueue([=]() -> void
+        worker_audio.enqueue([=]() -> void
         {
             auto audioHandles = g_audio_directory.get_audio_handles_by_query(query);
             std::vector<audio_query_result_widget> queryWidgets;
@@ -54,7 +54,7 @@ namespace tabletopify
     void ui::on_add_audio_to_atmosphere(atmosphere_handle_t atmosphereHandle, audio_handle_t audioHandle)
     {
         // create new track for atmosphere and begin playing it
-        worker_background.enqueue([=]() -> void
+        worker_audio.enqueue([=]() -> void
         {
             auto& audioEntry = g_audio_directory.get_entry(audioHandle);
 
@@ -96,7 +96,7 @@ namespace tabletopify
 
     void ui::on_set_track_volume(track_handle_t trackHandle, double volume)
     {
-        worker_background.enqueue([=]() -> void
+        worker_audio.enqueue([=]() -> void
         {
             g_track_directory.set_volume(trackHandle, volume);
             g_playback_manager.sync_track(trackHandle);
@@ -105,7 +105,7 @@ namespace tabletopify
 
     void ui::on_set_track_position_enabled(track_handle_t trackHandle, bool enabled)
     {
-        worker_background.enqueue([=]() -> void
+        worker_audio.enqueue([=]() -> void
         {
             g_track_directory.set_position_enabled(trackHandle, enabled);
             g_playback_manager.sync_track(trackHandle);
@@ -117,7 +117,7 @@ namespace tabletopify
         widget.azimuth_string = fmt::format("{:.1f}°", azimuth);
         const auto trackHandle = widget.handle;
 
-        worker_background.enqueue([=]() -> void
+        worker_audio.enqueue([=]() -> void
         {
             g_track_directory.set_position_azimuth(trackHandle, azimuth);
             g_playback_manager.sync_track(trackHandle);
@@ -129,7 +129,7 @@ namespace tabletopify
         widget.elevation_string = fmt::format("{:.1f}°", elevation);
         const auto trackHandle = widget.handle;
 
-        worker_background.enqueue([=]() -> void
+        worker_audio.enqueue([=]() -> void
         {
             g_track_directory.set_position_elevation(trackHandle, elevation);
             g_playback_manager.sync_track(trackHandle);
@@ -138,7 +138,7 @@ namespace tabletopify
 
     void ui::on_set_track_repeat_enabled(track_handle_t trackHandle, bool enabled)
     {
-        worker_background.enqueue([=]() -> void
+        worker_audio.enqueue([=]() -> void
         {
             g_track_directory.set_repeat_enabled(trackHandle, enabled);
             g_playback_manager.sync_track(trackHandle);
@@ -151,7 +151,7 @@ namespace tabletopify
         widget.repeat_max_string = fmt::format("{:.1f}s", maxRepeat);
         const auto trackHandle = widget.handle;
 
-        worker_background.enqueue([=]() -> void
+        worker_audio.enqueue([=]() -> void
         {
             g_track_directory.set_repeat_min(trackHandle, minRepeat);
             g_track_directory.set_repeat_max(trackHandle, maxRepeat);
