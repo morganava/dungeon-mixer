@@ -44,15 +44,27 @@ namespace tabletopify
 
     void work_manager::do_tasks(worker_id_t id)
     {
-        const size_t workerIndex = static_cast<size_t>(id);
-        MX_ASSERT(g_work_manager.current_index() == workerIndex);
-        for(auto opttask = g_work_manager.dequeue(workerIndex);
-            opttask != std::nullopt;
-            opttask = g_work_manager.dequeue(workerIndex))
+        const size_t index = static_cast<size_t>(id);
+        MX_ASSERT(g_work_manager.current_index() == index);
+
+        while(true)
         {
-            auto& task = opttask.value();
-            task.function.run();
-            task.promise.set_value();
+            {
+                std::lock_guard<std::mutex> lock(_queue_mutex[index]);
+                std::swap(_producer_queue[index], _consumer_queue[index]);
+            }
+            auto& queue = _consumer_queue[index];
+            if (queue.empty())
+            {
+                return;
+            }
+
+            for(auto& task : queue)
+            {
+                task.function.run();
+                task.promise.set_value();
+            }
+            queue.clear();
         }
     }
 
@@ -82,7 +94,7 @@ namespace tabletopify
             std::lock_guard<std::mutex> lock(_queue_mutex[workerIndex]);
             task_item task = {std::move(work)};
             retval = task.promise.get_future();
-            _queue[workerIndex].push(std::move(task));
+            _producer_queue[workerIndex].push_back(std::move(task));
         }
         return retval;
     }
@@ -94,22 +106,6 @@ namespace tabletopify
             auto fut = enqueue(workerIndex, std::move(work));
             fut.wait();
         }
-    }
-
-    std::optional<task_item> work_manager::dequeue(size_t workerIndex)
-    {
-        MX_ASSERT(_thread_ids[workerIndex] == std::this_thread::get_id());
-
-        std::optional<task_item> retval = std::nullopt;
-        {
-            std::lock_guard<std::mutex> lock(_queue_mutex[workerIndex]);
-            if(_queue[workerIndex].size() > 0)
-            {
-                retval = std::move(_queue[workerIndex].front());
-                _queue[workerIndex].pop();
-            }
-        }
-        return retval;
     }
 
     // Worker

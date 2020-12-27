@@ -102,8 +102,6 @@ namespace tabletopify
 
         std::future<void> enqueue(size_t workerIndex, run_once_task&& work);
         void enqueue_blocking(size_t workerIndex, run_once_task&& work);
-
-        std::optional<task_item> dequeue(size_t workerIndex);
     private:
         size_t current_index() const;
 
@@ -112,7 +110,8 @@ namespace tabletopify
         constexpr static size_t _worker_count = static_cast<size_t>(worker_id::count);
 
         std::mutex _queue_mutex[_worker_count];
-        std::queue<task_item> _queue[_worker_count];
+        std::vector<task_item> _producer_queue[_worker_count];
+        std::vector<task_item> _consumer_queue[_worker_count];
         std::thread _threads[_worker_count];
         std::thread::id _thread_ids[_worker_count];
 
