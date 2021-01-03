@@ -47,7 +47,7 @@ namespace tabletopify
 
     static std::string make_default_path_string(const fs::path& path)
     {
-        // zenity implementation needs trailing slash on directories to work properly
+        // xxx: zenity implementation needs trailing slash on directories to work properly
         auto defaultPathStr = (path / ".").lexically_normal();
         return defaultPathStr;
     }
@@ -58,19 +58,21 @@ namespace tabletopify
         auto filterString = make_filter_list(filters);
 
         const nfdchar_t* filterList = (filterString ? filterString->c_str() : nullptr);
-        const nfdchar_t* defaultPath = make_default_path_string(workingDirectory).c_str();
+        auto defaultPathString = make_default_path_string(workingDirectory);
+        const nfdchar_t* defaultPath = defaultPathString.c_str();
 
         auto result = NFD_OpenDialog(filterList, defaultPath, out(path));
         return make_path(result, path);
     }
 
-    std::optional<fs::path> save(std::initializer_list<utf8_string> filters, fs::path workingDirectory)
+    std::optional<fs::path> file_dialog::save(std::initializer_list<utf8_string> filters, fs::path workingDirectory)
     {
         auto path = make_unique_nfdbuffer();
         auto filterString = make_filter_list(filters);
 
         const nfdchar_t* filterList = (filterString ? filterString->c_str() : nullptr);
-        const nfdchar_t* defaultPath = make_default_path_string(workingDirectory).c_str();
+        auto defaultPathString = make_default_path_string(workingDirectory);
+        const nfdchar_t* defaultPath = defaultPathString.c_str();
 
         auto result = NFD_SaveDialog(filterList, defaultPath, out(path));
         return make_path(result, path);
