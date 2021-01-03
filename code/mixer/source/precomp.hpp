@@ -24,6 +24,7 @@ using ss = std::stringstream;
 #include <thread>
 #include <queue>
 #include <chrono>
+using namespace std::chrono_literals;
 #include <atomic>
 #include <fstream>
 #include <filesystem>

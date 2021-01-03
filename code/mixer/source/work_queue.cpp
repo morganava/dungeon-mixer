@@ -8,14 +8,28 @@ namespace tabletopify
 
     void worker_thread(worker_id_t id)
     {
-        g_work_manager._thread_ids[static_cast<size_t>(id)] = std::this_thread::get_id();
+        const auto workerIndex = static_cast<size_t>(id);
+        g_work_manager._thread_ids[workerIndex] = std::this_thread::get_id();
 
         while(g_work_manager.accepting_work())
         {
             // empty queue of work
-            g_work_manager.do_tasks(id);
-            // sleep for 1 ms before looking for work
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            const auto lastTask = g_work_manager.do_tasks(id);
+            const auto now = std::chrono::system_clock::now();
+            const auto diff = now - lastTask;
+
+            if(diff < 1ms)
+            {
+                continue;
+            }
+            else if(diff < 16ms)
+            {
+                std::this_thread::sleep_for(1ms);
+            }
+            else
+            {
+                std::this_thread::sleep_for(16ms);
+            }
         }
     }
 
@@ -25,9 +39,11 @@ namespace tabletopify
         static_assert(0 == static_cast<size_t>(worker_id::ui));
         _thread_ids[0] = std::this_thread::get_id();
 
+        const auto now = std::chrono::system_clock::now();
         // init threads, start on 1 because 0 is main thread
         for(size_t k = 1; k < _worker_count; k++)
         {
+            _last_task[k] = now;
             _threads[k] = std::thread(&worker_thread, static_cast<worker_id_t>(k));
         }
     }
@@ -42,21 +58,24 @@ namespace tabletopify
         }
     }
 
-    void work_manager::do_tasks(worker_id_t id)
+    work_manager::timestamp work_manager::do_tasks(worker_id_t id)
     {
         const size_t index = static_cast<size_t>(id);
         MX_ASSERT(g_work_manager.current_index() == index);
+
+        timestamp retval;
 
         while(true)
         {
             {
                 std::lock_guard<std::mutex> lock(_queue_mutex[index]);
                 std::swap(_producer_queue[index], _consumer_queue[index]);
+                retval = _last_task[index];
             }
             auto& queue = _consumer_queue[index];
             if (queue.empty())
             {
-                return;
+                return retval;
             }
 
             for(auto& task : queue)
@@ -95,6 +114,7 @@ namespace tabletopify
             task_item task = {std::move(work)};
             retval = task.promise.get_future();
             _producer_queue[workerIndex].push_back(std::move(task));
+            _last_task[workerIndex] = std::chrono::system_clock::now();
         }
         return retval;
     }

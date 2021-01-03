@@ -92,13 +92,15 @@ namespace tabletopify
     class work_manager
     {
     public:
+        typedef std::chrono::time_point<std::chrono::system_clock> timestamp;
+
         work_manager();
         ~work_manager();
 
         bool accepting_work() const { return _accepting_work; }
 
         // run all of the tasks in the given worker's queue
-        void do_tasks(worker_id_t id);
+        timestamp do_tasks(worker_id_t id);
 
         std::future<void> enqueue(size_t workerIndex, run_once_task&& work);
         void enqueue_blocking(size_t workerIndex, run_once_task&& work);
@@ -110,8 +112,14 @@ namespace tabletopify
         constexpr static size_t _worker_count = static_cast<size_t>(worker_id::count);
 
         std::mutex _queue_mutex[_worker_count];
+
+        // other threads add tasks to producer thread
         std::vector<task_item> _producer_queue[_worker_count];
+        // worker swaps queues and reads from consumer thread
         std::vector<task_item> _consumer_queue[_worker_count];
+        // timestamp of last added task
+        timestamp _last_task[_worker_count];
+
         std::thread _threads[_worker_count];
         std::thread::id _thread_ids[_worker_count];
 
