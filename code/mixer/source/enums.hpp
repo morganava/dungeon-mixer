@@ -1,5 +1,10 @@
 #pragma once
 
+namespace tabletopify
+{
+    template<size_t N> constexpr std::string_view string_list_get_entry(const char (&list)[N], size_t );
+}
+
 #define MX_FLAG(N) (1 << (N))
 
 // standard auto incrementing enum, automatic invalid and count values
@@ -11,10 +16,14 @@ constexpr bool operator<(NAME##_t left, NAME##_t right) { return static_cast<TYP
 constexpr bool operator<=(NAME##_t left, NAME##_t right) { return static_cast<TYPE>(left) <= static_cast<TYPE>(right); }\
 constexpr bool operator>(NAME##_t left, NAME##_t right) { return static_cast<TYPE>(left) > static_cast<TYPE>(right); }\
 constexpr bool operator>=(NAME##_t left, NAME##_t right) { return static_cast<TYPE>(left) >= static_cast<TYPE>(right); }\
+constexpr bool operator==(TYPE left, NAME##_t right) { return left == static_cast<TYPE>(right); }\
+constexpr bool operator!=(TYPE left, NAME##_t right) { return left != static_cast<TYPE>(right); }\
 constexpr bool operator<(TYPE left, NAME##_t right) { return left < static_cast<TYPE>(right); }\
 constexpr bool operator<=(TYPE left, NAME##_t right) { return left <= static_cast<TYPE>(right); }\
 constexpr bool operator>(TYPE left, NAME##_t right) { return left > static_cast<TYPE>(right); }\
 constexpr bool operator>=(TYPE left, NAME##_t right) { return left >= static_cast<TYPE>(right); }\
+constexpr bool operator==(NAME##_t left, TYPE right) { return static_cast<TYPE>(left) == right; }\
+constexpr bool operator!=(NAME##_t left, TYPE right) { return static_cast<TYPE>(left) != right; }\
 constexpr bool operator<(NAME##_t left, TYPE right) { return static_cast<TYPE>(left) < right; }\
 constexpr bool operator<=(NAME##_t left, TYPE right) { return static_cast<TYPE>(left) <= right; }\
 constexpr bool operator>(NAME##_t left, TYPE right) { return static_cast<TYPE>(left) > right; }\
@@ -24,7 +33,14 @@ enum class NAME : TYPE {\
     FIRST = 0,\
     __VA_ARGS__,\
     count\
-};
+};\
+inline std::ostream& operator<<(std::ostream& out, NAME##_t val) {\
+    if (val == NAME::invalid) out << MX_STRINGIFY(NAME::invalid);\
+    else if (val == NAME::count) out << MX_STRINGIFY(NAME::count);\
+    else if (val < NAME::count) out << MX_STRINGIFY(NAME) << "::" << tabletopify::string_list_get_entry(#FIRST ", " #__VA_ARGS__, static_cast<size_t>(val));\
+    else out << MX_STRINGIFY(NAME::) "unknown (" << static_cast<TYPE>(val) << ")";\
+    return out;\
+}
 
 // explicitly named enum, automatic invalid value
 

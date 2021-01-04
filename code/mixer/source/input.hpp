@@ -289,7 +289,5 @@ namespace tabletopify
     MX_MAKE_SINGLETON(input);
 }
 
-std::ostream& operator<<(std::ostream&, tabletopify::input_event_type_t);
 std::ostream& operator<<(std::ostream&, tabletopify::input_event);
-std::ostream& operator<<(std::ostream&, tabletopify::mouse_button_t);
 std::ostream& operator<<(std::ostream&, tabletopify::modifier_keys);
