@@ -5,6 +5,7 @@
 
 namespace tabletopify
 {
+    // this type of task is run once and then deletes itself
     class run_once_task
     {
     public:
@@ -100,6 +101,7 @@ namespace tabletopify
         bool accepting_work() const { return _accepting_work; }
 
         // run all of the tasks in the given worker's queue
+        // returns the timestamp of the last enqueued task
         timestamp do_tasks(worker_id_t id);
 
         std::future<void> enqueue(size_t workerIndex, run_once_task&& work);
@@ -107,10 +109,15 @@ namespace tabletopify
     private:
         size_t current_index() const;
 
+        std::future<void> enqueue_impl(size_t workerIndex, run_once_task&& work);
+        void suspend_worker(size_t workerIndex);
+        void notify_worker(size_t workerIndex);
+
         std::atomic_bool _accepting_work = true;
 
         constexpr static size_t _worker_count = static_cast<size_t>(worker_id::count);
 
+        // mutexes for thread data synchronization
         std::mutex _queue_mutex[_worker_count];
 
         // other threads add tasks to producer thread
@@ -119,11 +126,12 @@ namespace tabletopify
         std::vector<task_item> _consumer_queue[_worker_count];
         // timestamp of last added task
         timestamp _last_task[_worker_count];
+        // condition variables for suspending/resuming threads
+        std::condition_variable _suspend_handle[_worker_count];
 
         std::thread _threads[_worker_count];
+		// only used for verification purposes
         std::thread::id _thread_ids[_worker_count];
-
-        std::minstd_rand _rand[_worker_count];
 
         friend class worker;
         friend void worker_thread(worker_id_t);

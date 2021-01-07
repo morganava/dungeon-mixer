@@ -18,17 +18,25 @@ namespace tabletopify
             const auto now = std::chrono::system_clock::now();
             const auto diff = now - lastTask;
 
+            // don't sleep immediately
             if(diff < 1ms)
             {
                 continue;
             }
-            else if(diff < 16ms)
+            // sleep only for a bit until two frames
+            else if(diff < 32ms)
             {
                 std::this_thread::sleep_for(1ms);
             }
-            else
+            // sleep for a frame until 1 second has elapsed (60 frames)
+            else if (diff < 1s)
             {
                 std::this_thread::sleep_for(16ms);
+            }
+            // finally suspend
+            else
+            {
+                g_work_manager.suspend_worker(workerIndex);
             }
         }
     }
@@ -43,6 +51,7 @@ namespace tabletopify
         // init threads, start on 1 because 0 is main thread
         for(size_t k = 1; k < _worker_count; k++)
         {
+            // init the last queued task with current time
             _last_task[k] = now;
             _threads[k] = std::thread(&worker_thread, static_cast<worker_id_t>(k));
         }
@@ -52,8 +61,9 @@ namespace tabletopify
     {
         _accepting_work = false;
 
-        for(uint_fast8_t k = 1; k < _worker_count; k++)
+        for(size_t k = 1; k < _worker_count; k++)
         {
+            notify_worker(k);
             _threads[k].join();
         }
     }
@@ -105,16 +115,56 @@ namespace tabletopify
         return index;
     }
 
+    void work_manager::suspend_worker(size_t workerIndex)
+    {
+        auto& m = _queue_mutex[workerIndex];
+        std::unique_lock<std::mutex> ul(m);
+        auto& queue = _producer_queue[workerIndex];
+
+        // only suspend if our queue is empty
+        if (queue.empty())
+        {
+            if (workerIndex != worker_id::logging)
+            {
+                MX_LOG_INFO("Suspending {}", static_cast<worker_id_t>(workerIndex));
+            }
+
+            auto& cv = _suspend_handle[workerIndex];
+            cv.wait(ul);
+
+            if (workerIndex != worker_id::logging)
+            {
+                MX_LOG_INFO("Resuming {}", static_cast<worker_id_t>(workerIndex));
+            }
+        }
+    }
+
+    void work_manager::notify_worker(size_t workerIndex)
+    {
+        auto& cv = _suspend_handle[workerIndex];
+        cv.notify_one();
+    }
+
+    std::future<void> work_manager::enqueue_impl(size_t workerIndex, run_once_task&& work)
+    {
+        std::lock_guard<std::mutex> lock(_queue_mutex[workerIndex]);
+
+        task_item task(std::move(work));
+        auto retval = task.promise.get_future();
+
+        _producer_queue[workerIndex].push_back(std::move(task));
+        _last_task[workerIndex] = std::chrono::system_clock::now();
+
+        return retval;
+    }
+
     std::future<void> work_manager::enqueue(size_t workerIndex, run_once_task&& work)
     {
         std::future<void> retval;
         if (_accepting_work)
         {
-            std::lock_guard<std::mutex> lock(_queue_mutex[workerIndex]);
-            task_item task = {std::move(work)};
-            retval = task.promise.get_future();
-            _producer_queue[workerIndex].push_back(std::move(task));
-            _last_task[workerIndex] = std::chrono::system_clock::now();
+            retval = enqueue_impl(workerIndex, std::move(work));
+            notify_worker(workerIndex);
         }
         return retval;
     }
