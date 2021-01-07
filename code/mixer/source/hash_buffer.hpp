@@ -2,7 +2,7 @@
 #include "hash.hpp"
 #include "utilities.hpp"
 
-namespace tabletopify
+namespace dm
 {
     struct hash_buffer
     {

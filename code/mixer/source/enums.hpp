@@ -1,6 +1,6 @@
 #pragma once
 
-namespace tabletopify
+namespace dm
 {
     template<size_t N> constexpr std::string_view string_list_get_entry(const char (&list)[N], size_t );
 }
@@ -37,7 +37,7 @@ enum class NAME : TYPE {\
 inline std::ostream& operator<<(std::ostream& out, NAME##_t val) {\
     if (val == NAME::invalid) out << MX_STRINGIFY(NAME::invalid);\
     else if (val == NAME::count) out << MX_STRINGIFY(NAME::count);\
-    else if (val < NAME::count) out << MX_STRINGIFY(NAME) << "::" << tabletopify::string_list_get_entry(#FIRST ", " #__VA_ARGS__, static_cast<size_t>(val));\
+    else if (val < NAME::count) out << MX_STRINGIFY(NAME) << "::" << dm::string_list_get_entry(#FIRST ", " #__VA_ARGS__, static_cast<size_t>(val));\
     else out << MX_STRINGIFY(NAME::) "unknown (" << static_cast<TYPE>(val) << ")";\
     return out;\
 }

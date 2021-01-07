@@ -4,7 +4,7 @@
 #include "serialization_buffer.hpp"
 #include "hash.hpp"
 
-namespace tabletopify
+namespace dm
 {
     class utf8_codepoint
     {
@@ -84,9 +84,9 @@ namespace tabletopify
         friend class utf8_string_iterator;
     };
 
-    template <> struct hash<tabletopify::utf8_string>
+    template <> struct hash<dm::utf8_string>
     {
-        size_t operator()(const tabletopify::utf8_string&, size_t seed) const;
+        size_t operator()(const dm::utf8_string&, size_t seed) const;
     };
 
     void serialization_buffer_write(serialization_buffer& self, const utf8_string& val);
@@ -167,10 +167,10 @@ namespace tabletopify
     };
 }
 
-std::ostream& operator<<(std::ostream& out, const tabletopify::utf8_string& str);
-std::ostream& operator<<(std::ostream& out, const tabletopify::utf8_string_view& str);
+std::ostream& operator<<(std::ostream& out, const dm::utf8_string& str);
+std::ostream& operator<<(std::ostream& out, const dm::utf8_string_view& str);
 
-template <> struct std::hash<tabletopify::utf8_string>
+template <> struct std::hash<dm::utf8_string>
 {
-    size_t operator()(const tabletopify::utf8_string&) const;
+    size_t operator()(const dm::utf8_string&) const;
 };

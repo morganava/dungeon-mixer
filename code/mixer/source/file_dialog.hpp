@@ -1,6 +1,6 @@
 #pragma once
 
-namespace tabletopify
+namespace dm
 {
     class file_dialog
     {

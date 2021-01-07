@@ -1,4 +1,4 @@
-// tabletopify
+// dm
 #include "utilities.hpp"
 #include "work_queue.hpp"
 #include "logger.hpp"
@@ -6,7 +6,7 @@
 #include "string_manager.hpp"
 #include "serialization.hpp"
 
-namespace tabletopify
+namespace dm
 {
     /// Atmosphere Directory
 

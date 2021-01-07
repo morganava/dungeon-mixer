@@ -1,6 +1,6 @@
  #pragma once
 
-namespace tabletopify
+namespace dm
 {
 	void init_globals();
 	void free_globals();

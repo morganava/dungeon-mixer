@@ -1,4 +1,3 @@
-// tabletopify
 #include "utilities.hpp"
 #include "work_queue.hpp"
 #include "logger.hpp"
@@ -6,7 +5,7 @@
 #include "serialization.hpp"
 #include "random.hpp"
 
-namespace tabletopify
+namespace dm
 {
     static void to_mono(const sf::SoundBuffer& sourceSound, sf::SoundBuffer& destSound)
     {

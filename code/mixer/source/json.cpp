@@ -8,7 +8,7 @@
 #include "nanovg.hpp"
 #include "linear_constraint_solver.hpp"
 
-namespace tabletopify
+namespace dm
 {
     // UTF8 String
 

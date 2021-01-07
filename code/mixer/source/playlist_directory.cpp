@@ -2,7 +2,7 @@
 #include "ui.hpp"
 #include "serialization.hpp"
 
-namespace tabletopify
+namespace dm
 {
     playlist_directory::playlist_directory() { }
 

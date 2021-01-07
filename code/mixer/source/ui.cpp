@@ -12,7 +12,7 @@
 #include "audio.hpp"
 #include "random.hpp"
 
-namespace tabletopify
+namespace dm
 {
     void ui::update(float dt, int32_t width, int32_t height)
     {

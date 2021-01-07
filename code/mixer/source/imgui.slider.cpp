@@ -1,7 +1,7 @@
 #include "imgui.hpp"
 #include "input.hpp"
 
-namespace tabletopify
+namespace dm
 {
     namespace imgui
     {

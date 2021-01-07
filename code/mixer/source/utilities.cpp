@@ -3,7 +3,7 @@
 #include "work_queue.hpp"
 #include "logger.hpp"
 
-namespace tabletopify
+namespace dm
 {
     memory_buffer::memory_buffer(const fs::path& path)
     {

@@ -4,7 +4,7 @@
 
 #include "utf8_string.hpp"
 
-namespace tabletopify
+namespace dm
 {
     MX_MAKE_ENUM(mixer_string, uint_fast16_t,
         MX_STR_PLAYLISTS,

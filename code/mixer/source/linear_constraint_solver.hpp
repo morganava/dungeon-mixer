@@ -3,7 +3,7 @@
 #include "array.hpp"
 #include "serialization_buffer.hpp"
 
-namespace tabletopify
+namespace dm
 {
     constexpr double unconstrained = std::numeric_limits<double>::max();
 

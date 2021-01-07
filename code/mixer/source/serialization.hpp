@@ -5,7 +5,7 @@
 #include "singleton.hpp"
 #include "audio.hpp"
 
-namespace tabletopify
+namespace dm
 {
     nl::json parse_json(const memory_buffer&);
 

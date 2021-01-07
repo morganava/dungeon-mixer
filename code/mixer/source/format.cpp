@@ -7,7 +7,7 @@
 #include "color.hpp"
 
 using std::ostream;
-using namespace tabletopify;
+using namespace dm;
 
 // utf8_string
 ostream& operator<<(ostream& out, const utf8_string& str)

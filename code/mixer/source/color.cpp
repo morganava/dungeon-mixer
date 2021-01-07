@@ -1,6 +1,6 @@
 #include "color.hpp"
 
-namespace tabletopify
+namespace dm
 {
   #define COLOR_ENTRY(NAME, RGB) const color color::NAME = color::RGB;
   #include "color.inl"

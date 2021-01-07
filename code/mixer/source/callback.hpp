@@ -1,6 +1,6 @@
 #include "singleton.hpp"
 
-namespace tabletopify
+namespace dm
 {
     // todo rename singleton_callback
     template<typename... ARGS>

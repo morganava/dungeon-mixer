@@ -1,7 +1,7 @@
 #include "linear_constraint_solver.hpp"
 #include "geometry.hpp"
 
-namespace tabletopify
+namespace dm
 {
     static void normalize_ratios(array<constraint>& constraints)
     {

@@ -1,7 +1,7 @@
 #include "stylesheet.hpp"
 #include "utilities.hpp"
 
-namespace tabletopify
+namespace dm
 {
     element_type_t parse_element_type(const std::string& str)
     {
@@ -180,11 +180,11 @@ namespace tabletopify
     }
 }
 
-size_t std::hash<tabletopify::selector>::operator()(const tabletopify::selector& sel) const
+size_t std::hash<dm::selector>::operator()(const dm::selector& sel) const
 {
-    tabletopify::hash<tabletopify::element_type_t> elementTypeHash;
-    tabletopify::hash<tabletopify::element_state_t> elementStateHash;
-    tabletopify::hash<tabletopify::utf8_string> utf8StringHash;
+    dm::hash<dm::element_type_t> elementTypeHash;
+    dm::hash<dm::element_state_t> elementStateHash;
+    dm::hash<dm::utf8_string> utf8StringHash;
 
     auto retval = elementTypeHash(sel.type, 0);
     for(auto& currentTag : sel.tags)

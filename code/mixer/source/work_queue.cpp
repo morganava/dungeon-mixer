@@ -2,7 +2,7 @@
 #include "utilities.hpp"
 #include "work_queue.hpp"
 
-namespace tabletopify
+namespace dm
 {
     // WorkerManager
 

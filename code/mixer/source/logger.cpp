@@ -2,13 +2,13 @@
 #include "work_queue.hpp"
 #include "logger.hpp"
 
-namespace tabletopify
+namespace dm
 {
     logger::logger(log_level_t lvl)
     : _log_level(lvl)
     , _log_file(nullptr)
     {
-        _log_file = fopen("/tmp/tabletopify.log", "wb");
+        _log_file = fopen("/tmp/dm.log", "wb");
         MX_ASSERT(_log_file != nullptr);
     }
 

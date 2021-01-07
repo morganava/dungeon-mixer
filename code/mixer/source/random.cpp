@@ -1,7 +1,7 @@
 #include "random.hpp"
 #include "utilities.hpp"
 
-namespace tabletopify
+namespace dm
 {
     random::random(uint32_t seed)
     {

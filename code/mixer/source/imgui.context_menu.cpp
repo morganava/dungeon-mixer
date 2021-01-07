@@ -2,7 +2,7 @@
 #include "input.hpp"
 #include "logger.hpp"
 
-namespace tabletopify
+namespace dm
 {
     namespace imgui
     {

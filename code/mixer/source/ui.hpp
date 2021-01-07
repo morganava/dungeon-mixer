@@ -5,7 +5,7 @@
 #include "audio.hpp"
 #include "enums.hpp"
 
-namespace tabletopify
+namespace dm
 {
     MX_MAKE_ENUM(screen, uint_fast8_t,
         playlist,

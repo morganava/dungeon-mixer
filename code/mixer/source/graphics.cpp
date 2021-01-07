@@ -8,7 +8,7 @@
 #include "hash.hpp"
 #include "nanovg.hpp"
 
-namespace tabletopify
+namespace dm
 {
     GLFWwindow* g_window = nullptr;
     graphics_callbacks g_callbacks = {};
@@ -126,7 +126,7 @@ namespace tabletopify
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
             glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, 1);
 
-            g_window = glfwCreateWindow(1024, 768, "Tabletopify", NULL, NULL);
+            g_window = glfwCreateWindow(1024, 768, "Dungeon Mixer", NULL, NULL);
             MX_THROW_IF_NULL(g_window);
             glfwMakeContextCurrent(g_window);
             glfwSwapInterval(1);

@@ -12,7 +12,7 @@
 #include "imgui.hpp"
 #include "ui.hpp"
 
-namespace tabletopify
+namespace dm
 {
     void init_callback()
     {
@@ -59,11 +59,11 @@ namespace tabletopify
     }
 }
 
-using namespace tabletopify;
+using namespace dm;
 
 void test()
 {
-    tabletopify::utf8_stringbuffer sb;
+    dm::utf8_stringbuffer sb;
 
     const char* funny_words[] =
     {
@@ -81,8 +81,8 @@ void test()
 
     for(const auto& str : funny_words)
     {
-        tabletopify::utf8_string utf8(str);
-        tabletopify::utf8_string norm = utf8.normalized();
+        dm::utf8_string utf8(str);
+        dm::utf8_string norm = utf8.normalized();
 
         MX_LOG_INFO("\n str  '{}', {}\n utf8 '{}', {}\n norm '{}', {}", str, std::strlen(str),utf8, utf8.size(), norm, norm.size());
         MX_LOG_INFO("'{}' == '{}' => {}", utf8, norm, utf8 == norm);
@@ -114,7 +114,7 @@ void test()
 int main() try
 {
 
-    tabletopify::init_globals();
+    dm::init_globals();
 
     graphics_callbacks callbacks =
     {
@@ -127,5 +127,5 @@ int main() try
 }
 catch(const std::exception& ex)
 {
-    get_logger()->blocking_log(tabletopify::log_level::error, ex.what());
+    get_logger()->blocking_log(dm::log_level::error, ex.what());
 }

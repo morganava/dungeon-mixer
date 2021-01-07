@@ -2,7 +2,7 @@
 
 #include "singleton.hpp"
 
-namespace tabletopify
+namespace dm
 {
     typedef int32_t key_code_t;
 
@@ -289,5 +289,5 @@ namespace tabletopify
     MX_MAKE_SINGLETON(input);
 }
 
-std::ostream& operator<<(std::ostream&, tabletopify::input_event);
-std::ostream& operator<<(std::ostream&, tabletopify::modifier_keys);
+std::ostream& operator<<(std::ostream&, dm::input_event);
+std::ostream& operator<<(std::ostream&, dm::modifier_keys);

@@ -8,7 +8,7 @@
 #include "utf8_string.hpp"
 #include "array.hpp"
 
-namespace tabletopify
+namespace dm
 {
     extern GLFWwindow* g_window;
 
@@ -804,7 +804,7 @@ namespace tabletopify
         cq.push_back(col);
     }
 
-    void nanovg::stroke_path(const tabletopify::array<vec2f>& path, float strokeWidth, const color& col)
+    void nanovg::stroke_path(const dm::array<vec2f>& path, float strokeWidth, const color& col)
     {
         auto& cq = _current;
         cq.push_back(draw_command::stroke_path);

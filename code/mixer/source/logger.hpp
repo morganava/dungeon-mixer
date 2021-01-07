@@ -3,16 +3,16 @@
 #include "singleton.hpp"
 #include "enums.hpp"
 
-#define MX_LOG_ERROR(...) tabletopify::g_logger.log(tabletopify::log_level::error, __VA_ARGS__)
-#define MX_LOG_ERROR_BLOCKING(...) tabletopify::g_logger.blocking_log(tabletopify::log_level::error, __VA_ARGS__)
-#define MX_LOG_INFO(...) tabletopify::g_logger.log(tabletopify::log_level::info, __VA_ARGS__)
-#define MX_LOG_INFO_BLOCKING(...) tabletopify::g_logger.blocking_log(tabletopify::log_level::info, __VA_ARGS__)
+#define MX_LOG_ERROR(...) dm::g_logger.log(dm::log_level::error, __VA_ARGS__)
+#define MX_LOG_ERROR_BLOCKING(...) dm::g_logger.blocking_log(dm::log_level::error, __VA_ARGS__)
+#define MX_LOG_INFO(...) dm::g_logger.log(dm::log_level::info, __VA_ARGS__)
+#define MX_LOG_INFO_BLOCKING(...) dm::g_logger.blocking_log(dm::log_level::info, __VA_ARGS__)
 #define MX_LOG_TRACE(...) MX_LOG_INFO(__FILE__"(" __STR_LINE__ "): " __VA_ARGS__)
 #define MX_LOG_TRACE_BLOCKING(...) MX_LOG_INFO_BLOCKING(__FILE__"(" __STR_LINE__ "): " __VA_ARGS__)
 #define MX_LOG_VAR(X) MX_LOG_INFO(#X " : {}", X);
 #define MX_LOG_VAR_BLOCKING(X) MX_LOG_INFO_BLOCKING(#X " : {}", X);
 
-namespace tabletopify
+namespace dm
 {
     MX_MAKE_ENUM(log_level, uint_fast8_t,
         error,
@@ -74,7 +74,7 @@ namespace tabletopify
 }
 #include "work_queue.hpp"
 
-namespace tabletopify
+namespace dm
 {
     template<size_t N>
     void logger::log_internal(log_level_t lvl, bool blocking, const char (&msg)[N])

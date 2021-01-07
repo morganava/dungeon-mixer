@@ -4,7 +4,7 @@
 #include "uuid.hpp"
 #include "singleton.hpp"
 
-namespace tabletopify
+namespace dm
 {
     // maps to audio data
     MX_MAKE_HANDLE_ENUM(audio_handle);

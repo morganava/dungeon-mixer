@@ -1,7 +1,7 @@
 #include "uuid.hpp"
 #include "hash.hpp"
 
-size_t std::hash<tabletopify::uuid>::operator()(const tabletopify::uuid& id) const
+size_t std::hash<dm::uuid>::operator()(const dm::uuid& id) const
 {
     return calc_hash_raw(&id, sizeof(id));
 }

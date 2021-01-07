@@ -3,7 +3,7 @@
 #include "input.hpp"
 #include "utilities.hpp"
 
-namespace tabletopify
+namespace dm
 {
     extern GLFWwindow* g_window;
 
@@ -565,8 +565,8 @@ namespace tabletopify
 
     void input::push_charpress(utf8proc_int32_t codepoint, modifier_keys modifiers)
     {
-        tabletopify::utf8_stringbuffer sb;
-        sb.push_back(codepoint);
+        // utf8_stringbuffer sb;
+        // sb.push_back(codepoint);
         // MX_LOG_INFO("codepoint : {{ codepoint : 0x{:08x}, char : '{}', modifier_keys : {} }}", codepoint, sb.str(), modifiers);
 
         raw_input_event ie;

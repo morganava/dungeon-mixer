@@ -2,7 +2,7 @@
 #include "singleton.hpp"
 #include "uuid.hpp"
 
-namespace tabletopify
+namespace dm
 {
     class random
     {

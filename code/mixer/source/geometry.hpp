@@ -3,7 +3,7 @@
 #include "utilities.hpp"
 #include "math.hpp"
 
-namespace tabletopify
+namespace dm
 {
     // vector 2
 
@@ -827,19 +827,19 @@ namespace tabletopify
 }
 
 template<typename T>
-std::ostream& operator<<(std::ostream& out, const tabletopify::vec2_<T>& v)
+std::ostream& operator<<(std::ostream& out, const dm::vec2_<T>& v)
 {
     return out << "{ x : " << v.x << ", y : " << v.y << " }";
 }
 template<typename T>
-std::ostream& operator<<(std::ostream& out, const tabletopify::vec3_<T>& v)
+std::ostream& operator<<(std::ostream& out, const dm::vec3_<T>& v)
 {
     return out << "{ x : " << v.x << ", y : " << v.y << ", z : " << v.z << " }";
 }
 template<typename T>
-std::ostream& operator<<(std::ostream& out, const tabletopify::rect_<T>& r)
+std::ostream& operator<<(std::ostream& out, const dm::rect_<T>& r)
 {
     return out << "{ position : " << r.position << " size : " << r.size << " }";
 }
-std::ostream& operator<<(std::ostream&, const tabletopify::corners&);
-std::ostream& operator<<(std::ostream&, const tabletopify::edges&);
+std::ostream& operator<<(std::ostream&, const dm::corners&);
+std::ostream& operator<<(std::ostream&, const dm::edges&);

@@ -4,7 +4,7 @@
 #include "logger.hpp"
 #include "serialization.hpp"
 
-namespace tabletopify
+namespace dm
 {
     string_manager::string_manager(fs::path&& stringsPath)
     {

@@ -4,7 +4,7 @@
 #include "logger.hpp"
 #include "serialization_buffer.hpp"
 
-namespace tabletopify
+namespace dm
 {
     utf8_codepoint::utf8_codepoint(utf8proc_int32_t codepoint)
     : _codepoint(codepoint)
@@ -28,7 +28,7 @@ namespace tabletopify
 
     bool utf8_codepoint::is_whitespace() const
     {
-        utf8proc_int32_t singles[] =
+        constexpr const static utf8proc_int32_t singles[] =
         {
             0x20,
             0x85,
@@ -44,7 +44,7 @@ namespace tabletopify
             if(s == _codepoint) return true;
         }
 
-        utf8proc_int32_t ranges[][2] =
+        constexpr const static utf8proc_int32_t ranges[][2] =
         {
             {0x09,0x0D},
             {0x2000,0x200A},
@@ -305,7 +305,7 @@ namespace tabletopify
 // Hash objects
 //
 
-    size_t hash<tabletopify::utf8_string>::operator()(const utf8_string& str, size_t seed) const
+    size_t hash<dm::utf8_string>::operator()(const utf8_string& str, size_t seed) const
     {
         return calc_hash_raw(str.data(), str.size(), seed);
     };
@@ -313,14 +313,14 @@ namespace tabletopify
 
 namespace std
 {
-    size_t hash<tabletopify::utf8_string>::operator()(const tabletopify::utf8_string& str) const
+    size_t hash<dm::utf8_string>::operator()(const dm::utf8_string& str) const
     {
-        tabletopify::hash<tabletopify::utf8_string> h;
+        dm::hash<dm::utf8_string> h;
         return h(str, 0);
     }
 }
 
-namespace tabletopify
+namespace dm
 {
     void serialization_buffer_write(serialization_buffer& self, const utf8_string& str)
     {

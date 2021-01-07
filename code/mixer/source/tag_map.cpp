@@ -2,7 +2,7 @@
 #include "tag_map.hpp"
 #include "utf8_string.hpp"
 
-namespace tabletopify
+namespace dm
 {
     std::unordered_set<size_t> tag_map_impl::get_keys_by_tag_query(const std::vector<utf8_string>& query_tags) const
     {

@@ -1,6 +1,6 @@
 #pragma once
 
-namespace tabletopify
+namespace dm
 {
     template<typename TYPE>
     class singleton
@@ -39,9 +39,9 @@ namespace tabletopify
     typename std::optional<TYPE> singleton<TYPE>::singleton::data;
 
     #define MX_MAKE_SINGLETON(TYPE) \
-    constexpr TYPE* get_##TYPE() { return tabletopify::singleton<TYPE>::addr(); } \
+    constexpr TYPE* get_##TYPE() { return dm::singleton<TYPE>::addr(); } \
     template<typename... ARGS> \
-    void init_##TYPE(ARGS&&... args) { tabletopify::singleton<TYPE>::construct(std::forward<ARGS>(args)...); } \
-    constexpr void free_##TYPE() { tabletopify::singleton<TYPE>::free(); } \
-    inline constexpr TYPE& g_##TYPE = tabletopify::singleton<TYPE>::get();
+    void init_##TYPE(ARGS&&... args) { dm::singleton<TYPE>::construct(std::forward<ARGS>(args)...); } \
+    constexpr void free_##TYPE() { dm::singleton<TYPE>::free(); } \
+    inline constexpr TYPE& g_##TYPE = dm::singleton<TYPE>::get();
 }

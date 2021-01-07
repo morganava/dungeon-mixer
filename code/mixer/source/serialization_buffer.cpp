@@ -1,7 +1,7 @@
 #include "utf8_string.hpp"
 #include "serialization_buffer.hpp"
 
-namespace tabletopify
+namespace dm
 {
     void serialization_buffer::write(const uint8_t* data, size_t count)
     {

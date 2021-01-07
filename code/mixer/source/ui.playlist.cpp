@@ -2,7 +2,7 @@
 #include "random.hpp"
 #include "serialization.hpp"
 
-namespace tabletopify
+namespace dm
 {
     // Playlist Screen Methods
 

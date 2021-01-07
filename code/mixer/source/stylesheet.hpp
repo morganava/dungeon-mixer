@@ -10,7 +10,7 @@
 #include "enums.hpp"
 #include "linear_constraint_solver.hpp"
 
-namespace tabletopify
+namespace dm
 {
     MX_MAKE_ENUM(element_type, uint_fast8_t,
         any,
@@ -74,12 +74,12 @@ namespace tabletopify
     };
 }
 
-template <> struct std::hash<tabletopify::selector>
+template <> struct std::hash<dm::selector>
 {
-    size_t operator()(const tabletopify::selector&) const;
+    size_t operator()(const dm::selector&) const;
 };
 
-namespace tabletopify
+namespace dm
 {
     class style_resolver
     {

@@ -1,6 +1,6 @@
 #pragma once
 
-namespace tabletopify
+namespace dm
 {
     // non-POD read and write methods for types to override
     class serialization_buffer;

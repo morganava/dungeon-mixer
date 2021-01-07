@@ -7,7 +7,7 @@
 #include "enums.hpp"
 #include "callback.hpp"
 
-namespace tabletopify
+namespace dm
 {
     // immmediate mode gui
     namespace imgui

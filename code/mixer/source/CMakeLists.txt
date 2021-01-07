@@ -4,7 +4,7 @@ find_package(SFML 2.4 REQUIRED COMPONENTS audio)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -Wfatal-errors -fconcepts")
 
-add_executable(tabletop_mixer
+add_executable(dungeon_mixer
     precomp.cpp
     # utilities
     file_dialog.cpp
@@ -54,21 +54,21 @@ add_executable(tabletop_mixer
     ui.playlist.cpp
     ui.edit.cpp)
 
-target_precompile_headers(tabletop_mixer PRIVATE precomp.hpp)
+target_precompile_headers(dungeon_mixer PRIVATE precomp.hpp)
 
-target_link_libraries(tabletop_mixer xxhash)
-target_link_libraries(tabletop_mixer utf8proc)
-target_link_libraries(tabletop_mixer stb)
-target_link_libraries(tabletop_mixer fmt)
-target_link_libraries(tabletop_mixer glfw)
-target_link_libraries(tabletop_mixer OpenGL::OpenGL)
-target_link_libraries(tabletop_mixer ${OPENGL_glu_LIBRARY})
-target_link_libraries(tabletop_mixer GLEW)
-target_link_libraries(tabletop_mixer nanovg)
-target_link_libraries(tabletop_mixer ${SFML_LIBRARIES})
-target_link_libraries(tabletop_mixer nativefiledialog)
-target_link_libraries(tabletop_mixer pthread)
-target_link_libraries(tabletop_mixer stdc++fs)
+target_link_libraries(dungeon_mixer xxhash)
+target_link_libraries(dungeon_mixer utf8proc)
+target_link_libraries(dungeon_mixer stb)
+target_link_libraries(dungeon_mixer fmt)
+target_link_libraries(dungeon_mixer glfw)
+target_link_libraries(dungeon_mixer OpenGL::OpenGL)
+target_link_libraries(dungeon_mixer ${OPENGL_glu_LIBRARY})
+target_link_libraries(dungeon_mixer GLEW)
+target_link_libraries(dungeon_mixer nanovg)
+target_link_libraries(dungeon_mixer ${SFML_LIBRARIES})
+target_link_libraries(dungeon_mixer nativefiledialog)
+target_link_libraries(dungeon_mixer pthread)
+target_link_libraries(dungeon_mixer stdc++fs)
 
 include_directories(../../glfw/include)
 include_directories(../../utf8proc/include)

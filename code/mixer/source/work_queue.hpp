@@ -3,7 +3,7 @@
 #include "enums.hpp"
 #include "singleton.hpp"
 
-namespace tabletopify
+namespace dm
 {
     // this type of task is run once and then deletes itself
     class run_once_task

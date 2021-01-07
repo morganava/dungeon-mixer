@@ -12,7 +12,7 @@
 #include "ui.hpp"
 #include "geometry.hpp"
 
-namespace tabletopify
+namespace dm
 {
     // todo: probably find a better place than this
     nl::json parse_json(const memory_buffer& mb)
@@ -156,33 +156,33 @@ namespace tabletopify
         return home;
     }
 
-    fs::path get_tabletopify_path()
+    fs::path get_dungeon_mixer_path()
     {
-        static fs::path tabletopify_path = get_home_path() / ".tabletopify";
-        return tabletopify_path;
+        static fs::path dm_path = get_home_path() / ".dungeonmixer";
+        return dm_path;
     }
 
     static fs::path get_library_path()
     {
-        static fs::path library_path = get_tabletopify_path() / "libraries";
+        static fs::path library_path = get_dungeon_mixer_path() / "libraries";
         return library_path;
     }
 
     fs::path get_skins_path()
     {
-        static fs::path skins_path = get_tabletopify_path() / "skins";
+        static fs::path skins_path = get_dungeon_mixer_path() / "skins";
         return skins_path;
     }
 
     fs::path get_strings_path()
     {
-        static fs::path strings_path = get_tabletopify_path() / "strings";
+        static fs::path strings_path = get_dungeon_mixer_path() / "strings";
         return strings_path;
     }
 
     static fs::path get_playlists_path()
     {
-        static fs::path playlists_path = get_tabletopify_path() / "playlists";
+        static fs::path playlists_path = get_dungeon_mixer_path() / "playlists";
         return playlists_path;
     }
 

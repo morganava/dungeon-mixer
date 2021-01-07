@@ -1,6 +1,6 @@
 #pragma once
 
-namespace tabletopify
+namespace dm
 {
     typedef void(*graphics_init_callback)();
     typedef void(*graphics_update_callback)(float dt, int width, int height, double pixel_ratio);

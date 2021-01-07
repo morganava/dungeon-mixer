@@ -1,4 +1,3 @@
-// tabletopify
 #include "utilities.hpp"
 #include "work_queue.hpp"
 #include "logger.hpp"
@@ -6,7 +5,7 @@
 #include "random.hpp"
 #include "geometry.hpp"
 
-namespace tabletopify
+namespace dm
 {
     void playback_manager::update(float dt)
     {

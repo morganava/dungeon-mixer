@@ -2,7 +2,7 @@
 
 #include "utf8_string.hpp"
 
-namespace tabletopify
+namespace dm
 {
     // the implementation assumes passed in tags and queries are normalized utf8 strings
     class tag_map_impl

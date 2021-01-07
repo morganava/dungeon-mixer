@@ -2,7 +2,7 @@
 
 #include "utilities.hpp"
 
-namespace tabletopify
+namespace dm
 {
     struct uuid
     {
@@ -56,7 +56,7 @@ namespace tabletopify
 
         constexpr bool is_null() const
         {
-            return std::all_of(bytes, bytes + sizeof(bytes), [](uint8_t b){return b == 0;});
+            return std::all_of(std::begin(bytes), std::end(bytes), [](uint8_t b){return b == 0;});
         }
 
         constexpr bool operator==(const uuid& that) const
@@ -121,8 +121,8 @@ namespace tabletopify
     void from_json(const nl::json& j, struct uuid& id);
 }
 
-std::ostream& operator<<(std::ostream& out, const struct tabletopify::uuid& id);
-template <> struct std::hash<tabletopify::uuid>
+std::ostream& operator<<(std::ostream& out, const struct dm::uuid& id);
+template <> struct std::hash<dm::uuid>
 {
-    size_t operator()(const tabletopify::uuid&) const;
+    size_t operator()(const dm::uuid&) const;
 };

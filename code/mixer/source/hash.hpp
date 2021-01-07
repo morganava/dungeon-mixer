@@ -1,6 +1,6 @@
 #pragma once
 
-namespace tabletopify
+namespace dm
 {
     size_t calc_hash_raw(const void* buffer, size_t len, size_t seed);
     size_t calc_hash_raw(const void* buffer, size_t len);

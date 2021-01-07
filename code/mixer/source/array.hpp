@@ -4,7 +4,7 @@
 #include "serialization_buffer.hpp"
 #include "hash.hpp"
 
-namespace tabletopify
+namespace dm
 {
     template<typename T>
     class array
@@ -224,10 +224,10 @@ namespace tabletopify
     }
 
     template<typename T>
-    void from_json(const nl::json& js, tabletopify::array<T>& array)
+    void from_json(const nl::json& js, dm::array<T>& array)
     {
         MX_THROW_IF_FALSE(js.is_array());
-        tabletopify::array<T> retval(js.size());
+        dm::array<T> retval(js.size());
         for(size_t i = 0; i < retval.size(); ++i)
         {
             retval[i] = js[i].get<T>();

@@ -7,8 +7,8 @@
 
 #define __STR_LINE__ MX_STRINGIFY(__LINE__)
 
-#define MX_FAIL_FAST(...) do {tabletopify::get_logger()->blocking_log(tabletopify::log_level::error, "Fail Fast : " __FILE__ ":" __STR_LINE__ " " __VA_ARGS__); MX_DEBUGBREAK(); } while(false);
-#define MX_ASSERT(X) do {bool result = (X); if(!result) { tabletopify::get_logger()->blocking_log(tabletopify::log_level::error, "Assertion Failure: " __FILE__ ":" __STR_LINE__ " " #X); MX_DEBUGBREAK();} } while(false);
+#define MX_FAIL_FAST(...) do {dm::get_logger()->blocking_log(dm::log_level::error, "Fail Fast : " __FILE__ ":" __STR_LINE__ " " __VA_ARGS__); MX_DEBUGBREAK(); } while(false);
+#define MX_ASSERT(X) do {bool result = (X); if(!result) { dm::get_logger()->blocking_log(dm::log_level::error, "Assertion Failure: " __FILE__ ":" __STR_LINE__ " " #X); MX_DEBUGBREAK();} } while(false);
 #define MX_STATIC_ASSERT(X) static_assert(X, MX_STRINGIFY(X))
 #define MX_THROW_IF_FALSE(X) do {bool result = (X); if(!result) {throw std::runtime_error("Runtime Failure: " __FILE__ ":" __STR_LINE__ " " #X);} } while(0);
 #define MX_THROW_IF_NULL(X) MX_THROW_IF_FALSE((X) != nullptr)
@@ -24,7 +24,7 @@
 // extra print operators
 std::ostream& operator<<(std::ostream& out, const sf::Vector3f& vec);
 
-namespace tabletopify
+namespace dm
 {
     // remove whitespace from head and tail of string
     std::string trim(const std::string& str);

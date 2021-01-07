@@ -1,6 +1,6 @@
 #include "ui.hpp"
 
-namespace tabletopify
+namespace dm
 {
     // Edit Screen Methods
 

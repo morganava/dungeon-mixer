@@ -1,6 +1,6 @@
 #include "imgui.hpp"
 
-namespace tabletopify
+namespace dm
 {
     namespace imgui
     {

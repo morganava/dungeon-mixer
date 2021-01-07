@@ -16,7 +16,7 @@
 #include "stylesheet.hpp"
 #include "random.hpp"
 
-namespace tabletopify
+namespace dm
 {
     // globals
 

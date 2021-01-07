@@ -3,7 +3,7 @@
 #include "utf8_string.hpp"
 #include "stylesheet.hpp"
 
-namespace tabletopify
+namespace dm
 {
     template<size_t SIZE>
     size_t calc_hash_impl(const void* buffer, size_t len, size_t seed);
@@ -32,7 +32,7 @@ namespace tabletopify
         return calc_hash_raw(buffer, len, 0);
     }
 }
-using namespace tabletopify;
+using namespace dm;
 
 namespace std
 {

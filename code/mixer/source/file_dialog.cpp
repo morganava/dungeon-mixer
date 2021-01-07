@@ -2,7 +2,7 @@
 #include "utf8_string.hpp"
 #include "file_dialog.hpp"
 
-namespace tabletopify
+namespace dm
 {
     static void nfdchar_free(nfdchar_t* buffer)
     {

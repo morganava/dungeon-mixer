@@ -7,7 +7,7 @@
 #include "imgui.hpp"
 #include "ui.hpp"
 
-namespace tabletopify
+namespace dm
 {
     namespace imgui
     {
