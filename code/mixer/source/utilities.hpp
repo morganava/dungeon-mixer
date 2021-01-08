@@ -7,14 +7,13 @@
 
 #define __STR_LINE__ MX_STRINGIFY(__LINE__)
 
-#define MX_FAIL_FAST(...) do {dm::get_logger()->blocking_log(dm::log_level::error, "Fail Fast : " __FILE__ ":" __STR_LINE__ " " __VA_ARGS__); MX_DEBUGBREAK(); } while(false);
-#define MX_ASSERT(X) do {bool result = (X); if(!result) { dm::get_logger()->blocking_log(dm::log_level::error, "Assertion Failure: " __FILE__ ":" __STR_LINE__ " " #X); MX_DEBUGBREAK();} } while(false);
-#define MX_STATIC_ASSERT(X) static_assert(X, MX_STRINGIFY(X))
-#define MX_THROW_IF_FALSE(X) do {bool result = (X); if(!result) {throw std::runtime_error("Runtime Failure: " __FILE__ ":" __STR_LINE__ " " #X);} } while(0);
+#define MX_FAIL_FAST(...) do {g_logger.log<dm::log_level::error>("Fail Fast : " __FILE__ ":" __STR_LINE__ " " __VA_ARGS__).wait(); MX_DEBUGBREAK(); } while(false)
+#define MX_ASSERT(X) do { if(!(X)) { g_logger.log<dm::log_level::error>("Assertion Failure: " __FILE__ ":" __STR_LINE__ " " #X); MX_DEBUGBREAK();} } while(false)
+#define MX_THROW_IF_FALSE(X) do { if(!(X)) { throw std::runtime_error("Runtime Failure: " __FILE__ ":" __STR_LINE__ " " #X);} } while(0)
 #define MX_THROW_IF_NULL(X) MX_THROW_IF_FALSE((X) != nullptr)
 #define MX_THROW_IF_NOT_NULL(X) MX_THROW_IF_FALSE((X) == nullptr)
 #define MX_THROW_MSG(...) throw std::runtime_error(fmt::format("Runtime Failure: " __FILE__ ":" __STR_LINE__ " " __VA_ARGS__));
-#define MX_THROW_MSG_IF_FALSE(X, ...) do { bool result = (X); if (!result) { throw std::runtime_error(fmt::format("Runtime Failure: " __FILE__ ":" __STR_LINE__ " " __VA_ARGS__)); } } while(0)
+#define MX_THROW_MSG_IF_FALSE(X, ...) do { if (!(X)) { throw std::runtime_error(fmt::format("Runtime Failure: " __FILE__ ":" __STR_LINE__ " " __VA_ARGS__)); } } while(0)
 
 #define MX_FORCE_INLINE __attribute__ ((always_inline))
 #define MX_NEVER_INLINE __attribute__ ((noinline))
@@ -28,9 +27,6 @@ namespace dm
 {
     // remove whitespace from head and tail of string
     std::string trim(const std::string& str);
-
-    fs::path open_dialog(const char* filterList);
-    fs::path save_dialog(const char* filterList);
 
     template<size_t N>
     struct framerate_calculator

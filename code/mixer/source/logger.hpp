@@ -2,13 +2,14 @@
 
 #include "singleton.hpp"
 #include "enums.hpp"
+#include "work_queue.hpp"
 
-#define MX_LOG_ERROR(...) dm::g_logger.log(dm::log_level::error, __VA_ARGS__)
-#define MX_LOG_ERROR_BLOCKING(...) dm::g_logger.blocking_log(dm::log_level::error, __VA_ARGS__)
-#define MX_LOG_INFO(...) dm::g_logger.log(dm::log_level::info, __VA_ARGS__)
-#define MX_LOG_INFO_BLOCKING(...) dm::g_logger.blocking_log(dm::log_level::info, __VA_ARGS__)
+#define MX_LOG_ERROR(...) dm::g_logger.log<dm::log_level::error>(__VA_ARGS__)
+#define MX_LOG_ERROR_BLOCKING(...) MX_LOG_ERROR(__VA_ARGS__).wait()
+#define MX_LOG_INFO(...) dm::g_logger.log<dm::log_level::info>(__VA_ARGS__)
+#define MX_LOG_INFO_BLOCKING(...) MX_LOG_INFO(__VA_ARGS__).wait()
 #define MX_LOG_TRACE(...) MX_LOG_INFO(__FILE__"(" __STR_LINE__ "): " __VA_ARGS__)
-#define MX_LOG_TRACE_BLOCKING(...) MX_LOG_INFO_BLOCKING(__FILE__"(" __STR_LINE__ "): " __VA_ARGS__)
+#define MX_LOG_TRACE_BLOCKING(...) MX_LOG_TRACE(__VA_ARGS__).wait()
 #define MX_LOG_VAR(X) MX_LOG_INFO(#X " : {}", X);
 #define MX_LOG_VAR_BLOCKING(X) MX_LOG_INFO_BLOCKING(#X " : {}", X);
 
@@ -24,46 +25,46 @@ namespace dm
     public:
         logger(log_level_t logLevel);
 
-        void log(log_level_t lvl, std::string msg);
-
-        template<size_t N>
-        void log(log_level_t lvl, const char (&msg)[N])
+        template<log_level_t LEVEL, size_t N, typename... Args>
+        std::future<void> log(char const (&format)[N], Args... args)
         {
-            log_internal(lvl, false, std::forward<decltype(msg)>(msg));
-        }
+            const auto now = std::chrono::system_clock::now();
+            return worker_logging.enqueue(
+                [format=std::forward<decltype(format)>(format), now=now, ...args=logger::marshall(args)]() -> void
+                {
+                    auto msg = fmt::format(format, std::move(args)...);
+                    singleton<logger>::get().write_message(LEVEL, now, msg.c_str());
+                });
+        };
 
-        template<size_t N, typename... Args>
-        void log(log_level_t lvl, const char (&format)[N], Args... args)
+        template<log_level_t LEVEL>
+        std::future<void> log(std::string&& msg)
         {
-            log_internal(lvl, false, std::forward<decltype(format)>(format), std::move(args)...);
-        }
-
-        void blocking_log(log_level_t lvl, std::string msg);
-
-        template<size_t N>
-        void blocking_log(log_level_t lvl, const char (&msg)[N])
-        {
-            log_internal(lvl, true, std::forward<decltype(msg)>(msg));
-        }
-
-        template<size_t N, typename... Args>
-        void blocking_log(log_level_t lvl, const char (&format)[N], Args... args)
-        {
-            log_internal(lvl, true, std::forward<decltype(format)>(format), std::move(args)...);
-        }
+            const auto now = std::chrono::system_clock::now();
+            return worker_logging.enqueue(
+                [msg=std::move(msg), now=now]() -> void
+                {
+                    singleton<logger>::get().write_message(LEVEL, now, msg);
+                });
+        };
 
     private:
-        void write_message(log_level_t lvl, std::chrono::system_clock::time_point now, const char* msg);
+        template<typename T>
+        std::remove_reference<T>::type&& marshall(T&& t)
+        {
+            return std::move(t);
+        }
 
-        void log_internal(log_level_t lvl, bool blocking, std::string&& msg);
-        template<size_t N>
-        void log_internal(log_level_t lvl, bool blocking, const char (&msg)[N]);
-        template<size_t N, typename... Args>
-        void log_internal(log_level_t lvl, bool blocking, const char (&format)[N], Args&&... args);
+        std::string marshall(const char* cstr)
+        {
+            return std::string(cstr);
+        }
+
+        void write_message(log_level_t lvl, std::chrono::system_clock::time_point now, const std::string& msg);
 
         log_level_t _log_level;
         FILE* _log_file;
-        const std::chrono::system_clock::time_point _start = std::chrono::system_clock::now();
+        const std::chrono::system_clock::time_point _start;
         constexpr static const char* _log_format_strings[] =
         {
             "[{:f}][ERROR] {}\n",
@@ -71,41 +72,4 @@ namespace dm
         };
     };
     MX_MAKE_SINGLETON(logger);
-}
-#include "work_queue.hpp"
-
-namespace dm
-{
-    template<size_t N>
-    void logger::log_internal(log_level_t lvl, bool blocking, const char (&msg)[N])
-    {
-        auto now = std::chrono::system_clock::now();
-        auto log_task = [=]() -> void
-        {
-            g_logger.write_message(lvl, now, msg);
-        };
-
-        if (blocking) {
-            worker_logging.enqueue_blocking(std::move(log_task));
-        } else {
-            worker_logging.enqueue(std::move(log_task));
-        }
-    }
-
-    template<size_t N, typename... Args>
-    void logger::log_internal(log_level_t lvl, bool blocking, const char (&format)[N], Args&&... args)
-    {
-        auto now = std::chrono::system_clock::now();
-        auto log_task = [=, ...args=std::move(args)]() -> void
-        {
-            auto msg = fmt::format(format, std::move(args)...);
-            g_logger.write_message(lvl, now, msg.c_str());
-        };
-
-        if (blocking) {
-            worker_logging.enqueue_blocking(std::move(log_task));
-        } else {
-            worker_logging.enqueue(std::move(log_task));
-        }
-    }
 }

@@ -55,7 +55,7 @@ namespace dm
 
     void error_callback(const char* msg)
     {
-        MX_LOG_ERROR(std::string(msg));
+        MX_LOG_ERROR(msg);
     }
 }
 
@@ -127,5 +127,5 @@ int main() try
 }
 catch(const std::exception& ex)
 {
-    get_logger()->blocking_log(dm::log_level::error, ex.what());
+    MX_LOG_ERROR(ex.what());
 }
