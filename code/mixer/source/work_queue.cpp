@@ -90,7 +90,14 @@ namespace dm
 
             for(auto& task : queue)
             {
-                task.function.run();
+                try
+                {
+                    task.function.run();
+                }
+                catch(const std::runtime_error& ex)
+                {
+                    MX_LOG_ERROR(ex.what());
+                }
                 task.promise.set_value();
             }
             queue.clear();
