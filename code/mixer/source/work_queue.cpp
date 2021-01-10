@@ -68,7 +68,7 @@ namespace dm
         }
     }
 
-    work_manager::timestamp work_manager::do_tasks(worker_id_t id)
+    timestamp work_manager::do_tasks(worker_id_t id)
     {
         const size_t index = static_cast<size_t>(id);
         MX_ASSERT(g_work_manager.current_index() == index);
@@ -77,20 +77,51 @@ namespace dm
 
         while(true)
         {
+            auto& consumer = _consumer_queue[index];
+            auto& producer = _producer_queue[index];
             // acquire our task list
             {
                 std::lock_guard<std::mutex> lock(_queue_mutex[index]);
-                std::swap(_producer_queue[index], _consumer_queue[index]);
+                // when we have no tasks left in our consumer queue, just swap
+                if (consumer.empty())
+                {
+                    std::swap(consumer, producer);
+                }
+                // otherwise, we need to move new tasks into our consumer queue
+                else
+                {
+                    // todo: shorten this later
+                    for(auto& task : producer)
+                    {
+                        consumer.push_back(std::move(task));
+                    }
+                    producer.clear();
+                }
             }
-            auto& queue = _consumer_queue[index];
             // early out with previous time stamp if no new work
-            if (queue.empty())
+            if (consumer.empty())
             {
                 return _completion_time[index];
             }
 
-            for(auto& task : queue)
+            // sort our tasks by start time
+            std::sort(consumer.begin(), consumer.end(), [](const auto& left, const auto& right) -> bool
             {
+                return left.start_time < right.start_time;
+            });
+
+
+            for(auto it = consumer.begin(); it < consumer.end(); ++it)
+            {
+                auto& task = *it;
+                const auto now = std::chrono::system_clock::now();
+                if (now < task.start_time)
+                {
+                    consumer.erase(consumer.begin(), it);
+                    _completion_time[index] = now;
+                    return now;
+                }
+
                 try
                 {
                     task.function.run();
@@ -101,7 +132,9 @@ namespace dm
                 }
                 task.promise.set_value();
             }
-            queue.clear();
+
+            // if we get this far then we've completed every task in our queue, so empty it
+            consumer.clear();
             _completion_time[index] = std::chrono::system_clock::now();
         }
     }
@@ -154,11 +187,11 @@ namespace dm
         cv.notify_one();
     }
 
-    std::future<void> work_manager::enqueue_impl(size_t workerIndex, run_once_task&& work)
+    std::future<void> work_manager::enqueue_impl(size_t workerIndex, run_once_task&& work, timestamp startTime)
     {
         std::lock_guard<std::mutex> lock(_queue_mutex[workerIndex]);
 
-        task_item task(std::move(work));
+        task_item task{std::move(work), startTime};
         auto retval = task.promise.get_future();
 
         _producer_queue[workerIndex].push_back(std::move(task));
@@ -166,32 +199,27 @@ namespace dm
         return retval;
     }
 
-    task_future work_manager::enqueue(size_t workerIndex, run_once_task&& work)
+    task_future work_manager::enqueue(size_t workerIndex, run_once_task&& work, timestamp startTime)
     {
         if (_accepting_work)
         {
-            auto retval = enqueue_impl(workerIndex, std::move(work));
+            auto retval = enqueue_impl(workerIndex, std::move(work), startTime);
             notify_worker(workerIndex);
             return task_future{std::move(retval)};
         }
         return {};
     }
 
-     void work_manager::enqueue_blocking(size_t workerIndex, run_once_task&& work)
-    {
-        enqueue(workerIndex, std::move(work)).try_wait();
-    }
-
     // Worker
 
     task_future worker::enqueue(run_once_task&& task) const
     {
-        return g_work_manager.enqueue(_worker_index, std::move(task));
+        return this->enqueue(std::move(task), std::chrono::system_clock::now());
     }
 
-    void worker::enqueue_blocking(run_once_task&& task) const
+    task_future worker::enqueue(run_once_task&& task, timestamp startTime) const
     {
-        g_work_manager.enqueue_blocking(_worker_index, std::move(task));
+        return g_work_manager.enqueue(_worker_index, std::move(task), startTime);
     }
 
     // task future

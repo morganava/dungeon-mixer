@@ -74,14 +74,6 @@ namespace dm
         void* _callable = nullptr;
     };
 
-    struct task_item
-    {
-        // work to do
-        run_once_task function;
-        // promise used to notify the caller's future
-        std::promise<void> promise;
-    };
-
     // same as future but try_wait first checks to see if the future is valid
     class task_future : public std::future<void>
     {
@@ -99,11 +91,29 @@ namespace dm
         logging
     );
 
+    typedef std::chrono::time_point<std::chrono::system_clock> timestamp;
+
     class work_manager
     {
-    public:
-        typedef std::chrono::time_point<std::chrono::system_clock> timestamp;
+        struct task_item
+        {
+            // work to do
+            run_once_task function;
+            // task runs no earlier than this
+            timestamp start_time;
+            // promise used to notify the caller's future
+            std::promise<void> promise;
+        };
 
+        typedef struct
+        {
+            inline bool operator()(const task_item& left, const task_item& right)
+            {
+                return left.start_time < right.start_time;
+            }
+        } task_item_comparator_t;
+
+    public:
         work_manager();
         ~work_manager();
 
@@ -113,12 +123,11 @@ namespace dm
         // returns the timestamp of the last enqueued task
         timestamp do_tasks(worker_id_t id);
 
-        task_future enqueue(size_t workerIndex, run_once_task&& work);
-        void enqueue_blocking(size_t workerIndex, run_once_task&& work);
+        task_future enqueue(size_t workerIndex, run_once_task&& work, timestamp startTime);
     private:
         size_t current_index() const;
 
-        std::future<void> enqueue_impl(size_t workerIndex, run_once_task&& work);
+        std::future<void> enqueue_impl(size_t workerIndex, run_once_task&& work, timestamp startTime);
         void suspend_worker(size_t workerIndex);
         void notify_worker(size_t workerIndex);
 
@@ -153,12 +162,12 @@ namespace dm
         const size_t _worker_index;
     public:
         constexpr worker(worker_id_t id) : _worker_index(static_cast<size_t>(id)) {}
-        task_future enqueue(run_once_task&& work) const;
-        void enqueue_blocking(run_once_task&& task) const;
-
-        worker& operator<<(run_once_task&& work) {
-            this->enqueue(std::move(work));
-            return *this;
+        task_future enqueue(run_once_task&& task) const;
+        task_future enqueue(run_once_task&& task, timestamp startTime) const;
+        template<typename Rep, typename Period>
+        task_future enqueue(run_once_task&& task, std::chrono::duration<Rep, Period> delay) const
+        {
+            return enqueue(std::move(task), std::chrono::system_clock::now() + delay);
         }
     };
 
