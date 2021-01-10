@@ -82,6 +82,15 @@ namespace dm
         std::promise<void> promise;
     };
 
+    // same as future but try_wait first checks to see if the future is valid
+    class task_future : public std::future<void>
+    {
+    public:
+        task_future() = default;
+        task_future(std::future<void>&& f) : std::future<void>(std::move(f)) {}
+        void try_wait();
+    };
+
     MX_MAKE_ENUM(worker_id, size_t,
         ui,
         fileio,
@@ -104,7 +113,7 @@ namespace dm
         // returns the timestamp of the last enqueued task
         timestamp do_tasks(worker_id_t id);
 
-        std::future<void> enqueue(size_t workerIndex, run_once_task&& work);
+        task_future enqueue(size_t workerIndex, run_once_task&& work);
         void enqueue_blocking(size_t workerIndex, run_once_task&& work);
     private:
         size_t current_index() const;
@@ -124,8 +133,8 @@ namespace dm
         std::vector<task_item> _producer_queue[_worker_count];
         // worker swaps queues and reads from consumer thread
         std::vector<task_item> _consumer_queue[_worker_count];
-        // timestamp of last added task
-        timestamp _last_task[_worker_count];
+        // the last time the thread was working
+        timestamp _completion_time[_worker_count];
         // condition variables for suspending/resuming threads
         std::condition_variable _suspend_handle[_worker_count];
 
@@ -144,7 +153,7 @@ namespace dm
         const size_t _worker_index;
     public:
         constexpr worker(worker_id_t id) : _worker_index(static_cast<size_t>(id)) {}
-        std::future<void> enqueue(run_once_task&& work) const;
+        task_future enqueue(run_once_task&& work) const;
         void enqueue_blocking(run_once_task&& task) const;
 
         worker& operator<<(run_once_task&& work) {

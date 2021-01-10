@@ -14,9 +14,9 @@ namespace dm
         while(g_work_manager.accepting_work())
         {
             // empty queue of work
-            const auto lastTask = g_work_manager.do_tasks(id);
+            const auto completionTime = g_work_manager.do_tasks(id);
             const auto now = std::chrono::system_clock::now();
-            const auto diff = now - lastTask;
+            const auto diff = now - completionTime;
 
             // don't sleep immediately
             if(diff < 1ms)
@@ -52,7 +52,7 @@ namespace dm
         for(size_t k = 1; k < _worker_count; k++)
         {
             // init the last queued task with current time
-            _last_task[k] = now;
+            _completion_time[k] = now;
             _threads[k] = std::thread(&worker_thread, static_cast<worker_id_t>(k));
         }
     }
@@ -77,15 +77,16 @@ namespace dm
 
         while(true)
         {
+            // acquire our task list
             {
                 std::lock_guard<std::mutex> lock(_queue_mutex[index]);
                 std::swap(_producer_queue[index], _consumer_queue[index]);
-                retval = _last_task[index];
             }
             auto& queue = _consumer_queue[index];
+            // early out with previous time stamp if no new work
             if (queue.empty())
             {
-                return retval;
+                return _completion_time[index];
             }
 
             for(auto& task : queue)
@@ -101,6 +102,7 @@ namespace dm
                 task.promise.set_value();
             }
             queue.clear();
+            _completion_time[index] = std::chrono::system_clock::now();
         }
     }
 
@@ -160,34 +162,29 @@ namespace dm
         auto retval = task.promise.get_future();
 
         _producer_queue[workerIndex].push_back(std::move(task));
-        _last_task[workerIndex] = std::chrono::system_clock::now();
 
         return retval;
     }
 
-    std::future<void> work_manager::enqueue(size_t workerIndex, run_once_task&& work)
+    task_future work_manager::enqueue(size_t workerIndex, run_once_task&& work)
     {
-        std::future<void> retval;
         if (_accepting_work)
         {
-            retval = enqueue_impl(workerIndex, std::move(work));
+            auto retval = enqueue_impl(workerIndex, std::move(work));
             notify_worker(workerIndex);
+            return task_future{std::move(retval)};
         }
-        return retval;
+        return {};
     }
 
      void work_manager::enqueue_blocking(size_t workerIndex, run_once_task&& work)
     {
-        if (_accepting_work)
-        {
-            auto fut = enqueue(workerIndex, std::move(work));
-            fut.wait();
-        }
+        enqueue(workerIndex, std::move(work)).try_wait();
     }
 
     // Worker
 
-    std::future<void> worker::enqueue(run_once_task&& task) const
+    task_future worker::enqueue(run_once_task&& task) const
     {
         return g_work_manager.enqueue(_worker_index, std::move(task));
     }
@@ -195,5 +192,15 @@ namespace dm
     void worker::enqueue_blocking(run_once_task&& task) const
     {
         g_work_manager.enqueue_blocking(_worker_index, std::move(task));
+    }
+
+    // task future
+
+    void task_future::try_wait()
+    {
+        if (this->valid())
+        {
+            this->wait();
+        }
     }
 }

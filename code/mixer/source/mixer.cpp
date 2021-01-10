@@ -43,7 +43,7 @@ namespace dm
         g_input.update_cursor();
 
         // wait for background audio task to cmplete
-        fut.wait();
+        fut.try_wait();
     }
 
     // on window exit
