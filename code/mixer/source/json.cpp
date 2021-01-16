@@ -1,4 +1,5 @@
 #include "serialization.hpp"
+#include "paths.hpp"
 #include "utilities.hpp"
 #include "utf8_string.hpp"
 #include "color.hpp"
@@ -290,7 +291,7 @@ namespace dm
     {
         MX_THROW_IF_FALSE(j.is_string());
 
-        fh = g_nanovg.create_font(get_skins_path() / j.get<std::string>());
+        fh = g_nanovg.create_font(paths::skins() / j.get<std::string>());
     }
 
     // image_handle_t
@@ -298,7 +299,7 @@ namespace dm
     {
         MX_THROW_IF_FALSE(j.is_string());
 
-        ih = g_nanovg.create_image(get_skins_path() / j.get<std::string>());
+        ih = g_nanovg.create_image(paths::skins() / j.get<std::string>());
     }
 
     // text alignment

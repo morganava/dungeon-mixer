@@ -1,4 +1,5 @@
 #include "utilities.hpp"
+#include "paths.hpp"
 #include "work_queue.hpp"
 #include "logger.hpp"
 
@@ -9,7 +10,8 @@ namespace dm
     , _log_file(nullptr)
     , _start(std::chrono::system_clock::now())
     {
-        _log_file = fopen("/tmp/dm.log", "wb");
+        const auto logPath = paths::temp() / "dm.log";
+        _log_file = fopen(logPath.string().c_str(), "wb");
         MX_ASSERT(_log_file != nullptr);
     }
 

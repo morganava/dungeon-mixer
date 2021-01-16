@@ -1,4 +1,5 @@
 #include "utilities.hpp"
+#include "paths.hpp"
 #include "work_queue.hpp"
 #include "logger.hpp"
 #include "audio.hpp"
@@ -62,7 +63,7 @@ namespace dm
         load_playlists();
 
         // init strings
-        init_string_manager(get_strings_path() / "en-us.json");
+        init_string_manager(paths::strings() / "en-us.json");
     }
 
     void free_globals()

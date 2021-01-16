@@ -1,4 +1,5 @@
 #include "serialization.hpp"
+#include "paths.hpp"
 #include "uuid.hpp"
 #include "utilities.hpp"
 #include "work_queue.hpp"
@@ -149,48 +150,11 @@ namespace dm
 
     const char MIX_VERSION[] = "0.1";
 
-    // https://stackoverflow.com/questions/2552416/how-can-i-find-the-users-home-dir-in-a-cross-platform-manner-using-c
-    static fs::path get_home_path()
-    {
-        static fs::path home = std::string(getenv("HOME"));
-        return home;
-    }
-
-    fs::path get_dungeon_mixer_path()
-    {
-        static fs::path dm_path = get_home_path() / ".dungeonmixer";
-        return dm_path;
-    }
-
-    static fs::path get_library_path()
-    {
-        static fs::path library_path = get_dungeon_mixer_path() / "libraries";
-        return library_path;
-    }
-
-    fs::path get_skins_path()
-    {
-        static fs::path skins_path = get_dungeon_mixer_path() / "skins";
-        return skins_path;
-    }
-
-    fs::path get_strings_path()
-    {
-        static fs::path strings_path = get_dungeon_mixer_path() / "strings";
-        return strings_path;
-    }
-
-    static fs::path get_playlists_path()
-    {
-        static fs::path playlists_path = get_dungeon_mixer_path() / "playlists";
-        return playlists_path;
-    }
-
     void load_stylesheet()
     {
         worker_fileio.enqueue([]() -> void
         {
-            auto skinPath = get_skins_path() / "default.json";
+            auto skinPath = paths::skins() / "default.json";
             MX_LOG_INFO("Loading skin: {}", skinPath);
 
             memory_buffer mb(skinPath);
@@ -212,7 +176,7 @@ namespace dm
         worker_fileio.enqueue([]() -> void
         {
             // iterate over each subdirectory in the library directory
-            for(auto& it : fs::directory_iterator(get_library_path()))
+            for(auto& it : fs::directory_iterator(paths::libraries()))
             {
                 if (!fs::is_directory(it.path())) {
                     MX_LOG_INFO("Skipping: {}" , it.path());
@@ -268,7 +232,7 @@ namespace dm
         worker_fileio.enqueue([]() -> void
         {
             // iterate over each subdirectory in the library directory
-            for(auto& it : fs::directory_iterator(get_playlists_path()))
+            for(auto& it : fs::directory_iterator(paths::playlists()))
             {
                 auto path = it.path();
                 memory_buffer bytes(path);

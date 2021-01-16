@@ -19,6 +19,7 @@ add_executable(dungeon_mixer
     color.cpp
     random.cpp
     uuid.cpp
+    paths.cpp
     # main
     mixer.cpp
     # systems
