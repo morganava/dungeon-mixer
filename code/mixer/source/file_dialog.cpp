@@ -1,6 +1,7 @@
 #include "utilities.hpp"
 #include "utf8_string.hpp"
 #include "file_dialog.hpp"
+#include "platform.hpp"
 
 namespace dm
 {
@@ -45,12 +46,22 @@ namespace dm
         }
     }
 
-    static std::string make_default_path_string(const fs::path& path)
+    static std::string make_default_path_string(const fs::path& path, const utf8_string filename)
     {
         // xxx: zenity implementation needs trailing slash on directories to work properly
-        auto defaultPathStr = (path / ".").lexically_normal();
-        return defaultPathStr;
+        if constexpr (dm::current_platform == platform::linux)
+        {
+            return (path / filename.c_str()).lexically_normal().string();
+        }
+        return path.string();
     }
+
+    static std::string make_default_path_string(const fs::path& path)
+    {
+        return make_default_path_string(path, ".");
+    }
+
+
 
     std::optional<fs::path> file_dialog::open(std::initializer_list<utf8_string> filters, fs::path workingDirectory)
     {
@@ -65,13 +76,13 @@ namespace dm
         return make_path(result, path);
     }
 
-    std::optional<fs::path> file_dialog::save(std::initializer_list<utf8_string> filters, fs::path workingDirectory)
+    std::optional<fs::path> file_dialog::save(std::initializer_list<utf8_string> filters, fs::path workingDirectory, const utf8_string& filename)
     {
         auto path = make_unique_nfdbuffer();
         auto filterString = make_filter_list(filters);
 
         const nfdchar_t* filterList = (filterString ? filterString->c_str() : nullptr);
-        auto defaultPathString = make_default_path_string(workingDirectory);
+        auto defaultPathString = make_default_path_string(workingDirectory, filename);
         const nfdchar_t* defaultPath = defaultPathString.c_str();
 
         auto result = NFD_SaveDialog(filterList, defaultPath, out(path));
