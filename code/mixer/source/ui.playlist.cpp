@@ -1,6 +1,8 @@
 #include "ui.hpp"
 #include "random.hpp"
 #include "serialization.hpp"
+#include "paths.hpp"
+#include "file_dialog.hpp"
 
 namespace dm
 {
@@ -31,6 +33,30 @@ namespace dm
             {
                 g_playlist_directory.set_title(playlistHandle, std::move(name));
             });
+        });
+    }
+
+    void ui::on_start_playlist_export(playlist_handle_t playlistHandle)
+    {
+        worker_ui.enqueue([=]() -> void
+        {
+            auto& playlist = g_ui.get_playlist_widget(playlistHandle);
+
+            auto optDestination = file_dialog::save({"json"}, paths::home(), fmt::format("{}.json", playlist.title));
+            if (optDestination.has_value())
+            {
+                // it seems like this code should not be necessary since we are providing the file extension >:[
+                auto dest = std::move(optDestination.value());
+                if (dest.extension() != ".json")
+                {
+                    dest += ".json";
+                }
+
+                MX_LOG_INFO("saving playlist '{}' to {}",playlist.title, dest);
+                g_serialization_manager.save_playlist(
+                    std::move(dest),
+                    {playlistHandle});
+            }
         });
     }
 
@@ -327,11 +353,9 @@ namespace dm
             mxHBox(self.tags={"playlistButtonRow"})
             {
                 mxButton(&root.playlist.export_,
-                    self.on_click = []() -> void
+                    self.on_click = [=]() -> void
                     {
-                        g_serialization_manager.save_playlist(
-                            "/tmp/playlist.json",
-                            g_playlist_directory.get_playlist_handles());
+                        g_ui.on_start_playlist_export(currentPlaylist.handle);
                         MX_LOG_INFO("EXPORT");
                     });
                 mxButton(&root.playlist.import,
