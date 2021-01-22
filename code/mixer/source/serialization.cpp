@@ -246,39 +246,33 @@ namespace dm
                     MX_LOG_INFO(" Version : {}", version);
                     MX_LOG_INFO(" Atmospheres :");
 
+                    std::vector<atmosphere_handle_t> id_to_handle;
+
                     // parse our atmosphere_entry list
                     auto atmosphereList = json["Atmospheres"];
-                    for (auto atmosphereJson : atmosphereList)
+                    // for (auto atmosphereJson : atmosphereList)
+                    for(size_t k = 0; k < atmosphereList.size(); k++)
                     {
-                        auto atmosphereId = atmosphereJson["Id"].get<uuid>();
-                        if (g_atmosphere_directory.get_atmosphere_handle_by_id(atmosphereId) !=
-                            atmosphere_handle::invalid)
-                        {
-                            MX_LOG_INFO("Skipping DOUBLE load");
-                            continue;
-                        }
-
+                        auto& atmosphereJson = atmosphereList[k];
                         atmosphere_entry atmosphereEntry;
-                        atmosphereEntry.id = atmosphereId;
                         atmosphereEntry.title = atmosphereJson["Title"].get<utf8_string>();
 
-                        MX_LOG_INFO(" AtmosphereTitle : {}", atmosphereEntry.title);
-                        MX_LOG_INFO(" Id : {}", atmosphereEntry.id);
+                        MX_LOG_INFO("  AtmosphereTitle : {}", atmosphereEntry.title);
 
                         if (atmosphereJson.contains("Volume")) {
                             atmosphereEntry.volume = atmosphereJson["Volume"].get<float>();
                         }
-                        MX_LOG_INFO(" Volume : {}", atmosphereEntry.volume);
+                        MX_LOG_INFO("  Volume : {}", atmosphereEntry.volume);
 
                         if (atmosphereJson.contains("Muted")) {
                             atmosphereEntry.muted = atmosphereJson["Muted"].get<bool>();
                         }
-                        MX_LOG_INFO(" Muted : {}", atmosphereEntry.muted);
+                        MX_LOG_INFO("  Muted : {}", atmosphereEntry.muted);
 
                         if (atmosphereJson.contains("Favorite")) {
                             atmosphereEntry.favorite = atmosphereJson["Favorite"].get<bool>();
                         }
-                        MX_LOG_INFO(" Favorite : {}", atmosphereEntry.favorite);
+                        MX_LOG_INFO("  Favorite : {}", atmosphereEntry.favorite);
 
 
                         auto trackList = atmosphereJson["Tracks"];
@@ -290,8 +284,8 @@ namespace dm
                             const auto audioId = trackJson["Id"].get<uuid>();
                             auto audioHandle = g_audio_directory.get_audio_handle_by_id(audioId);
 
-                            MX_LOG_INFO("  Id : {}", audioId);
-                            MX_LOG_INFO("   AudioHandle : {}", audioHandle);
+                            MX_LOG_INFO("   Id : {}", audioId);
+                            MX_LOG_INFO("    AudioHandle : {}", audioHandle);
 
                             if (audioHandle == audio_handle::invalid) {
                                 MX_LOG_ERROR("AudioData with id '{}' does not exist", audioId);
@@ -308,16 +302,16 @@ namespace dm
                             trackEntry.position.enabled = false;
 
 
-                            MX_LOG_INFO("   AudioTitle : {}", audioEntry.title);
+                            MX_LOG_INFO("    AudioTitle : {}", audioEntry.title);
 
                             if (trackJson.contains("Volume")) {
                                 trackEntry.volume = trackJson["Volume"].get<float>();
                             }
-                            MX_LOG_INFO("   Volume : {}", trackEntry.volume);
+                            MX_LOG_INFO("    Volume : {}", trackEntry.volume);
                             if (trackJson.contains("Muted")) {
                                 trackEntry.muted = trackJson["Muted"].get<bool>();
                             }
-                            MX_LOG_INFO("   Muted : {}", trackEntry.muted);
+                            MX_LOG_INFO("    Muted : {}", trackEntry.muted);
 
                             if(audioEntry.type() == audio_type::one_shot)
                             {
@@ -335,8 +329,8 @@ namespace dm
                                         trackEntry.repeat.min = std::min(range0, range1);
                                         trackEntry.repeat.max = std::max(range0, range1);
 
-                                        MX_LOG_INFO("   RepeatMin : {}", trackEntry.repeat.min);
-                                        MX_LOG_INFO("   RepeatMax : {}", trackEntry.repeat.max);
+                                        MX_LOG_INFO("    RepeatMin : {}", trackEntry.repeat.min);
+                                        MX_LOG_INFO("    RepeatMax : {}", trackEntry.repeat.max);
                                     }
                                 }
                             }
@@ -374,7 +368,7 @@ namespace dm
                                 }
                                 trackEntry.position.enabled = true;
 
-                                MX_LOG_INFO("   Position : {{ elevation : {}, azimuth : {} }}", elevation, azimuth);
+                                MX_LOG_INFO("    Position : {{ elevation : {}, azimuth : {} }}", elevation, azimuth);
                             }
 
                             auto trackHandle = g_track_directory.add_entry(std::move(trackEntry));
@@ -383,11 +377,11 @@ namespace dm
 
                         const bool favorite = atmosphereEntry.favorite;
                         const auto atmosphereHandle = g_atmosphere_directory.add_entry(std::move(atmosphereEntry));
+                        id_to_handle.push_back(atmosphereHandle);
                         if (favorite) {
                             g_playlist_directory.add_atmosphere(playlist_handle::favorites, atmosphereHandle);
                         }
                         g_playlist_directory.add_atmosphere(playlist_handle::all, atmosphereHandle);
-
                     }
 
                     // parse our playlist_entry list
@@ -396,9 +390,7 @@ namespace dm
                     for (auto playlistJson : playlistList)
                     {
                         playlist_entry playlistEntry;
-                        playlistEntry.id = playlistJson["Id"].get<uuid>();
                         playlistEntry.title = playlistJson["Title"].get<utf8_string>();
-                        MX_LOG_INFO("  Id : {}", playlistEntry.id);
                         MX_LOG_INFO("  PlaylistTitle : {}", playlistEntry.title);
                         MX_LOG_INFO("  Atmospheres : ");
 
@@ -407,12 +399,10 @@ namespace dm
                         auto atmospheresList = playlistJson["Atmospheres"];
                         for (auto atmosphereId : atmospheresList)
                         {
-                            const auto id = atmosphereId.get<uuid>();
-                            auto atmosphereHandle = g_atmosphere_directory.get_atmosphere_handle_by_id(id);
-                            if (atmosphereHandle == atmosphere_handle::invalid) {
-                                MX_LOG_ERROR("Atmosphere with id '{}' does not exist", id);
-                            }
-                            MX_LOG_INFO("  AtmosphereId : {}", id);
+                            const auto id = atmosphereId.get<size_t>();
+                            MX_THROW_IF_FALSE(id < id_to_handle.size());
+                            auto atmosphereHandle = id_to_handle[id];
+                            MX_LOG_INFO("   Id : {}", id);
                             g_playlist_directory.add_atmosphere(playlistHandle, atmosphereHandle);
                         }
                     }
@@ -443,13 +433,13 @@ namespace dm
             auto playlistsJson = nl::json::array();
 
             std::set<atmosphere_handle_t> recordedAtmospheres;
+            std::map<atmosphere_handle_t, size_t> handle_to_id;
 
             for(auto playlistHandle : playlistHandles)
             {
                 const auto& playlistEntry = g_playlist_directory.get_entry(playlistHandle);
                 auto currentPlaylistJson = nl::json::object();
                 auto currentPlaylistAtmospheresJson = nl::json::array();
-                currentPlaylistJson["Id"] = playlistEntry.id;
                 currentPlaylistJson["Title"] = playlistEntry.title;
 
                 for(auto atmosphereHandle : playlistEntry.atmospheres)
@@ -458,11 +448,11 @@ namespace dm
                     if (recordedAtmospheres.find(atmosphereHandle) == recordedAtmospheres.end())
                     {
                         // ensure we don't multiply define atmosphere's that live in multiple playlists
+                        handle_to_id[atmosphereHandle] = recordedAtmospheres.size();
                         recordedAtmospheres.insert(atmosphereHandle);
 
                         // construct atmosphere object
                         auto currentAtmosphereJson = nl::json::object();
-                        currentAtmosphereJson["Id"] = atmosphereEntry.id;
                         currentAtmosphereJson["Title"] = atmosphereEntry.title;
                         if (atmosphereEntry.volume != 1.0) {
                            currentAtmosphereJson["Volume"] = atmosphereEntry.volume;
@@ -499,9 +489,11 @@ namespace dm
                         currentAtmosphereJson["Tracks"] = std::move(tracksJson);
                         atmospheresJson.push_back(std::move(currentAtmosphereJson));
                     }
+                    MX_ASSERT(handle_to_id.contains(atmosphereHandle));
+                    const auto atmosphereId = handle_to_id[atmosphereHandle];
 
                     // push atmosphere id to playlist
-                    currentPlaylistAtmospheresJson.push_back(atmosphereEntry.id);
+                    currentPlaylistAtmospheresJson.push_back(atmosphereId);
                 }
                 currentPlaylistJson["Atmospheres"] = std::move(currentPlaylistAtmospheresJson);
 

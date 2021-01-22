@@ -26,16 +26,6 @@ namespace dm
         return _tag_map.get_keys_by_tag_query(query);
     }
 
-    atmosphere_handle_t atmosphere_directory::get_atmosphere_handle_by_id(const uuid& id) const
-    {
-        auto it = _id_map.find(id);
-        if(it == _id_map.end())
-        {
-            return atmosphere_handle::invalid;
-        }
-        return it->second;
-    }
-
     atmosphere_handle_t atmosphere_directory::get_atmosphere_handle_by_track(track_handle_t track) const
     {
         auto it = _track_map.find(track);
@@ -62,9 +52,6 @@ namespace dm
         std::vector<utf8_string> tags = entry.title.split();
         _tag_map.add_key(atmosphereHandle, tags);
 
-        // id map
-        _id_map.insert({entry.id, atmosphereHandle});
-
         // track map
         for(auto& trackHandle : entry.tracks)
         {
@@ -87,9 +74,6 @@ namespace dm
 
         // tag map
         _tag_map.remove_key(atmosphere);
-
-        // id map
-        _id_map.erase(entry.id);
 
         // track map
         for(auto& trackHandle : entry.tracks)

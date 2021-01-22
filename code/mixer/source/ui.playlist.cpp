@@ -148,7 +148,6 @@ namespace dm
         {
             atmosphere_entry atmosphereEntry =
             {
-                g_random.next_uuid(),
                 defaultTitle,
                 1.0f,
                 false,

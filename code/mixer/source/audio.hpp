@@ -177,8 +177,6 @@ namespace dm
 
     struct atmosphere_entry
     {
-        // unique id
-        uuid id;
         // title
         utf8_string title;
         // volume
@@ -197,7 +195,6 @@ namespace dm
         std::vector<atmosphere_handle_t> get_atmosphere_handles_by_query(const utf8_string& query) const;
 
         // entry management
-        atmosphere_handle_t get_atmosphere_handle_by_id(const uuid& id) const;
         atmosphere_handle_t get_atmosphere_handle_by_track(track_handle_t track) const;
         const atmosphere_entry& get_entry(atmosphere_handle_t handle);
         atmosphere_handle_t add_entry(atmosphere_entry&& entry);
@@ -214,8 +211,6 @@ namespace dm
     private:
         // map tag to atmosphere handle
         tag_map<atmosphere_handle_t> _tag_map;
-        // map id to atmosphere handle
-        std::unordered_map<uuid, atmosphere_handle_t> _id_map;
         // map track handle to atmosphere handle
         std::unordered_map<track_handle_t, atmosphere_handle_t> _track_map;
         // atmoshere_handle_t to entry
@@ -225,8 +220,6 @@ namespace dm
 
     struct playlist_entry
     {
-        // unique id (for serialization)
-        uuid id;
         // title
         utf8_string title;
         // atmospheres
@@ -258,9 +251,9 @@ namespace dm
         // init with our builtin playlists
         std::map<playlist_handle_t, playlist_entry> _entries =
         {
-            {playlist_handle::all,       {"00000000-0000-0000-0000-000000000A11", "All",     {}}},
-            {playlist_handle::favorites, {"00000000-0000-0000-0000-00057A1212ED", "Starred", {}}},
-            {playlist_handle::playing,   {"00000000-0000-0000-0000-000001D1A149", "Playing", {}}},
+            {playlist_handle::all,       {"All",     {}}},
+            {playlist_handle::favorites, {"Starred", {}}},
+            {playlist_handle::playing,   {"Playing", {}}},
         };
     };
     MX_MAKE_SINGLETON(playlist_directory)

@@ -193,7 +193,6 @@ namespace dm
         {
             auto playlistHandle = g_playlist_directory.add_entry(
             {
-                g_random.next_uuid(),
                 "New Playlist",
                 {}
             });
@@ -234,11 +233,7 @@ namespace dm
                 if (atmosphereHandle == atmosphere_handle::invalid)
                 {
                     atmosphereTitle = "New Atmosphere";
-                    atmosphere_entry atmosphereEntry =
-                    {
-                        g_random.next_uuid(),
-                        atmosphereTitle
-                    };
+                    atmosphere_entry atmosphereEntry = { atmosphereTitle };
                     atmosphereHandle = g_atmosphere_directory.add_entry(std::move(atmosphereEntry));
 
                     // add this new atmosphere to the All playlist

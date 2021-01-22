@@ -2,7 +2,6 @@
   "Atmospheres": [
     {
       "Favorite": true,
-      "Id": "5f96dcd9-015c-4525-868a-ae6b8b8e1d02",
       "Title": "Rainy Cow Field",
       "Tracks": [
         {
@@ -24,8 +23,16 @@
       "Volume": 0.5
     },
     {
-      "Id": "eb315e50-6e94-45a4-aece-e6f73704b04e",
       "Title": "Heavy Rain",
+      "Tracks": [
+        {
+          "Id": "b5610cdd-a56a-423f-9da6-82fffd399550"
+        }
+      ],
+      "Volume": 0.5
+    },
+    {
+      "Title": "Heavy Rain2",
       "Tracks": [
         {
           "Id": "b5610cdd-a56a-423f-9da6-82fffd399550"
@@ -37,11 +44,11 @@
   "Playlists": [
     {
       "Atmospheres": [
-        "5f96dcd9-015c-4525-868a-ae6b8b8e1d02",
-        "eb315e50-6e94-45a4-aece-e6f73704b04e"
+        1,
+        0,
+        2,
       ],
-      "Id": "e495fc80-53b3-43ef-baa6-d61aa188f7cb",
-      "Title": "Test"
+      "Title": "Test1"
     }
   ],
   "Version": "0.1"
