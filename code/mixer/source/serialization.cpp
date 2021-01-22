@@ -446,12 +446,6 @@ namespace dm
 
             for(auto playlistHandle : playlistHandles)
             {
-                // skip over builtin playlists
-                if (is_builtin_playlist(playlistHandle))
-                {
-                    continue;
-                }
-
                 const auto& playlistEntry = g_playlist_directory.get_entry(playlistHandle);
                 auto currentPlaylistJson = nl::json::object();
                 auto currentPlaylistAtmospheresJson = nl::json::array();

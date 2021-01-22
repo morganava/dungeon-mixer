@@ -28,7 +28,6 @@ namespace dm
         void request_autosave(content_type_t) {}
         void set_autosave_path(content_type_t, const fs::path&) {}
         void set_load_path(content_type_t, const fs::path&) {}
-    // private:
         void save_playlist(fs::path&& dest, std::vector<playlist_handle_t>&& playlists);
     };
     MX_MAKE_SINGLETON(serialization_manager);
