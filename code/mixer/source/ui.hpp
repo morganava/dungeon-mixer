@@ -138,6 +138,7 @@ namespace dm
         void on_open_atmosphere_move_menu();
         void on_move_atmosphere(playlist_handle_t playlistSrc, playlist_handle_t playlistDest, atmosphere_handle_t atmosphere);
         void on_delete_atmosphere(atmosphere_handle_t atmosphere);
+        void on_do_atmosphere_search(playlist_handle_t playlist, const utf8_string& query);
 
         // edit screen methods
         void on_start_atmosphere_rename(atmosphere_handle_t atmosphere);

@@ -321,6 +321,11 @@ namespace dm
         });
     }
 
+    void ui::on_do_atmosphere_search(playlist_handle_t playlist, const utf8_string& query)
+    {
+        MX_LOG_INFO("QUERY: '{}'", query);
+    }
+
     // Draw
 
     void ui::draw_playlist(float dt)
@@ -369,30 +374,28 @@ namespace dm
                     self.on_click = [=]() -> void
                     {
                         g_ui.on_start_playlist_export(currentPlaylist.handle);
-                        MX_LOG_INFO("EXPORT");
                     });
                 mxButton(&root.playlist.import,
                     self.on_click = []() -> void
                     {
                         g_ui.on_start_playlist_import();
-                        MX_LOG_INFO("IMPORT");
                     });
                 mxSpacer();
                 mxButton(&root.playlist.newMix,
-                self.on_click = [&]() -> void
-                {
-                    MX_LOG_INFO("NEW MIX");
-                    g_ui.on_create_new_atmosphere(currentPlaylist.handle);
-                };);
+                    self.on_click = [&]() -> void
+                    {
+                        g_ui.on_create_new_atmosphere(currentPlaylist.handle);
+                    });
                 mxTextBox(&root.playlist.searchBox, self.tags = {"search"};
-                self.on_submit = [](const utf8_string& str) -> void
+                self.on_submit = [=](const utf8_string& query) -> void
                 {
-                    MX_LOG_INFO("SUBMIT : {}", str);
+                    g_ui.on_do_atmosphere_search(currentPlaylist.handle, query);
                 });
                 mxButton(&root.playlist.searchButton, self.tags = {"search"};
-                self.on_click = []() -> void
+                self.on_click = [=]() -> void
                 {
-                    MX_LOG_INFO("SEARCH");
+                    const auto& query = g_ui.root.playlist.searchBox.text;
+                    g_ui.on_do_atmosphere_search(currentPlaylist.handle, query);
                 });
             }
             mxVScroll(&root.playlist.scroll)
