@@ -114,6 +114,7 @@ namespace dm
     class audio_directory
     {
     public:
+        audio_directory();
         void update(float dt);
         audio_handle_t get_audio_handle_by_id(const uuid& id) const;
         std::vector<audio_handle_t> get_audio_handles_by_query(const utf8_string& query) const;

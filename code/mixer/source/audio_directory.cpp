@@ -3,10 +3,15 @@
 #include "logger.hpp"
 #include "audio.hpp"
 #include "string_manager.hpp"
+#include "serialization.hpp"
 
 namespace dm
 {
     /// Audio Directory
+    audio_directory::audio_directory()
+    {
+        g_serialization_manager.load_audio_manifests();
+    }
 
     void audio_directory::update(float dt)
     {

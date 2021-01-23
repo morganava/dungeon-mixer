@@ -1,10 +1,22 @@
 #include "audio.hpp"
 #include "ui.hpp"
 #include "serialization.hpp"
+#include "paths.hpp"
 
 namespace dm
 {
-    playlist_directory::playlist_directory() { }
+    playlist_directory::playlist_directory()
+    {
+        worker_fileio.enqueue([]() -> void
+        {
+            // iterate over each subdirectory in the library directory
+            for(auto& it : fs::directory_iterator(paths::playlists()))
+            {
+                auto path = it.path();
+                g_serialization_manager.load_playlist(std::move(path));
+            }
+        });
+    }
 
     std::vector<playlist_handle_t> playlist_directory::get_playlist_handles() const
     {

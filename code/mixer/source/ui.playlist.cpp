@@ -60,6 +60,20 @@ namespace dm
         });
     }
 
+    void ui::on_start_playlist_import()
+    {
+        worker_ui.enqueue([=]() -> void
+        {
+            const auto optSource = file_dialog::open({"json"}, paths::home());
+            if (optSource.has_value())
+            {
+                auto source = optSource.value();
+                MX_LOG_INFO("loading playlist from {}", source);
+                g_serialization_manager.load_playlist(std::move(source));
+            }
+        });
+    }
+
     void ui::on_set_atmosphere_favorite(atmosphere_handle_t handle, bool favorite)
     {
         worker_ui.enqueue([=]() -> void
@@ -360,6 +374,7 @@ namespace dm
                 mxButton(&root.playlist.import,
                     self.on_click = []() -> void
                     {
+                        g_ui.on_start_playlist_import();
                         MX_LOG_INFO("IMPORT");
                     });
                 mxSpacer();

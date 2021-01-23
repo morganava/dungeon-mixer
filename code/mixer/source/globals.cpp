@@ -55,13 +55,6 @@ namespace dm
         init_playlist_directory();
         init_playback_manager();
 
-
-        // load our audio manifests
-        load_audio_manifests();
-
-        // load our playlists
-        load_playlists();
-
         // init strings
         init_string_manager(paths::strings() / "en-us.json");
     }

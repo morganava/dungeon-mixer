@@ -125,6 +125,7 @@ namespace dm
         void on_start_playlist_rename(playlist_handle_t playlist);
         void on_set_playlist_name(playlist_handle_t playlist, utf8_string name);
         void on_start_playlist_export(playlist_handle_t playlist);
+        void on_start_playlist_import();
         void on_set_atmosphere_favorite(atmosphere_handle_t handle, bool favorited);
         void on_set_atmosphere_volume(atmosphere_widget& widget, atmosphere_handle_t handle, double volume);
         void on_set_atmosphere_mute(atmosphere_widget& widget, atmosphere_handle_t handle, bool muted);

@@ -171,7 +171,7 @@ namespace dm
         });
     }
 
-    void load_audio_manifests()
+    void serialization_manager::load_audio_manifests()
     {
         worker_fileio.enqueue([]() -> void
         {
@@ -187,61 +187,63 @@ namespace dm
                 MX_LOG_INFO("Loading manifest: {}", manifestPath);
                 memory_buffer manifestData(manifestPath);
 
-                // create audio entries for listings in manifest
-                worker_audio.enqueue([basePath=it.path(), manifestData=std::move(manifestData)]() -> void
+                worker_background.enqueue([basePath=it.path(),manifestData=std::move(manifestData)]() -> void
                 {
                     auto json = parse_json(manifestData);
-                    auto trackList = json["Tracks"];
-                    for(auto track : trackList)
+
+                    // create audio entries for listings in manifest
+                    worker_audio.enqueue([basePath=std::move(basePath), json=std::move(json)]() -> void
                     {
-                        utf8_string title = track["Title"];
-                        uuid audioId = track["AudioId"];
-                        utf8_string type = track["Type"];
-                        std::vector<utf8_string> tags = track["Tags"];
-                        std::vector<utf8_string> filenames = track["Files"];
-                        std::vector<fs::path> files;
-                        for(auto& currentFilename : filenames)
+                        auto trackList = json["Tracks"];
+                        for(auto track : trackList)
                         {
-                            files.push_back(basePath / currentFilename.str());
-                        }
+                            utf8_string title = track["Title"];
+                            uuid audioId = track["AudioId"];
+                            utf8_string type = track["Type"];
+                            std::vector<utf8_string> tags = track["Tags"];
+                            std::vector<utf8_string> filenames = track["Files"];
+                            std::vector<fs::path> files;
+                            for(auto& currentFilename : filenames)
+                            {
+                                files.push_back(basePath / currentFilename.str());
+                            }
 
-                        std::shared_ptr<audio_data> audioData;
+                            std::shared_ptr<audio_data> audioData;
 
-                        if(type == "OneShot")
-                        {
-                            audioData = std::make_shared<one_shot_data>(std::move(files));
-                        }
-                        else if(type == "Loop")
-                        {
-                            audioData = std::make_shared<loop_data>(std::move(files.front()));
-                        }
+                            if(type == "OneShot")
+                            {
+                                audioData = std::make_shared<one_shot_data>(std::move(files));
+                            }
+                            else if(type == "Loop")
+                            {
+                                audioData = std::make_shared<loop_data>(std::move(files.front()));
+                            }
 
-                        get_audio_directory()->add_entry(
-                            std::move(audioId),
-                            std::move(title),
-                            std::move(tags),
-                            std::move(audioData));
-                    }
+                            get_audio_directory()->add_entry(
+                                std::move(audioId),
+                                std::move(title),
+                                std::move(tags),
+                                std::move(audioData));
+                        }
+                    });
                 });
             }
         });
     }
 
-    void load_playlists()
+    void serialization_manager::load_playlist(fs::path&& playlistPath)
     {
-        worker_fileio.enqueue([]() -> void
+        worker_fileio.enqueue([playlistPath=std::move(playlistPath)]() -> void
         {
-            // iterate over each subdirectory in the library directory
-            for(auto& it : fs::directory_iterator(paths::playlists()))
+            MX_LOG_INFO("Loading playlist: {}", playlistPath);
+            memory_buffer bytes(playlistPath);
+
+            worker_background.enqueue([bytes=std::move(bytes)]() -> void
             {
-                auto path = it.path();
-                memory_buffer bytes(path);
+                auto json = parse_json(bytes);
 
-                worker_audio.enqueue([=,bytes=std::move(bytes)]() -> void
+                worker_audio.enqueue([json=std::move(json)]() -> void
                 {
-                    MX_LOG_INFO("Loading playlist : {}", path);
-
-                    auto json = parse_json(bytes);
                     utf8_string version = json["Version"];
                     MX_LOG_INFO(" Version : {}", version);
                     MX_LOG_INFO(" Atmospheres :");
@@ -406,21 +408,13 @@ namespace dm
                             g_playlist_directory.add_atmosphere(playlistHandle, atmosphereHandle);
                         }
                     }
+
+                    worker_ui.enqueue([]()
+                    {
+                        g_ui.sync_playlists();
+                    });
                 });
-            }
-
-            worker_ui.enqueue([]()
-            {
-                g_ui.sync_playlists();
             });
-        });
-    }
-
-    void load_playlist(const fs::path& playlistPath)
-    {
-        worker_fileio.enqueue([=]() -> void
-        {
-            MX_LOG_INFO("Loading playlist: {}", playlistPath);
         });
     }
 
