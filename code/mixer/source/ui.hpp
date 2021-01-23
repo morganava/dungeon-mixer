@@ -31,6 +31,7 @@ namespace dm
         playlist_handle_t handle;
         utf8_string title;
         imgui::text_box_data title_textbox;
+        imgui::text_box_data searchBox = {"", "Search Box"};
 
         std::vector<atmosphere_handle_t> entries;
     };
@@ -181,7 +182,6 @@ namespace dm
                 imgui::button_data export_ = {"Export"};
                 imgui::button_data import = {"Import"};
                 imgui::button_data newMix = {"New Mix"};
-                imgui::text_box_data searchBox = {"", "Search Box"};
                 imgui::button_data searchButton = {};
 
                 imgui::scroll_area_data scroll;

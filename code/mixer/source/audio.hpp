@@ -248,6 +248,8 @@ namespace dm
         void sync_all_playlists();
         // update existing playlist contents
         void sync_playlist(playlist_handle_t);
+
+        std::vector<atmosphere_handle_t> filtered_atmospheres(playlist_handle_t, const utf8_string& query);
     private:
         // init with our builtin playlists
         std::map<playlist_handle_t, playlist_entry> _entries =

@@ -323,7 +323,15 @@ namespace dm
 
     void ui::on_do_atmosphere_search(playlist_handle_t playlist, const utf8_string& query)
     {
-        MX_LOG_INFO("QUERY: '{}'", query);
+        worker_audio.enqueue([=]() -> void
+        {
+            auto filtered = g_playlist_directory.filtered_atmospheres(playlist, query);
+            worker_ui.enqueue([=,filtered=std::move(filtered)]() mutable -> void
+            {
+                auto& playlistWidget = g_ui.get_playlist_widget(playlist);
+                playlistWidget.entries = std::move(filtered);
+            });
+        });
     }
 
     // Draw
@@ -386,15 +394,15 @@ namespace dm
                     {
                         g_ui.on_create_new_atmosphere(currentPlaylist.handle);
                     });
-                mxTextBox(&root.playlist.searchBox, self.tags = {"search"};
+                mxTextBox(&currentPlaylist.searchBox, self.tags = {"search"};
                 self.on_submit = [=](const utf8_string& query) -> void
                 {
                     g_ui.on_do_atmosphere_search(currentPlaylist.handle, query);
                 });
                 mxButton(&root.playlist.searchButton, self.tags = {"search"};
-                self.on_click = [=]() -> void
+                self.on_click = [&]() -> void
                 {
-                    const auto& query = g_ui.root.playlist.searchBox.text;
+                    const auto& query = currentPlaylist.searchBox.text;
                     g_ui.on_do_atmosphere_search(currentPlaylist.handle, query);
                 });
             }

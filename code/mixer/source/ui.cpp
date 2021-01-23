@@ -212,6 +212,11 @@ namespace dm
         {
             g_ui.set_screen(screen::playlist);
             g_ui.root.playlist.currentPlaylistHandle = handle;
+
+            // applies the filter for the playlist
+            // a bit of delay since it has to enqueue work on the audio thread
+            auto& playlistEntry = g_ui.get_playlist_widget(handle);
+            g_ui.on_do_atmosphere_search(handle, playlistEntry.searchBox.text);
         });
     }
 

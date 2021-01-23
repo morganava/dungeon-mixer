@@ -115,4 +115,14 @@ namespace dm
             g_serialization_manager.request_autosave(content_type::playlist);
         }
     }
+
+    std::vector<atmosphere_handle_t> playlist_directory::filtered_atmospheres(playlist_handle_t playlist, const utf8_string& query)
+    {
+        if (query.empty())
+        {
+            auto& entry = this->get_entry(playlist);
+            return entry.atmospheres;
+        }
+        return {};
+    }
 }
