@@ -7,8 +7,6 @@
 
 namespace dm
 {
-    nl::json parse_json(const memory_buffer&);
-
     MX_MAKE_ENUM(content_type, uint_fast8_t,
         stylesheet,
         strings,

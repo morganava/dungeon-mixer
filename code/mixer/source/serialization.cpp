@@ -15,7 +15,7 @@
 
 namespace dm
 {
-    // todo: probably find a better place than this
+    // strips out comments and trailing commas and then passes to json::parse
     nl::json parse_json(const memory_buffer& mb)
     {
         std::vector<uint8_t> js;

@@ -6,6 +6,8 @@
 
 namespace dm
 {
+    // todo: move the parsing to serialization_manager
+    nl::json parse_json(const memory_buffer& mb);
     string_manager::string_manager(fs::path&& stringsPath)
     {
         worker_fileio.enqueue([stringsPath=std::move(stringsPath)]() -> void
