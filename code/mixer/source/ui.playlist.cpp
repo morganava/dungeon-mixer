@@ -358,7 +358,10 @@ namespace dm
                         MX_LOG_INFO("EXPORT");
                     });
                 mxButton(&root.playlist.import,
-                    self.on_click = []() -> void {MX_LOG_INFO("IMPORT");};);
+                    self.on_click = []() -> void
+                    {
+                        MX_LOG_INFO("IMPORT");
+                    });
                 mxSpacer();
                 mxButton(&root.playlist.newMix,
                 self.on_click = [&]() -> void
