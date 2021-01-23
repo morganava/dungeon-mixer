@@ -55,6 +55,7 @@ namespace dm
 
         // splits on all whitespace codepoints
         std::vector<utf8_string> split() const;
+        // returns utf8_string for case-insensitive comparisons
         utf8_string normalized() const;
 
         std::string str() const;
@@ -70,7 +71,7 @@ namespace dm
     private:
         // private constructor, takes ownership of pointer
         utf8_string(size_t size, utf8proc_uint8_t*);
-        // normalizes and assigns a new string
+        // normalizes  and assigns a new string
         void normalize_and_assign(const char* cstr, size_t len);
 
         // size in bytes excluding null terminator
