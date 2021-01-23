@@ -18,21 +18,4 @@
             "Files" : ["lapping_water.ogg"]
         }
     ],
-    "OldTracks" :
-    [
-        {
-            "Title" : "Sawing",
-            "AudioId" : "37fbd587-ab8a-4e85-898c-be2c76d79440",
-            "Type" : "OneShot",
-            "Tags" : ["construction", "saw"],
-            "Files" : ["sawing.wav"]
-        },
-        {
-            "Title" : "Sea Gulls",
-            "AudioId" : "21b24cc6-d659-4c39-ae69-75d7938fd7b3",
-            "Type" : "Loop",
-            "Tags" : ["birds", "sea"],
-            "Files" : ["seagulls.wav"]
-        }
-    ]
 }
