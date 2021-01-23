@@ -36,10 +36,7 @@ namespace dm
         init_nanovg();
 
         // init style resolver
-        init_style_resolver();
-
-        // load default skin
-        load_stylesheet();
+        init_style_resolver(paths::skins() / "default.json");
 
         // init ui
         imgui::init_context();

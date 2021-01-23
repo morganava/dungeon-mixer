@@ -150,14 +150,13 @@ namespace dm
 
     const char MIX_VERSION[] = "0.1";
 
-    void load_stylesheet()
+    void serialization_manager::load_stylesheet(fs::path&& source)
     {
-        worker_fileio.enqueue([]() -> void
+        worker_fileio.enqueue([source=std::move(source)]() -> void
         {
-            auto skinPath = paths::skins() / "default.json";
-            MX_LOG_INFO("Loading skin: {}", skinPath);
+            MX_LOG_INFO("Loading skin: {}", source);
 
-            memory_buffer mb(skinPath);
+            memory_buffer mb(source);
 
             worker_background.enqueue([mb=std::move(mb)]() -> void
             {
@@ -165,6 +164,9 @@ namespace dm
                 auto resolver = json.get<style_resolver>();
                 worker_ui.enqueue([resolver=std::move(resolver)] () mutable -> void
                 {
+                    // this is here so that we can reload skins at runtime
+                    // we can just overwrite the existing resolver and things
+                    // should jus work
                     g_style_resolver = std::move(resolver);
                 });
             });

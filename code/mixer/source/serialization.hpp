@@ -9,8 +9,6 @@ namespace dm
 {
     nl::json parse_json(const memory_buffer&);
 
-    void load_stylesheet();
-
     MX_MAKE_ENUM(content_type, uint_fast8_t,
         stylesheet,
         strings,
@@ -26,6 +24,7 @@ namespace dm
         void set_autosave_path(content_type_t, const fs::path&) {}
         void set_load_path(content_type_t, const fs::path&) {}
 
+        void load_stylesheet(fs::path&& source);
         void load_audio_manifests();
         void save_playlist(fs::path&& dest, std::vector<playlist_handle_t>&& playlists);
         void load_playlist(fs::path&& source);

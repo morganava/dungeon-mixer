@@ -84,6 +84,8 @@ namespace dm
     class style_resolver
     {
     public:
+        style_resolver() = default;
+        style_resolver(fs::path&& stylesheet);
         const style_sheet* resolve(element_type_t et, const array<utf8_string>& tags, element_state_t es) const;
         box_layout resolve_box_layout(element_type_t et, const array<utf8_string>& tags) const;
     private:
@@ -93,14 +95,5 @@ namespace dm
         friend void from_json(const nl::json&,style_resolver&);
     };
     void from_json(const nl::json&, style_resolver&);
-
-    inline void init_style_resolver()
-    {
-        singleton<style_resolver>::construct();
-    }
-    constexpr void free_style_resolver()
-    {
-        singleton<style_resolver>::free();
-    }
-    inline constexpr style_resolver& g_style_resolver = singleton<style_resolver>::get();
+    MX_MAKE_SINGLETON(style_resolver);
 }
