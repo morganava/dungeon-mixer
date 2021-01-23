@@ -287,6 +287,11 @@ namespace dm
         return this->_size;
     }
 
+    bool utf8_string::empty() const
+    {
+        return this->size() == 0;
+    }
+
     // Iterator Getters
     utf8_string_iterator utf8_string::begin() const
     {

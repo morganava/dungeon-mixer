@@ -62,6 +62,7 @@ namespace dm
         const uint8_t* data() const;
         // number of bytes used to encode this string (not counting null terminator)
         size_t size() const;
+        [[nodiscard]] bool empty() const;
 
         utf8_string_iterator begin() const;
         utf8_string_iterator end() const;
