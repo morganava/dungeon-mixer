@@ -118,11 +118,28 @@ namespace dm
 
     std::vector<atmosphere_handle_t> playlist_directory::filtered_atmospheres(playlist_handle_t playlist, const utf8_string& query)
     {
+        auto& playlistEntry = this->get_entry(playlist);
+        // an empty query returns all of our atmospheres
         if (query.empty())
         {
-            auto& entry = this->get_entry(playlist);
-            return entry.atmospheres;
+            return playlistEntry.atmospheres;
         }
-        return {};
+
+        // do our query on ALL atmospheres in the system
+        auto handles = g_atmosphere_directory.get_atmosphere_handles_by_query(query);
+
+        // now populate our retval value by filtering handles based off of whether or not they
+        // are in this playlist
+        std::vector<atmosphere_handle_t> retval;
+        std::sort(handles.begin(), handles.end());
+        for(auto currentHandle : playlistEntry.atmospheres)
+        {
+            if (std::binary_search(handles.begin(), handles.end(), currentHandle))
+            {
+                retval.push_back(currentHandle);
+            }
+        }
+
+        return retval;
     }
 }
