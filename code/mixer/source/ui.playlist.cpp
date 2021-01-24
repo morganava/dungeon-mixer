@@ -351,24 +351,24 @@ namespace dm
             if (root.playlist.edit_title)
             {
                 mxTextBox(&currentPlaylist.title_textbox, self.tags = {"header", "title", "lightText"},
-                self.on_submit = [=](const utf8_string& str) -> void
-                {
-                    g_ui.on_set_playlist_name(currentPlaylistHandle, str);
-                };
-                if (!self.is_focused())
-                {
-                    g_ui.on_set_playlist_name(currentPlaylistHandle, self.text());
-                });
+                    self.on_submit = [=](const utf8_string& str) -> void
+                    {
+                        g_ui.on_set_playlist_name(currentPlaylistHandle, str);
+                    };
+                    if (!self.is_focused())
+                    {
+                        g_ui.on_set_playlist_name(currentPlaylistHandle, self.text());
+                    });
             }
             else
             {
                 if (currentPlaylistHandle >= playlist_handle::__first_generated)
                 {
                     mxButton(currentPlaylist.title, self.tags = {"header", "title", "lightText"},
-                    self.on_double_click = [=]() -> void
-                    {
-                        g_ui.on_start_playlist_rename(currentPlaylistHandle);
-                    });
+                        self.on_double_click = [=]() -> void
+                        {
+                            g_ui.on_start_playlist_rename(currentPlaylistHandle);
+                        });
                 }
                 else
                 {
@@ -395,16 +395,16 @@ namespace dm
                         g_ui.on_create_new_atmosphere(currentPlaylist.handle);
                     });
                 mxTextBox(&currentPlaylist.searchBox, self.tags = {"search"};
-                self.on_submit = [=](const utf8_string& query) -> void
-                {
-                    g_ui.on_do_atmosphere_search(currentPlaylist.handle, query);
-                });
+                    self.on_change = [=](const utf8_string& query) -> void
+                    {
+                        g_ui.on_do_atmosphere_search(currentPlaylist.handle, query);
+                    });
                 mxButton(&root.playlist.searchButton, self.tags = {"search"};
-                self.on_click = [&]() -> void
-                {
-                    const auto& query = currentPlaylist.searchBox.text;
-                    g_ui.on_do_atmosphere_search(currentPlaylist.handle, query);
-                });
+                    self.on_click = [&]() -> void
+                    {
+                        const auto& query = currentPlaylist.searchBox.text;
+                        g_ui.on_do_atmosphere_search(currentPlaylist.handle, query);
+                    });
             }
             mxVScroll(&root.playlist.scroll)
             {
