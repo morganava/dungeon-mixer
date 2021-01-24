@@ -318,6 +318,12 @@ namespace dm
 
 namespace std
 {
+    size_t hash<dm::utf8_codepoint>::operator()(const dm::utf8_codepoint& cp) const
+    {
+        std::hash<utf8proc_int32_t> h;
+        return h(cp.value());
+    }
+
     size_t hash<dm::utf8_string>::operator()(const dm::utf8_string& str) const
     {
         dm::hash<dm::utf8_string> h;
@@ -468,7 +474,7 @@ namespace dm
         size_t len = 0;
         for(auto it = from; it < to; ++it)
         {
-            auto cpSize = utf8proc_encode_char(*it, head);
+            auto cpSize = utf8proc_encode_char(it->value(), head);
             if (cpSize < 0)
             {
                 MX_THROW_MSG("{}", utf8proc_errmsg(cpSize));

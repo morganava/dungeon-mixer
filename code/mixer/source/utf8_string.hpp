@@ -21,7 +21,8 @@ namespace dm
         utf8_codepoint to_lower() const;
         utf8_codepoint to_upper() const;
 
-        operator utf8proc_int32_t() const {return _codepoint;}
+        // operator utf8proc_int32_t() const {return _codepoint;}
+        utf8proc_int32_t value() const {return _codepoint;}
     private:
         utf8proc_int32_t _codepoint = 0;
     };
@@ -108,6 +109,8 @@ namespace dm
         utf8_string_iterator operator++(int);
         bool operator==(utf8_string_iterator that) const;
         bool operator!=(utf8_string_iterator that) const;
+        bool operator<(utf8_string_iterator that) const;
+        bool operator>(utf8_string_iterator that) const;
         utf8_codepoint operator*() const;
         operator const char*() const { return reinterpret_cast<const char*>(_currentCodepoint); }
     private:
@@ -169,9 +172,14 @@ namespace dm
     };
 }
 
+std::ostream& operator<<(std::ostream& out, const dm::utf8_codepoint cp);
 std::ostream& operator<<(std::ostream& out, const dm::utf8_string& str);
 std::ostream& operator<<(std::ostream& out, const dm::utf8_string_view& str);
 
+template <> struct std::hash<dm::utf8_codepoint>
+{
+    size_t operator()(const dm::utf8_codepoint&) const;
+};
 template <> struct std::hash<dm::utf8_string>
 {
     size_t operator()(const dm::utf8_string&) const;

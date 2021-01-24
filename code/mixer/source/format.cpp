@@ -10,6 +10,15 @@ using std::ostream;
 using namespace dm;
 
 // utf8_string
+
+ostream& operator<<(ostream& out, const dm::utf8_codepoint cp)
+{
+    char buffer[5] = {0};
+    ::utf8proc_encode_char(cp.value(), (utf8proc_uint8_t*)buffer);
+    out << buffer;
+    return out;
+}
+
 ostream& operator<<(ostream& out, const utf8_string& str)
 {
     return out << str.c_str();
