@@ -7,6 +7,12 @@ namespace dm
     class callback
     {
     public:
+        callback() = default;
+        callback(const callback&) = delete;
+        callback(callback&&) = delete;
+        callback& operator=(const callback&) = delete;
+        callback& operator=(callback&&) = delete;
+
         ~callback()
         {
             if (delete_func) {
@@ -49,6 +55,11 @@ namespace dm
             {
                 exec_func(std::forward<decltype(args)>(args)...);
             }
+        }
+
+        operator bool() const
+        {
+            return exec_func != nullptr;
         }
     private:
         void(*delete_func)() = nullptr;

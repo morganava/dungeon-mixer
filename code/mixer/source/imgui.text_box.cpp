@@ -88,6 +88,9 @@ namespace dm
 
             for (auto evt : g_input.get_input_events())
             {
+                // set to true when the string stored in the string buffer
+                // is modified
+                bool textChanged = false;
                 const bool textSelected = (selectBegin != selectEnd);
                 const auto from = std::min(selectBegin, selectEnd);
                 const auto to = std::max(selectBegin, selectEnd);
@@ -311,6 +314,7 @@ namespace dm
                                 {
                                     update_action(text_box_action::erase_block);
                                     textDirty = true;
+                                    textChanged = true;
                                     sb.erase(sb.begin() + from, sb.begin() + to);
                                     selectBegin = selectEnd = from;
                                 }
@@ -322,11 +326,13 @@ namespace dm
                                     sb.erase(sb.begin() + selectEnd, it);
                                     selectBegin = selectEnd;
                                     textDirty = true;
+                                    textChanged = true;
                                 }
                                 else if (selectEnd < sb.size())
                                 {
                                     update_action(text_box_action::erase_right);
                                     textDirty = true;
+                                    textChanged = true;
                                     sb.erase(sb.begin() + selectEnd);
                                 }
                                 break;
@@ -336,6 +342,7 @@ namespace dm
                                 {
                                     update_action(text_box_action::erase_block);
                                     textDirty = true;
+                                    textChanged = true;
                                     sb.erase(sb.begin() + from, sb.begin() + to);
                                     selectBegin = selectEnd = from;
                                 }
@@ -347,6 +354,7 @@ namespace dm
                                     sb.erase(it, sb.begin() + selectEnd);
                                     selectBegin = selectEnd = (it - sb.begin());
                                     textDirty = true;
+                                    textChanged = true;
                                 }
                                 // backspace from caret
                                 else if (selectEnd > 0)
@@ -355,6 +363,7 @@ namespace dm
                                     sb.erase(sb.begin() + selectEnd - 1);
                                     selectBegin = selectEnd = selectEnd - 1;
                                     textDirty = true;
+                                    textChanged = true;
                                 }
                                 break;
                             //
@@ -387,6 +396,7 @@ namespace dm
 
                                         selectEnd = selectBegin = from;
                                         textDirty = true;
+                                        textChanged = true;
                                     }
                                 }
                                 break;
@@ -418,6 +428,7 @@ namespace dm
 
                                         selectEnd = selectBegin = from + (int32_t)(finalSize - initSize);
                                         textDirty = true;
+                                        textChanged = true;
                                     }
                                 }
                                 break;
@@ -430,12 +441,14 @@ namespace dm
                                     {
                                         update_action(text_box_action::redo);
                                         textDirty = true;
+                                        textChanged = true;
                                     }
                                     // undo
                                     else
                                     {
                                         update_action(text_box_action::undo);
                                         textDirty = true;
+                                        textChanged = true;
                                     }
                                 }
                                 break;
@@ -449,6 +462,7 @@ namespace dm
                         if (evt.modifiers().control || evt.modifiers().alt) break;
 
                         textDirty = true;
+                        textChanged = true;
                         if (textSelected)
                         {
                             update_action(text_box_action::erase_block);
@@ -471,6 +485,13 @@ namespace dm
                     }
                     default:
                         break;
+                }
+
+                // if we have an on_change event, then push the current state of the
+                // string buffer to our callback
+                if (textChanged && this->on_change)
+                {
+                    this->on_change(sb.str());
                 }
             }
 

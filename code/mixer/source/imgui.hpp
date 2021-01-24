@@ -525,6 +525,7 @@ namespace dm
             void first_render_impl() const;
 
             callback<const utf8_string&> on_submit;
+            callback<const utf8_string&> on_change;
             const utf8_string& text() const;
         };
 
