@@ -90,7 +90,7 @@ void test()
         for(auto cp : norm)
         {
             char buffer[5] = {0};
-            utf8proc_encode_char(cp, (utf8proc_uint8_t*)buffer);
+            utf8proc_encode_char(cp.value(), (utf8proc_uint8_t*)buffer);
             MX_LOG_INFO("0x{:x} : '{}' whitespace ? {}", cp, buffer, cp.is_whitespace());
             sb.push_back(cp);
         }
@@ -113,7 +113,6 @@ void test()
 
 int main() try
 {
-
     dm::init_globals();
 
     graphics_callbacks callbacks =
