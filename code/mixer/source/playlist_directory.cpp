@@ -75,6 +75,7 @@ namespace dm
 
     void playlist_directory::set_title(playlist_handle_t playlist, utf8_string&& name)
     {
+        MX_ASSERT(!is_builtin_playlist(playlist));
         auto it = _entries.find(playlist);
         if (it == _entries.end()) return;
 
@@ -94,8 +95,10 @@ namespace dm
                playlistEntry.atmospheres.end())
             {
                 playlistEntry.atmospheres.push_back(atmosphere);
-
-                g_serialization_manager.request_autosave(content_type::playlist);
+                if (!is_builtin_playlist(playlist))
+                {
+                    g_serialization_manager.request_autosave(content_type::playlist);
+                }
             }
         }
     }
@@ -111,7 +114,22 @@ namespace dm
         if(auto it = std::find(playlistEntry.atmospheres.begin(), playlistEntry.atmospheres.end(), atmosphere); it != playlistEntry.atmospheres.end())
         {
             playlistEntry.atmospheres.erase(it);
+            if (!is_builtin_playlist(playlist))
+            {
+                g_serialization_manager.request_autosave(content_type::playlist);
+            }
+        }
+    }
 
+    void playlist_directory::clear_playlist(playlist_handle_t playlist)
+    {
+        auto it = _entries.find(playlist);
+        MX_ASSERT(it != _entries.end());
+
+        it->second.atmospheres.clear();
+
+        if (!is_builtin_playlist(playlist))
+        {
             g_serialization_manager.request_autosave(content_type::playlist);
         }
     }

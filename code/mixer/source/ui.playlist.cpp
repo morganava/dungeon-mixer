@@ -147,8 +147,10 @@ namespace dm
         worker_audio.enqueue([=]()
         {
             if (playing) {
+                g_playlist_directory.add_atmosphere(playlist_handle::playing, handle);
                 g_playback_manager.play_atmosphere(handle);
             } else {
+                g_playlist_directory.remove_atmosphere(playlist_handle::playing, handle);
                 g_playback_manager.stop_atmosphere(handle);
             }
         });
@@ -326,6 +328,7 @@ namespace dm
         worker_audio.enqueue([=]() -> void
         {
             auto filtered = g_playlist_directory.filtered_atmospheres(playlist, query);
+
             worker_ui.enqueue([=,filtered=std::move(filtered)]() mutable -> void
             {
                 auto& playlistWidget = g_ui.get_playlist_widget(playlist);

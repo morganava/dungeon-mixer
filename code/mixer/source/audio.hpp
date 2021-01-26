@@ -243,11 +243,7 @@ namespace dm
         void set_title(playlist_handle_t, utf8_string&& name);
         void add_atmosphere(playlist_handle_t, atmosphere_handle_t);
         void remove_atmosphere(playlist_handle_t, atmosphere_handle_t);
-
-        // updates all the playlist and atmospheres in ui
-        void sync_all_playlists();
-        // update existing playlist contents
-        void sync_playlist(playlist_handle_t);
+        void clear_playlist(playlist_handle_t);
 
         std::vector<atmosphere_handle_t> filtered_atmospheres(playlist_handle_t, const utf8_string& query);
     private:

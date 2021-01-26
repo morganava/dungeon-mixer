@@ -223,7 +223,7 @@ namespace dm
     void ui::on_set_screen_edit(atmosphere_handle_t handle)
     {
         const auto prevAtmosphereHandle = g_ui.root.edit.handle;
-        // populate the track edit widgets
+        // populate the track edit widgets and start playing our edit widget
         worker_audio.enqueue([=]() -> void
         {
             auto atmosphereHandle = handle;
@@ -240,6 +240,7 @@ namespace dm
                     atmosphereTitle = "New Atmosphere";
                     atmosphere_entry atmosphereEntry = { atmosphereTitle };
                     atmosphereHandle = g_atmosphere_directory.add_entry(std::move(atmosphereEntry));
+                    g_playlist_directory.add_atmosphere(playlist_handle::all, atmosphereHandle);
 
                     // add this new atmosphere to the All playlist
                     worker_ui.enqueue([=,title=atmosphereTitle]() -> void
@@ -280,15 +281,9 @@ namespace dm
                     }
                 }
 
-                // populate ui
+                // populate edit ui
                 worker_ui.enqueue([=, atmosphereTitle=std::move(atmosphereTitle), editWidgets=std::move(editWidgets)]() -> void
                 {
-                    // set all the atmosphere widgets playing to false
-                    for (auto& [atmosphereHandle, widget] : g_ui.root.playlist.atmospheres)
-                    {
-                        widget.playStop.checked = false;
-                    }
-
                     // populate edit widgets
                     g_ui.root.edit.handle = atmosphereHandle;
                     g_ui.root.edit.title = std::move(atmosphereTitle);
@@ -308,6 +303,21 @@ namespace dm
 
             // stop all currently playing tracks
             g_playback_manager.stop_all_tracks();
+            auto& playlistEntry = g_playlist_directory.get_entry(playlist_handle::playing);
+
+            // empty out the playing playlist and update the play button
+            worker_ui.enqueue([atmospheres=playlistEntry.atmospheres]() -> void
+            {
+                for(auto& atmosphereHandle : atmospheres)
+                {
+                    auto it = g_ui.root.playlist.atmospheres.find(atmosphereHandle);
+                    MX_ASSERT(it != g_ui.root.playlist.atmospheres.end());
+                    it->second.playStop = false;
+                }
+                auto& playlistWidget = g_ui.get_playlist_widget(playlist_handle::playing);
+                playlistWidget.entries.clear();
+            });
+            g_playlist_directory.clear_playlist(playlist_handle::playing);
 
             // begin playing the editing atmosphere
             g_atmosphere_directory.set_volume(atmosphereHandle, 1.0f);
