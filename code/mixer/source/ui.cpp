@@ -237,7 +237,7 @@ namespace dm
                 // create a new atmosphere and begin editing
                 if (atmosphereHandle == atmosphere_handle::invalid)
                 {
-                    atmosphereTitle = "New Atmosphere";
+                    atmosphereTitle = "New Mix";
                     atmosphere_entry atmosphereEntry = { atmosphereTitle };
                     atmosphereHandle = g_atmosphere_directory.add_entry(std::move(atmosphereEntry));
                     g_playlist_directory.add_atmosphere(playlist_handle::all, atmosphereHandle);
