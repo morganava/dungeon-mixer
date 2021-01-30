@@ -150,6 +150,43 @@ namespace dm
 
     const char MIX_VERSION[] = "0.1";
 
+    void serialization_manager::request_autosave(content_type_t content)
+    {
+        const auto now = std::chrono::system_clock::now();
+        worker_fileio.enqueue([=]() -> void
+        {
+            const auto index = static_cast<size_t>(content);
+            auto& as = g_serialization_manager.autosave[index];
+            as.autosaveRequested = true;
+            as.timeRequested = now;
+
+            worker_fileio.enqueue([=]() -> void
+            {
+                auto& as = g_serialization_manager.autosave[index];
+                if (as.autosaveRequested)
+                {
+                    const auto now = std::chrono::system_clock::now();
+                    const std::chrono::duration<double> duration(now - as.timeRequested);
+
+                    if (duration >= serialization_manager::AUTOSAVE_DELAY)
+                    {
+                        switch(content)
+                        {
+                        case content_type::playlist:
+                            MX_LOG_INFO("Ok, save playlist");
+                            as.autosaveRequested = false;
+                            break;
+                        default:
+                            break;
+                        }
+                    }
+                }
+
+
+            }, serialization_manager::AUTOSAVE_DELAY);
+        });
+    }
+
     void serialization_manager::load_stylesheet(fs::path&& source)
     {
         worker_fileio.enqueue([source=std::move(source)]() -> void

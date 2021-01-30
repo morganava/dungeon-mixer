@@ -61,6 +61,7 @@ namespace dm
         // entry map
         _entries.insert({atmosphereHandle, std::move(entry)});
 
+        g_serialization_manager.request_autosave(content_type::playlist);
         return atmosphereHandle;
     }
 
@@ -82,6 +83,8 @@ namespace dm
 
         // entry map
         _entries.erase(it);
+
+        g_serialization_manager.request_autosave(content_type::playlist);
     }
 
     void atmosphere_directory::set_title(atmosphere_handle_t atmosphere, utf8_string&& newName)

@@ -5,12 +5,13 @@
 #include "random.hpp"
 #include "geometry.hpp"
 
-using namespace std::chrono;
+
 
 namespace dm
 {
     void audio_update()
     {
+        using namespace std::chrono;
         static auto prev = system_clock::now();
         const auto now = system_clock::now();
 
