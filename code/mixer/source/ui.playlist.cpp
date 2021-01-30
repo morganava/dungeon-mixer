@@ -402,12 +402,6 @@ namespace dm
                     {
                         g_ui.on_do_atmosphere_search(currentPlaylist.handle, query);
                     });
-                mxButton(&root.playlist.searchButton, self.tags = {"search"};
-                    self.on_click = [&]() -> void
-                    {
-                        const auto& query = currentPlaylist.searchBox.text;
-                        g_ui.on_do_atmosphere_search(currentPlaylist.handle, query);
-                    });
             }
             mxVScroll(&root.playlist.scroll)
             {
