@@ -278,6 +278,7 @@ namespace dm
     class playback_manager
     {
     public:
+        playback_manager();
         void update(float dt);
 
         /// Atmosphere methods

@@ -28,12 +28,6 @@ namespace dm
 
     void gui_callback(float dt, int width, int height, double pixel_ratio)
     {
-        auto fut = worker_audio.enqueue([=]() -> void
-        {
-            g_audio_directory.update(dt);
-            g_playback_manager.update(dt);
-        });
-
         // do queued UI work
         g_work_manager.do_tasks(worker_id::ui);
 
@@ -41,9 +35,6 @@ namespace dm
         g_ui.update(dt, width, height);
         g_nanovg.update(dt, width, height, pixel_ratio);
         g_input.update_cursor();
-
-        // wait for background audio task to cmplete
-        fut.try_wait();
     }
 
     // on window exit

@@ -5,8 +5,29 @@
 #include "random.hpp"
 #include "geometry.hpp"
 
+using namespace std::chrono;
+
 namespace dm
 {
+    void audio_update()
+    {
+        static auto prev = system_clock::now();
+        const auto now = system_clock::now();
+
+        const auto dt = duration_cast<duration<float, std::ratio<1,1>>>(now - prev).count();
+
+        g_audio_directory.update(dt);
+        g_playback_manager.update(dt);
+
+        prev = now;
+        worker_audio.enqueue(audio_update, 32ms);
+    }
+
+    playback_manager::playback_manager()
+    {
+        worker_audio.enqueue(audio_update);
+    }
+
     void playback_manager::update(float dt)
     {
         for(auto& it : _entries)
