@@ -146,6 +146,7 @@ namespace dm
         void on_set_atmosphere_name(atmosphere_handle_t atmosphere, utf8_string name);
         void on_do_audio_search(const utf8_string& query);
         void on_add_audio_to_atmosphere(atmosphere_handle_t atmosphereHandle, audio_handle_t audioHandle);
+        void on_remove_track_from_atmosphere(atmosphere_handle_t atmosphereHandle, track_handle_t trackHandle);
         void on_set_track_volume(track_handle_t trackHandle, double volume);
         void on_set_track_position_enabled(track_handle_t trackHandle, bool enabled);
         void on_set_track_azimuth(track_edit_widget& widget, double azimuth);

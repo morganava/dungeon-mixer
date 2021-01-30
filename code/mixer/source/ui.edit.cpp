@@ -94,6 +94,29 @@ namespace dm
         });
     }
 
+    void ui::on_remove_track_from_atmosphere(atmosphere_handle_t atmosphereHandle, track_handle_t trackHandle)
+    {
+        // remove our track edit widget
+        worker_ui.enqueue([=]() -> void
+        {
+            // find widget with the given track handle, and remove it from list
+            auto& widgets = g_ui.root.edit.tracks.widgets;
+            auto it = std::find_if(widgets.begin(), widgets.end(), [=](auto& w) -> bool {return w.handle == trackHandle;});
+            widgets.erase(it);
+        });
+
+        // remove track from audio backend
+        worker_audio.enqueue([=]() -> void
+        {
+            // stop playing this track
+            g_playback_manager.stop_track(trackHandle);
+            // remove the track from the atmosphere
+            g_atmosphere_directory.remove_track(atmosphereHandle, trackHandle);
+            // finally destroy this track
+            g_track_directory.remove_entry(trackHandle);
+        });
+    }
+
     void ui::on_set_track_volume(track_handle_t trackHandle, double volume)
     {
         worker_audio.enqueue([=]() -> void
@@ -212,7 +235,11 @@ namespace dm
                         {
                             mxCheckbox(&editWidget.visible, self.tags={"entryTitle"});
                             mxLabel(editWidget.title, self.tags={"entryTitle"});
-                            mxButton({"×"}, self.tags={"entryRemove"});
+                            mxButton({"×"}, self.tags={"entryRemove"},
+                                self.on_click = [=]() -> void
+                                {
+                                    g_ui.on_remove_track_from_atmosphere(currentAtmosphereHandle, trackHandle);
+                                });
                         }
                         if (editWidget.visible.checked)
                         {
