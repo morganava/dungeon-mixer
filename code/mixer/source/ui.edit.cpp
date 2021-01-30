@@ -189,6 +189,10 @@ namespace dm
 
             mxHBox(self.tags={"editButtonRow"})
             {
+                mxButton(&root.edit.newMix, self.on_click = []() -> void
+                {
+                    MX_LOG_INFO("NEW MIX");
+                });
                 mxSpacer();
                 mxTextBox(&root.edit.searchBox, self.tags = {"search"};
                 self.on_change = [](const utf8_string& query) -> void

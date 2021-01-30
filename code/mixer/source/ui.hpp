@@ -208,8 +208,9 @@ namespace dm
                 atmosphere_handle_t handle = atmosphere_handle::invalid;
                 imgui::label_data heading = {"Edit"};
                 bool edit_title = false;
-                utf8_string title = "New Mix";
+                utf8_string title = "Untitled Mix";
                 imgui::text_box_data title_textbox;
+                imgui::button_data newMix = {"New Mix"};
                 imgui::text_box_data searchBox = {"", "Track Search"};
                 imgui::button_data searchButton = {};
 

@@ -3,7 +3,6 @@
 #include "color.hpp"
 #include "array.hpp"
 #include "stylesheet.hpp"
-#include "linear_constraint_solver.hpp"
 #include "enums.hpp"
 #include "callback.hpp"
 

@@ -253,6 +253,7 @@
     "flexBox.editButtonRow" :
     {
         "constraints" : [
+            [128, 128, 2.0],
             ["none", "none", 2.0],
             ["none", "none", 1.0]
         ]
