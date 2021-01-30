@@ -191,7 +191,7 @@ namespace dm
             {
                 mxButton(&root.edit.newMix, self.on_click = []() -> void
                 {
-                    MX_LOG_INFO("NEW MIX");
+                    g_ui.on_set_screen_edit(atmosphere_handle::invalid);
                 });
                 mxSpacer();
                 mxTextBox(&root.edit.searchBox, self.tags = {"search"};
