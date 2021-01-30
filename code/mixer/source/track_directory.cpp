@@ -34,30 +34,6 @@ namespace dm
         }
     }
 
-#if 0
-    void track_directory::set_title(track_handle_t track, utf8_string&& title)
-    {
-        auto it = _entries.find(track);
-        if (it == _entries.end()) return;
-
-        auto& trackEntry = it->second;
-        trackEntry.title = std::move(title);
-
-        g_serialization_manager.request_autosave(content_type::playlist);
-    }
-
-    void track_directory::set_audio(track_handle_t track, std::shared_ptr<audio_data>& audio)
-    {
-        auto it = _entries.find(track);
-        if (it == _entries.end()) return;
-
-        auto& trackEntry = it->second;
-        trackEntry.audioData = audio;
-
-        g_serialization_manager.request_autosave(content_type::playlist);
-    }
-#endif
-
     void track_directory::set_volume(track_handle_t track, double volume)
     {
         auto it = _entries.find(track);
