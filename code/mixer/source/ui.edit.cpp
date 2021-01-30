@@ -191,7 +191,7 @@ namespace dm
             {
                 mxSpacer();
                 mxTextBox(&root.edit.searchBox, self.tags = {"search"};
-                self.on_submit = [](const utf8_string& query) -> void
+                self.on_change = [](const utf8_string& query) -> void
                 {
                     g_ui.on_do_audio_search(query);
                 });

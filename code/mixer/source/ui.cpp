@@ -324,6 +324,11 @@ namespace dm
             g_atmosphere_directory.set_muted(atmosphereHandle, false);
             g_playback_manager.play_atmosphere(atmosphereHandle);
         });
+
+        worker_ui.enqueue([]() -> void
+        {
+            g_ui.on_do_audio_search(g_ui.root.edit.searchBox.text);
+        });
     }
 
     void ui::on_set_screen_about()
