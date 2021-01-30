@@ -66,7 +66,6 @@ namespace dm
 
     void atmosphere_directory::remove_entry(atmosphere_handle_t atmosphere)
     {
-        MX_LOG_TRACE();
         auto it = _entries.find(atmosphere);
         if (it == _entries.end()) return;
 
