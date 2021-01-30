@@ -264,6 +264,7 @@
         "constraints" : [
             [36, 36, 1.0],
             ["none", "none", 1.0],
+            [36, 36, 1.0],
         ]
     },
 
@@ -278,6 +279,19 @@
     ".entryTitle" : {
         "fontSize" : 26,
         "textHalign" : "left"
+    },
+
+    "button.entryRemove" : {
+        "backgroundColor" : "#888",
+        "textHalign" : "center",
+        "textValign" : "middle",
+        "borderSize" : 1,
+        "borderRadius" : 14,
+        "size" : [28,28],
+    },
+
+    "button.entryRemove:active" : {
+        "backgroundColor" : "#555",
     },
 
     "flexBox.trackPositionCheckbox" : {

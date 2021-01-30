@@ -212,6 +212,7 @@ namespace dm
                         {
                             mxCheckbox(&editWidget.visible, self.tags={"entryTitle"});
                             mxLabel(editWidget.title, self.tags={"entryTitle"});
+                            mxButton({"×"}, self.tags={"entryRemove"});
                         }
                         if (editWidget.visible.checked)
                         {
