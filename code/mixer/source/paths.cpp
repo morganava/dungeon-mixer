@@ -52,9 +52,9 @@ namespace dm
 		return strings;
 	}
 
-	fs::path paths::playlists()
+	fs::path paths::playlist_file()
 	{
-		static const fs::path playlists = config() / "playlists";
-		return playlists;
+		static const fs::path playlist_file = config() / "playlist.json";
+		return playlist_file;
 	}
 }

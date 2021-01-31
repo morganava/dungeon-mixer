@@ -9,12 +9,7 @@ namespace dm
     {
         worker_fileio.enqueue([]() -> void
         {
-            // iterate over each subdirectory in the library directory
-            for(auto& it : fs::directory_iterator(paths::playlists()))
-            {
-                auto path = it.path();
-                g_serialization_manager.load_playlist(std::move(path));
-            }
+            g_serialization_manager.load_playlist(paths::playlist_file());
         });
     }
 
