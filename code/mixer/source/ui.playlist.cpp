@@ -53,9 +53,7 @@ namespace dm
                 }
 
                 MX_LOG_INFO("saving playlist '{}' to {}",playlist.title, dest);
-                g_serialization_manager.save_playlist(
-                    std::move(dest),
-                    {playlistHandle});
+                g_serialization_manager.save_playlist(std::move(dest), playlistHandle);
             }
         });
     }

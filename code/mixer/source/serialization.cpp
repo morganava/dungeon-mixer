@@ -15,6 +15,54 @@
 
 namespace dm
 {
+    namespace details
+    {
+        // must be called from audio thread
+        nl::json atmosphere_entry_to_json(const dm::atmosphere_entry& atmosphereEntry)
+        {
+            MX_ASSERT(g_work_manager.current_thread() == worker_id::audio);
+
+            // construct atmosphere object
+            auto currentAtmosphereJson = nl::json::object();
+            currentAtmosphereJson["Title"] = atmosphereEntry.title;
+            if (atmosphereEntry.volume != 1.0) {
+               currentAtmosphereJson["Volume"] = atmosphereEntry.volume;
+            }
+            if (atmosphereEntry.muted) {
+                currentAtmosphereJson["Muted"] = atmosphereEntry.muted;
+            }
+            if (atmosphereEntry.favorite) {
+                currentAtmosphereJson["Favorite"] = atmosphereEntry.favorite;
+            }
+            auto tracksJson = nl::json::array();
+
+            for(auto trackHandle : atmosphereEntry.tracks)
+            {
+                const auto& trackEntry = g_track_directory.get_entry(trackHandle);
+                const auto& audioHandle = trackEntry.audio;
+                const auto& audioEntry = g_audio_directory.get_entry(audioHandle);
+                auto trackJson = nl::json::object();
+                trackJson["Id"] = audioEntry.id;
+                if (trackEntry.volume != 1.0) {
+                    trackJson["Volume"] = trackEntry.volume;
+                }
+                if (trackEntry.muted) {
+                    trackJson["Muted"] = trackEntry.muted;
+                }
+                if (trackEntry.repeat.enabled) {
+                    trackJson["RepeatRange"] = {trackEntry.repeat.min, trackEntry.repeat.max};
+                }
+                if (trackEntry.position.enabled) {
+                    trackJson["Position"] = {trackEntry.position.elevation, trackEntry.position.azimuth};
+                }
+                tracksJson.push_back(std::move(trackJson));
+            }
+            currentAtmosphereJson["Tracks"] = std::move(tracksJson);
+
+            return currentAtmosphereJson;
+        }
+    }
+
     // strips out comments and trailing commas and then passes to json::parse
     nl::json parse_json(const memory_buffer& mb)
     {
@@ -148,7 +196,7 @@ namespace dm
         return nl::json::parse(js.begin(), js.end());
     }
 
-    const char MIX_VERSION[] = "0.1";
+    constexpr const char MIX_VERSION[] = "0.1";
 
     void serialization_manager::request_autosave(content_type_t content)
     {
@@ -156,35 +204,44 @@ namespace dm
         worker_fileio.enqueue([=]() -> void
         {
             const auto index = static_cast<size_t>(content);
-            auto& as = g_serialization_manager.autosave[index];
-            as.autosaveRequested = true;
-            as.timeRequested = now;
+            auto& entry = g_serialization_manager.record[index];
+            entry.autosaveRequested = true;
+            entry.timeRequested = now;
 
             worker_fileio.enqueue([=]() -> void
             {
-                auto& as = g_serialization_manager.autosave[index];
-                if (as.autosaveRequested)
+                auto& entry = g_serialization_manager.record[index];
+                if (entry.autosaveRequested)
                 {
                     const auto now = std::chrono::system_clock::now();
-                    const std::chrono::duration<double> duration(now - as.timeRequested);
+                    const std::chrono::duration<double> duration(now - entry.timeRequested);
 
                     if (duration >= serialization_manager::AUTOSAVE_DELAY)
                     {
-                        switch(content)
-                        {
-                        case content_type::playlist:
-                            MX_LOG_INFO("Ok, save playlist");
-                            as.autosaveRequested = false;
-                            break;
-                        default:
-                            break;
-                        }
+                        g_serialization_manager.autosave(content);
+                        entry.autosaveRequested = false;
                     }
                 }
 
 
             }, serialization_manager::AUTOSAVE_DELAY);
         });
+    }
+
+    void serialization_manager::autosave(content_type_t content)
+    {
+        switch(content)
+        {
+            case content_type::playlist:
+                worker_audio.enqueue([]() -> void
+                {
+                    g_serialization_manager.save_all_playlists(paths::config() / "autosaved.json");
+                });
+
+                break;
+            default:
+                break;
+        }
     }
 
     void serialization_manager::load_stylesheet(fs::path&& source)
@@ -457,83 +514,103 @@ namespace dm
         });
     }
 
-    void serialization_manager::save_playlist(fs::path&& dest, std::vector<playlist_handle_t>&& playlistHandles)
+    void serialization_manager::save_playlist(fs::path&& dest, playlist_handle_t playlistHandle)
     {
-        worker_audio.enqueue([playlistHandles=std::move(playlistHandles),dest=std::move(dest)]() -> void
+        worker_audio.enqueue([=,dest=std::move(dest)]() -> void
         {
+            const auto& playlistEntry = g_playlist_directory.get_entry(playlistHandle);
+
             // convert playlist, atmosphere and track entries into an nl::json object
             auto atmospheresJson = nl::json::array();
             auto playlistsJson = nl::json::array();
+            auto currentPlaylistJson = nl::json::object();
+            auto currentPlaylistAtmospheresJson = nl::json::array();
 
-            std::set<atmosphere_handle_t> recordedAtmospheres;
-            std::map<atmosphere_handle_t, size_t> handle_to_id;
+            currentPlaylistJson["Title"] = playlistEntry.title;
 
-            for(auto playlistHandle : playlistHandles)
+            size_t atmosphereId = 0;
+            for(auto atmosphereHandle : playlistEntry.atmospheres)
             {
-                const auto& playlistEntry = g_playlist_directory.get_entry(playlistHandle);
+                const auto& atmosphereEntry = g_atmosphere_directory.get_entry(atmosphereHandle);
+
+                // convert the entry to serialized json
+                auto currentAtmosphereJson = details::atmosphere_entry_to_json(atmosphereEntry);
+                if (auto it = currentAtmosphereJson.find("Favorite"); it != currentAtmosphereJson.end())
+                {
+                    currentAtmosphereJson.erase(it);
+                }
+
+                // add json to our list
+                atmospheresJson.push_back(std::move(currentAtmosphereJson));
+
+                // push atmosphere id to playlist
+                currentPlaylistAtmospheresJson.push_back(atmosphereId++);
+            }
+            currentPlaylistJson["Atmospheres"] = std::move(currentPlaylistAtmospheresJson);
+
+            playlistsJson.push_back(std::move(currentPlaylistJson));
+
+            auto objectJson = nl::json::object();
+            objectJson["Version"] = MIX_VERSION;
+            objectJson["Atmospheres"] = std::move(atmospheresJson);
+            objectJson["Playlists"] = std::move(playlistsJson);
+
+            worker_fileio.enqueue([objectJson=std::move(objectJson),dest=std::move(dest)]() -> void
+            {
+                // serialize json object to string
+                std::fstream fout(dest, std::ios::out | std::ios::binary);
+                fout << std::setw(2) << std::setfill(' ') << objectJson;
+            });
+        });
+    }
+
+    void serialization_manager::save_all_playlists(fs::path&& dest)
+    {
+        MX_LOG_INFO("Saving playlists to {}", dest.string());
+        worker_audio.enqueue([dest=std::move(dest)]() -> void
+        {
+            auto atmospheresJson = nl::json::array();
+            auto playlistsJson = nl::json::array();
+
+            // maps our runtime handle to our offset into Atmospheres list in json
+            std::map<atmosphere_handle_t, size_t> atmosphereHandleToIndex;
+
+            // write all of our atmospheres to json
+            size_t atmosphereIndex = 0;
+            for(const auto atmosphereHandle : g_atmosphere_directory.get_atmosphere_handles())
+            {
+                const auto& atmosphereEntry = g_atmosphere_directory.get_entry(atmosphereHandle);
+
+                // convert the entry to serialized json
+                auto currentAtmosphereJson = details::atmosphere_entry_to_json(atmosphereEntry);
+
+                // add json to our list
+                atmospheresJson.push_back(std::move(currentAtmosphereJson));
+
+                // push atmosphere id to playlist and increment index
+                atmosphereHandleToIndex.insert({atmosphereHandle, atmosphereIndex++});
+            }
+
+            for(const auto playlistHandle : g_playlist_directory.get_user_playlist_handles())
+            {
                 auto currentPlaylistJson = nl::json::object();
                 auto currentPlaylistAtmospheresJson = nl::json::array();
+
+                const auto& playlistEntry = g_playlist_directory.get_entry(playlistHandle);
                 currentPlaylistJson["Title"] = playlistEntry.title;
-
-                for(auto atmosphereHandle : playlistEntry.atmospheres)
+                for(const auto atmosphereHandle : playlistEntry.atmospheres)
                 {
-                    const auto& atmosphereEntry = g_atmosphere_directory.get_entry(atmosphereHandle);
-                    if (recordedAtmospheres.find(atmosphereHandle) == recordedAtmospheres.end())
-                    {
-                        // ensure we don't multiply define atmosphere's that live in multiple playlists
-                        handle_to_id[atmosphereHandle] = recordedAtmospheres.size();
-                        recordedAtmospheres.insert(atmosphereHandle);
+                    auto it = atmosphereHandleToIndex.find(atmosphereHandle);
+                    MX_ASSERT(it != atmosphereHandleToIndex.end());
 
-                        // construct atmosphere object
-                        auto currentAtmosphereJson = nl::json::object();
-                        currentAtmosphereJson["Title"] = atmosphereEntry.title;
-                        if (atmosphereEntry.volume != 1.0) {
-                           currentAtmosphereJson["Volume"] = atmosphereEntry.volume;
-                        }
-                        if (atmosphereEntry.muted) {
-                            currentAtmosphereJson["Muted"] = atmosphereEntry.muted;
-                        }
-                        if (atmosphereEntry.favorite) {
-                            currentAtmosphereJson["Favorite"] = atmosphereEntry.favorite;
-                        }
-                        auto tracksJson = nl::json::array();
-
-                        for(auto trackHandle : atmosphereEntry.tracks)
-                        {
-                            const auto& trackEntry = g_track_directory.get_entry(trackHandle);
-                            const auto& audioHandle = trackEntry.audio;
-                            const auto& audioEntry = g_audio_directory.get_entry(audioHandle);
-                            auto trackJson = nl::json::object();
-                            trackJson["Id"] = audioEntry.id;
-                            if (trackEntry.volume != 1.0) {
-                                trackJson["Volume"] = trackEntry.volume;
-                            }
-                            if (trackEntry.muted) {
-                                trackJson["Muted"] = trackEntry.muted;
-                            }
-                            if (trackEntry.repeat.enabled) {
-                                trackJson["RepeatRange"] = {trackEntry.repeat.min, trackEntry.repeat.max};
-                            }
-                            if (trackEntry.position.enabled) {
-                                trackJson["Position"] = {trackEntry.position.elevation, trackEntry.position.azimuth};
-                            }
-                            tracksJson.push_back(std::move(trackJson));
-                        }
-                        currentAtmosphereJson["Tracks"] = std::move(tracksJson);
-                        atmospheresJson.push_back(std::move(currentAtmosphereJson));
-                    }
-                    MX_ASSERT(handle_to_id.contains(atmosphereHandle));
-                    const auto atmosphereId = handle_to_id[atmosphereHandle];
-
-                    // push atmosphere id to playlist
-                    currentPlaylistAtmospheresJson.push_back(atmosphereId);
+                    currentPlaylistAtmospheresJson.push_back(it->second);
                 }
                 currentPlaylistJson["Atmospheres"] = std::move(currentPlaylistAtmospheresJson);
-
                 playlistsJson.push_back(std::move(currentPlaylistJson));
             }
+
             auto objectJson = nl::json::object();
-            objectJson["Version"] = "0.1";
+            objectJson["Version"] = MIX_VERSION;
             objectJson["Atmospheres"] = std::move(atmospheresJson);
             objectJson["Playlists"] = std::move(playlistsJson);
 
