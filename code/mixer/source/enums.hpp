@@ -3,6 +3,63 @@
 namespace dm
 {
     template<size_t N> constexpr std::string_view string_list_get_entry(const char (&list)[N], size_t );
+
+    template<typename E>
+    struct enum_iterator
+    {
+    public:
+        enum_iterator(E val)
+        : val(val)
+        { }
+
+        E operator*() const
+        {
+            return val;
+        }
+
+        enum_iterator& operator++()
+        {
+            if (val == E::__last_named) return *this;
+
+            val = static_cast<E>(static_cast<std::underlying_type<E>::type>(val) + 1);
+            return *this;
+        }
+
+        enum_iterator& operator++(int)
+        {
+            if (val == E::__last_named) return *this;
+
+            auto retval = val;
+            val = static_cast<E>(static_cast<std::underlying_type<E>::type>(val) + 1);
+            return *this;
+        }
+
+        bool operator==(const enum_iterator& that) const
+        {
+            return val == that.val;
+        }
+
+        bool operator!=(const enum_iterator& that) const
+        {
+            return val != that.val;
+        }
+    private:
+        E val;
+    };
+
+    template<typename E>
+    struct enum_values
+    {
+        enum_iterator<E> begin() const
+        {
+            return enum_iterator(E::__first_named);
+        }
+
+        enum_iterator<E> end() const
+        {
+            return enum_iterator(E::__last_named);
+        }
+    };
 }
 
 #define MX_FLAG(N) (1 << (N))
@@ -30,15 +87,17 @@ constexpr bool operator>(NAME##_t left, TYPE right) { return static_cast<TYPE>(l
 constexpr bool operator>=(NAME##_t left, TYPE right) { return static_cast<TYPE>(left) >= right; }\
 enum class NAME : TYPE {\
     invalid = static_cast<TYPE>(~TYPE(0)),\
+    __first_named = 0,\
     FIRST = 0,\
     __VA_ARGS__,\
-    count\
+    count,\
+    __last_named = NAME::count - 1\
 };\
 inline std::ostream& operator<<(std::ostream& out, NAME##_t val) {\
-    if (val == NAME::invalid) out << MX_STRINGIFY(NAME::invalid);\
-    else if (val == NAME::count) out << MX_STRINGIFY(NAME::count);\
-    else if (val < NAME::count) out << MX_STRINGIFY(NAME) << "::" << dm::string_list_get_entry(#FIRST ", " #__VA_ARGS__, static_cast<size_t>(val));\
-    else out << MX_STRINGIFY(NAME::) "unknown (" << static_cast<TYPE>(val) << ")";\
+    if (val == NAME::invalid) out << MX_STRINGIFY(invalid);\
+    else if (val == NAME::count) out << MX_STRINGIFY(count);\
+    else if (val < NAME::count) out << dm::string_list_get_entry(#FIRST ", " #__VA_ARGS__, static_cast<size_t>(val));\
+    else out << "unknown (" << static_cast<TYPE>(val) << ")";\
     return out;\
 }
 
