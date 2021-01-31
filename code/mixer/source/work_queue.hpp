@@ -124,6 +124,8 @@ namespace dm
         timestamp do_tasks(worker_id_t id);
 
         task_future enqueue(size_t workerIndex, run_once_task&& work, timestamp startTime);
+
+        worker_id current_thread() const;
     private:
         size_t current_index() const;
 

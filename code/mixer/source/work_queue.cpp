@@ -139,6 +139,11 @@ namespace dm
         }
     }
 
+    worker_id work_manager::current_thread() const
+    {
+        return static_cast<worker_id>(this->current_index());
+    }
+
     size_t work_manager::current_index() const
     {
         const thread_local size_t index = []()
