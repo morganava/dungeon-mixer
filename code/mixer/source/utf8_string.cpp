@@ -108,6 +108,10 @@ namespace dm
      : utf8_string(str.c_str())
     { }
 
+    utf8_string::utf8_string(const std::string_view sv)
+    : utf8_string(sv.data(), sv.size())
+    { }
+
     utf8_string::utf8_string(size_t size, utf8proc_uint8_t* data)
     : _size(size)
     , _data(data, std::free)

@@ -12,6 +12,7 @@
 #include "stylesheet.hpp"
 #include "ui.hpp"
 #include "geometry.hpp"
+#include "string_manager.hpp"
 
 namespace dm
 {
@@ -61,139 +62,164 @@ namespace dm
 
             return currentAtmosphereJson;
         }
-    }
 
-    // strips out comments and trailing commas and then passes to json::parse
-    nl::json parse_json(const memory_buffer& mb)
-    {
-        std::vector<uint8_t> js;
-        js.reserve(mb.size());
-
-        const uint8_t* read = mb.begin();
-        const uint8_t* end = mb.end();
-
-        while(read < end)
+        void write_json_to_disk(nl::json&& obj, fs::path&& dest)
         {
-            // string
-            if (read[0] == '"')
+            // serialize json object to string
+            auto tempDest = dest;
+            tempDest.replace_extension(".json-temp");
+            auto backupDest = dest;
+            backupDest.replace_extension(".json-old");
+
+            // writes to a temp file, then backs up the old file, and moves temp to dest location
+            if(std::fstream fout(tempDest, std::ios::out | std::ios::binary); fout.is_open())
             {
-                // advance until we get to end of string
-                js.push_back(*read);
-                read++;
-                // ensure we're not dealing with an escaped quote
-                while(read[0] != '"' ||
-                      read[-1] == '\\')
+                fout << std::setw(2) << std::setfill(' ') << obj;
+                fout.close();
+                if (fs::exists(dest))
+                {
+                    fs::rename(dest, backupDest);
+                }
+                fs::rename(tempDest, dest);
+            }
+            else
+            {
+                MX_THROW_MSG("Could not open {} for writing", tempDest);
+            }
+        }
+
+        // strips out comments and trailing commas and then passes to json::parse
+        nl::json parse_json(const memory_buffer& mb)
+        {
+            std::vector<uint8_t> js;
+            js.reserve(mb.size());
+
+            const uint8_t* read = mb.begin();
+            const uint8_t* end = mb.end();
+
+            while(read < end)
+            {
+                // string
+                if (read[0] == '"')
+                {
+                    // advance until we get to end of string
+                    js.push_back(*read);
+                    read++;
+                    // ensure we're not dealing with an escaped quote
+                    while(read[0] != '"' ||
+                          read[-1] == '\\')
+                    {
+                        js.push_back(*read);
+                        read++;
+                    }
+                    js.push_back(*read);
+                    read++;
+                }
+                // single line comment
+                else if (read[0] == '/' &&
+                         read + 1 < end &&
+                         read[1] == '/')
+                {
+                    // skip over the '//'
+                    read += 2;
+                    // keep skipping until we get to the newline
+                    while(read < end &&
+                          read[0] != '\n') {
+                        read++;
+                    }
+                }
+                // block comment
+                else if (read[0] == '/' &&
+                         read +1 < end &&
+                         read[1] == '*')
+                {
+                    // skip over the '/*'
+                    read += 2;
+                    // keep skipping until we get to the '*/'
+                    while(read < end &&
+                          (read[0] != '/' || read[-1] != '*'))
+                    {
+                        read++;
+                    }
+                    read++;
+                }
+                // trailing comma
+                else if (read[0] == ',')
+                {
+                    const uint8_t* lookahead = read;
+                    lookahead++;
+                    bool done = false;
+                    // skip over whitespace until
+                    // we get to a } or ]
+                    while(!done)
+                    {
+                        switch(*lookahead)
+                        {
+                            // whitespace
+                            case ' ':
+                            case '\t':
+                            case '\r':
+                            case '\n':
+                                lookahead++;
+                                break;
+                            // found end of array or object
+                            case ']':
+                            case '}':
+                                // push a space instead of comma
+                                js.push_back(' ');
+                                read++;
+                                done = true;
+                                break;
+                            default:
+                                // found something else, so we are
+                                // in the middle
+                                js.push_back(*read);
+                                read++;
+                                done = true;
+                                break;
+                        }
+                    }
+                }
+                // everything else
+                else
                 {
                     js.push_back(*read);
                     read++;
                 }
-                js.push_back(*read);
-                read++;
             }
-            // single line comment
-            else if (read[0] == '/' &&
-                     read + 1 < end &&
-                     read[1] == '/')
+
+            // second pass to overwrite trailing commas
+
+            for(auto it = js.begin(); it < js.end(); it++)
             {
-                // skip over the '//'
-                read += 2;
-                // keep skipping until we get to the newline
-                while(read < end &&
-                      read[0] != '\n') {
-                    read++;
-                }
-            }
-            // block comment
-            else if (read[0] == '/' &&
-                     read +1 < end &&
-                     read[1] == '*')
-            {
-                // skip over the '/*'
-                read += 2;
-                // keep skipping until we get to the '*/'
-                while(read < end &&
-                      (read[0] != '/' || read[-1] != '*'))
+                if (*it == ',')
                 {
-                    read++;
-                }
-                read++;
-            }
-            // trailing comma
-            else if (read[0] == ',')
-            {
-                const uint8_t* lookahead = read;
-                lookahead++;
-                bool done = false;
-                // skip over whitespace until
-                // we get to a } or ]
-                while(!done)
-                {
-                    switch(*lookahead)
+                    auto comma = it;
+                    bool done = false;
+                    while(!done)
                     {
-                        // whitespace
-                        case ' ':
-                        case '\t':
-                        case '\r':
-                        case '\n':
-                            lookahead++;
-                            break;
-                        // found end of array or object
-                        case ']':
-                        case '}':
-                            // push a space instead of comma
-                            js.push_back(' ');
-                            read++;
-                            done = true;
-                            break;
-                        default:
-                            // found something else, so we are
-                            // in the middle
-                            js.push_back(*read);
-                            read++;
-                            done = true;
-                            break;
+                        it++;
+                        switch(*it)
+                        {
+                            // whitespace
+                            case ' ':
+                            case '\t':
+                            case '\r':
+                            case '\n':
+                                break;
+                            case ']':
+                            case '}':
+                                *comma = ' ';
+                            default:
+                                done = true;
+                                break;
+                        }
                     }
                 }
             }
-            // everything else
-            else
-            {
-                js.push_back(*read);
-                read++;
-            }
+
+            return nl::json::parse(js.begin(), js.end());
         }
-
-        // second pass to overwrite trailing commas
-
-        for(auto it = js.begin(); it < js.end(); it++)
-        {
-            if (*it == ',')
-            {
-                auto comma = it;
-                bool done = false;
-                while(!done)
-                {
-                    it++;
-                    switch(*it)
-                    {
-                        // whitespace
-                        case ' ':
-                        case '\t':
-                        case '\r':
-                        case '\n':
-                            break;
-                        case ']':
-                        case '}':
-                            *comma = ' ';
-                        default:
-                            done = true;
-                            break;
-                    }
-                }
-            }
-        }
-
-        return nl::json::parse(js.begin(), js.end());
     }
 
     constexpr const char MIX_VERSION[] = "0.1";
@@ -254,7 +280,7 @@ namespace dm
 
             worker_background.enqueue([mb=std::move(mb)]() -> void
             {
-                auto json = parse_json(mb);
+                auto json = details::parse_json(mb);
                 auto resolver = json.get<style_resolver>();
                 worker_ui.enqueue([resolver=std::move(resolver)] () mutable -> void
                 {
@@ -285,7 +311,7 @@ namespace dm
 
                 worker_background.enqueue([basePath=it.path(),manifestData=std::move(manifestData)]() -> void
                 {
-                    auto json = parse_json(manifestData);
+                    auto json = details::parse_json(manifestData);
 
                     // create audio entries for listings in manifest
                     worker_audio.enqueue([basePath=std::move(basePath), json=std::move(json)]() -> void
@@ -336,7 +362,7 @@ namespace dm
 
             worker_background.enqueue([bytes=std::move(bytes)]() -> void
             {
-                auto json = parse_json(bytes);
+                auto json = details::parse_json(bytes);
 
                 worker_audio.enqueue([json=std::move(json)]() -> void
                 {
@@ -514,6 +540,40 @@ namespace dm
         });
     }
 
+    void serialization_manager::load_strings(fs::path&& source)
+    {
+        worker_fileio.enqueue([source=std::move(source)]() -> void
+        {
+            MX_LOG_INFO("Loading strings: {}", source);
+            memory_buffer bytes(source);
+
+            worker_background.enqueue([bytes=std::move(bytes)]() -> void
+            {
+                auto json = details::parse_json(bytes);
+                string_manager sm;
+
+                for(auto e : enum_values<mixer_string>())
+                {
+                    size_t idx = static_cast<size_t>(e);
+                    if (auto it = json.find(dm::to_string_view(e)); it != json.end() && it->is_string())
+                    {
+                        sm.strings[idx] = it->get<utf8_string>();
+                    }
+                    else
+                    {
+                        sm.strings[idx] = dm::to_string_view(e);
+                    }
+                    MX_LOG_INFO(" {} : {}", e, sm.strings[idx]);
+                }
+
+                worker_ui.enqueue([sm=std::move(sm)]() mutable -> void
+                {
+                    g_string_manager = std::move(sm);
+                });
+            });
+        });
+    }
+
     void serialization_manager::save_playlist(fs::path&& dest, playlist_handle_t playlistHandle)
     {
         worker_audio.enqueue([=,dest=std::move(dest)]() -> void
@@ -555,11 +615,9 @@ namespace dm
             objectJson["Atmospheres"] = std::move(atmospheresJson);
             objectJson["Playlists"] = std::move(playlistsJson);
 
-            worker_fileio.enqueue([objectJson=std::move(objectJson),dest=std::move(dest)]() -> void
+            worker_fileio.enqueue([objectJson=std::move(objectJson),dest=std::move(dest)]() mutable -> void
             {
-                // serialize json object to string
-                std::fstream fout(dest, std::ios::out | std::ios::binary);
-                fout << std::setw(2) << std::setfill(' ') << objectJson;
+                details::write_json_to_disk(std::move(objectJson), std::move(dest));
             });
         });
     }
@@ -614,11 +672,9 @@ namespace dm
             objectJson["Atmospheres"] = std::move(atmospheresJson);
             objectJson["Playlists"] = std::move(playlistsJson);
 
-            worker_fileio.enqueue([objectJson=std::move(objectJson),dest=std::move(dest)]() -> void
+            worker_fileio.enqueue([objectJson=std::move(objectJson),dest=std::move(dest)]() mutable -> void
             {
-                // serialize json object to string
-                std::fstream fout(dest, std::ios::out | std::ios::binary);
-                fout << std::setw(2) << std::setfill(' ') << objectJson;
+                details::write_json_to_disk(std::move(objectJson), std::move(dest));
             });
         });
     }

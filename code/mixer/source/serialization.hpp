@@ -26,6 +26,7 @@ namespace dm
         void load_stylesheet(fs::path&& source);
         void load_audio_manifests();
         void load_playlist(fs::path&& source);
+        void load_strings(fs::path&& source);
 
         void save_playlist(fs::path&& dest, playlist_handle_t playlist);
         void save_all_playlists(fs::path&& dest);

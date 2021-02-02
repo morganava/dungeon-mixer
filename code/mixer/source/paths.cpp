@@ -52,6 +52,12 @@ namespace dm
 		return strings;
 	}
 
+	fs::path paths::strings_file()
+	{
+		static const fs::path strings_file = strings() / "en-US.json";
+		return strings_file;
+	}
+
 	fs::path paths::playlist_file()
 	{
 		static const fs::path playlist_file = config() / "playlist.json";

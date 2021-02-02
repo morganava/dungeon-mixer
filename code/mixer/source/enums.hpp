@@ -93,11 +93,14 @@ enum class NAME : TYPE {\
     count,\
     __last_named = NAME::count - 1\
 };\
+inline constexpr std::string_view to_string_view(NAME##_t val) {\
+    MX_THROW_IF_FALSE(val == NAME::invalid || (val >= NAME::__first_named && val <= NAME::count));\
+    if (val == NAME::invalid) return std::string_view("invalid");\
+    else if (val == NAME::count) return std::string_view("count");\
+    else return dm::string_list_get_entry(#FIRST ", " #__VA_ARGS__, static_cast<size_t>(val));\
+}\
 inline std::ostream& operator<<(std::ostream& out, NAME##_t val) {\
-    if (val == NAME::invalid) out << MX_STRINGIFY(invalid);\
-    else if (val == NAME::count) out << MX_STRINGIFY(count);\
-    else if (val < NAME::count) out << dm::string_list_get_entry(#FIRST ", " #__VA_ARGS__, static_cast<size_t>(val));\
-    else out << "unknown (" << static_cast<TYPE>(val) << ")";\
+    out << #NAME "::" << to_string_view(val);\
     return out;\
 }
 

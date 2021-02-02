@@ -37,6 +37,7 @@ namespace dm
         utf8_string(const char*);
         utf8_string(const char*, size_t len);
         utf8_string(const std::string&);
+        utf8_string(const std::string_view);
         template<size_t N>
         utf8_string(const char(&str)[N]) : utf8_string(str, N)
         { }

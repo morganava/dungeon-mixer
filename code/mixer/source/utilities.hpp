@@ -139,7 +139,7 @@ namespace dm
     public:
         constexpr range(range&&) = default;
 
-        constexpr range(T from, T to) : range(from, to, from <= to ? 1 : -1)
+        constexpr range(T from, T to) : range(from, to, static_cast<T>(from <= to ? 1 : -1))
         { }
 
         constexpr range(T from, T to, T inc)

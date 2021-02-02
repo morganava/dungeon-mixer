@@ -7,29 +7,41 @@
 namespace dm
 {
     MX_MAKE_ENUM(mixer_string, uint_fast16_t,
-        MX_STR_PLAYLISTS,
-        MX_STR_CREATE_PLAYLIST,
-        MX_STR_ALL_PLAYLIST,
-        MX_STR_EDIT_ATMOSPHERE,
-        MX_STR_ABOUT,
-        MX_STR_PLAYLIST,
-        MX_STR_NEW_ATMOSPHERE,
-        MX_STR_SEARCH,
-        MX_STR_SETTINGS,
-        MX_STR_PLAYING,
-        MX_STR_STOPPED,
-        MX_STR_TITLE,
-        MX_STR_VOLUME
+        sidebar_playlists,
+        sidebar_new_playlist,
+        sidebar_all,
+        sidebar_starred,
+        sidebar_playing,
+        sidebar_edit,
+        sidebar_about,
+        playlist_export,
+        playlist_import,
+        playlist_new_mix,
+        playlist_atmosphere_box,
+        edit_new_mix,
+        edit_track_search,
+        edit_volume,
+        edit_enabled,
+        edit_disabled,
+        edit_position,
+        edit_azimuth,
+        edit_elevation,
+        edit_repeat,
+        edit_delay
     )
 
     class string_manager
     {
     public:
+        string_manager() = default;
         string_manager(fs::path&& stringPath);
-        const char* get_cstring(mixer_string_t str) const;
+
+        utf8_string const& operator[](mixer_string_t) const;
     private:
-        std::string _strings[static_cast<size_t>(mixer_string::count)];
-        bool _strings_loaded = false;
+        constexpr static size_t mixer_string_count = static_cast<size_t>(mixer_string::count);
+        std::array<utf8_string, mixer_string_count> strings;
+
+        friend class serialization_manager;
     };
     MX_MAKE_SINGLETON(string_manager);
 }
