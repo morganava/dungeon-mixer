@@ -14,4 +14,9 @@ namespace dm
             g_serialization_manager.load_strings(paths::strings_file());
         });
     }
+
+    utf8_string const& string_manager::operator[](mixer_string_t str) const
+    {
+        return strings[static_cast<uint_fast16_t>(str)];
+    }
 }

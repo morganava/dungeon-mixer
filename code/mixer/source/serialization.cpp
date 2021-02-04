@@ -563,7 +563,7 @@ namespace dm
                     {
                         sm.strings[idx] = dm::to_string_view(e);
                     }
-                    MX_LOG_INFO(" {} : {}", e, sm.strings[idx]);
+                    MX_LOG_INFO(" {} : '{}'", e, sm.strings[idx]);
                 }
 
                 worker_ui.enqueue([sm=std::move(sm)]() mutable -> void

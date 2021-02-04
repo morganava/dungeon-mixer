@@ -17,7 +17,7 @@ namespace dm
         playlist_export,
         playlist_import,
         playlist_new_mix,
-        playlist_atmosphere_box,
+        playlist_atmosphere_search,
         edit_new_mix,
         edit_track_search,
         edit_volume,
