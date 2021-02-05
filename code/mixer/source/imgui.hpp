@@ -454,6 +454,7 @@ namespace dm
         struct button_data : widget_data
         {
             button_data() = default;
+            // todo: const string& instead?
             button_data(utf8_string text) : text(std::move(text)) {}
             utf8_string text;
             friend struct widget_button;

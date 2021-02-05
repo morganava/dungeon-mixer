@@ -3,6 +3,7 @@
 #include "serialization.hpp"
 #include "paths.hpp"
 #include "file_dialog.hpp"
+#include "string_manager.hpp"
 
 namespace dm
 {
@@ -157,12 +158,11 @@ namespace dm
     // this functionality needs to be pulled out into helper functions for EDIT button
     void ui::on_create_new_atmosphere(playlist_handle_t playlistHandle)
     {
-        constexpr auto* defaultTitle = "New Mix";
         worker_audio.enqueue([=]()
         {
             atmosphere_entry atmosphereEntry =
             {
-                defaultTitle,
+                g_strings[mixer_string::new_atmosphere_name],
                 1.0f,
                 false,
                 false,
@@ -181,7 +181,7 @@ namespace dm
             worker_ui.enqueue([=]()
             {
                 atmosphere_widget atmosphereWidget;
-                atmosphereWidget.title = imgui::button_data(defaultTitle);
+                atmosphereWidget.title = g_strings[mixer_string::new_atmosphere_name];
                 atmosphereWidget.atmosphereHandle = atmosphereHandle;
 
                 // this atmosphere should not exist in our map yet
@@ -348,7 +348,7 @@ namespace dm
         const auto currentPlaylistHandle = currentPlaylist.handle;
         mxVBox(self.tags = {"content"})
         {
-            mxLabel(&root.playlist.heading, self.tags= {"header", "darkText"});
+            mxLabel(g_strings[mixer_string::playlist_screen], self.tags= {"header", "darkText"});
             if (root.playlist.edit_title)
             {
                 mxTextBox(&currentPlaylist.title_textbox, self.tags = {"header", "title", "lightText"},
@@ -379,23 +379,24 @@ namespace dm
 
             mxHBox(self.tags={"playlistButtonRow"})
             {
-                mxButton(&root.playlist.export_,
+                mxButton(g_strings[mixer_string::export_playlist],
                     self.on_click = [=]() -> void
                     {
                         g_ui.on_start_playlist_export(currentPlaylist.handle);
                     });
-                mxButton(&root.playlist.import,
+                mxButton(g_strings[mixer_string::import_playlist],
                     self.on_click = []() -> void
                     {
                         g_ui.on_start_playlist_import();
                     });
                 mxSpacer();
-                mxButton(&root.playlist.newMix,
+                mxButton(g_strings[mixer_string::create_new_mix],
                     self.on_click = [&]() -> void
                     {
                         g_ui.on_create_new_atmosphere(currentPlaylist.handle);
                     });
-                mxTextBox(&currentPlaylist.searchBox, self.tags = {"search"};
+                currentPlaylist.searchBox.placeholderText = g_strings[mixer_string::atmosphere_search];
+                mxTextBox({&currentPlaylist.searchBox}, self.tags = {"search"};
                     self.on_change = [=](const utf8_string& query) -> void
                     {
                         g_ui.on_do_atmosphere_search(currentPlaylist.handle, query);
@@ -416,7 +417,7 @@ namespace dm
                         {
                             g_ui.on_set_atmosphere_favorite(currentAtmosphereHandle, favorited);
                         }); // FAVORITE
-                        mxButton(&currentEntry.title, self.tags = {"entryTitle"},
+                        mxButton(currentEntry.title, self.tags = {"entryTitle"},
                         self.on_click = [=]() -> void
                         {
                             g_ui.on_toggle_atmosphere_context_menu(currentPlaylist.handle, currentAtmosphereHandle);
@@ -442,7 +443,7 @@ namespace dm
                     if (root.playlist.atmosphereContextMenu.visible &&
                         root.playlist.atmosphereContextMenu.atmosphereHandle == currentAtmosphereHandle)
                     {
-                        mxButton({"Edit"}, self.tags={"indent", "contextMenuEntry"},
+                        mxButton(g_strings[mixer_string::edit_atmosphere], self.tags={"indent", "contextMenuEntry"},
                         self.on_click = [=]() -> void
                         {
                             g_ui.on_set_screen_edit(currentAtmosphereHandle);
@@ -451,7 +452,7 @@ namespace dm
                         // only enable removal from user created playlists
                         if (currentPlaylistHandle >= playlist_handle::__first_generated)
                         {
-                            mxButton({"Remove"}, self.tags={"indent", "contextMenuEntry"},
+                            mxButton(g_strings[mixer_string::remove_atmosphere], self.tags={"indent", "contextMenuEntry"},
                             self.on_click = [=]() -> void
                             {
                                 MX_LOG_INFO("Remove atmosphere {} from playlist {}", currentAtmosphereHandle, currentPlaylistHandle);
@@ -459,7 +460,7 @@ namespace dm
                             });
                         }
 
-                        mxButton({"Copy..."}, self.tags={"indent", "contextMenuEntry"},
+                        mxButton(g_strings[mixer_string::copy_atmosphere], self.tags={"indent", "contextMenuEntry"},
                         self.on_click = []() -> void
                         {
                             g_ui.on_open_atmosphere_copy_menu();
@@ -483,7 +484,7 @@ namespace dm
 
                         if (currentPlaylistHandle >= playlist_handle::__first_generated)
                         {
-                            mxButton({"Move..."}, self.tags={"indent", "contextMenuEntry"},
+                            mxButton(g_strings[mixer_string::move_atmosphere], self.tags={"indent", "contextMenuEntry"},
                             self.on_click = []() -> void
                             {
                                 g_ui.on_open_atmosphere_move_menu();
@@ -505,7 +506,7 @@ namespace dm
                             }
                         }
 
-                        mxButton({"Delete"}, self.tags={"indent", "contextMenuEntry"},
+                        mxButton(g_strings[mixer_string::delete_atmosphere], self.tags={"indent", "contextMenuEntry"},
                         self.on_click = [=]() -> void
                         {
                             MX_LOG_INFO("Delete atmosphere : {}", currentAtmosphereHandle);

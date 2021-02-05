@@ -16,7 +16,7 @@ namespace dm
     struct atmosphere_widget
     {
         imgui::checkbox_data favorite = {false};
-        imgui::button_data title;
+        utf8_string title;
         imgui::slider_data volume = {0.0, 1.0, 0.0};
         // duplicate value for toggling mute
         double volumeVal = 0.0;
@@ -31,7 +31,7 @@ namespace dm
         playlist_handle_t handle;
         utf8_string title;
         imgui::text_box_data title_textbox;
-        imgui::text_box_data searchBox = {"", "Search Box"};
+        imgui::text_box_data searchBox;
 
         std::vector<atmosphere_handle_t> entries;
     };
@@ -165,29 +165,14 @@ namespace dm
             struct
             {
                 imgui::scroll_area_data scroll;
-                imgui::button_data playlists = {"Playlists"};
-                imgui::button_data newPlaylist = {"New Playlist"};
-                imgui::button_data starred = {"Starred"};
-                imgui::button_data playing = {"Playing"};
-                imgui::button_data all = {"All"};
-                imgui::button_data edit = {"Edit"};
-                imgui::button_data about = {"About"};
             } sidebar;
 
             screen_t currentScreen = screen::playlist;
 
             struct
             {
-                imgui::label_data heading = {"Playlist"};
                 bool edit_title = false;
-                imgui::button_data export_ = {"Export"};
-                imgui::button_data import = {"Import"};
-                imgui::button_data newMix = {"New Mix"};
-                imgui::button_data searchButton = {};
-
                 imgui::scroll_area_data scroll;
-                imgui::label_data trackTitle = {"Title"};
-                imgui::label_data trackVolume = {"Volume"};
                 imgui::slider_data slider = {0.0f, 100.0f, 50.0f};
 
                 playlist_handle_t currentPlaylistHandle = playlist_handle::all;
@@ -207,13 +192,10 @@ namespace dm
             struct
             {
                 atmosphere_handle_t handle = atmosphere_handle::invalid;
-                imgui::label_data heading = {"Edit"};
                 bool edit_title = false;
                 utf8_string title = "Untitled Mix";
                 imgui::text_box_data title_textbox;
-                imgui::button_data newMix = {"New Mix"};
                 imgui::text_box_data searchBox = {"", "Track Search"};
-                imgui::button_data searchButton = {};
 
                 struct
                 {

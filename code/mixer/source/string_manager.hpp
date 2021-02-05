@@ -7,27 +7,39 @@
 namespace dm
 {
     MX_MAKE_ENUM(mixer_string, uint_fast16_t,
-        sidebar_playlists,
-        sidebar_new_playlist,
-        sidebar_all,
-        sidebar_starred,
-        sidebar_playing,
-        sidebar_edit,
-        sidebar_about,
-        playlist_export,
-        playlist_import,
-        playlist_new_mix,
-        playlist_atmosphere_search,
-        edit_new_mix,
-        edit_track_search,
-        edit_volume,
-        edit_enabled,
-        edit_disabled,
-        edit_position,
-        edit_azimuth,
-        edit_elevation,
-        edit_repeat,
-        edit_delay
+        /* Common */
+        playlists,
+        create_new_playlist,
+        new_playlist_name,
+        new_atmosphere_name,
+        /* Playlist Names */
+        all_playlist,
+        favorites_playlist,
+        playing_playlist,
+        /* Screen Titles */
+        playlist_screen,
+        edit_screen,
+        about_screen,
+        /* Playlist Screen */
+        export_playlist,
+        import_playlist,
+        create_new_mix,
+        atmosphere_search,
+        edit_atmosphere,
+        remove_atmosphere,
+        copy_atmosphere,
+        move_atmosphere,
+        delete_atmosphere,
+        /* Edit Screen */
+        track_search,
+        volume,
+        enabled,
+        disabled,
+        position,
+        azimuth,
+        elevation,
+        repeat,
+        delay
     )
 
     class string_manager
@@ -44,4 +56,5 @@ namespace dm
         friend class serialization_manager;
     };
     MX_MAKE_SINGLETON(string_manager);
+    constexpr inline auto& g_strings = g_string_manager;
 }

@@ -11,6 +11,7 @@
 #include "array.hpp"
 #include "audio.hpp"
 #include "random.hpp"
+#include "string_manager.hpp"
 
 namespace dm
 {
@@ -55,7 +56,6 @@ namespace dm
                     // create widget if we haven't already for this atmosphere
                     if (atmospheres.find(atmosphereHandle) == atmospheres.end()) {
                         const auto& atmosphereEntry = g_atmosphere_directory.get_entry(atmosphereHandle);
-                        utf8_string atmosphereEntry_title = atmosphereEntry.title;
 
                         atmosphere_widget currentAtmosphereWidget =
                         {
@@ -193,7 +193,7 @@ namespace dm
         {
             auto playlistHandle = g_playlist_directory.add_entry(
             {
-                "New Playlist",
+                g_strings[mixer_string::new_playlist_name],
                 {}
             });
 
@@ -201,7 +201,7 @@ namespace dm
 
             worker_ui.enqueue([=]() -> void
             {
-                g_ui.root.playlist.playlists.push_back({playlistHandle, "New Playlist"});
+                g_ui.root.playlist.playlists.push_back({playlistHandle, g_strings[mixer_string::new_playlist_name]});
             });
         });
     }
@@ -237,7 +237,7 @@ namespace dm
                 // create a new atmosphere and begin editing
                 if (atmosphereHandle == atmosphere_handle::invalid)
                 {
-                    atmosphereTitle = "New Mix";
+                    atmosphereTitle = g_strings[mixer_string::new_atmosphere_name];
                     atmosphere_entry atmosphereEntry = { atmosphereTitle };
                     atmosphereHandle = g_atmosphere_directory.add_entry(std::move(atmosphereEntry));
                     g_playlist_directory.add_atmosphere(playlist_handle::all, atmosphereHandle);
@@ -246,7 +246,7 @@ namespace dm
                     worker_ui.enqueue([=,title=atmosphereTitle]() -> void
                     {
                         atmosphere_widget atmosphereWidget;
-                        atmosphereWidget.title.text = std::move(title);
+                        atmosphereWidget.title = std::move(title);
                         atmosphereWidget.volume.value = 1.0;
                         atmosphereWidget.volumeVal = 1.0;
 
@@ -346,8 +346,8 @@ namespace dm
         mxVScroll(&root.sidebar.scroll, self.tags = {"sidebar"})
         {
             mxSpacer(self.requestHeight(100.0));
-            mxButton(&root.sidebar.playlists, self.tags = {"mediumText", "sidebarEntry"});
-            mxButton(&root.sidebar.newPlaylist, self.tags = {"lightText", "sidebarEntry", "indent"};
+            mxLabel(g_strings[mixer_string::playlists], self.tags = {"mediumText", "sidebarEntry"});
+            mxButton(g_strings[mixer_string::create_new_playlist], self.tags = {"lightText", "sidebarEntry", "indent"};
             self.on_click = []() -> void
             {
                 g_ui.on_create_new_playlist();
@@ -356,19 +356,33 @@ namespace dm
             {
                 auto& currentPlaylist = root.playlist.playlists[i];
                 imgui::button_data bd(currentPlaylist.title);
-                mxButton(currentPlaylist.title, self.tags = {"lightText","sidebarEntry", "indent"};
+                utf8_string const& playlistTitle = [&]()
+                {
+                    switch(currentPlaylist.handle)
+                    {
+                        case playlist_handle::all:
+                            return g_strings[mixer_string::all_playlist];
+                        case playlist_handle::favorites:
+                            return g_strings[mixer_string::favorites_playlist];
+                        case playlist_handle::playing:
+                            return g_strings[mixer_string::playing_playlist];
+                        default:
+                            return currentPlaylist.title;
+                    }
+                }();
+                mxButton(playlistTitle, self.tags = {"lightText","sidebarEntry", "indent"};
                     self.on_click = [=]() -> void
                     {
                         g_ui.on_set_screen_playlist(currentPlaylist.handle);
                     };
                 );
             }
-            mxButton(&root.sidebar.edit, self.tags = {"mediumText", "sidebarEntry"};
+            mxButton(g_strings[mixer_string::edit_screen], self.tags = {"mediumText", "sidebarEntry"};
             self.on_click = []() -> void
             {
                 g_ui.on_set_screen_edit(g_ui.root.edit.handle);
             });
-            mxButton(&root.sidebar.about, self.tags = {"mediumText", "sidebarEntry"};
+            mxButton(g_strings[mixer_string::about_screen], self.tags = {"mediumText", "sidebarEntry"};
             self.on_click = []() -> void
             {
                 g_ui.on_set_screen_about();

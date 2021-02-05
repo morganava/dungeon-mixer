@@ -1,4 +1,5 @@
 #include "ui.hpp"
+#include "string_manager.hpp"
 
 namespace dm
 {
@@ -24,7 +25,7 @@ namespace dm
             g_ui.root.edit.edit_title = false;
 
             auto& atmosphereWidget = g_ui.get_atmosphere_widget(atmosphereHandle);
-            atmosphereWidget.title.text = name;
+            atmosphereWidget.title = std::move(name);
 
             worker_audio.enqueue([=,name=std::move(name)]() mutable -> void
             {
@@ -189,7 +190,7 @@ namespace dm
         const auto currentAtmosphereHandle = g_ui.root.edit.handle;
         mxVBox(self.tags={"content"})
         {
-            mxLabel(&root.edit.heading, self.tags= {"header", "darkText"});
+            mxLabel(g_strings[mixer_string::edit_screen], self.tags= {"header", "darkText"});
             if (root.edit.edit_title)
             {
                 mxTextBox(&root.edit.title_textbox, self.tags = {"header", "title", "lightText"},
@@ -212,11 +213,12 @@ namespace dm
 
             mxHBox(self.tags={"editButtonRow"})
             {
-                mxButton(&root.edit.newMix, self.on_click = []() -> void
+                mxButton(g_strings[mixer_string::create_new_mix], self.on_click = []() -> void
                 {
                     g_ui.on_set_screen_edit(atmosphere_handle::invalid);
                 });
                 mxSpacer();
+                root.edit.searchBox.placeholderText = g_strings[mixer_string::track_search];
                 mxTextBox(&root.edit.searchBox, self.tags = {"search"};
                 self.on_change = [](const utf8_string& query) -> void
                 {
@@ -245,7 +247,7 @@ namespace dm
                         {
                             mxHBox(self.tags={"trackSetting"})
                             {
-                                mxLabel({"VOLUME"});
+                                mxLabel(g_strings[mixer_string::volume]);
                                 mxSlider(&editWidget.volume_slider,
                                 self.on_change = [=](double value) -> void
                                 {
@@ -254,14 +256,16 @@ namespace dm
                             }
                             mxHBox(self.tags={"trackSetting"})
                             {
-                                mxLabel({"POSITION"});
+                                mxLabel(g_strings[mixer_string::position]);
                                 mxHBox(self.tags={"trackPositionCheckbox"})
                                 {
                                     mxCheckbox(&editWidget.position_checkbox,
                                     self.on_change = [=](bool value) -> void{
                                         g_ui.on_set_track_position_enabled(trackHandle, value);
                                     });
-                                    mxLabel({"ENABLED"});
+                                    mxLabel(editWidget.position_checkbox.checked ?
+                                            g_strings[mixer_string::enabled] :
+                                            g_strings[mixer_string::disabled]);
                                 }
                             }
                             if (editWidget.position_checkbox.checked)
@@ -269,7 +273,7 @@ namespace dm
                                 // azimuth is the horizontal angle
                                 mxHBox(self.tags={"trackSetting"})
                                 {
-                                    mxLabel({"AZIMUTH"});
+                                    mxLabel(g_strings[mixer_string::azimuth]);
                                     mxHBox(self.tags={"sliderSetting"})
                                     {
                                         mxSlider(&editWidget.azimuth_slider,
@@ -283,7 +287,7 @@ namespace dm
                                 // elevation is the vertical angle
                                 mxHBox(self.tags={"trackSetting"})
                                 {
-                                    mxLabel({"ELEVATION"});
+                                    mxLabel(g_strings[mixer_string::elevation]);
                                     mxHBox(self.tags={"sliderSetting"})
                                     {
                                         mxSlider(&editWidget.elevation_slider,
@@ -300,7 +304,7 @@ namespace dm
                             {
                                 mxHBox(self.tags={"trackSetting"})
                                 {
-                                    mxLabel({"REPEAT"});
+                                    mxLabel(g_strings[mixer_string::repeat]);
                                     mxHBox(self.tags={"trackPositionCheckbox"})
                                     {
                                         mxCheckbox(&editWidget.repeat_checkbox,
@@ -308,14 +312,16 @@ namespace dm
                                         {
                                             g_ui.on_set_track_repeat_enabled(trackHandle, value);
                                         });
-                                        mxLabel({"ENABLED"});
+                                        mxLabel(editWidget.repeat_checkbox.checked ?
+                                                g_strings[mixer_string::enabled] :
+                                                g_strings[mixer_string::disabled]);
                                     }
                                 }
                                 if (editWidget.repeat_checkbox.checked)
                                 {
                                     mxHBox(self.tags={"trackSetting"})
                                     {
-                                        mxLabel({"DELAY"});
+                                        mxLabel(g_strings[mixer_string::delay]);
                                         mxHBox(self.tags={"rangeSliderSetting"})
                                         {
                                             mxLabel(editWidget.repeat_min_string);
