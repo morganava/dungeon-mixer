@@ -31,6 +31,7 @@ namespace dm
     class utf8_string
     {
     public:
+        ~utf8_string();
         utf8_string();
         utf8_string(const utf8_string&);
         utf8_string(utf8_string&&);
@@ -39,7 +40,7 @@ namespace dm
         utf8_string(const std::string&);
         utf8_string(const std::string_view);
         template<size_t N>
-        utf8_string(const char(&str)[N]) : utf8_string(str, N)
+        utf8_string(const char(&str)[N]) : utf8_string(str, N-1)
         { }
         utf8_string& operator=(const utf8_string&);
         utf8_string& operator=(utf8_string&&);
@@ -48,7 +49,7 @@ namespace dm
         template<size_t N>
         utf8_string& operator=(const char(&str)[N])
         {
-            normalize_and_assign(str, N);
+            normalize_and_assign(str, N-1);
             return *this;
         }
 
@@ -71,16 +72,28 @@ namespace dm
         utf8_string_iterator end() const;
 
     private:
+        // refcounted variable-length struct that holds our shared string data
+        struct string_data
+        {
+            // the number of references to this data
+            std::atomic<size_t> counter;
+            // size of the string (not including null-terminator)
+            size_t size;
+            // our string data
+            char data[1];
+
+            string_data(size_t size, char const* data);
+            string_data* increment();
+            void decrement();
+            void* operator new(size_t, size_t size, std::nullptr_t=nullptr);
+            void operator delete(void* ptr, size_t=0, std::nullptr_t=nullptr);
+        };
+        mutable string_data* stringData;
+
         // private constructor, takes ownership of pointer
-        utf8_string(size_t size, utf8proc_uint8_t*);
+        utf8_string(string_data*);
         // normalizes  and assigns a new string
         void normalize_and_assign(const char* cstr, size_t len);
-
-        // size in bytes excluding null terminator
-        size_t _size;
-        // data buffer
-        std::unique_ptr<utf8proc_uint8_t[], decltype(&std::free)> _data;
-        constexpr static const char* _emptyString = "";
 
         friend struct uf8_string_hash;
         friend void to_json(nl::json&, const utf8_string&);

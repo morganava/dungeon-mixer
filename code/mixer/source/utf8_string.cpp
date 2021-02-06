@@ -69,90 +69,110 @@ namespace dm
         return utf8_codepoint(utf8proc_toupper(_codepoint));
     }
 
+    // utf8_string::string_data
+
+
+    utf8_string::string_data::string_data(size_t size, char const* data)
+    : counter(1)
+    , size(size)
+    {
+
+        std::copy(data, data + size, this->data);
+        this->data[size] = 0;
+    }
+
+    utf8_string::string_data* utf8_string::string_data::increment()
+    {
+        ++counter;
+        return this;
+    }
+
+    void utf8_string::string_data::decrement()
+    {
+        if(const auto count = --counter; count == 0)
+        {
+            operator delete(this);
+        }
+    }
+
+    void* utf8_string::string_data::operator new(size_t, size_t size, std::nullptr_t)
+    {
+        // +1 for null-terminator
+        return ::operator new(offsetof(string_data, data) + size + 1);
+    }
+
+    void utf8_string::string_data::operator delete(void* ptr, size_t, std::nullptr_t)
+    {
+        ::operator delete(ptr);
+    }
+
+    // Destructor
+
+    utf8_string::~utf8_string()
+    {
+        if (stringData != nullptr)
+        {
+            stringData->decrement();
+            stringData = nullptr;
+        }
+    }
+
     // Constructors
 
     utf8_string::utf8_string()
-    : _size(0)
-    , _data(nullptr, std::free)
+    : stringData(new (0) string_data(0, ""))
     { }
 
     utf8_string::utf8_string(const utf8_string& that)
-    : _size(0)
-    , _data(nullptr, std::free)
-    {
-        *this = that;
-    }
+    : stringData(that.stringData->increment())
+    { }
 
     utf8_string::utf8_string(utf8_string&& that)
-    : _size(0)
-    , _data(nullptr, std::free)
+    : stringData(that.stringData)
     {
-        *this = std::move(that);
+        that.stringData = nullptr;
     }
 
     utf8_string::utf8_string(const char* cstr)
-    : _size(0)
-    , _data(nullptr, std::free)
-    {
-        *this = cstr;
-    }
+    : utf8_string(cstr, std::strlen(cstr))
+    { }
 
     utf8_string::utf8_string(const char* cstr, size_t len)
-    : _size(0)
-    , _data(nullptr, std::free)
+    : stringData(nullptr)
     {
         normalize_and_assign(cstr, len);
     }
 
     utf8_string::utf8_string(const std::string& str)
-     : utf8_string(str.c_str())
+     : utf8_string(str.c_str(), str.size())
     { }
 
     utf8_string::utf8_string(const std::string_view sv)
     : utf8_string(sv.data(), sv.size())
     { }
 
-    utf8_string::utf8_string(size_t size, utf8proc_uint8_t* data)
-    : _size(size)
-    , _data(data, std::free)
+    utf8_string::utf8_string(string_data* stringData)
+    : stringData(stringData)
     { }
 
     // Assignment Operators
-
+    // todo: delete this
     utf8_string& utf8_string::operator=(const utf8_string& that)
     {
-        if(that._size == 0)
-        {
-            this->_size = 0;
-            this->_data.reset(nullptr);
-            return *this;
-        }
-
-        // copy buffer from that
-        const auto n = that._size + 1;
-        if(this->_size != that._size)
-        {
-            this->_size = that._size;
-            this->_data.reset(reinterpret_cast<utf8proc_uint8_t*>(std::calloc(n, sizeof(utf8proc_uint8_t))));
-        }
-        std::memcpy(this->_data.get(), that._data.get(), n);
-
+        this->stringData = that.stringData->increment();
         return *this;
     }
 
     utf8_string& utf8_string::operator=(utf8_string&& that)
     {
-        this->_size = that._size;
-        this->_data = std::move(that._data);
-        that._size = 0;
-
+        this->stringData = that.stringData;
+        that.stringData = nullptr;
         return *this;
     }
 
     utf8_string& utf8_string::operator=(const char* cstr)
     {
         normalize_and_assign(cstr, std::strlen(cstr));
-
         return *this;
     }
 
@@ -165,49 +185,41 @@ namespace dm
     void utf8_string::normalize_and_assign(const char* cstr, size_t len)
     {
         MX_THROW_IF_NULL(cstr);
-        if(*cstr == 0)
-        {
-            this->_size = 0;
-            this->_data.reset(nullptr);
-            return;
-        }
 
         // compose codepoints and what-not
-        utf8proc_uint8_t* data = nullptr;
-        utf8proc_option_t options = static_cast<utf8proc_option_t>(UTF8PROC_STABLE | UTF8PROC_COMPOSE | UTF8PROC_IGNORE);
-        auto size = utf8proc_map(reinterpret_cast<const utf8proc_uint8_t*>(cstr), len, &data, options);
+        std::unique_ptr<utf8proc_uint8_t, decltype(&std::free)> data(nullptr, std::free);
+        constexpr auto options = static_cast<utf8proc_option_t>(UTF8PROC_STABLE | UTF8PROC_COMPOSE | UTF8PROC_IGNORE);
+        auto size = utf8proc_map(reinterpret_cast<utf8proc_uint8_t const*>(cstr), len, out(data), options);
         if(size < 0)
         {
             MX_THROW_MSG("{}", utf8proc_errmsg(size));
         }
 
-        this->_size = size;
-        this->_data.reset(data);
+        if (this->stringData != nullptr)
+        {
+            this->stringData->decrement();
+            this->stringData = nullptr;
+        }
+
+        this->stringData = new (size) string_data(size, reinterpret_cast<char*>(data.get()));
     }
 
     // Equality Operators
 
     bool utf8_string::operator==(const utf8_string& that) const
     {
-        if(this == &that)
+        if (this->stringData == that.stringData)
         {
             return true;
         }
 
-        if(this->_size != that._size)
+        if (this->stringData->size != that.stringData->size)
         {
             return false;
         }
 
-        for(size_t k = 0; k < this->_size; k++)
-        {
-            if(this->_data[k] != that._data[k])
-            {
-                return false;
-            }
-        }
-
-        return true;
+        return std::equal(this->stringData->data, this->stringData->data + this->stringData->size,
+                          that.stringData->data);
     }
 
     bool utf8_string::operator!=(const utf8_string& that) const
@@ -221,7 +233,7 @@ namespace dm
     {
         std::vector<utf8_string> retval;
         utf8_stringbuffer sb;
-        sb.reserve(this->_size + 1);
+        sb.reserve(this->size() + 1);
 
         for(auto cp : *this)
         {
@@ -249,22 +261,21 @@ namespace dm
 
     utf8_string utf8_string::normalized() const
     {
-        if(this->_size > 0)
+        if (this->size() == 0)
         {
-            MX_ASSERT(this->_data.get() != nullptr);
-
-            utf8proc_uint8_t* data = nullptr;
-            utf8proc_option_t options = static_cast<utf8proc_option_t>(UTF8PROC_NULLTERM | UTF8PROC_CASEFOLD);
-            auto size = utf8proc_map(this->_data.get(), 0, &data, options);
-            if(size < 0)
-            {
-                MX_THROW_MSG("{}", utf8proc_errmsg(size));
-            }
-
-            return utf8_string(size, data);
+            return *this;
         }
 
-        return utf8_string();
+        std::unique_ptr<utf8proc_uint8_t, decltype(&std::free)> data(nullptr, std::free);
+        constexpr auto options = static_cast<utf8proc_option_t>(UTF8PROC_NULLTERM | UTF8PROC_CASEFOLD);
+        auto size = utf8proc_map(reinterpret_cast<utf8proc_uint8_t*>(this->stringData->data), 0, out(data), options);
+
+        if(size < 0)
+        {
+            MX_THROW_MSG("{}", utf8proc_errmsg(size));
+        }
+
+        return utf8_string(new(size) string_data(size, reinterpret_cast<char*>(data.get())));
     }
 
     std::string utf8_string::str() const
@@ -274,11 +285,7 @@ namespace dm
 
     const char* utf8_string::c_str() const
     {
-        if(this->_size == 0)
-        {
-            return _emptyString;
-        }
-        return reinterpret_cast<const char*>(_data.get());
+        return this->stringData->data;
     }
 
     const uint8_t* utf8_string::data() const
@@ -288,7 +295,7 @@ namespace dm
 
     size_t utf8_string::size() const
     {
-        return this->_size;
+        return this->stringData->size;
     }
 
     bool utf8_string::empty() const
@@ -300,14 +307,14 @@ namespace dm
     utf8_string_iterator utf8_string::begin() const
     {
         utf8proc_uint8_t* head = reinterpret_cast<utf8proc_uint8_t*>(const_cast<char*>(this->c_str()));
-        auto tail = head + this->_size;
+        auto tail = head + this->size();
         return utf8_string_iterator(head, tail);
     }
 
     utf8_string_iterator utf8_string::end() const
     {
         utf8proc_uint8_t* head = reinterpret_cast<utf8proc_uint8_t*>(const_cast<char*>(this->c_str()));
-        auto tail = head + this->_size;
+        auto tail = head + this->size();
         return utf8_string_iterator(tail, tail);
     }
 //
