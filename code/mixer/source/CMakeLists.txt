@@ -3,6 +3,7 @@ find_package(GLEW REQUIRED)
 find_package(SFML 2.4 REQUIRED COMPONENTS audio)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -Wfatal-errors -fconcepts")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
 
 add_executable(dungeon_mixer
     precomp.cpp

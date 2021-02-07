@@ -344,6 +344,7 @@ namespace dm
             ~widget_root();
 
             void resolve_box_layout_impl(element_type_t et, widget_flag_t flag);
+            void render_box_layout_impl() const;
             void resolve_scissor_impl();
 
             rect bounds_callback_impl(rect desiredBounds);

@@ -71,7 +71,14 @@ namespace dm
         void context::pop_scissor()
         {
             _render_scissor_stack.pop_back();
-            g_nanovg.set_scissor(_render_scissor_stack.back());
+            if(_render_scissor_stack.size() > 0)
+            {
+                g_nanovg.set_scissor(_render_scissor_stack.back());
+            }
+            else
+            {
+                g_nanovg.set_scissor({});
+            }
         }
 
         // widget_base
@@ -230,6 +237,12 @@ namespace dm
 
             // get our style
             this->_style = g_style_resolver.resolve(et, this->tags, element_state::none);
+        }
+
+        void widget_root::render_box_layout_impl() const
+        {
+            g_nanovg.set_draw_layer(draw_layer::background);
+            widget_base::render_box_layout_impl();
         }
 
         void widget_root::resolve_scissor_impl()

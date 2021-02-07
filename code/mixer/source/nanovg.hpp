@@ -126,6 +126,7 @@ namespace dm
 
             template<typename T>
             void push_back(T&& val) {
+                MX_ASSERT(_currentLayer != draw_layer::invalid && _currentLayer < draw_layer::count);
                 _commands[static_cast<size_t>(_currentLayer)].push_back(std::forward<T>(val));
             }
 
