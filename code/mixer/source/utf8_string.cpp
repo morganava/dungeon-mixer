@@ -71,12 +71,10 @@ namespace dm
 
     // utf8_string::string_data
 
-
     utf8_string::string_data::string_data(size_t size, char const* data)
     : counter(1)
     , size(size)
     {
-
         std::copy(data, data + size, this->data);
         this->data[size] = 0;
     }
@@ -156,15 +154,16 @@ namespace dm
     { }
 
     // Assignment Operators
-    // todo: delete this
     utf8_string& utf8_string::operator=(const utf8_string& that)
     {
+        this->stringData->decrement();
         this->stringData = that.stringData->increment();
         return *this;
     }
 
     utf8_string& utf8_string::operator=(utf8_string&& that)
     {
+        this->stringData->decrement();
         this->stringData = that.stringData;
         that.stringData = nullptr;
         return *this;

@@ -88,7 +88,7 @@ namespace dm
             void* operator new(size_t, size_t size, std::nullptr_t=nullptr);
             void operator delete(void* ptr, size_t=0, std::nullptr_t=nullptr);
         };
-        mutable string_data* stringData;
+        mutable string_data* stringData = nullptr;
 
         // private constructor, takes ownership of pointer
         utf8_string(string_data*);
