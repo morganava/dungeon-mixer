@@ -92,7 +92,7 @@ enum class NAME : TYPE {\
     invalid = static_cast<TYPE>(~TYPE(0)),\
     __first_named = 0,\
     FIRST = 0,\
-    __VA_ARGS__,\
+    __VA_ARGS__ __VA_OPT__(,)\
     count,\
     __last_named = NAME::count - 1\
 };\

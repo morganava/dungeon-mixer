@@ -3,22 +3,24 @@
 
 namespace dm
 {
-	void fail_fast(std::experimental::source_location location, std::string&& msg);
-	template<typename... ARGS>
-	void fail_fast(std::experimental::source_location location)
-	{
-		fail_fast(location, {});
-	}
-    template<size_t N, typename... ARGS>
-	void fail_fast(std::experimental::source_location location, char const(&format)[N], ARGS... args)
-	{
-		fail_fast(location, fmt::format(format, std::forward<ARGS>(args)...));
-	}
+    void debug_break();
 
-	void check_assertion(std::experimental::source_location location, bool val, std::string_view valString);
+    void fail_fast(std::experimental::source_location location, std::string&& msg);
+    template<typename... ARGS>
+    void fail_fast(std::experimental::source_location location)
+    {
+        fail_fast(location, {});
+    }
+    template<size_t N, typename... ARGS>
+    void fail_fast(std::experimental::source_location location, char const(&format)[N], ARGS... args)
+    {
+        fail_fast(location, fmt::format(format, std::forward<ARGS>(args)...));
+    }
+
+    void check_assertion(std::experimental::source_location location, bool val, std::string_view valString);
 }
 
-#define MX_DEBUGBREAK(...) __builtin_trap()
+#define MX_DEBUGBREAK(...) dm::debug_break()
 #define MX_FAIL_FAST(...) dm::fail_fast(std::experimental::source_location() __VA_OPT__(,) __VA_ARGS__);
 #define MX_ASSERT(X) dm::check_assertion(std::experimental::source_location(), X, #X);
 
