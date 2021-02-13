@@ -7,6 +7,7 @@
 #include "work_queue.hpp"
 #include "utf8_string.hpp"
 #include "array.hpp"
+#include "logger.hpp"
 
 namespace dm
 {

@@ -1,8 +1,11 @@
 #pragma once
 
+#include "errors.hpp"
+#include "utilities.hpp"
+
 namespace dm
 {
-    template<size_t N> constexpr std::string_view string_list_get_entry(const char (&list)[N], size_t );
+    // template<size_t N> constexpr std::string_view string_list_get_entry(const char (&list)[N], size_t );
 
     template<typename E>
     struct enum_iterator

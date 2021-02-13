@@ -4,6 +4,8 @@
 #include "paths.hpp"
 #include "file_dialog.hpp"
 #include "string_manager.hpp"
+#include "work_queue.hpp"
+#include "logger.hpp"
 
 namespace dm
 {

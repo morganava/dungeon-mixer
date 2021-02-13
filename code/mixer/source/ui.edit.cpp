@@ -1,5 +1,6 @@
 #include "ui.hpp"
 #include "string_manager.hpp"
+#include "work_queue.hpp"
 
 namespace dm
 {

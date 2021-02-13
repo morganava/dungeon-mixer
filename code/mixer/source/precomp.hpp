@@ -36,6 +36,7 @@ namespace fs = std::filesystem;
 #include <optional>
 #include <future>
 #include <condition_variable>
+#include <experimental/source_location>
 
 // utf8proc : https://github.com/JuliaStrings/utf8proc
 #define UTF8PROC_STATIC

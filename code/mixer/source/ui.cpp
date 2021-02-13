@@ -12,6 +12,8 @@
 #include "audio.hpp"
 #include "random.hpp"
 #include "string_manager.hpp"
+#include "work_queue.hpp"
+#include "logger.hpp"
 
 namespace dm
 {

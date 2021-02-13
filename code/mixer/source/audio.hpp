@@ -1,5 +1,6 @@
 #pragma once
 
+#include "enums.hpp"
 #include "tag_map.hpp"
 #include "uuid.hpp"
 #include "singleton.hpp"

@@ -7,18 +7,10 @@
 
 #define __STR_LINE__ MX_STRINGIFY(__LINE__)
 
-#define MX_FAIL_FAST(...) do {g_logger.log<dm::log_level::error>("Fail Fast : " __FILE__ ":" __STR_LINE__ " " __VA_ARGS__).wait(); MX_DEBUGBREAK(); } while(false)
-#define MX_ASSERT(X) do { if(!(X)) { g_logger.log<dm::log_level::error>("Assertion Failure: " __FILE__ ":" __STR_LINE__ " " #X); MX_DEBUGBREAK();} } while(false)
-#define MX_THROW_IF_FALSE(X) do { if(!(X)) { throw std::runtime_error("Runtime Failure: " __FILE__ ":" __STR_LINE__ " " #X);} } while(0)
-#define MX_THROW_IF_NULL(X) MX_THROW_IF_FALSE((X) != nullptr)
-#define MX_THROW_IF_NOT_NULL(X) MX_THROW_IF_FALSE((X) == nullptr)
-#define MX_THROW_MSG(...) throw std::runtime_error(fmt::format("Runtime Failure: " __FILE__ ":" __STR_LINE__ " " __VA_ARGS__));
-#define MX_THROW_MSG_IF_FALSE(X, ...) do { if (!(X)) { throw std::runtime_error(fmt::format("Runtime Failure: " __FILE__ ":" __STR_LINE__ " " __VA_ARGS__)); } } while(0)
+#include "errors.hpp"
 
 #define MX_FORCE_INLINE __attribute__ ((always_inline))
 #define MX_NEVER_INLINE __attribute__ ((noinline))
-
-#include "logger.hpp"
 
 // extra print operators
 std::ostream& operator<<(std::ostream& out, const sf::Vector3f& vec);
@@ -234,6 +226,9 @@ namespace dm
         const T inc;
     };
 
+    std::string_view string_list_get_entry(std::string_view list, size_t );
+
+#if 0
 	// list must be a string in the form "foo, bar, baz"
     template<size_t N>
     constexpr std::string_view string_list_get_entry(const char (&list)[N], size_t index)
@@ -251,6 +246,7 @@ namespace dm
         auto tail = std::find(head, std::end(list), ',');
         return std::string_view(head, tail - head);
     }
+    #endif
 }
 
 namespace std

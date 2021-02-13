@@ -1,3 +1,4 @@
+#include "logger.hpp"
 #include "uuid.hpp"
 #include "utilities.hpp"
 #include "work_queue.hpp"

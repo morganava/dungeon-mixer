@@ -8,6 +8,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
 add_executable(dungeon_mixer
     precomp.cpp
     # utilities
+    errors.cpp
     file_dialog.cpp
     tag_map.cpp
     hash.cpp

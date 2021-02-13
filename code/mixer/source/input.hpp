@@ -1,5 +1,6 @@
 #pragma once
 
+#include "enums.hpp"
 #include "singleton.hpp"
 
 namespace dm

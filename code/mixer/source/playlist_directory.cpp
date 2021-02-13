@@ -2,6 +2,7 @@
 #include "ui.hpp"
 #include "serialization.hpp"
 #include "paths.hpp"
+#include "work_queue.hpp"
 
 namespace dm
 {
