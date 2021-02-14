@@ -13,27 +13,33 @@ namespace dm
 
 	void fail_fast(std::experimental::source_location location, std::string&& msg)
 	{
-        g_logger.log<dm::log_level::error>(
-            "Fail Fast: {} {}: {}",
-            location.file_name(),
-            location.function_name(),
-            location.line());
+            MX_LOG_ERROR_BLOCKING(
+                "Fail Fast: {} {}: {}",
+                location.file_name(),
+                location.function_name(),
+                location.line(),
+                std::move(msg));
 
-        MX_DEBUGBREAK();
+            debug_break();
 	}
 
 	void check_assertion(std::experimental::source_location location, bool val, std::string_view valString)
 	{
-		if (!val)
+		if (!val) [[unlikely]]
 		{
-			g_logger.log<dm::log_level::error>(
+			MX_LOG_ERROR_BLOCKING(
 				"Assertion Failure: {} {}:{} {}",
 				location.file_name(),
 				location.function_name(),
 				location.line(),
 				valString);
 
-			MX_DEBUGBREAK();
+			debug_break();
 		}
 	}
+
+    void throw_message(std::experimental::source_location location, std::string_view message)
+    {
+        MX_THROW_MSG_IMPL(location, message);
+    }
 }

@@ -87,7 +87,7 @@ namespace dm
         ui,
         fileio,
         background,
-		audio,
+        audio,
         logging
     );
 
@@ -150,7 +150,7 @@ namespace dm
         std::condition_variable _suspend_handle[_worker_count];
 
         std::thread _threads[_worker_count];
-		// only used for verification purposes
+        // only used for verification purposes
         std::thread::id _thread_ids[_worker_count];
 
         friend class worker;

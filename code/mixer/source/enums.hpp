@@ -1,12 +1,10 @@
 #pragma once
 
 #include "errors.hpp"
-#include "utilities.hpp"
+#include "macros.hpp"
 
 namespace dm
 {
-    // template<size_t N> constexpr std::string_view string_list_get_entry(const char (&list)[N], size_t );
-
     template<typename E>
     struct enum_iterator
     {
@@ -140,7 +138,6 @@ inline std::ostream& operator<<(std::ostream& out, NAME##_t val) {\
 
 #define MX_ENUM_VALUES() __first_generated=0
 #define MX_ENUM_VALUES_N(FIRST, ...) FIRST=0, __VA_ARGS__ __VA_OPT__(,) __first_generated
-#define MX_GLUE(A,B) A##B
 
 #define MX_MAKE_HANDLE_ENUM(NAME, ...)\
 enum class NAME : size_t;\

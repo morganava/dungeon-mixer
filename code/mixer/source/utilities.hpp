@@ -220,28 +220,6 @@ namespace dm
         const T to;
         const T inc;
     };
-
-    std::string_view string_list_get_entry(std::string_view list, size_t );
-
-#if 0
-	// list must be a string in the form "foo, bar, baz"
-    template<size_t N>
-    constexpr std::string_view string_list_get_entry(const char (&list)[N], size_t index)
-    {
-        auto head = std::begin(list);
-        if (index > 0)
-        {
-            for(size_t k = 0 ; k < index; k++)
-            {
-                head = std::find(head + 1, std::end(list), ',');
-            }
-            // skip ", "
-            head += 2;
-        }
-        auto tail = std::find(head, std::end(list), ',');
-        return std::string_view(head, tail - head);
-    }
-    #endif
 }
 
 namespace std
