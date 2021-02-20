@@ -1,12 +1,15 @@
 #pragma once
 
+#include "errors.hpp"
+#include "worker_enums.hpp"
+
 namespace dm
 {
     template<typename TYPE>
     class singleton
     {
     public:
-        constexpr TYPE& get()
+        constexpr TYPE& unsafe_get()
         {
             return *data;
         }
@@ -36,11 +39,13 @@ namespace dm
         // todo: check for correct thread and whatnot
         TYPE* operator->()
         {
+            MX_ASSERT(can_call_from_current_thread(allowedThreads));
             return data.operator->();
         }
 
         TYPE const* operator->() const
         {
+            MX_ASSERT(can_call_from_current_thread(allowedThreads));
             return data.operator->();
         }
 
@@ -64,6 +69,7 @@ namespace dm
         static singleton instance;
     private:
         std::optional<TYPE> data;
+        const worker_flag allowedThreads = worker_flag::any;
     };
     template<typename TYPE>
     typename singleton<TYPE>::singleton singleton<TYPE>::singleton::instance;

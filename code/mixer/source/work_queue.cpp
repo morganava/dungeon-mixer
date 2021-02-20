@@ -5,17 +5,27 @@
 
 namespace dm
 {
+    bool can_call_from_current_thread(worker_flag_t allowedThreads)
+    {
+        auto currentThread = g_work_manager.unsafe_get().current_thread();
+        auto currentThreadFlag = static_cast<worker_flag_t>(1 << static_cast<size_t>(currentThread));
+
+        return (allowedThreads & currentThreadFlag) != worker_flag::none;
+    }
+
     // WorkerManager
 
     void worker_thread(worker_id_t id)
     {
         const auto workerIndex = static_cast<size_t>(id);
-        g_work_manager->_thread_ids[workerIndex] = std::this_thread::get_id();
+        auto& workManager = g_work_manager.unsafe_get();
 
-        while(g_work_manager->accepting_work())
+        workManager._thread_ids[workerIndex] = std::this_thread::get_id();
+
+        while(workManager.accepting_work())
         {
             // empty queue of work
-            const auto completionTime = g_work_manager->do_tasks(id);
+            const auto completionTime = workManager.do_tasks(id);
             const auto now = std::chrono::system_clock::now();
             const auto diff = now - completionTime;
 
@@ -37,7 +47,7 @@ namespace dm
             // finally suspend
             else
             {
-                g_work_manager->suspend_worker(workerIndex);
+                workManager.suspend_worker(workerIndex);
             }
         }
     }
@@ -72,7 +82,7 @@ namespace dm
     timestamp work_manager::do_tasks(worker_id_t id)
     {
         const size_t index = static_cast<size_t>(id);
-        MX_ASSERT(g_work_manager->current_index() == index);
+        MX_ASSERT(this->current_index() == index);
 
         timestamp retval;
 
@@ -147,12 +157,12 @@ namespace dm
 
     size_t work_manager::current_index() const
     {
-        const thread_local size_t index = []()
+        const thread_local size_t index = [this]()
         {
             const auto id = std::this_thread::get_id();
-            for(size_t k = 0; k < g_work_manager->_worker_count; k++)
+            for(size_t k = 0; k < this->_worker_count; k++)
             {
-                if (id == g_work_manager->_thread_ids[k]) {
+                if (id == this->_thread_ids[k]) {
                     return k;
                 }
             }

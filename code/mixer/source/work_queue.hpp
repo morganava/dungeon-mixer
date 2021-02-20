@@ -1,6 +1,6 @@
 #pragma once
 
-#include "enums.hpp"
+#include "worker_enums.hpp"
 #include "singleton.hpp"
 
 namespace dm
@@ -82,14 +82,6 @@ namespace dm
         task_future(std::future<void>&& f) : std::future<void>(std::move(f)) {}
         void try_wait();
     };
-
-    MX_MAKE_ENUM(worker_id, size_t,
-        ui,
-        fileio,
-        background,
-        audio,
-        logging
-    );
 
     typedef std::chrono::time_point<std::chrono::system_clock> timestamp;
 
