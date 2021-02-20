@@ -33,7 +33,7 @@ namespace dm
                 [format=std::forward<decltype(format)>(format), now=now, ...args=logger::marshall(args)]() -> void
                 {
                     auto msg = fmt::format(format, std::move(args)...);
-                    singleton<logger>::get().write_message(LEVEL, now, msg.c_str());
+                    singleton<logger>::instance.get().write_message(LEVEL, now, msg.c_str());
                 });
         };
 
@@ -44,7 +44,7 @@ namespace dm
             return worker_logging.enqueue(
                 [msg=std::move(msg), now=now]() -> void
                 {
-                    singleton<logger>::get().write_message(LEVEL, now, msg);
+                    singleton<logger>::instance.get().write_message(LEVEL, now, msg);
                 });
         };
 

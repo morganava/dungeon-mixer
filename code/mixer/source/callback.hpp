@@ -34,16 +34,19 @@ namespace dm
             else
             {
                 // ensure we're not overriding a callback somehow
-                MX_ASSERT(singleton<FUNCTOR>::assigned() == false);
+                MX_ASSERT(singleton<FUNCTOR>::instance.assigned() == false);
 
                 // move to static storage
-                singleton<FUNCTOR>::construct(std::move(functor));
+                singleton<FUNCTOR>::instance.construct(std::move(functor));
 
                 this->exec_func = [](ARGS... args) -> void
                 {
-                    singleton<FUNCTOR>::get()(std::forward<ARGS>(args)...);
+                    singleton<FUNCTOR>::instance.get()(std::forward<ARGS>(args)...);
                 };
-                this->delete_func = &singleton<FUNCTOR>::free;
+                this->delete_func = []() -> void
+                {
+                    singleton<FUNCTOR>::instance.free();
+                };
             }
 
             return *this;

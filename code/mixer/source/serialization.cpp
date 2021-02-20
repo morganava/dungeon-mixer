@@ -341,7 +341,7 @@ namespace dm
                                 audioData = std::make_shared<loop_data>(std::move(files.front()));
                             }
 
-                            get_audio_directory()->add_entry(
+                            g_audio_directory.add_entry(
                                 std::move(audioId),
                                 std::move(title),
                                 std::move(tags),

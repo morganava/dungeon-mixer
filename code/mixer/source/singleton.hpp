@@ -6,42 +6,38 @@ namespace dm
     class singleton
     {
     public:
-        static constexpr TYPE* addr()
-        {
-            return &(*data);
-        }
-
-        static constexpr TYPE& get()
+        constexpr TYPE& get()
         {
             return *data;
         }
 
         template<typename... ARGS>
-        static void construct(ARGS&&... args)
+        void construct(ARGS&&... args)
         {
             data.emplace(std::forward<ARGS>(args)...);
         }
 
-        static constexpr void free()
+        constexpr void free()
         {
             data.reset();
         }
 
-        static constexpr bool assigned()
+        constexpr bool assigned()
         {
             return data.has_value();
         }
 
+        static singleton instance;
     private:
-        static std::optional<TYPE> data;
+        std::optional<TYPE> data;
     };
     template<typename TYPE>
-    typename std::optional<TYPE> singleton<TYPE>::singleton::data;
+    typename singleton<TYPE>::singleton singleton<TYPE>::singleton::instance;
 
     #define MX_MAKE_SINGLETON(TYPE) \
-    constexpr TYPE* get_##TYPE() { return dm::singleton<TYPE>::addr(); } \
+    inline constexpr TYPE& g_##TYPE = dm::singleton<TYPE>::instance.get();\
     template<typename... ARGS> \
-    void init_##TYPE(ARGS&&... args) { dm::singleton<TYPE>::construct(std::forward<ARGS>(args)...); } \
-    constexpr void free_##TYPE() { dm::singleton<TYPE>::free(); } \
-    inline constexpr TYPE& g_##TYPE = dm::singleton<TYPE>::get();
+    void init_##TYPE(ARGS&&... args) { dm::singleton<TYPE>::instance.construct(std::forward<ARGS>(args)...); } \
+    constexpr void free_##TYPE() { dm::singleton<TYPE>::instance.free(); } \
+
 }
