@@ -86,7 +86,7 @@ namespace dm
                 previousAction = action;
             };
 
-            for (auto evt : g_input.get_input_events())
+            for (auto evt : g_input->get_input_events())
             {
                 // set to true when the string stored in the string buffer
                 // is modified
@@ -102,7 +102,7 @@ namespace dm
                         if (point_in_textarea(evt.position()))
                         {
                             this->focus_widget();
-                            const auto caretPosition = g_nanovg.get_caret_position(
+                            const auto caretPosition = g_nanovg->get_caret_position(
                                 this->_layout.inner_bounds(),
                                 this->data()->textOffset,
                                 this->style().fontFamily,
@@ -124,7 +124,7 @@ namespace dm
                     {
                         if (this->is_focused())
                         {
-                            const auto caretPosition = g_nanovg.get_caret_position(
+                            const auto caretPosition = g_nanovg->get_caret_position(
                                 this->_layout.inner_bounds(),
                                 this->data()->textOffset,
                                 this->style().fontFamily,
@@ -142,7 +142,7 @@ namespace dm
                         if (point_in_textarea(evt.position()))
                         {
                             this->focus_widget();
-                            const auto caretPosition = g_nanovg.get_caret_position(
+                            const auto caretPosition = g_nanovg->get_caret_position(
                                 this->_layout.inner_bounds(),
                                 this->data()->textOffset,
                                 this->style().fontFamily,
@@ -172,7 +172,7 @@ namespace dm
                         if (point_in_textarea(evt.position()))
                         {
                             this->focus_widget();
-                            const auto caretPosition = g_nanovg.get_caret_position(
+                            const auto caretPosition = g_nanovg->get_caret_position(
                                 this->_layout.inner_bounds(),
                                 this->data()->textOffset,
                                 this->style().fontFamily,
@@ -391,7 +391,7 @@ namespace dm
                                     if (from < to) {
                                         update_action(text_box_action::erase_block);
                                         const auto str = sb.str(sb.begin() + from, sb.begin() + to);
-                                        g_input.set_clipboard_string(str);
+                                        g_input->set_clipboard_string(str);
                                         sb.erase(sb.begin() + from, sb.begin() + to);
 
                                         selectEnd = selectBegin = from;
@@ -406,7 +406,7 @@ namespace dm
                                 {
                                     if (from < to) {
                                         const auto str = sb.str(sb.begin() + from, sb.begin() + to);
-                                        g_input.set_clipboard_string(str);
+                                        g_input->set_clipboard_string(str);
                                     }
                                 }
                                 break;
@@ -414,7 +414,7 @@ namespace dm
                             case GLFW_KEY_V:
                                 if (evt.modifiers().control)
                                 {
-                                    const auto clipboardString = g_input.get_clipboard_string();
+                                    const auto clipboardString = g_input->get_clipboard_string();
 
                                     if (from < to || clipboardString.size() > 0)
                                     {
@@ -502,11 +502,11 @@ namespace dm
             }
 
             // update text offset
-            if (g_input.get_input_events().size() > 0)
+            if (g_input->get_input_events().size() > 0)
             {
                 const auto innerBounds = this->_layout.inner_bounds();
                 auto& textOffset = this->data()->textOffset;
-                const auto caretOffset = g_nanovg.get_caret_offset(
+                const auto caretOffset = g_nanovg->get_caret_offset(
                         this->_layout.inner_bounds(),
                         this->style().fontFamily,
                         this->style().fontSize,
@@ -532,22 +532,22 @@ namespace dm
                 textOffset = std::max(0.0, textOffset);
             }
 
-            if (point_in_textarea(g_input.get_mouse_position(input_frame::current)))
+            if (point_in_textarea(g_input->get_mouse_position(input_frame::current)))
             {
-                g_input.set_mouse_cursor(mouse_cursor::ibeam);
+                g_input->set_mouse_cursor(mouse_cursor::ibeam);
             }
         }
 
         void widget_text_box::first_render_impl() const
         {
-            g_context.push_scissor(this->_layout.border_inner_bounds());
+            g_context->push_scissor(this->_layout.border_inner_bounds());
             if (this->is_focused())
             {
                 if (this->data()->selectBegin == this->data()->selectEnd)
                 {
                     // placeholder
                     if (this->data()->text.size() == 0) {
-                        g_nanovg.draw_text_with_caret(
+                        g_nanovg->draw_text_with_caret(
                             this->_layout.inner_bounds(),
                             this->data()->textOffset,
                             this->style().fontFamily,
@@ -560,7 +560,7 @@ namespace dm
                             2.0f,
                             this->style().fontColor);
                     } else {
-                        g_nanovg.draw_text_with_caret(
+                        g_nanovg->draw_text_with_caret(
                             this->_layout.inner_bounds(),
                             this->data()->textOffset,
                             this->style().fontFamily,
@@ -576,7 +576,7 @@ namespace dm
                 }
                 else
                 {
-                    g_nanovg.draw_text_with_selection(
+                    g_nanovg->draw_text_with_selection(
                         this->_layout.inner_bounds(),
                         this->data()->textOffset,
                         this->style().fontFamily,
@@ -595,7 +595,7 @@ namespace dm
             {
                 // placeholder text
                 if (this->data()->text.size() == 0) {
-                    g_nanovg.draw_text(
+                    g_nanovg->draw_text(
                         this->_layout.inner_bounds(),
                         this->data()->textOffset,
                         this->style().fontFamily,
@@ -606,7 +606,7 @@ namespace dm
                         this->data()->placeholderText);
                 } else
                 {
-                    g_nanovg.draw_text(
+                    g_nanovg->draw_text(
                         this->_layout.inner_bounds(),
                         this->data()->textOffset,
                         this->style().fontFamily,
@@ -619,7 +619,7 @@ namespace dm
 
 
             }
-            g_context.pop_scissor();
+            g_context->pop_scissor();
         }
 
         const utf8_string& widget_text_box::text() const

@@ -37,7 +37,7 @@ namespace dm
                     1.0) * (maxVal - minVal) + minVal;
             };
 
-            for(auto& evt : g_input.get_input_events())
+            for(auto& evt : g_input->get_input_events())
             {
                 switch (evt.type())
                 {

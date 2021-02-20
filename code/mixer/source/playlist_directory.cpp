@@ -10,7 +10,7 @@ namespace dm
     {
         worker_fileio.enqueue([]() -> void
         {
-            g_serialization_manager.load_playlist(paths::playlist_file());
+            g_serialization_manager->load_playlist(paths::playlist_file());
         });
     }
 
@@ -47,7 +47,7 @@ namespace dm
 
         _entries.erase(playlist);
 
-        g_serialization_manager.request_autosave(content_type::playlist);
+        g_serialization_manager->request_autosave(content_type::playlist);
     }
 
     playlist_handle_t playlist_directory::add_entry(playlist_entry&& entry)
@@ -56,7 +56,7 @@ namespace dm
         MX_ASSERT(_entries.find(handle) == _entries.end());
         _entries.insert({handle, std::move(entry)});
 
-        g_serialization_manager.request_autosave(content_type::playlist);
+        g_serialization_manager->request_autosave(content_type::playlist);
         return handle;
     }
 
@@ -78,7 +78,7 @@ namespace dm
         auto& entry = it->second;
         entry.title = std::move(name);
 
-        g_serialization_manager.request_autosave(content_type::playlist);
+        g_serialization_manager->request_autosave(content_type::playlist);
     }
 
     void playlist_directory::add_atmosphere(playlist_handle_t playlist, atmosphere_handle_t atmosphere)
@@ -93,7 +93,7 @@ namespace dm
                 playlistEntry.atmospheres.push_back(atmosphere);
                 if (!is_builtin_playlist(playlist))
                 {
-                    g_serialization_manager.request_autosave(content_type::playlist);
+                    g_serialization_manager->request_autosave(content_type::playlist);
                 }
             }
         }
@@ -112,7 +112,7 @@ namespace dm
             playlistEntry.atmospheres.erase(it);
             if (!is_builtin_playlist(playlist))
             {
-                g_serialization_manager.request_autosave(content_type::playlist);
+                g_serialization_manager->request_autosave(content_type::playlist);
             }
         }
     }
@@ -126,7 +126,7 @@ namespace dm
 
         if (!is_builtin_playlist(playlist))
         {
-            g_serialization_manager.request_autosave(content_type::playlist);
+            g_serialization_manager->request_autosave(content_type::playlist);
         }
     }
 
@@ -140,7 +140,7 @@ namespace dm
         }
 
         // do our query on ALL atmospheres in the system
-        auto handles = g_atmosphere_directory.get_atmosphere_handles_by_query(query);
+        auto handles = g_atmosphere_directory->get_atmosphere_handles_by_query(query);
 
         // now populate our retval value by filtering handles based off of whether or not they
         // are in this playlist

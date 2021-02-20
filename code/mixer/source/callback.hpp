@@ -41,7 +41,7 @@ namespace dm
 
                 this->exec_func = [](ARGS... args) -> void
                 {
-                    singleton<FUNCTOR>::instance.get()(std::forward<ARGS>(args)...);
+                    singleton<FUNCTOR>::instance(std::forward<ARGS>(args)...);
                 };
                 this->delete_func = []() -> void
                 {

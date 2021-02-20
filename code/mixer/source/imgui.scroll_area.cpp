@@ -9,7 +9,7 @@ namespace dm
 
         void widget_scroll_area::resolve_scissor_impl()
         {
-            auto* widget = g_context.parent_widget();
+            auto* widget = g_context->parent_widget();
             const auto& scissor = widget->scissor();
 
             // need to exclude the scroll area's scroll bars from scissor
@@ -41,7 +41,7 @@ namespace dm
 
         void widget_scroll_area::first_update_impl()
         {
-            for(auto evt : g_input.get_input_events())
+            for(auto evt : g_input->get_input_events())
             {
                 if (evt.type() == input_event_type::mouse_single_click)
                 {
@@ -183,9 +183,9 @@ namespace dm
 
             /* handle input to adjust the scroll offset */
 
-            auto prev_mouse_down = g_input.get_mouse_button_state(mouse_button::left, input_frame::previous);
-            auto current_mouse_down = g_input.get_mouse_button_state(mouse_button::left, input_frame::current);
-            auto current_mouse_position = g_input.get_mouse_position(input_frame::current);
+            auto prev_mouse_down = g_input->get_mouse_button_state(mouse_button::left, input_frame::previous);
+            auto current_mouse_down = g_input->get_mouse_button_state(mouse_button::left, input_frame::current);
+            auto current_mouse_position = g_input->get_mouse_position(input_frame::current);
 
             if (scroll_vertical)
             {
@@ -281,7 +281,7 @@ namespace dm
                 // handle keyboard input
                 if (this->is_focused())
                 {
-                    for(auto evt : g_input.get_input_events())
+                    for(auto evt : g_input->get_input_events())
                     {
                         if (evt.type() == input_event_type::key_down ||
                             evt.type() == input_event_type::key_repeat)
@@ -332,11 +332,11 @@ namespace dm
                 {
                     if (!data()->vertical.grabbing)
                     {
-                        data()->vertical.scroll_offset -= g_input.get_mouse_scroll(input_frame::current).y * scroll_step;
+                        data()->vertical.scroll_offset -= g_input->get_mouse_scroll(input_frame::current).y * scroll_step;
                     }
                     if (!data()->horizontal.grabbing)
                     {
-                        data()->horizontal.scroll_offset -= g_input.get_mouse_scroll(input_frame::current).x * scroll_step;
+                        data()->horizontal.scroll_offset -= g_input->get_mouse_scroll(input_frame::current).x * scroll_step;
                     }
                 }
             }
@@ -362,24 +362,24 @@ namespace dm
 
             if (scroll_vertical)
             {
-                g_nanovg.color_fill_rect(vsa, back_color);
+                g_nanovg->color_fill_rect(vsa, back_color);
 
                 const auto grab_color = data()->vertical.grabbing ? active_color : fore_color;
-                g_nanovg.color_fill_rounded_rect(vsga, corner_radius, grab_color);
+                g_nanovg->color_fill_rounded_rect(vsga, corner_radius, grab_color);
             }
             if (scroll_horizontal)
             {
-                g_nanovg.color_fill_rect(hsa, back_color);
+                g_nanovg->color_fill_rect(hsa, back_color);
 
                 const auto grab_color = data()->horizontal.grabbing ? active_color : fore_color;
-                g_nanovg.color_fill_rounded_rect(hsga, corner_radius, grab_color);
+                g_nanovg->color_fill_rounded_rect(hsga, corner_radius, grab_color);
             }
 
             if(scroll_vertical && scroll_horizontal)
             {
                 const auto scrollbar_size = this->style().scrollbarSize;
                 auto bottom_corner = rect{vsa.bottom_left(),vec2{scrollbar_size}};
-                g_nanovg.color_fill_rect(bottom_corner, back_color);
+                g_nanovg->color_fill_rect(bottom_corner, back_color);
             }
         }
     }

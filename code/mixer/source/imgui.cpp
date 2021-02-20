@@ -65,7 +65,7 @@ namespace dm
         void context::push_scissor(const rect& scissor)
         {
             _render_scissor_stack.push_back(scissor);
-            g_nanovg.set_scissor(scissor);
+            g_nanovg->set_scissor(scissor);
         }
 
         void context::pop_scissor()
@@ -73,11 +73,11 @@ namespace dm
             _render_scissor_stack.pop_back();
             if(_render_scissor_stack.size() > 0)
             {
-                g_nanovg.set_scissor(_render_scissor_stack.back());
+                g_nanovg->set_scissor(_render_scissor_stack.back());
             }
             else
             {
-                g_nanovg.set_scissor({});
+                g_nanovg->set_scissor({});
             }
         }
 
@@ -91,15 +91,15 @@ namespace dm
 
         void widget_base::resolve_style_impl(element_type_t et, element_state_t es)
         {
-            this->_style = g_style_resolver.resolve(et, this->tags, es);
+            this->_style = g_style_resolver->resolve(et, this->tags, es);
         }
 
         void widget_base::resolve_box_layout_impl(element_type_t et, widget_flag_t flag)
         {
-            auto* parent = g_context.parent_widget();
+            auto* parent = g_context->parent_widget();
 
             // get our box layout based off type and tags
-            this->_layout = g_style_resolver.resolve_box_layout(et, this->tags);
+            this->_layout = g_style_resolver->resolve_box_layout(et, this->tags);
 
             // override size if defined in style and not explicitly requested
             auto desiredBounds = this->_desiredBounds;
@@ -113,12 +113,12 @@ namespace dm
             parent->increment_child_count();
 
             // get our style
-            this->_style = g_style_resolver.resolve(et, this->tags, element_state::none);
+            this->_style = g_style_resolver->resolve(et, this->tags, element_state::none);
         }
 
         void widget_base::resolve_scissor_impl()
         {
-            auto* parent = g_context.parent_widget();
+            auto* parent = g_context->parent_widget();
             const auto& scissor = parent->childScissor();
 
             // calc the scissor geometry for widget specific content
@@ -128,11 +128,11 @@ namespace dm
 
         element_state_t widget_base::resolve_element_state_impl()
         {
-            if (!g_context.is_current_window_widget_focused()) {
+            if (!g_context->is_current_window_widget_focused()) {
                 return element_state::none;
             }
 
-            const auto mouse_position = g_input.get_mouse_position(input_frame::current);
+            const auto mouse_position = g_input->get_mouse_position(input_frame::current);
 
             if (point_inside_rect(
                     mouse_position,
@@ -142,7 +142,7 @@ namespace dm
                     this->_layout.border_outer_bounds(),
                     this->_layout.borderRadius))
             {
-                if (g_input.get_mouse_button_state(mouse_button::left, input_frame::current))
+                if (g_input->get_mouse_button_state(mouse_button::left, input_frame::current))
                 {
                     return element_state::hover | element_state::active;
                 }
@@ -163,19 +163,19 @@ namespace dm
                 fillBounds.size -= vec2{style.borderSize, style.borderSize};
 
                 if (style.backgroundImage == image_handle::invalid) {
-                    g_nanovg.color_fill_rounded_rect(fillBounds, style.borderRadius, style.backgroundColor);
+                    g_nanovg->color_fill_rounded_rect(fillBounds, style.borderRadius, style.backgroundColor);
                 } else {
-                    g_nanovg.image_fill_rounded_rect(fillBounds, style.borderRadius, style.backgroundImage, style.backgroundImageMode);
+                    g_nanovg->image_fill_rounded_rect(fillBounds, style.borderRadius, style.backgroundImage, style.backgroundImageMode);
                 }
-                g_nanovg.stroke_rounded_rect(strokeBounds, style.borderRadius, style.borderSize, style.borderColor);
+                g_nanovg->stroke_rounded_rect(strokeBounds, style.borderRadius, style.borderSize, style.borderColor);
             }
             else
             {
                 auto fillBounds = this->_layout.border_outer_bounds();
                 if (style.backgroundImage == image_handle::invalid) {
-                    g_nanovg.color_fill_rounded_rect(fillBounds, style.borderRadius, style.backgroundColor);
+                    g_nanovg->color_fill_rounded_rect(fillBounds, style.borderRadius, style.backgroundColor);
                 } else {
-                    g_nanovg.image_fill_rounded_rect(fillBounds, style.borderRadius, style.backgroundImage, style.backgroundImageMode);
+                    g_nanovg->image_fill_rounded_rect(fillBounds, style.borderRadius, style.backgroundImage, style.backgroundImageMode);
                 }
             }
         }
@@ -219,8 +219,8 @@ namespace dm
             _viewport = viewport;
             _scissor = viewport;
             _childScissor = viewport;
-            g_input.set_mouse_cursor(mouse_cursor::arrow);
-            g_context.focus_window_widget(this->get_widget_id());
+            g_input->set_mouse_cursor(mouse_cursor::arrow);
+            g_context->focus_window_widget(this->get_widget_id());
         }
 
         widget_root::~widget_root()
@@ -230,18 +230,18 @@ namespace dm
         void widget_root::resolve_box_layout_impl(element_type_t et, widget_flag_t flag)
         {
             // get our box layout based off type and tags
-            this->_layout = g_style_resolver.resolve_box_layout(et, this->tags);
+            this->_layout = g_style_resolver->resolve_box_layout(et, this->tags);
 
             // now get our actual bounds from parent
             this->_layout.outerBounds = this->_viewport;
 
             // get our style
-            this->_style = g_style_resolver.resolve(et, this->tags, element_state::none);
+            this->_style = g_style_resolver->resolve(et, this->tags, element_state::none);
         }
 
         void widget_root::render_box_layout_impl() const
         {
-            g_nanovg.set_draw_layer(draw_layer::background);
+            g_nanovg->set_draw_layer(draw_layer::background);
             widget_base::render_box_layout_impl();
         }
 

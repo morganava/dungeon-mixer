@@ -17,8 +17,8 @@ namespace dm
 
         const auto dt = duration_cast<duration<float, std::ratio<1,1>>>(now - prev).count();
 
-        g_audio_directory.update(dt);
-        g_playback_manager.update(dt);
+        g_audio_directory->update(dt);
+        g_playback_manager->update(dt);
 
         prev = now;
         worker_audio.enqueue(audio_update, 32ms);
@@ -73,7 +73,7 @@ namespace dm
             {
                 if(playbackEntry.seamlessLoop == false && playbackEntry.timeSincePlaybackEnd == 0.0f)
                 {
-                    playbackEntry.repeatDelay = g_random.next_float(playbackEntry.repeatMin, playbackEntry.repeatMax);
+                    playbackEntry.repeatDelay = g_random->next_float(playbackEntry.repeatMin, playbackEntry.repeatMax);
                 }
 
                 playbackEntry.timeSincePlaybackEnd += dt;
@@ -95,7 +95,7 @@ namespace dm
     void playback_manager::play_atmosphere(atmosphere_handle_t atmosphereHandle)
     {
         MX_LOG_INFO("playing atmosphere {}", atmosphereHandle);
-        const auto& atmosphereEntry = g_atmosphere_directory.get_entry(atmosphereHandle);
+        const auto& atmosphereEntry = g_atmosphere_directory->get_entry(atmosphereHandle);
         for(auto trackHandle : atmosphereEntry.tracks)
         {
             this->play_track(trackHandle);
@@ -105,7 +105,7 @@ namespace dm
     void playback_manager::stop_atmosphere(atmosphere_handle_t atmosphereHandle)
     {
         MX_LOG_INFO("stopping atmosphere {}", atmosphereHandle);
-        const auto& atmosphereEntry = g_atmosphere_directory.get_entry(atmosphereHandle);
+        const auto& atmosphereEntry = g_atmosphere_directory->get_entry(atmosphereHandle);
         for(auto trackHandle : atmosphereEntry.tracks)
         {
             this->stop_track(trackHandle);
@@ -114,7 +114,7 @@ namespace dm
 
     void playback_manager::sync_atmosphere(atmosphere_handle_t handle)
     {
-        const auto& atmosphereEntry = g_atmosphere_directory.get_entry(handle);
+        const auto& atmosphereEntry = g_atmosphere_directory->get_entry(handle);
         for(auto trackHandle : atmosphereEntry.tracks)
         {
             sync_track(atmosphereEntry, trackHandle);
@@ -129,9 +129,9 @@ namespace dm
 
         MX_ASSERT(_entries.find(trackHandle) == _entries.end());
 
-        auto& trackEntry = g_track_directory.get_entry(trackHandle);
+        auto& trackEntry = g_track_directory->get_entry(trackHandle);
         auto audioHandle = trackEntry.audio;
-        auto& audioEntry = g_audio_directory.get_entry(audioHandle);
+        auto& audioEntry = g_audio_directory->get_entry(audioHandle);
 
         playback_entry playbackEntry;
         playbackEntry.audioData = audioEntry.data;
@@ -154,8 +154,8 @@ namespace dm
 
     void playback_manager::sync_track(track_handle_t trackHandle)
     {
-        auto atmosphereHandle = g_atmosphere_directory.get_atmosphere_handle_by_track(trackHandle);
-        const auto& atmosphereEntry = g_atmosphere_directory.get_entry(atmosphereHandle);
+        auto atmosphereHandle = g_atmosphere_directory->get_atmosphere_handle_by_track(trackHandle);
+        const auto& atmosphereEntry = g_atmosphere_directory->get_entry(atmosphereHandle);
         sync_track(atmosphereEntry, trackHandle);
     }
 
@@ -166,7 +166,7 @@ namespace dm
         // if this track isn't playing nothing to do
         if(it != _entries.end())
         {
-            const auto& trackEntry = g_track_directory.get_entry(trackHandle);
+            const auto& trackEntry = g_track_directory->get_entry(trackHandle);
             auto& playbackEntry = it->second;
 
             playbackEntry.volume = (atmosphereEntry.muted ? 0.0f : atmosphereEntry.volume) * (trackEntry.muted ? 0.0f : trackEntry.volume);

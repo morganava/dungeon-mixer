@@ -11,7 +11,7 @@ namespace dm
     {
         worker_fileio.enqueue([]() -> void
         {
-            g_serialization_manager.load_strings(paths::strings_file());
+            g_serialization_manager->load_strings(paths::strings_file());
         });
     }
 

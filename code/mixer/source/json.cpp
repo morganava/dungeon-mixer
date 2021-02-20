@@ -292,7 +292,7 @@ namespace dm
     {
         MX_THROW_IF_FALSE(j.is_string());
 
-        fh = g_nanovg.create_font(paths::skins() / j.get<std::string>());
+        fh = g_nanovg->create_font(paths::skins() / j.get<std::string>());
     }
 
     // image_handle_t
@@ -300,7 +300,7 @@ namespace dm
     {
         MX_THROW_IF_FALSE(j.is_string());
 
-        ih = g_nanovg.create_image(paths::skins() / j.get<std::string>());
+        ih = g_nanovg->create_image(paths::skins() / j.get<std::string>());
     }
 
     // text alignment

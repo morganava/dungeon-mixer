@@ -10,12 +10,12 @@ namespace dm
     void worker_thread(worker_id_t id)
     {
         const auto workerIndex = static_cast<size_t>(id);
-        g_work_manager._thread_ids[workerIndex] = std::this_thread::get_id();
+        g_work_manager->_thread_ids[workerIndex] = std::this_thread::get_id();
 
-        while(g_work_manager.accepting_work())
+        while(g_work_manager->accepting_work())
         {
             // empty queue of work
-            const auto completionTime = g_work_manager.do_tasks(id);
+            const auto completionTime = g_work_manager->do_tasks(id);
             const auto now = std::chrono::system_clock::now();
             const auto diff = now - completionTime;
 
@@ -37,7 +37,7 @@ namespace dm
             // finally suspend
             else
             {
-                g_work_manager.suspend_worker(workerIndex);
+                g_work_manager->suspend_worker(workerIndex);
             }
         }
     }
@@ -72,7 +72,7 @@ namespace dm
     timestamp work_manager::do_tasks(worker_id_t id)
     {
         const size_t index = static_cast<size_t>(id);
-        MX_ASSERT(g_work_manager.current_index() == index);
+        MX_ASSERT(g_work_manager->current_index() == index);
 
         timestamp retval;
 
@@ -150,9 +150,9 @@ namespace dm
         const thread_local size_t index = []()
         {
             const auto id = std::this_thread::get_id();
-            for(size_t k = 0; k < g_work_manager._worker_count; k++)
+            for(size_t k = 0; k < g_work_manager->_worker_count; k++)
             {
-                if (id == g_work_manager._thread_ids[k]) {
+                if (id == g_work_manager->_thread_ids[k]) {
                     return k;
                 }
             }
@@ -225,7 +225,7 @@ namespace dm
 
     task_future worker::enqueue(run_once_task&& task, timestamp startTime) const
     {
-        return g_work_manager.enqueue(_worker_index, std::move(task), startTime);
+        return g_work_manager->enqueue(_worker_index, std::move(task), startTime);
     }
 
     // task future

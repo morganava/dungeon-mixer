@@ -9,7 +9,7 @@ namespace dm
 
         void widget_button::first_update_impl()
         {
-            for(auto evt : g_input.get_input_events())
+            for(auto evt : g_input->get_input_events())
             {
                 switch(evt.type())
                 {
@@ -46,7 +46,7 @@ namespace dm
 
         void widget_button::first_render_impl() const
         {
-            g_nanovg.draw_text(
+            g_nanovg->draw_text(
                 this->_layout.inner_bounds(),
                 0.0f,
                 this->style().fontFamily,

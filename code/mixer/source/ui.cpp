@@ -46,9 +46,9 @@ namespace dm
             std::vector<playlist_widget> playlists;
             std::map<atmosphere_handle_t, atmosphere_widget> atmospheres;
 
-            for (auto playlistHandle : g_playlist_directory.get_playlist_handles())
+            for (auto playlistHandle : g_playlist_directory->get_playlist_handles())
             {
-                const auto& playlistEntry = g_playlist_directory.get_entry(playlistHandle);
+                const auto& playlistEntry = g_playlist_directory->get_entry(playlistHandle);
                 playlist_widget currentPlaylistWidget;
 
                 currentPlaylistWidget.handle = playlistHandle;
@@ -57,7 +57,7 @@ namespace dm
                 {
                     // create widget if we haven't already for this atmosphere
                     if (atmospheres.find(atmosphereHandle) == atmospheres.end()) {
-                        const auto& atmosphereEntry = g_atmosphere_directory.get_entry(atmosphereHandle);
+                        const auto& atmosphereEntry = g_atmosphere_directory->get_entry(atmosphereHandle);
 
                         atmosphere_widget currentAtmosphereWidget =
                         {
@@ -79,8 +79,8 @@ namespace dm
 
             worker_ui.enqueue([playlists=std::move(playlists), atmospheres=std::move(atmospheres)]() mutable-> void
             {
-                g_ui.root.playlist.playlists = std::move(playlists);
-                g_ui.root.playlist.atmospheres = std::move(atmospheres);
+                g_ui->root.playlist.playlists = std::move(playlists);
+                g_ui->root.playlist.atmospheres = std::move(atmospheres);
             });
         });
     }
@@ -153,15 +153,15 @@ namespace dm
 
     void ui::hide_atmosphere_context_menu()
     {
-        g_ui.root.playlist.atmosphereContextMenu.visible = false;
-        g_ui.root.playlist.atmosphereContextMenu.copyVisible = false;
-        g_ui.root.playlist.atmosphereContextMenu.moveVisible = false;
-        g_ui.root.playlist.atmosphereContextMenu.atmosphereHandle = atmosphere_handle::invalid;
+        g_ui->root.playlist.atmosphereContextMenu.visible = false;
+        g_ui->root.playlist.atmosphereContextMenu.copyVisible = false;
+        g_ui->root.playlist.atmosphereContextMenu.moveVisible = false;
+        g_ui->root.playlist.atmosphereContextMenu.atmosphereHandle = atmosphere_handle::invalid;
     }
 
     void ui::stop_edit_playback()
     {
-        if (g_ui.root.edit.handle == atmosphere_handle::invalid)
+        if (g_ui->root.edit.handle == atmosphere_handle::invalid)
         {
             return;
         }
@@ -169,9 +169,9 @@ namespace dm
         // stop the edit playback and restore atmosphere's volume and mute settings
         worker_ui.enqueue([]() -> void
         {
-            const auto atmosphereHandle = g_ui.root.edit.handle;
-            auto it = g_ui.root.playlist.atmospheres.find(atmosphereHandle);
-            MX_ASSERT(it != g_ui.root.playlist.atmospheres.end());
+            const auto atmosphereHandle = g_ui->root.edit.handle;
+            auto it = g_ui->root.playlist.atmospheres.find(atmosphereHandle);
+            MX_ASSERT(it != g_ui->root.playlist.atmospheres.end());
 
             auto& widget = it->second;
             const bool muted = widget.muteUnmute.checked;
@@ -179,10 +179,10 @@ namespace dm
 
             worker_audio.enqueue([=]() -> void
             {
-                g_playback_manager.stop_atmosphere(atmosphereHandle);
-                g_atmosphere_directory.set_volume(atmosphereHandle, volume);
-                g_atmosphere_directory.set_muted(atmosphereHandle, muted);
-                g_playback_manager.sync_atmosphere(atmosphereHandle);
+                g_playback_manager->stop_atmosphere(atmosphereHandle);
+                g_atmosphere_directory->set_volume(atmosphereHandle, volume);
+                g_atmosphere_directory->set_muted(atmosphereHandle, muted);
+                g_playback_manager->sync_atmosphere(atmosphereHandle);
             });
         });
     }
@@ -193,7 +193,7 @@ namespace dm
     {
         worker_audio.enqueue([]() -> void
         {
-            auto playlistHandle = g_playlist_directory.add_entry(
+            auto playlistHandle = g_playlist_directory->add_entry(
             {
                 g_strings[mixer_string::new_playlist_name],
                 {}
@@ -203,7 +203,7 @@ namespace dm
 
             worker_ui.enqueue([=]() -> void
             {
-                g_ui.root.playlist.playlists.push_back({playlistHandle, g_strings[mixer_string::new_playlist_name]});
+                g_ui->root.playlist.playlists.push_back({playlistHandle, g_strings[mixer_string::new_playlist_name]});
             });
         });
     }
@@ -212,19 +212,19 @@ namespace dm
     {
         worker_ui.enqueue([=]() -> void
         {
-            g_ui.set_screen(screen::playlist);
-            g_ui.root.playlist.currentPlaylistHandle = handle;
+            g_ui->set_screen(screen::playlist);
+            g_ui->root.playlist.currentPlaylistHandle = handle;
 
             // applies the filter for the playlist
             // a bit of delay since it has to enqueue work on the audio thread
-            auto& playlistEntry = g_ui.get_playlist_widget(handle);
-            g_ui.on_do_atmosphere_search(handle, playlistEntry.searchBox.text);
+            auto& playlistEntry = g_ui->get_playlist_widget(handle);
+            g_ui->on_do_atmosphere_search(handle, playlistEntry.searchBox.text);
         });
     }
 
     void ui::on_set_screen_edit(atmosphere_handle_t handle)
     {
-        const auto prevAtmosphereHandle = g_ui.root.edit.handle;
+        const auto prevAtmosphereHandle = g_ui->root.edit.handle;
         // populate the track edit widgets and start playing our edit widget
         worker_audio.enqueue([=]() -> void
         {
@@ -241,8 +241,8 @@ namespace dm
                 {
                     atmosphereTitle = g_strings[mixer_string::new_atmosphere_name];
                     atmosphere_entry atmosphereEntry = { atmosphereTitle };
-                    atmosphereHandle = g_atmosphere_directory.add_entry(std::move(atmosphereEntry));
-                    g_playlist_directory.add_atmosphere(playlist_handle::all, atmosphereHandle);
+                    atmosphereHandle = g_atmosphere_directory->add_entry(std::move(atmosphereEntry));
+                    g_playlist_directory->add_atmosphere(playlist_handle::all, atmosphereHandle);
 
                     // add this new atmosphere to the All playlist
                     worker_ui.enqueue([=,title=atmosphereTitle]() -> void
@@ -252,19 +252,19 @@ namespace dm
                         atmosphereWidget.volume.value = 1.0;
                         atmosphereWidget.volumeVal = 1.0;
 
-                        g_ui.root.playlist.atmospheres.insert({atmosphereHandle, std::move(atmosphereWidget)});
-                        g_ui.add_atmosphere_to_playlist(playlist_handle::all, atmosphereHandle);
+                        g_ui->root.playlist.atmospheres.insert({atmosphereHandle, std::move(atmosphereWidget)});
+                        g_ui->add_atmosphere_to_playlist(playlist_handle::all, atmosphereHandle);
                     });
                 }
                 // get existing atmosphere data
                 else
                 {
-                    const auto& atmosphere = g_atmosphere_directory.get_entry(atmosphereHandle);
+                    const auto& atmosphere = g_atmosphere_directory->get_entry(atmosphereHandle);
                     atmosphereTitle = atmosphere.title;
                     for(auto trackHandle : atmosphere.tracks)
                     {
-                        auto& track = g_track_directory.get_entry(trackHandle);
-                        auto& audio = g_audio_directory.get_entry(track.audio);
+                        auto& track = g_track_directory->get_entry(trackHandle);
+                        auto& audio = g_audio_directory->get_entry(track.audio);
 
                         track_edit_widget widget = {
                             trackHandle,
@@ -287,49 +287,49 @@ namespace dm
                 worker_ui.enqueue([=, atmosphereTitle=std::move(atmosphereTitle), editWidgets=std::move(editWidgets)]() -> void
                 {
                     // populate edit widgets
-                    g_ui.root.edit.handle = atmosphereHandle;
-                    g_ui.root.edit.title = std::move(atmosphereTitle);
-                    g_ui.root.edit.tracks.widgets = std::move(editWidgets);
-                    g_ui.set_screen(screen::edit);
+                    g_ui->root.edit.handle = atmosphereHandle;
+                    g_ui->root.edit.title = std::move(atmosphereTitle);
+                    g_ui->root.edit.tracks.widgets = std::move(editWidgets);
+                    g_ui->set_screen(screen::edit);
                 });
             }
             else
             {
                 worker_ui.enqueue([=]() -> void
                 {
-                    g_ui.set_screen(screen::edit);
+                    g_ui->set_screen(screen::edit);
                 });
             }
 
             MX_LOG_INFO("playing : {}", atmosphereHandle);
 
             // stop all currently playing tracks
-            g_playback_manager.stop_all_tracks();
-            auto& playlistEntry = g_playlist_directory.get_entry(playlist_handle::playing);
+            g_playback_manager->stop_all_tracks();
+            auto& playlistEntry = g_playlist_directory->get_entry(playlist_handle::playing);
 
             // empty out the playing playlist and update the play button
             worker_ui.enqueue([atmospheres=playlistEntry.atmospheres]() -> void
             {
                 for(auto& atmosphereHandle : atmospheres)
                 {
-                    auto it = g_ui.root.playlist.atmospheres.find(atmosphereHandle);
-                    MX_ASSERT(it != g_ui.root.playlist.atmospheres.end());
+                    auto it = g_ui->root.playlist.atmospheres.find(atmosphereHandle);
+                    MX_ASSERT(it != g_ui->root.playlist.atmospheres.end());
                     it->second.playStop = false;
                 }
-                auto& playlistWidget = g_ui.get_playlist_widget(playlist_handle::playing);
+                auto& playlistWidget = g_ui->get_playlist_widget(playlist_handle::playing);
                 playlistWidget.entries.clear();
             });
-            g_playlist_directory.clear_playlist(playlist_handle::playing);
+            g_playlist_directory->clear_playlist(playlist_handle::playing);
 
             // begin playing the editing atmosphere
-            g_atmosphere_directory.set_volume(atmosphereHandle, 1.0f);
-            g_atmosphere_directory.set_muted(atmosphereHandle, false);
-            g_playback_manager.play_atmosphere(atmosphereHandle);
+            g_atmosphere_directory->set_volume(atmosphereHandle, 1.0f);
+            g_atmosphere_directory->set_muted(atmosphereHandle, false);
+            g_playback_manager->play_atmosphere(atmosphereHandle);
         });
 
         worker_ui.enqueue([]() -> void
         {
-            g_ui.on_do_audio_search(g_ui.root.edit.searchBox.text);
+            g_ui->on_do_audio_search(g_ui->root.edit.searchBox.text);
         });
     }
 
@@ -337,7 +337,7 @@ namespace dm
     {
         worker_ui.enqueue([=]() -> void
         {
-            g_ui.set_screen(screen::about);
+            g_ui->set_screen(screen::about);
         });
     }
 
@@ -352,7 +352,7 @@ namespace dm
             mxButton(g_strings[mixer_string::create_new_playlist], self.tags = {"lightText", "sidebarEntry", "indent"};
             self.on_click = []() -> void
             {
-                g_ui.on_create_new_playlist();
+                g_ui->on_create_new_playlist();
             });
             for( size_t i = 0; i < root.playlist.playlists.size(); ++i)
             {
@@ -375,19 +375,19 @@ namespace dm
                 mxButton(playlistTitle, self.tags = {"lightText","sidebarEntry", "indent"};
                     self.on_click = [=]() -> void
                     {
-                        g_ui.on_set_screen_playlist(currentPlaylist.handle);
+                        g_ui->on_set_screen_playlist(currentPlaylist.handle);
                     };
                 );
             }
             mxButton(g_strings[mixer_string::edit_screen], self.tags = {"mediumText", "sidebarEntry"};
             self.on_click = []() -> void
             {
-                g_ui.on_set_screen_edit(g_ui.root.edit.handle);
+                g_ui->on_set_screen_edit(g_ui->root.edit.handle);
             });
             mxButton(g_strings[mixer_string::about_screen], self.tags = {"mediumText", "sidebarEntry"};
             self.on_click = []() -> void
             {
-                g_ui.on_set_screen_about();
+                g_ui->on_set_screen_about();
             });
         }
     }

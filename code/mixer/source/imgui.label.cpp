@@ -8,7 +8,7 @@ namespace dm
 
         void widget_label::first_render_impl() const
         {
-            g_nanovg.draw_text(
+            g_nanovg->draw_text(
                 this->_layout.inner_bounds(),
                 0.0f,
                 this->style().fontFamily,

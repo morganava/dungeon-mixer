@@ -21,7 +21,7 @@ namespace dm
         MX_ASSERT(_entries.find(handle) == _entries.end());
         _entries.insert({handle, std::move(entry)});
 
-        g_serialization_manager.request_autosave(content_type::playlist);
+        g_serialization_manager->request_autosave(content_type::playlist);
         return handle;
     }
 
@@ -30,7 +30,7 @@ namespace dm
         if (auto it =_entries.find(handle); it != _entries.end())
         {
             _entries.erase(it);
-            g_serialization_manager.request_autosave(content_type::playlist);
+            g_serialization_manager->request_autosave(content_type::playlist);
         }
     }
 
@@ -43,7 +43,7 @@ namespace dm
         if (trackEntry.volume == volume) return;
 
         trackEntry.volume = volume;
-        g_serialization_manager.request_autosave(content_type::playlist);
+        g_serialization_manager->request_autosave(content_type::playlist);
     }
 
     void track_directory::set_muted(track_handle_t track, bool muted)
@@ -55,7 +55,7 @@ namespace dm
         if (trackEntry.muted == muted) return;
 
         trackEntry.muted = muted;
-        g_serialization_manager.request_autosave(content_type::playlist);
+        g_serialization_manager->request_autosave(content_type::playlist);
     }
 
     void track_directory::set_repeat_enabled(track_handle_t track, bool enabled)
@@ -67,7 +67,7 @@ namespace dm
         if (trackEntry.repeat.enabled == enabled) return;
 
         trackEntry.repeat.enabled = enabled;
-        g_serialization_manager.request_autosave(content_type::playlist);
+        g_serialization_manager->request_autosave(content_type::playlist);
     }
 
     void track_directory::set_repeat_min(track_handle_t track, double min)
@@ -79,7 +79,7 @@ namespace dm
         if (trackEntry.repeat.min == min) return;
 
         trackEntry.repeat.min = min;
-        g_serialization_manager.request_autosave(content_type::playlist);
+        g_serialization_manager->request_autosave(content_type::playlist);
     }
 
     void track_directory::set_repeat_max(track_handle_t track, double max)
@@ -91,7 +91,7 @@ namespace dm
         if (trackEntry.repeat.max == max) return;
 
         trackEntry.repeat.max = max;
-        g_serialization_manager.request_autosave(content_type::playlist);
+        g_serialization_manager->request_autosave(content_type::playlist);
     }
 
     void track_directory::set_position_enabled(track_handle_t track, bool enabled)
@@ -103,7 +103,7 @@ namespace dm
         if (trackEntry.position.enabled == enabled) return;
 
         trackEntry.position.enabled = enabled;
-        g_serialization_manager.request_autosave(content_type::playlist);
+        g_serialization_manager->request_autosave(content_type::playlist);
     }
 
     void track_directory::set_position_elevation(track_handle_t track, double elevation)
@@ -115,7 +115,7 @@ namespace dm
         if (trackEntry.position.elevation == elevation) return;
 
         trackEntry.position.elevation = elevation;
-        g_serialization_manager.request_autosave(content_type::playlist);
+        g_serialization_manager->request_autosave(content_type::playlist);
     }
 
     void track_directory::set_position_azimuth(track_handle_t track, double azimuth)
@@ -127,6 +127,6 @@ namespace dm
         if (trackEntry.position.azimuth == azimuth) return;
 
         trackEntry.position.azimuth = azimuth;
-        g_serialization_manager.request_autosave(content_type::playlist);
+        g_serialization_manager->request_autosave(content_type::playlist);
     }
 }

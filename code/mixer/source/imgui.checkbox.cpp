@@ -18,7 +18,7 @@ namespace dm
 
         void widget_checkbox::first_update_impl()
         {
-            for(auto evt : g_input.get_input_events())
+            for(auto evt : g_input->get_input_events())
             {
                 if (evt.type() == input_event_type::mouse_single_click ||
                     evt.type() == input_event_type::mouse_double_click ||

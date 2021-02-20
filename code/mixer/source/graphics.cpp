@@ -39,25 +39,25 @@ namespace dm
         switch(action)
         {
             case GLFW_PRESS:
-                g_input.push_keydown(key, GLFW_MOD_to_modifier_keys(mods));
+                g_input->push_keydown(key, GLFW_MOD_to_modifier_keys(mods));
                 break;
             case GLFW_REPEAT:
-                g_input.push_keyrepeat(key, GLFW_MOD_to_modifier_keys(mods));
+                g_input->push_keyrepeat(key, GLFW_MOD_to_modifier_keys(mods));
                 break;
             case GLFW_RELEASE:
-                g_input.push_keyup(key, GLFW_MOD_to_modifier_keys(mods));
+                g_input->push_keyup(key, GLFW_MOD_to_modifier_keys(mods));
                 break;
         }
     }
 
     static void graphics_charmods_func(GLFWwindow*, uint32_t codepoint, int32_t mods)
     {
-        g_input.push_charpress(codepoint, GLFW_MOD_to_modifier_keys(mods));
+        g_input->push_charpress(codepoint, GLFW_MOD_to_modifier_keys(mods));
     }
 
     static void graphics_cursor_pos_func(GLFWwindow* window, double xpos, double ypos)
     {
-        g_input.push_mousemove({xpos, ypos});
+        g_input->push_mousemove({xpos, ypos});
     }
 
     static void graphics_mouse_button_func(GLFWwindow* window, int button, int action, int mods)
@@ -65,10 +65,10 @@ namespace dm
         switch(action)
         {
             case GLFW_PRESS:
-                g_input.push_mousedown(static_cast<mouse_button_t>(button), GLFW_MOD_to_modifier_keys(mods));
+                g_input->push_mousedown(static_cast<mouse_button_t>(button), GLFW_MOD_to_modifier_keys(mods));
                 break;
             case GLFW_RELEASE:
-                g_input.push_mouseup(static_cast<mouse_button_t>(button), GLFW_MOD_to_modifier_keys(mods));
+                g_input->push_mouseup(static_cast<mouse_button_t>(button), GLFW_MOD_to_modifier_keys(mods));
                 break;
         }
     }
@@ -83,7 +83,7 @@ namespace dm
 
     static void graphics_scroll_func(GLFWwindow* window, double xoffset, double yoffset)
     {
-        g_input.push_scroll(xoffset, yoffset);
+        g_input->push_scroll(xoffset, yoffset);
     }
 
     static void graphics_window_size_func(GLFWwindow* window, int width, int height)

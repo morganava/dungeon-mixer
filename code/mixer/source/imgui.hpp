@@ -156,10 +156,10 @@ namespace dm
                 if (self.should_draw())
                 {
                     if constexpr (static_cast<bool>(WIDGET_FLAGS & widget_flag::scissors)) {
-                        g_context.pop_scissor();
+                        g_context->pop_scissor();
                     }
 
-                    if (g_context.get_render_pass() == render_pass::full)
+                    if (g_context->get_render_pass() == render_pass::full)
                     {
 
                         self.last_update();
@@ -168,12 +168,12 @@ namespace dm
 
                     if constexpr (static_cast<bool>(WIDGET_FLAGS & widget_flag::has_children))
                     {
-                        g_context.pop_widget();
+                        g_context->pop_widget();
                     }
 
                     if constexpr (static_cast<bool>(WIDGET_FLAGS & widget_flag::windows))
                     {
-                        g_context.set_current_window_widget(widget_id::invalid);
+                        g_context->set_current_window_widget(widget_id::invalid);
                     }
                 }
             }
@@ -187,11 +187,11 @@ namespace dm
                 }
 
                 if constexpr (static_cast<bool>(WIDGET_FLAGS & widget_flag::windows)) {
-                    g_context.set_current_window_widget(this->get_widget_id());
+                    g_context->set_current_window_widget(this->get_widget_id());
                 }
 
                 self._childCounter = 0;
-                g_context.set_render_pass(renderPass);
+                g_context->set_render_pass(renderPass);
 
                 lambda(self);
 
@@ -224,17 +224,17 @@ namespace dm
 
             void focus_widget()
             {
-                g_context.focus_widget(this->get_widget_id());
+                g_context->focus_widget(this->get_widget_id());
             }
 
             void unfocus_widget()
             {
-                g_context.unfocus_widget(this->get_widget_id());
+                g_context->unfocus_widget(this->get_widget_id());
             }
 
             bool is_focused() const
             {
-                return g_context.is_focused(this->get_widget_id());
+                return g_context->is_focused(this->get_widget_id());
             }
 
         protected:
@@ -299,12 +299,12 @@ namespace dm
             {
                 if constexpr (static_cast<bool>(WIDGET_FLAGS & widget_flag::has_children))
                 {
-                    g_context.push_widget(this);
+                    g_context->push_widget(this);
                 }
 
                 if constexpr (static_cast<bool>(WIDGET_FLAGS & widget_flag::scissors))
                 {
-                    g_context.push_scissor(this->childScissor());
+                    g_context->push_scissor(this->childScissor());
                 }
             }
 
@@ -673,7 +673,7 @@ namespace dm
 // widget-specific second render
 
 #define MX_WIDGET_CODEGEN(X, PDATA, ...)\
-    if (imgui::X widget##__LINE__(PDATA); widget##__LINE__.draw(imgui::g_context.get_render_pass(),[&](auto& self){__VA_ARGS__;}))
+    if (imgui::X widget##__LINE__(PDATA); widget##__LINE__.draw(imgui::g_context->get_render_pass(),[&](auto& self){__VA_ARGS__;}))
 
 #define MX_MULTIPASS_WIDGET_CODEGEN(X, PDATA, ...)\
     if (imgui::X widget##__LINE__(PDATA); true)\

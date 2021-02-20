@@ -102,7 +102,7 @@ namespace dm
 
     style_resolver::style_resolver(fs::path&& stylesheet)
     {
-        g_serialization_manager.load_stylesheet(std::move(stylesheet));
+        g_serialization_manager->load_stylesheet(std::move(stylesheet));
     }
 
     const style_sheet* style_resolver::resolve(element_type_t type, const array<utf8_string>& tags, element_state_t state) const

@@ -61,7 +61,7 @@ namespace dm
         // entry map
         _entries.insert({atmosphereHandle, std::move(entry)});
 
-        g_serialization_manager.request_autosave(content_type::playlist);
+        g_serialization_manager->request_autosave(content_type::playlist);
         return atmosphereHandle;
     }
 
@@ -84,7 +84,7 @@ namespace dm
         // entry map
         _entries.erase(it);
 
-        g_serialization_manager.request_autosave(content_type::playlist);
+        g_serialization_manager->request_autosave(content_type::playlist);
     }
 
     void atmosphere_directory::set_title(atmosphere_handle_t atmosphere, utf8_string&& newName)
@@ -105,7 +105,7 @@ namespace dm
         _tag_map.remove_key(atmosphere);
         _tag_map.add_key(atmosphere, tags);
 
-        g_serialization_manager.request_autosave(content_type::playlist);
+        g_serialization_manager->request_autosave(content_type::playlist);
     }
 
     void atmosphere_directory::set_volume(atmosphere_handle_t atmosphere, float volume)
@@ -119,7 +119,7 @@ namespace dm
         if (entry.volume == volume) return;
 
         entry.volume = volume;
-        g_serialization_manager.request_autosave(content_type::playlist);
+        g_serialization_manager->request_autosave(content_type::playlist);
     }
 
     void atmosphere_directory::set_muted(atmosphere_handle_t atmosphere, bool muted)
@@ -133,7 +133,7 @@ namespace dm
         if (entry.muted == muted) return;
 
         entry.muted = muted;
-        g_serialization_manager.request_autosave(content_type::playlist);
+        g_serialization_manager->request_autosave(content_type::playlist);
     }
 
     void atmosphere_directory::set_favorite(atmosphere_handle_t atmosphere, bool favorite)
@@ -147,7 +147,7 @@ namespace dm
         if (entry.favorite == favorite) return;
 
         entry.favorite = favorite;
-        g_serialization_manager.request_autosave(content_type::playlist);
+        g_serialization_manager->request_autosave(content_type::playlist);
     }
 
     void atmosphere_directory::add_track(atmosphere_handle_t atmosphere, track_handle_t track)
@@ -166,7 +166,7 @@ namespace dm
         // entry
         entry.tracks.push_back(track);
 
-        g_serialization_manager.request_autosave(content_type::playlist);
+        g_serialization_manager->request_autosave(content_type::playlist);
     }
 
     void atmosphere_directory::remove_track(atmosphere_handle_t atmosphere, track_handle_t track)
@@ -183,7 +183,7 @@ namespace dm
         if(auto it = std::find(entry.tracks.begin(), entry.tracks.end(), track); it != entry.tracks.end())
         {
             entry.tracks.erase(it);
-            g_serialization_manager.request_autosave(content_type::playlist);
+            g_serialization_manager->request_autosave(content_type::playlist);
         }
     }
 }

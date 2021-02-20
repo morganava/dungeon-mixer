@@ -21,7 +21,7 @@ namespace dm
         // must be called from audio thread
         nl::json atmosphere_entry_to_json(const dm::atmosphere_entry& atmosphereEntry)
         {
-            MX_ASSERT(g_work_manager.current_thread() == worker_id::audio);
+            MX_ASSERT(g_work_manager->current_thread() == worker_id::audio);
 
             // construct atmosphere object
             auto currentAtmosphereJson = nl::json::object();
@@ -39,9 +39,9 @@ namespace dm
 
             for(auto trackHandle : atmosphereEntry.tracks)
             {
-                const auto& trackEntry = g_track_directory.get_entry(trackHandle);
+                const auto& trackEntry = g_track_directory->get_entry(trackHandle);
                 const auto& audioHandle = trackEntry.audio;
-                const auto& audioEntry = g_audio_directory.get_entry(audioHandle);
+                const auto& audioEntry = g_audio_directory->get_entry(audioHandle);
                 auto trackJson = nl::json::object();
                 trackJson["Id"] = audioEntry.id;
                 if (trackEntry.volume != 1.0) {
@@ -230,13 +230,13 @@ namespace dm
         worker_fileio.enqueue([=]() -> void
         {
             const auto index = static_cast<size_t>(content);
-            auto& entry = g_serialization_manager.record[index];
+            auto& entry = g_serialization_manager->record[index];
             entry.autosaveRequested = true;
             entry.timeRequested = now;
 
             worker_fileio.enqueue([=]() -> void
             {
-                auto& entry = g_serialization_manager.record[index];
+                auto& entry = g_serialization_manager->record[index];
                 if (entry.autosaveRequested)
                 {
                     const auto now = std::chrono::system_clock::now();
@@ -244,7 +244,7 @@ namespace dm
 
                     if (duration >= serialization_manager::AUTOSAVE_DELAY)
                     {
-                        g_serialization_manager.autosave(content);
+                        g_serialization_manager->autosave(content);
                         entry.autosaveRequested = false;
                     }
                 }
@@ -261,7 +261,7 @@ namespace dm
             case content_type::playlist:
                 worker_audio.enqueue([]() -> void
                 {
-                    g_serialization_manager.save_all_playlists(paths::config() / "autosaved.json");
+                    g_serialization_manager->save_all_playlists(paths::config() / "autosaved.json");
                 });
 
                 break;
@@ -341,7 +341,7 @@ namespace dm
                                 audioData = std::make_shared<loop_data>(std::move(files.front()));
                             }
 
-                            g_audio_directory.add_entry(
+                            g_audio_directory->add_entry(
                                 std::move(audioId),
                                 std::move(title),
                                 std::move(tags),
@@ -406,7 +406,7 @@ namespace dm
 
                             // Id is the id of the audio_entry referenced
                             const auto audioId = trackJson["Id"].get<uuid>();
-                            auto audioHandle = g_audio_directory.get_audio_handle_by_id(audioId);
+                            auto audioHandle = g_audio_directory->get_audio_handle_by_id(audioId);
 
                             MX_LOG_INFO("   Id : {}", audioId);
                             MX_LOG_INFO("    AudioHandle : {}", audioHandle);
@@ -417,7 +417,7 @@ namespace dm
                             }
 
                             // get rest of data from audio directory
-                            auto& audioEntry = g_audio_directory.get_entry(audioHandle);
+                            auto& audioEntry = g_audio_directory->get_entry(audioHandle);
 
                             trackEntry.audio = audioHandle;
                             trackEntry.volume = 1.0f;
@@ -495,17 +495,17 @@ namespace dm
                                 MX_LOG_INFO("    Position : {{ elevation : {}, azimuth : {} }}", elevation, azimuth);
                             }
 
-                            auto trackHandle = g_track_directory.add_entry(std::move(trackEntry));
+                            auto trackHandle = g_track_directory->add_entry(std::move(trackEntry));
                             atmosphereEntry.tracks.push_back(trackHandle);
                         }
 
                         const bool favorite = atmosphereEntry.favorite;
-                        const auto atmosphereHandle = g_atmosphere_directory.add_entry(std::move(atmosphereEntry));
+                        const auto atmosphereHandle = g_atmosphere_directory->add_entry(std::move(atmosphereEntry));
                         id_to_handle.push_back(atmosphereHandle);
                         if (favorite) {
-                            g_playlist_directory.add_atmosphere(playlist_handle::favorites, atmosphereHandle);
+                            g_playlist_directory->add_atmosphere(playlist_handle::favorites, atmosphereHandle);
                         }
-                        g_playlist_directory.add_atmosphere(playlist_handle::all, atmosphereHandle);
+                        g_playlist_directory->add_atmosphere(playlist_handle::all, atmosphereHandle);
                     }
 
                     // parse our playlist_entry list
@@ -518,7 +518,7 @@ namespace dm
                         MX_LOG_INFO("  PlaylistTitle : {}", playlistEntry.title);
                         MX_LOG_INFO("  Atmospheres : ");
 
-                        auto playlistHandle = g_playlist_directory.add_entry(std::move(playlistEntry));
+                        auto playlistHandle = g_playlist_directory->add_entry(std::move(playlistEntry));
 
                         auto atmospheresList = playlistJson["Atmospheres"];
                         for (auto atmosphereId : atmospheresList)
@@ -527,13 +527,13 @@ namespace dm
                             MX_THROW_IF_FALSE(id < id_to_handle.size());
                             auto atmosphereHandle = id_to_handle[id];
                             MX_LOG_INFO("   Id : {}", id);
-                            g_playlist_directory.add_atmosphere(playlistHandle, atmosphereHandle);
+                            g_playlist_directory->add_atmosphere(playlistHandle, atmosphereHandle);
                         }
                     }
 
                     worker_ui.enqueue([]()
                     {
-                        g_ui.sync_playlists();
+                        g_ui->sync_playlists();
                     });
                 });
             });
@@ -578,7 +578,7 @@ namespace dm
     {
         worker_audio.enqueue([=,dest=std::move(dest)]() -> void
         {
-            const auto& playlistEntry = g_playlist_directory.get_entry(playlistHandle);
+            const auto& playlistEntry = g_playlist_directory->get_entry(playlistHandle);
 
             // convert playlist, atmosphere and track entries into an nl::json object
             auto atmospheresJson = nl::json::array();
@@ -591,7 +591,7 @@ namespace dm
             size_t atmosphereId = 0;
             for(auto atmosphereHandle : playlistEntry.atmospheres)
             {
-                const auto& atmosphereEntry = g_atmosphere_directory.get_entry(atmosphereHandle);
+                const auto& atmosphereEntry = g_atmosphere_directory->get_entry(atmosphereHandle);
 
                 // convert the entry to serialized json
                 auto currentAtmosphereJson = details::atmosphere_entry_to_json(atmosphereEntry);
@@ -635,9 +635,9 @@ namespace dm
 
             // write all of our atmospheres to json
             size_t atmosphereIndex = 0;
-            for(const auto atmosphereHandle : g_atmosphere_directory.get_atmosphere_handles())
+            for(const auto atmosphereHandle : g_atmosphere_directory->get_atmosphere_handles())
             {
-                const auto& atmosphereEntry = g_atmosphere_directory.get_entry(atmosphereHandle);
+                const auto& atmosphereEntry = g_atmosphere_directory->get_entry(atmosphereHandle);
 
                 // convert the entry to serialized json
                 auto currentAtmosphereJson = details::atmosphere_entry_to_json(atmosphereEntry);
@@ -649,12 +649,12 @@ namespace dm
                 atmosphereHandleToIndex.insert({atmosphereHandle, atmosphereIndex++});
             }
 
-            for(const auto playlistHandle : g_playlist_directory.get_user_playlist_handles())
+            for(const auto playlistHandle : g_playlist_directory->get_user_playlist_handles())
             {
                 auto currentPlaylistJson = nl::json::object();
                 auto currentPlaylistAtmospheresJson = nl::json::array();
 
-                const auto& playlistEntry = g_playlist_directory.get_entry(playlistHandle);
+                const auto& playlistEntry = g_playlist_directory->get_entry(playlistHandle);
                 currentPlaylistJson["Title"] = playlistEntry.title;
                 for(const auto atmosphereHandle : playlistEntry.atmospheres)
                 {

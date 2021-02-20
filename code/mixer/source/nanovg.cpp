@@ -54,7 +54,7 @@ namespace dm
 
             worker_ui.enqueue([index=static_cast<size_t>(index), fontName=std::move(fontName), fontFile=std::move(fontFile)]() -> void
             {
-                g_nanovg._nvg_font_faces[index] = nvgCreateFontMem(g_nanovg._ctx, fontName.c_str(), fontFile.data(), static_cast<int>(fontFile.size()));
+                g_nanovg->_nvg_font_faces[index] = nvgCreateFontMem(g_nanovg->_ctx, fontName.c_str(), fontFile.data(), static_cast<int>(fontFile.size()));
                 MX_LOG_INFO("Loaded font: {}", fontName);
             });
         });
@@ -103,16 +103,16 @@ namespace dm
                 // use the magenta checkboard image
                 worker_ui.enqueue([index=static_cast<size_t>(index)]() -> void
                 {
-                    g_nanovg._nvg_images[index] = g_nanovg._nvg_images[static_cast<size_t>(image_handle::debug)];
+                    g_nanovg->_nvg_images[index] = g_nanovg->_nvg_images[static_cast<size_t>(image_handle::debug)];
                 });
             }
             else
             {
                 worker_ui.enqueue([index=static_cast<size_t>(index), imageFileName=std::move(imageFileName), pixelData=std::move(pixelData), width=width, height=height]() -> void
                 {
-                    g_nanovg._nvg_images[index] =
+                    g_nanovg->_nvg_images[index] =
                     {
-                        nvgCreateImageRGBA(g_nanovg._ctx, width, height, NVG_IMAGE_GENERATE_MIPMAPS  | NVG_IMAGE_REPEATX | NVG_IMAGE_REPEATY, pixelData.get()),
+                        nvgCreateImageRGBA(g_nanovg->_ctx, width, height, NVG_IMAGE_GENERATE_MIPMAPS  | NVG_IMAGE_REPEATX | NVG_IMAGE_REPEATY, pixelData.get()),
                         {static_cast<float>(width), static_cast<float>(height)}
                     };
                     MX_LOG_INFO("Loaded image: {}", imageFileName);

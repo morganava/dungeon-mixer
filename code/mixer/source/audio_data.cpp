@@ -99,7 +99,7 @@ namespace dm
     {
         MX_ASSERT(this->_state == audio_data_state::loaded);
 
-        auto index = g_random.next_index(_buffers.size());
+        auto index = g_random->next_index(_buffers.size());
         return _buffers[index];
     }
 

@@ -14,13 +14,13 @@ namespace dm
         void widget_context_menu::handle_input_impl()
         {
             if (data()->visible) {
-                g_context.focus_window_widget(get_widget_id());
+                g_context->focus_window_widget(get_widget_id());
             }
         }
 
         void widget_context_menu::first_update_impl()
         {
-            for(auto evt : g_input.get_input_events())
+            for(auto evt : g_input->get_input_events())
             {
                 switch(evt.type())
                 {
@@ -45,10 +45,10 @@ namespace dm
 
         void widget_context_menu::resolve_box_layout_impl(element_type_t et, widget_flag_t flags)
         {
-            auto* parent = g_context.parent_widget();
+            auto* parent = g_context->parent_widget();
 
             // get our box layout based off type and tags
-            this->_layout = g_style_resolver.resolve_box_layout(et, this->tags);
+            this->_layout = g_style_resolver->resolve_box_layout(et, this->tags);
 
             // override size if defined in style and not explicitly requested
             auto desiredBounds = this->_desiredBounds;
@@ -59,14 +59,14 @@ namespace dm
             this->_layout.outerBounds.size = desiredBounds.size;
 
             // calculate the real bounds
-            if (g_context.get_render_pass() == render_pass::geometry)
+            if (g_context->get_render_pass() == render_pass::geometry)
             {
                 this->data()->spawnLocation = {128,128};
             }
-            else if (g_context.get_render_pass() == render_pass::full)
+            else if (g_context->get_render_pass() == render_pass::full)
             {
                 // we need to pop our old bounds on the second pass
-                g_context.pop_widget();
+                g_context->pop_widget();
 
                 // stored height is what we need our inner height to be, we need to add border,margin and padding
                 // to get our final outer height
@@ -83,7 +83,7 @@ namespace dm
             parent->increment_child_count();
 
             // get our style
-            this->_style = g_style_resolver.resolve(et, this->tags, element_state::none);
+            this->_style = g_style_resolver->resolve(et, this->tags, element_state::none);
         }
 
         rect widget_context_menu::bounds_callback_impl(rect desired)
@@ -103,14 +103,14 @@ namespace dm
 
         void widget_context_menu::first_render_impl() const
         {
-            MX_ASSERT(g_context.get_render_pass() == render_pass::full);
-            g_nanovg.set_draw_layer(draw_layer::foreground);
+            MX_ASSERT(g_context->get_render_pass() == render_pass::full);
+            g_nanovg->set_draw_layer(draw_layer::foreground);
         }
 
         void widget_context_menu::last_render_impl() const
         {
-            MX_ASSERT(g_context.get_render_pass() == render_pass::full);
-            g_nanovg.set_draw_layer(draw_layer::middleground);
+            MX_ASSERT(g_context->get_render_pass() == render_pass::full);
+            g_nanovg->set_draw_layer(draw_layer::middleground);
         }
     }
 }

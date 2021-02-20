@@ -15,12 +15,12 @@ namespace dm
     {
         worker_ui.enqueue([=]() -> void
         {
-            g_ui.root.playlist.edit_title = true;
-            auto& playlist = g_ui.get_playlist_widget(playlistHandle);
+            g_ui->root.playlist.edit_title = true;
+            auto& playlist = g_ui->get_playlist_widget(playlistHandle);
             playlist.title_textbox = imgui::text_box_data(playlist.title, "Playlist Name");
             playlist.title_textbox.selectBegin = 0;
             playlist.title_textbox.selectEnd = playlist.title_textbox.sb.size();
-            imgui::g_context.focus_widget(playlist.title_textbox.id);
+            imgui::g_context->focus_widget(playlist.title_textbox.id);
         });
     }
 
@@ -28,13 +28,13 @@ namespace dm
     {
         worker_ui.enqueue([=,name=std::move(name)]() -> void
         {
-            auto& playlist = g_ui.get_playlist_widget(playlistHandle);
+            auto& playlist = g_ui->get_playlist_widget(playlistHandle);
             playlist.title = name;
-            g_ui.root.playlist.edit_title = false;
+            g_ui->root.playlist.edit_title = false;
 
             worker_audio.enqueue([=,name=std::move(name)]() mutable -> void
             {
-                g_playlist_directory.set_title(playlistHandle, std::move(name));
+                g_playlist_directory->set_title(playlistHandle, std::move(name));
             });
         });
     }
@@ -43,7 +43,7 @@ namespace dm
     {
         worker_ui.enqueue([=]() -> void
         {
-            auto& playlist = g_ui.get_playlist_widget(playlistHandle);
+            auto& playlist = g_ui->get_playlist_widget(playlistHandle);
 
             auto optDestination = file_dialog::save({"json"}, paths::home(), fmt::format("{}.json", playlist.title));
             if (optDestination.has_value())
@@ -56,7 +56,7 @@ namespace dm
                 }
 
                 MX_LOG_INFO("saving playlist '{}' to {}",playlist.title, dest);
-                g_serialization_manager.save_playlist(std::move(dest), playlistHandle);
+                g_serialization_manager->save_playlist(std::move(dest), playlistHandle);
             }
         });
     }
@@ -70,7 +70,7 @@ namespace dm
             {
                 auto source = optSource.value();
                 MX_LOG_INFO("loading playlist from {}", source);
-                g_serialization_manager.load_playlist(std::move(source));
+                g_serialization_manager->load_playlist(std::move(source));
             }
         });
     }
@@ -80,20 +80,20 @@ namespace dm
         worker_ui.enqueue([=]() -> void
         {
             if (favorite) {
-                g_ui.add_atmosphere_to_playlist(playlist_handle::favorites, handle);
+                g_ui->add_atmosphere_to_playlist(playlist_handle::favorites, handle);
             } else {
-                g_ui.remove_atmosphere_from_playlist(playlist_handle::favorites, handle);
+                g_ui->remove_atmosphere_from_playlist(playlist_handle::favorites, handle);
             }
         });
 
         worker_audio.enqueue([=]() -> void
         {
-            g_atmosphere_directory.set_favorite(handle, favorite);
+            g_atmosphere_directory->set_favorite(handle, favorite);
 
             if (favorite) {
-                g_playlist_directory.add_atmosphere(playlist_handle::favorites, handle);
+                g_playlist_directory->add_atmosphere(playlist_handle::favorites, handle);
             } else {
-                g_playlist_directory.remove_atmosphere(playlist_handle::favorites, handle);
+                g_playlist_directory->remove_atmosphere(playlist_handle::favorites, handle);
             }
         });
     }
@@ -102,8 +102,8 @@ namespace dm
     {
         worker_ui.enqueue([=]() -> void
         {
-            auto it = g_ui.root.playlist.atmospheres.find(handle);
-            MX_ASSERT(it != g_ui.root.playlist.atmospheres.end());
+            auto it = g_ui->root.playlist.atmospheres.find(handle);
+            MX_ASSERT(it != g_ui->root.playlist.atmospheres.end());
             auto& widget = it->second;
             widget.volumeVal = volume;
             widget.muteUnmute.checked  = false;
@@ -111,9 +111,9 @@ namespace dm
 
         worker_audio.enqueue([=]() -> void
         {
-            g_atmosphere_directory.set_volume(handle, volume);
-            g_atmosphere_directory.set_muted(handle, false);
-            g_playback_manager.sync_atmosphere(handle);
+            g_atmosphere_directory->set_volume(handle, volume);
+            g_atmosphere_directory->set_muted(handle, false);
+            g_playback_manager->sync_atmosphere(handle);
         });
     }
 
@@ -121,16 +121,16 @@ namespace dm
     {
         worker_ui.enqueue([=]() -> void
         {
-            auto it = g_ui.root.playlist.atmospheres.find(handle);
-            MX_ASSERT(it != g_ui.root.playlist.atmospheres.end());
+            auto it = g_ui->root.playlist.atmospheres.find(handle);
+            MX_ASSERT(it != g_ui->root.playlist.atmospheres.end());
             auto& widget = it->second;
             widget.volume.value = muted ? 0.0f : widget.volumeVal;
         });
 
         worker_audio.enqueue([=]() -> void
         {
-            g_atmosphere_directory.set_muted(handle, muted);
-            g_playback_manager.sync_atmosphere(handle);
+            g_atmosphere_directory->set_muted(handle, muted);
+            g_playback_manager->sync_atmosphere(handle);
         });
     }
 
@@ -139,20 +139,20 @@ namespace dm
         worker_ui.enqueue([=]()
         {
             if (playing) {
-                g_ui.add_atmosphere_to_playlist(playlist_handle::playing, handle);
+                g_ui->add_atmosphere_to_playlist(playlist_handle::playing, handle);
             } else {
-                g_ui.remove_atmosphere_from_playlist(playlist_handle::playing, handle);
+                g_ui->remove_atmosphere_from_playlist(playlist_handle::playing, handle);
             }
         });
 
         worker_audio.enqueue([=]()
         {
             if (playing) {
-                g_playlist_directory.add_atmosphere(playlist_handle::playing, handle);
-                g_playback_manager.play_atmosphere(handle);
+                g_playlist_directory->add_atmosphere(playlist_handle::playing, handle);
+                g_playback_manager->play_atmosphere(handle);
             } else {
-                g_playlist_directory.remove_atmosphere(playlist_handle::playing, handle);
-                g_playback_manager.stop_atmosphere(handle);
+                g_playlist_directory->remove_atmosphere(playlist_handle::playing, handle);
+                g_playback_manager->stop_atmosphere(handle);
             }
         });
     }
@@ -171,14 +171,14 @@ namespace dm
                 {}
             };
 
-            auto atmosphereHandle = g_atmosphere_directory.add_entry(std::move(atmosphereEntry));
+            auto atmosphereHandle = g_atmosphere_directory->add_entry(std::move(atmosphereEntry));
             MX_LOG_INFO_BLOCKING("atmosphereHandle : {}", atmosphereHandle);
 
             // make sure we don't double add if we're adding from the 'All' playlist
             if (playlistHandle != playlist_handle::all) {
-                g_playlist_directory.add_atmosphere(playlist_handle::all, atmosphereHandle);
+                g_playlist_directory->add_atmosphere(playlist_handle::all, atmosphereHandle);
             }
-            g_playlist_directory.add_atmosphere(playlistHandle, atmosphereHandle);
+            g_playlist_directory->add_atmosphere(playlistHandle, atmosphereHandle);
 
             worker_ui.enqueue([=]()
             {
@@ -187,14 +187,14 @@ namespace dm
                 atmosphereWidget.atmosphereHandle = atmosphereHandle;
 
                 // this atmosphere should not exist in our map yet
-                MX_ASSERT(g_ui.root.playlist.atmospheres.find(atmosphereHandle) == g_ui.root.playlist.atmospheres.end());
-                g_ui.root.playlist.atmospheres.insert({atmosphereHandle, std::move(atmosphereWidget)});
+                MX_ASSERT(g_ui->root.playlist.atmospheres.find(atmosphereHandle) == g_ui->root.playlist.atmospheres.end());
+                g_ui->root.playlist.atmospheres.insert({atmosphereHandle, std::move(atmosphereWidget)});
 
                 // add handle to our playlists
                 if (playlistHandle != playlist_handle::all) {
-                    g_ui.add_atmosphere_to_playlist(playlist_handle::all, atmosphereHandle);
+                    g_ui->add_atmosphere_to_playlist(playlist_handle::all, atmosphereHandle);
                 }
-                g_ui.add_atmosphere_to_playlist(playlistHandle, atmosphereHandle);
+                g_ui->add_atmosphere_to_playlist(playlistHandle, atmosphereHandle);
             });
         });
     }
@@ -203,7 +203,7 @@ namespace dm
     {
         worker_ui.enqueue([=]() -> void
         {
-            auto& acm = g_ui.root.playlist.atmosphereContextMenu;
+            auto& acm = g_ui->root.playlist.atmosphereContextMenu;
 
             if (acm.visible && acm.atmosphereHandle == atmosphereHandle)
             {
@@ -221,13 +221,13 @@ namespace dm
     {
         worker_ui.enqueue([=]() -> void
         {
-            g_ui.remove_atmosphere_from_playlist(playlistHandle, atmosphereHandle);
-            g_ui.hide_atmosphere_context_menu();
+            g_ui->remove_atmosphere_from_playlist(playlistHandle, atmosphereHandle);
+            g_ui->hide_atmosphere_context_menu();
         });
 
         worker_audio.enqueue([=]() -> void
         {
-            g_playlist_directory.remove_atmosphere(playlistHandle, atmosphereHandle);
+            g_playlist_directory->remove_atmosphere(playlistHandle, atmosphereHandle);
         });
     }
 
@@ -235,8 +235,8 @@ namespace dm
     {
         worker_ui.enqueue([]() -> void
         {
-            g_ui.root.playlist.atmosphereContextMenu.copyVisible = true;
-            g_ui.root.playlist.atmosphereContextMenu.moveVisible = false;
+            g_ui->root.playlist.atmosphereContextMenu.copyVisible = true;
+            g_ui->root.playlist.atmosphereContextMenu.moveVisible = false;
         });
     }
 
@@ -244,13 +244,13 @@ namespace dm
     {
         worker_ui.enqueue([=]() -> void
         {
-           g_ui.hide_atmosphere_context_menu();
-           g_ui.add_atmosphere_to_playlist(playlistHandle, atmosphereHandle);
+           g_ui->hide_atmosphere_context_menu();
+           g_ui->add_atmosphere_to_playlist(playlistHandle, atmosphereHandle);
         });
 
         worker_audio.enqueue([=]() -> void
         {
-            g_playlist_directory.add_atmosphere(playlistHandle, atmosphereHandle);
+            g_playlist_directory->add_atmosphere(playlistHandle, atmosphereHandle);
         });
     }
 
@@ -258,8 +258,8 @@ namespace dm
     {
         worker_ui.enqueue([]() -> void
         {
-            g_ui.root.playlist.atmosphereContextMenu.copyVisible = false;
-            g_ui.root.playlist.atmosphereContextMenu.moveVisible = true;
+            g_ui->root.playlist.atmosphereContextMenu.copyVisible = false;
+            g_ui->root.playlist.atmosphereContextMenu.moveVisible = true;
         });
     }
 
@@ -272,22 +272,22 @@ namespace dm
         {
             worker_ui.enqueue([=]() -> void
             {
-               g_ui.hide_atmosphere_context_menu();
-               g_ui.add_atmosphere_to_playlist(playlistDest, atmosphereHandle);
-               g_ui.remove_atmosphere_from_playlist(playlistSrc, atmosphereHandle);
+               g_ui->hide_atmosphere_context_menu();
+               g_ui->add_atmosphere_to_playlist(playlistDest, atmosphereHandle);
+               g_ui->remove_atmosphere_from_playlist(playlistSrc, atmosphereHandle);
             });
 
             worker_audio.enqueue([=]() -> void
             {
-                g_playlist_directory.add_atmosphere(playlistDest, atmosphereHandle);
-                g_playlist_directory.remove_atmosphere(playlistSrc, atmosphereHandle);
+                g_playlist_directory->add_atmosphere(playlistDest, atmosphereHandle);
+                g_playlist_directory->remove_atmosphere(playlistSrc, atmosphereHandle);
             });
         }
         else
         {
             worker_ui.enqueue([]() -> void
             {
-                g_ui.hide_atmosphere_context_menu();
+                g_ui->hide_atmosphere_context_menu();
             });
         }
     }
@@ -296,7 +296,7 @@ namespace dm
     {
         worker_ui.enqueue([=]() -> void
         {
-            for(auto& widget : g_ui.root.playlist.playlists)
+            for(auto& widget : g_ui->root.playlist.playlists)
             {
                 auto& entries = widget.entries;
                 auto it = std::find(entries.begin(), entries.end(), atmosphereHandle);
@@ -306,20 +306,20 @@ namespace dm
                 }
             }
 
-            if (atmosphereHandle == g_ui.root.edit.handle)
+            if (atmosphereHandle == g_ui->root.edit.handle)
             {
-                g_ui.root.edit.handle = atmosphere_handle::invalid;
+                g_ui->root.edit.handle = atmosphere_handle::invalid;
             }
         });
 
         worker_audio.enqueue([=]() -> void
         {
-            g_playback_manager.stop_atmosphere(atmosphereHandle);
-            for(auto playlistHandle : g_playlist_directory.get_playlist_handles())
+            g_playback_manager->stop_atmosphere(atmosphereHandle);
+            for(auto playlistHandle : g_playlist_directory->get_playlist_handles())
             {
-                g_playlist_directory.remove_atmosphere(playlistHandle, atmosphereHandle);
+                g_playlist_directory->remove_atmosphere(playlistHandle, atmosphereHandle);
             }
-            g_atmosphere_directory.remove_entry(atmosphereHandle);
+            g_atmosphere_directory->remove_entry(atmosphereHandle);
         });
     }
 
@@ -327,11 +327,11 @@ namespace dm
     {
         worker_audio.enqueue([=]() -> void
         {
-            auto filtered = g_playlist_directory.filtered_atmospheres(playlist, query);
+            auto filtered = g_playlist_directory->filtered_atmospheres(playlist, query);
 
             worker_ui.enqueue([=,filtered=std::move(filtered)]() mutable -> void
             {
-                auto& playlistWidget = g_ui.get_playlist_widget(playlist);
+                auto& playlistWidget = g_ui->get_playlist_widget(playlist);
                 playlistWidget.entries = std::move(filtered);
             });
         });
@@ -356,11 +356,11 @@ namespace dm
                 mxTextBox(&currentPlaylist.title_textbox, self.tags = {"header", "title", "lightText"},
                     self.on_submit = [=](const utf8_string& str) -> void
                     {
-                        g_ui.on_set_playlist_name(currentPlaylistHandle, str);
+                        g_ui->on_set_playlist_name(currentPlaylistHandle, str);
                     };
                     if (!self.is_focused())
                     {
-                        g_ui.on_set_playlist_name(currentPlaylistHandle, self.text());
+                        g_ui->on_set_playlist_name(currentPlaylistHandle, self.text());
                     });
             }
             else
@@ -370,7 +370,7 @@ namespace dm
                     mxButton(currentPlaylist.title, self.tags = {"header", "title", "lightText"},
                         self.on_double_click = [=]() -> void
                         {
-                            g_ui.on_start_playlist_rename(currentPlaylistHandle);
+                            g_ui->on_start_playlist_rename(currentPlaylistHandle);
                         });
                 }
                 else
@@ -384,24 +384,24 @@ namespace dm
                 mxButton(g_strings[mixer_string::export_playlist],
                     self.on_click = [=]() -> void
                     {
-                        g_ui.on_start_playlist_export(currentPlaylist.handle);
+                        g_ui->on_start_playlist_export(currentPlaylist.handle);
                     });
                 mxButton(g_strings[mixer_string::import_playlist],
                     self.on_click = []() -> void
                     {
-                        g_ui.on_start_playlist_import();
+                        g_ui->on_start_playlist_import();
                     });
                 mxSpacer();
                 mxButton(g_strings[mixer_string::create_new_mix],
                     self.on_click = [&]() -> void
                     {
-                        g_ui.on_create_new_atmosphere(currentPlaylist.handle);
+                        g_ui->on_create_new_atmosphere(currentPlaylist.handle);
                     });
                 currentPlaylist.searchBox.placeholderText = g_strings[mixer_string::atmosphere_search];
                 mxTextBox({&currentPlaylist.searchBox}, self.tags = {"search"};
                     self.on_change = [=](const utf8_string& query) -> void
                     {
-                        g_ui.on_do_atmosphere_search(currentPlaylist.handle, query);
+                        g_ui->on_do_atmosphere_search(currentPlaylist.handle, query);
                     });
             }
             mxVScroll(&root.playlist.scroll)
@@ -417,28 +417,28 @@ namespace dm
                         mxCheckbox(&currentEntry.favorite, self.tags = {"entryFavorite"};
                         self.on_change = [=](bool favorited) -> void
                         {
-                            g_ui.on_set_atmosphere_favorite(currentAtmosphereHandle, favorited);
+                            g_ui->on_set_atmosphere_favorite(currentAtmosphereHandle, favorited);
                         }); // FAVORITE
                         mxButton(currentEntry.title, self.tags = {"entryTitle"},
                         self.on_click = [=]() -> void
                         {
-                            g_ui.on_toggle_atmosphere_context_menu(currentPlaylist.handle, currentAtmosphereHandle);
+                            g_ui->on_toggle_atmosphere_context_menu(currentPlaylist.handle, currentAtmosphereHandle);
 
                         }); // TOGGLE CONTEXT MENU
                         mxSlider(&currentEntry.volume, self.tags = {"entryVolume"};
                         self.on_change = [&](double volume) -> void
                         {
-                            g_ui.on_set_atmosphere_volume(currentEntry, currentAtmosphereHandle, volume);
+                            g_ui->on_set_atmosphere_volume(currentEntry, currentAtmosphereHandle, volume);
                         }); // VOLUME
                         mxCheckbox(&currentEntry.muteUnmute, self.tags = {"entryMute"};
                         self.on_change = [&](bool muted) -> void
                         {
-                            g_ui.on_set_atmosphere_mute(currentEntry, currentAtmosphereHandle, muted);
+                            g_ui->on_set_atmosphere_mute(currentEntry, currentAtmosphereHandle, muted);
                         }); // MUTE
                         mxCheckbox(&currentEntry.playStop, self.tags = {"entryPlay"};
                         self.on_change = [=](bool playing) -> void
                         {
-                            g_ui.on_set_atmosphere_play(currentAtmosphereHandle, playing);
+                            g_ui->on_set_atmosphere_play(currentAtmosphereHandle, playing);
                         }); // PLAY/STOP BUTTON
                     }
 
@@ -448,7 +448,7 @@ namespace dm
                         mxButton(g_strings[mixer_string::edit_atmosphere], self.tags={"indent", "contextMenuEntry"},
                         self.on_click = [=]() -> void
                         {
-                            g_ui.on_set_screen_edit(currentAtmosphereHandle);
+                            g_ui->on_set_screen_edit(currentAtmosphereHandle);
                         });
 
                         // only enable removal from user created playlists
@@ -458,26 +458,26 @@ namespace dm
                             self.on_click = [=]() -> void
                             {
                                 MX_LOG_INFO("Remove atmosphere {} from playlist {}", currentAtmosphereHandle, currentPlaylistHandle);
-                                g_ui.on_remove_atmosphere(currentPlaylistHandle, currentAtmosphereHandle);
+                                g_ui->on_remove_atmosphere(currentPlaylistHandle, currentAtmosphereHandle);
                             });
                         }
 
                         mxButton(g_strings[mixer_string::copy_atmosphere], self.tags={"indent", "contextMenuEntry"},
                         self.on_click = []() -> void
                         {
-                            g_ui.on_open_atmosphere_copy_menu();
+                            g_ui->on_open_atmosphere_copy_menu();
                         });
 
-                        if (g_ui.root.playlist.atmosphereContextMenu.copyVisible)
+                        if (g_ui->root.playlist.atmosphereContextMenu.copyVisible)
                         {
-                            for(auto& playlist : g_ui.root.playlist.playlists) {
+                            for(auto& playlist : g_ui->root.playlist.playlists) {
                                 if (playlist.handle >= playlist_handle::__first_generated)
                                 {
                                     mxButton(playlist.title, self.tags={"indent", "contextMenuEntry"},
                                     self.on_click = [&]() -> void
                                     {
                                         MX_LOG_INFO("Copy to '{}'", playlist.title);
-                                        g_ui.on_copy_atmosphere(playlist.handle, currentAtmosphereHandle);
+                                        g_ui->on_copy_atmosphere(playlist.handle, currentAtmosphereHandle);
 
                                     });
                                 }
@@ -489,19 +489,19 @@ namespace dm
                             mxButton(g_strings[mixer_string::move_atmosphere], self.tags={"indent", "contextMenuEntry"},
                             self.on_click = []() -> void
                             {
-                                g_ui.on_open_atmosphere_move_menu();
+                                g_ui->on_open_atmosphere_move_menu();
                             });
 
-                            if (g_ui.root.playlist.atmosphereContextMenu.moveVisible)
+                            if (g_ui->root.playlist.atmosphereContextMenu.moveVisible)
                             {
-                                for(auto& playlist : g_ui.root.playlist.playlists) {
+                                for(auto& playlist : g_ui->root.playlist.playlists) {
                                     if (playlist.handle >= playlist_handle::__first_generated)
                                     {
                                         mxButton(playlist.title, self.tags={"indent", "contextMenuEntry"},
                                         self.on_click = [&]() -> void
                                         {
                                             MX_LOG_INFO("Move to '{}'", playlist.title);
-                                            g_ui.on_move_atmosphere(currentPlaylistHandle, playlist.handle, currentAtmosphereHandle);
+                                            g_ui->on_move_atmosphere(currentPlaylistHandle, playlist.handle, currentAtmosphereHandle);
                                         });
                                     }
                                 }
@@ -512,7 +512,7 @@ namespace dm
                         self.on_click = [=]() -> void
                         {
                             MX_LOG_INFO("Delete atmosphere : {}", currentAtmosphereHandle);
-                            g_ui.on_delete_atmosphere(currentAtmosphereHandle);
+                            g_ui->on_delete_atmosphere(currentAtmosphereHandle);
                         });
                     }
                 }

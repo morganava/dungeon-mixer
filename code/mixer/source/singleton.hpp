@@ -27,6 +27,40 @@ namespace dm
             return data.has_value();
         }
 
+        singleton& operator=(TYPE&& val)
+        {
+            data = std::move(val);
+            return *this;
+        }
+
+        // todo: check for correct thread and whatnot
+        TYPE* operator->()
+        {
+            return data.operator->();
+        }
+
+        TYPE const* operator->() const
+        {
+            return data.operator->();
+        }
+
+        //
+        // Forward operator calls through operator->()
+        //
+        template<typename ARG>
+        auto operator[](ARG&& arg)
+        {
+            auto& ref = *this->operator->();
+            return ref.operator[](std::forward<ARG>(arg));
+        }
+
+        template<typename... ARGS>
+        auto operator()(ARGS&&... args)
+        {
+            auto& ref = *this->operator->();
+            return ref.operator()(std::forward<ARGS>(args)...);
+        }
+
         static singleton instance;
     private:
         std::optional<TYPE> data;
@@ -35,7 +69,7 @@ namespace dm
     typename singleton<TYPE>::singleton singleton<TYPE>::singleton::instance;
 
     #define MX_MAKE_SINGLETON(TYPE) \
-    inline constexpr TYPE& g_##TYPE = dm::singleton<TYPE>::instance.get();\
+    inline constexpr dm::singleton<TYPE>& g_##TYPE = dm::singleton<TYPE>::instance;\
     template<typename... ARGS> \
     void init_##TYPE(ARGS&&... args) { dm::singleton<TYPE>::instance.construct(std::forward<ARGS>(args)...); } \
     constexpr void free_##TYPE() { dm::singleton<TYPE>::instance.free(); } \

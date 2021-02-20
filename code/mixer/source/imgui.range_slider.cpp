@@ -69,7 +69,7 @@ namespace dm
                 return retval;
             };
 
-            for(auto& evt : g_input.get_input_events())
+            for(auto& evt : g_input->get_input_events())
             {
                 switch (evt.type())
                 {

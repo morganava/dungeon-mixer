@@ -10,11 +10,11 @@ namespace dm
     {
         worker_ui.enqueue([=]() -> void
         {
-            g_ui.root.edit.edit_title = true;
-            g_ui.root.edit.title_textbox = imgui::text_box_data(g_ui.root.edit.title, "Atmosphere Name");
-            g_ui.root.edit.title_textbox.selectBegin = 0;
-            g_ui.root.edit.title_textbox.selectEnd = g_ui.root.edit.title_textbox.sb.size();
-            imgui::g_context.focus_widget(g_ui.root.edit.title_textbox.id);
+            g_ui->root.edit.edit_title = true;
+            g_ui->root.edit.title_textbox = imgui::text_box_data(g_ui->root.edit.title, "Atmosphere Name");
+            g_ui->root.edit.title_textbox.selectBegin = 0;
+            g_ui->root.edit.title_textbox.selectEnd = g_ui->root.edit.title_textbox.sb.size();
+            imgui::g_context->focus_widget(g_ui->root.edit.title_textbox.id);
         });
     }
 
@@ -22,15 +22,15 @@ namespace dm
     {
         worker_ui.enqueue([=,name=std::move(name)]() -> void
         {
-            g_ui.root.edit.title = name;
-            g_ui.root.edit.edit_title = false;
+            g_ui->root.edit.title = name;
+            g_ui->root.edit.edit_title = false;
 
-            auto& atmosphereWidget = g_ui.get_atmosphere_widget(atmosphereHandle);
+            auto& atmosphereWidget = g_ui->get_atmosphere_widget(atmosphereHandle);
             atmosphereWidget.title = std::move(name);
 
             worker_audio.enqueue([=,name=std::move(name)]() mutable -> void
             {
-                g_atmosphere_directory.set_title(atmosphereHandle, std::move(name));
+                g_atmosphere_directory->set_title(atmosphereHandle, std::move(name));
             });
         });
     }
@@ -39,16 +39,16 @@ namespace dm
     {
         worker_audio.enqueue([=]() -> void
         {
-            auto audioHandles = g_audio_directory.get_audio_handles_by_query(query);
+            auto audioHandles = g_audio_directory->get_audio_handles_by_query(query);
             std::vector<audio_query_result_widget> queryWidgets;
             for(auto handle : audioHandles) {
-                const auto& entry = g_audio_directory.get_entry(handle);
+                const auto& entry = g_audio_directory->get_entry(handle);
                 queryWidgets.push_back({handle, {entry.title}});
             }
 
             worker_ui.enqueue([queryWidgets=std::move(queryWidgets)]() mutable -> void
             {
-                g_ui.root.edit.search.queryResults = std::move(queryWidgets);
+                g_ui->root.edit.search.queryResults = std::move(queryWidgets);
             });
         });
     }
@@ -58,7 +58,7 @@ namespace dm
         // create new track for atmosphere and begin playing it
         worker_audio.enqueue([=]() -> void
         {
-            auto& audioEntry = g_audio_directory.get_entry(audioHandle);
+            auto& audioEntry = g_audio_directory->get_entry(audioHandle);
 
             auto trackTitle = audioEntry.title;
 
@@ -73,10 +73,10 @@ namespace dm
             }
 
             // add it to the track directory
-            auto trackHandle = g_track_directory.add_entry(std::move(trackEntry));
+            auto trackHandle = g_track_directory->add_entry(std::move(trackEntry));
 
             // add track to atmosphere
-            g_atmosphere_directory.add_track(atmosphereHandle, trackHandle);
+            g_atmosphere_directory->add_track(atmosphereHandle, trackHandle);
 
             // add track widget to ui
             worker_ui.enqueue([=,title=std::move(trackTitle)]() -> void
@@ -88,11 +88,11 @@ namespace dm
                     std::move(title)
                 };
 
-                g_ui.root.edit.tracks.widgets.push_back(std::move(widget));
+                g_ui->root.edit.tracks.widgets.push_back(std::move(widget));
             });
 
             // finally play the track
-            g_playback_manager.play_track(trackHandle);
+            g_playback_manager->play_track(trackHandle);
         });
     }
 
@@ -102,7 +102,7 @@ namespace dm
         worker_ui.enqueue([=]() -> void
         {
             // find widget with the given track handle, and remove it from list
-            auto& widgets = g_ui.root.edit.tracks.widgets;
+            auto& widgets = g_ui->root.edit.tracks.widgets;
             auto it = std::find_if(widgets.begin(), widgets.end(), [=](auto& w) -> bool {return w.handle == trackHandle;});
             widgets.erase(it);
         });
@@ -111,11 +111,11 @@ namespace dm
         worker_audio.enqueue([=]() -> void
         {
             // stop playing this track
-            g_playback_manager.stop_track(trackHandle);
+            g_playback_manager->stop_track(trackHandle);
             // remove the track from the atmosphere
-            g_atmosphere_directory.remove_track(atmosphereHandle, trackHandle);
+            g_atmosphere_directory->remove_track(atmosphereHandle, trackHandle);
             // finally destroy this track
-            g_track_directory.remove_entry(trackHandle);
+            g_track_directory->remove_entry(trackHandle);
         });
     }
 
@@ -123,8 +123,8 @@ namespace dm
     {
         worker_audio.enqueue([=]() -> void
         {
-            g_track_directory.set_volume(trackHandle, volume);
-            g_playback_manager.sync_track(trackHandle);
+            g_track_directory->set_volume(trackHandle, volume);
+            g_playback_manager->sync_track(trackHandle);
         });
     }
 
@@ -132,8 +132,8 @@ namespace dm
     {
         worker_audio.enqueue([=]() -> void
         {
-            g_track_directory.set_position_enabled(trackHandle, enabled);
-            g_playback_manager.sync_track(trackHandle);
+            g_track_directory->set_position_enabled(trackHandle, enabled);
+            g_playback_manager->sync_track(trackHandle);
         });
     }
 
@@ -144,8 +144,8 @@ namespace dm
 
         worker_audio.enqueue([=]() -> void
         {
-            g_track_directory.set_position_azimuth(trackHandle, azimuth);
-            g_playback_manager.sync_track(trackHandle);
+            g_track_directory->set_position_azimuth(trackHandle, azimuth);
+            g_playback_manager->sync_track(trackHandle);
         });
     }
 
@@ -156,8 +156,8 @@ namespace dm
 
         worker_audio.enqueue([=]() -> void
         {
-            g_track_directory.set_position_elevation(trackHandle, elevation);
-            g_playback_manager.sync_track(trackHandle);
+            g_track_directory->set_position_elevation(trackHandle, elevation);
+            g_playback_manager->sync_track(trackHandle);
         });
     }
 
@@ -165,8 +165,8 @@ namespace dm
     {
         worker_audio.enqueue([=]() -> void
         {
-            g_track_directory.set_repeat_enabled(trackHandle, enabled);
-            g_playback_manager.sync_track(trackHandle);
+            g_track_directory->set_repeat_enabled(trackHandle, enabled);
+            g_playback_manager->sync_track(trackHandle);
         });
     }
 
@@ -178,9 +178,9 @@ namespace dm
 
         worker_audio.enqueue([=]() -> void
         {
-            g_track_directory.set_repeat_min(trackHandle, minRepeat);
-            g_track_directory.set_repeat_max(trackHandle, maxRepeat);
-            g_playback_manager.sync_track(trackHandle);
+            g_track_directory->set_repeat_min(trackHandle, minRepeat);
+            g_track_directory->set_repeat_max(trackHandle, maxRepeat);
+            g_playback_manager->sync_track(trackHandle);
         });
     }
 
@@ -188,7 +188,7 @@ namespace dm
 
     void ui::draw_edit(float dt)
     {
-        const auto currentAtmosphereHandle = g_ui.root.edit.handle;
+        const auto currentAtmosphereHandle = g_ui->root.edit.handle;
         mxVBox(self.tags={"content"})
         {
             mxLabel(g_strings[mixer_string::edit_screen], self.tags= {"header", "darkText"});
@@ -197,18 +197,18 @@ namespace dm
                 mxTextBox(&root.edit.title_textbox, self.tags = {"header", "title", "lightText"},
                 self.on_submit = [=](const utf8_string& str) -> void
                 {
-                    g_ui.on_set_atmosphere_name(currentAtmosphereHandle, str);
+                    g_ui->on_set_atmosphere_name(currentAtmosphereHandle, str);
                 };
                 if (!self.is_focused())
                 {
-                    g_ui.on_set_atmosphere_name(currentAtmosphereHandle, self.text());
+                    g_ui->on_set_atmosphere_name(currentAtmosphereHandle, self.text());
                 });
             }
             else
             {
-                mxButton(g_ui.root.edit.title, self.tags = {"header", "title", "lightText"},
+                mxButton(g_ui->root.edit.title, self.tags = {"header", "title", "lightText"},
                 self.on_double_click = [=]() -> void{
-                    g_ui.on_start_atmosphere_rename(currentAtmosphereHandle);
+                    g_ui->on_start_atmosphere_rename(currentAtmosphereHandle);
                 });
             }
 
@@ -216,14 +216,14 @@ namespace dm
             {
                 mxButton(g_strings[mixer_string::create_new_mix], self.on_click = []() -> void
                 {
-                    g_ui.on_set_screen_edit(atmosphere_handle::invalid);
+                    g_ui->on_set_screen_edit(atmosphere_handle::invalid);
                 });
                 mxSpacer();
                 root.edit.searchBox.placeholderText = g_strings[mixer_string::track_search];
                 mxTextBox(&root.edit.searchBox, self.tags = {"search"};
                 self.on_change = [](const utf8_string& query) -> void
                 {
-                    g_ui.on_do_audio_search(query);
+                    g_ui->on_do_audio_search(query);
                 });
             }
             mxHBox(self.tags = {"editHBox"})
@@ -241,7 +241,7 @@ namespace dm
                             mxButton({"×"}, self.tags={"entryRemove"},
                                 self.on_click = [=]() -> void
                                 {
-                                    g_ui.on_remove_track_from_atmosphere(currentAtmosphereHandle, trackHandle);
+                                    g_ui->on_remove_track_from_atmosphere(currentAtmosphereHandle, trackHandle);
                                 });
                         }
                         if (editWidget.visible.checked)
@@ -252,7 +252,7 @@ namespace dm
                                 mxSlider(&editWidget.volume_slider,
                                 self.on_change = [=](double value) -> void
                                 {
-                                    g_ui.on_set_track_volume(trackHandle, value);
+                                    g_ui->on_set_track_volume(trackHandle, value);
                                 });
                             }
                             mxHBox(self.tags={"trackSetting"})
@@ -262,7 +262,7 @@ namespace dm
                                 {
                                     mxCheckbox(&editWidget.position_checkbox,
                                     self.on_change = [=](bool value) -> void{
-                                        g_ui.on_set_track_position_enabled(trackHandle, value);
+                                        g_ui->on_set_track_position_enabled(trackHandle, value);
                                     });
                                     mxLabel(editWidget.position_checkbox.checked ?
                                             g_strings[mixer_string::enabled] :
@@ -280,7 +280,7 @@ namespace dm
                                         mxSlider(&editWidget.azimuth_slider,
                                         self.on_change = [&](double value) -> void
                                         {
-                                            g_ui.on_set_track_azimuth(editWidget, value);
+                                            g_ui->on_set_track_azimuth(editWidget, value);
                                         });
                                         mxLabel(editWidget.azimuth_string);
                                     }
@@ -294,7 +294,7 @@ namespace dm
                                         mxSlider(&editWidget.elevation_slider,
                                         self.on_change = [&](double value) -> void
                                         {
-                                            g_ui.on_set_track_elevation(editWidget, value);
+                                            g_ui->on_set_track_elevation(editWidget, value);
                                         });
                                         mxLabel(editWidget.elevation_string);
                                     }
@@ -311,7 +311,7 @@ namespace dm
                                         mxCheckbox(&editWidget.repeat_checkbox,
                                         self.on_change=[=](bool value)
                                         {
-                                            g_ui.on_set_track_repeat_enabled(trackHandle, value);
+                                            g_ui->on_set_track_repeat_enabled(trackHandle, value);
                                         });
                                         mxLabel(editWidget.repeat_checkbox.checked ?
                                                 g_strings[mixer_string::enabled] :
@@ -329,7 +329,7 @@ namespace dm
                                             mxRangeSlider(&editWidget.repeat_slider,
                                             self.on_change=[&](double low, double high)
                                             {
-                                                g_ui.on_set_track_repeat(editWidget, low, high);
+                                                g_ui->on_set_track_repeat(editWidget, low, high);
                                             });
                                             mxLabel(editWidget.repeat_max_string);
                                         }
@@ -347,7 +347,7 @@ namespace dm
                         mxButton(queryResult.title, self.tags={"audioResult"};
                         self.on_click = [&]() -> void
                         {
-                            g_ui.on_add_audio_to_atmosphere(g_ui.root.edit.handle, queryResult.handle);
+                            g_ui->on_add_audio_to_atmosphere(g_ui->root.edit.handle, queryResult.handle);
                         });
                         mxSpacer();
                     }

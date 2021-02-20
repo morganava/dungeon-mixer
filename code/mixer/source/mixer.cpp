@@ -18,10 +18,10 @@ namespace dm
     {
         MX_LOG_INFO("Init callback!");
         // builds map from keycodes to character name
-        g_input.build_key_map();
-        g_input.init_cursors();
+        g_input->build_key_map();
+        g_input->init_cursors();
 
-        g_nanovg.create_context();
+        g_nanovg->create_context();
         // init renderer
         // init_renderer(ctx);
     }
@@ -29,12 +29,12 @@ namespace dm
     void gui_callback(float dt, int width, int height, double pixel_ratio)
     {
         // do queued UI work
-        g_work_manager.do_tasks(worker_id::ui);
+        g_work_manager->do_tasks(worker_id::ui);
 
-        g_input.update(dt);
-        g_ui.update(dt, width, height);
-        g_nanovg.update(dt, width, height, pixel_ratio);
-        g_input.update_cursor();
+        g_input->update(dt);
+        g_ui->update(dt, width, height);
+        g_nanovg->update(dt, width, height, pixel_ratio);
+        g_input->update_cursor();
     }
 
     // on window exit
