@@ -148,7 +148,7 @@ namespace dm
         friend class worker;
         friend void worker_thread(worker_id_t);
     };
-    MX_MAKE_SINGLETON(work_manager);
+    MX_MAKE_SINGLETON(work_manager, worker_flag::any);
 
     class worker
     {

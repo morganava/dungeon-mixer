@@ -281,12 +281,12 @@ namespace dm
             worker_background.enqueue([mb=std::move(mb)]() -> void
             {
                 auto json = details::parse_json(mb);
-                auto resolver = json.get<style_resolver>();
-                worker_ui.enqueue([resolver=std::move(resolver)] () mutable -> void
+                worker_ui.enqueue([json=std::move(json)] () mutable -> void
                 {
                     // this is here so that we can reload skins at runtime
                     // we can just overwrite the existing resolver and things
                     // should jus work
+                    auto resolver = json.get<style_resolver>();
                     g_style_resolver = std::move(resolver);
                 });
             });

@@ -132,7 +132,7 @@ namespace dm
         // amount of time an unreferenced track waits before unloading data and freeing memory
         constexpr static float unload_age = 10.0f;
     };
-    MX_MAKE_SINGLETON(audio_directory)
+    MX_MAKE_SINGLETON(audio_directory, worker_flag::audio);
 
     // description for how audio is to played in an atmosphere
     struct track_entry
@@ -175,7 +175,7 @@ namespace dm
     private:
         std::unordered_map<track_handle_t, track_entry> _entries;
     };
-    MX_MAKE_SINGLETON(track_directory)
+    MX_MAKE_SINGLETON(track_directory, worker_flag::audio);
 
     struct atmosphere_entry
     {
@@ -218,7 +218,7 @@ namespace dm
         // atmoshere_handle_t to entry
         std::map<atmosphere_handle_t, atmosphere_entry> _entries;
     };
-    MX_MAKE_SINGLETON(atmosphere_directory)
+    MX_MAKE_SINGLETON(atmosphere_directory, worker_flag::audio)
 
     struct playlist_entry
     {
@@ -256,7 +256,7 @@ namespace dm
             {playlist_handle::playing,   {"Playing", {}}},
         };
     };
-    MX_MAKE_SINGLETON(playlist_directory)
+    MX_MAKE_SINGLETON(playlist_directory, worker_flag::audio)
 
     struct playback_entry
     {
@@ -296,5 +296,5 @@ namespace dm
         void sync_track(const atmosphere_entry&, track_handle_t);
         std::unordered_map<track_handle_t, playback_entry> _entries;
     };
-    MX_MAKE_SINGLETON(playback_manager);
+    MX_MAKE_SINGLETON(playback_manager, worker_flag::audio);
 }

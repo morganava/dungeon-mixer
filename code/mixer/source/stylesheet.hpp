@@ -95,5 +95,5 @@ namespace dm
         friend void from_json(const nl::json&,style_resolver&);
     };
     void from_json(const nl::json&, style_resolver&);
-    MX_MAKE_SINGLETON(style_resolver);
+    MX_MAKE_SINGLETON(style_resolver, worker_flag::ui);
 }

@@ -71,5 +71,5 @@ namespace dm
             "[{:f}][INFO] {}\n",
         };
     };
-    MX_MAKE_SINGLETON(logger);
+    MX_MAKE_SINGLETON(logger, worker_flag::any);
 }

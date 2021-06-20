@@ -212,5 +212,5 @@ namespace dm
             } edit;
         } root;
     };
-    MX_MAKE_SINGLETON(ui)
+    MX_MAKE_SINGLETON(ui, worker_flag::ui);
 }

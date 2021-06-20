@@ -10,7 +10,12 @@ namespace dm
         auto currentThread = g_work_manager.unsafe_get().current_thread();
         auto currentThreadFlag = static_cast<worker_flag_t>(1 << static_cast<size_t>(currentThread));
 
-        return (allowedThreads & currentThreadFlag) != worker_flag::none;
+        auto retval = (allowedThreads & currentThreadFlag) != worker_flag::none;
+        if (!retval) {
+            MX_LOG_ERROR("Called from thread: {}", currentThread);
+        }
+
+        return retval;
     }
 
     // WorkerManager

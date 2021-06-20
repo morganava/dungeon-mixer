@@ -38,5 +38,5 @@ namespace dm
             decltype(std::chrono::system_clock::now()) timeRequested;
         } record[static_cast<size_t>(content_type::count)];
     };
-    MX_MAKE_SINGLETON(serialization_manager);
+    MX_MAKE_SINGLETON(serialization_manager, worker_flag::any);
 }

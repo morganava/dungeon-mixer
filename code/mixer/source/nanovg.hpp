@@ -181,5 +181,5 @@ namespace dm
 
         command_queue _previous, _current;
     };
-    MX_MAKE_SINGLETON(nanovg);
+    MX_MAKE_SINGLETON(nanovg, worker_flag::ui);
 }

@@ -287,7 +287,7 @@ namespace dm
             click_detector mouse_buttons[static_cast<size_t>(mouse_button::count)];
         } _mouse_state;
     };
-    MX_MAKE_SINGLETON(input);
+    MX_MAKE_SINGLETON(input, worker_flag::ui);
 }
 
 std::ostream& operator<<(std::ostream&, dm::input_event);

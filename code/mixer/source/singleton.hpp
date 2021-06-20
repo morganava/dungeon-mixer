@@ -80,6 +80,5 @@ namespace dm
         constexpr void free_##NAME() { dm::singleton<TYPE>::instance.free(); } \
         template<> struct allowed_threads<TYPE> { constexpr static worker_flag_t value=(ALLOWED_THREADS); };
 
-    #define MX_MAKE_SINGLETON(TYPE) MX_MAKE_SINGLETON_IMPL(TYPE, TYPE, worker_flag::any)
-
+    #define MX_MAKE_SINGLETON(TYPE, ALLOWED_THREADS) MX_MAKE_SINGLETON_IMPL(TYPE, TYPE, ALLOWED_THREADS)
 }
