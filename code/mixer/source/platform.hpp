@@ -3,7 +3,7 @@
 #include "utilities.hpp"
 #include "enums.hpp"
 
-// todo: actually detect the platform we're on one we're cross-platform
+// todo: actually detect the platform we're on once we're cross-platform
 #define MX_PLATFORM_LINUX
 // #define MX_PLATFORM_WINDOWS
 // #define MX_PLATOFRM_MACOS

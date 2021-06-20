@@ -896,6 +896,10 @@ namespace dm
             return -1;
         }
 
+        if (str.size() == 0) {
+            return 0;
+        }
+
         auto startPosition = text_bounds_to_start_position(bounds, halign, valign);
         nvgFontFaceId(_ctx, _nvg_font_faces[static_cast<size_t>(font)]);
         nvgFontSize(_ctx, fontSize);
