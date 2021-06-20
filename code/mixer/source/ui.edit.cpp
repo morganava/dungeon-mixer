@@ -14,7 +14,7 @@ namespace dm
             g_ui->root.edit.title_textbox = imgui::text_box_data(g_ui->root.edit.title, "Atmosphere Name");
             g_ui->root.edit.title_textbox.selectBegin = 0;
             g_ui->root.edit.title_textbox.selectEnd = g_ui->root.edit.title_textbox.sb.size();
-            imgui::g_context->focus_widget(g_ui->root.edit.title_textbox.id);
+            g_context->focus_widget(g_ui->root.edit.title_textbox.id);
         });
     }
 

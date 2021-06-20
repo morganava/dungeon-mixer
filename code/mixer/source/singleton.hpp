@@ -15,7 +15,7 @@ namespace dm
         }
 
         template<typename... ARGS>
-        void construct(ARGS&&... args)
+        void construct(worker_flag allowedThreads, ARGS&&... args)
         {
             data.emplace(std::forward<ARGS>(args)...);
         }
@@ -36,16 +36,15 @@ namespace dm
             return *this;
         }
 
-        // todo: check for correct thread and whatnot
         TYPE* operator->()
         {
-            MX_ASSERT(can_call_from_current_thread(allowedThreads));
+            MX_ASSERT(can_call_from_current_thread(allowed_threads<TYPE>::value));
             return data.operator->();
         }
 
         TYPE const* operator->() const
         {
-            MX_ASSERT(can_call_from_current_thread(allowedThreads));
+            MX_ASSERT(can_call_from_current_thread(allowed_threads<TYPE>::value));
             return data.operator->();
         }
 
@@ -69,15 +68,18 @@ namespace dm
         static singleton instance;
     private:
         std::optional<TYPE> data;
-        const worker_flag allowedThreads = worker_flag::any;
     };
     template<typename TYPE>
     typename singleton<TYPE>::singleton singleton<TYPE>::singleton::instance;
 
-    #define MX_MAKE_SINGLETON(TYPE) \
-    inline constexpr dm::singleton<TYPE>& g_##TYPE = dm::singleton<TYPE>::instance;\
-    template<typename... ARGS> \
-    void init_##TYPE(ARGS&&... args) { dm::singleton<TYPE>::instance.construct(std::forward<ARGS>(args)...); } \
-    constexpr void free_##TYPE() { dm::singleton<TYPE>::instance.free(); } \
+
+    #define MX_MAKE_SINGLETON_IMPL(TYPE, NAME, ALLOWED_THREADS) \
+        inline constexpr dm::singleton<TYPE>& g_##NAME = dm::singleton<TYPE>::instance; \
+        template<typename... ARGS> \
+        void init_##NAME(ARGS&&... args) { dm::singleton<TYPE>::instance.construct(worker_flag::any, std::forward<ARGS>(args)...); } \
+        constexpr void free_##NAME() { dm::singleton<TYPE>::instance.free(); } \
+        template<> struct allowed_threads<TYPE> { constexpr static worker_flag_t value=(ALLOWED_THREADS); };
+
+    #define MX_MAKE_SINGLETON(TYPE) MX_MAKE_SINGLETON_IMPL(TYPE, TYPE, worker_flag::any)
 
 }

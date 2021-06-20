@@ -37,7 +37,7 @@ namespace dm
                 MX_ASSERT(singleton<FUNCTOR>::instance.assigned() == false);
 
                 // move to static storage
-                singleton<FUNCTOR>::instance.construct(std::move(functor));
+                singleton<FUNCTOR>::instance.construct(worker_flag::any, std::move(functor));
 
                 this->exec_func = [](ARGS... args) -> void
                 {

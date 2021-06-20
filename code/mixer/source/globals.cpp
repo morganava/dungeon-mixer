@@ -39,7 +39,7 @@ namespace dm
         init_style_resolver(paths::skins() / "default.json");
 
         // init ui
-        imgui::init_context();
+        init_context();
         init_ui();
 
         // init input
@@ -71,7 +71,7 @@ namespace dm
 
         // ui
         free_ui();
-        imgui::free_context();
+        free_context();
 
         free_style_resolver();
 

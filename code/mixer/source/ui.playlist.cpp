@@ -20,7 +20,7 @@ namespace dm
             playlist.title_textbox = imgui::text_box_data(playlist.title, "Playlist Name");
             playlist.title_textbox.selectBegin = 0;
             playlist.title_textbox.selectEnd = playlist.title_textbox.sb.size();
-            imgui::g_context->focus_widget(playlist.title_textbox.id);
+            g_context->focus_widget(playlist.title_textbox.id);
         });
     }
 

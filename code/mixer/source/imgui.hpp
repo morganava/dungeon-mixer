@@ -68,8 +68,10 @@ namespace dm
             widget_id_t _focused_widget = widget_id::invalid;
             widget_id_t _current_window_widget = widget_id::invalid;
         };
-        MX_MAKE_SINGLETON(context);
-
+    }
+    MX_MAKE_SINGLETON_IMPL(imgui::context, context, worker_flag::any);
+    namespace imgui
+    {
         struct widget_data
         {
             widget_id_t id = next_widget_id();
@@ -673,7 +675,7 @@ namespace dm
 // widget-specific second render
 
 #define MX_WIDGET_CODEGEN(X, PDATA, ...)\
-    if (imgui::X widget##__LINE__(PDATA); widget##__LINE__.draw(imgui::g_context->get_render_pass(),[&](auto& self){__VA_ARGS__;}))
+    if (imgui::X widget##__LINE__(PDATA); widget##__LINE__.draw(dm::g_context->get_render_pass(),[&](auto& self){__VA_ARGS__;}))
 
 #define MX_MULTIPASS_WIDGET_CODEGEN(X, PDATA, ...)\
     if (imgui::X widget##__LINE__(PDATA); true)\

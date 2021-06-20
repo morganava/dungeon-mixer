@@ -26,6 +26,11 @@ namespace dm
               worker_flag::logging
     );
 
+    template<typename T>
+    struct allowed_threads {
+        constexpr static worker_flag_t value = worker_flag::any;
+    };
+
     // utility function for singleton
     bool can_call_from_current_thread(worker_flag_t allowedThreads);
 }
