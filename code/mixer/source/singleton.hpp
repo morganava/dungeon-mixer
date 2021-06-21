@@ -75,6 +75,7 @@ namespace dm
 
     #define MX_MAKE_SINGLETON_IMPL(TYPE, NAME, ALLOWED_THREADS) \
         inline constexpr dm::singleton<TYPE>& g_##NAME = dm::singleton<TYPE>::instance; \
+        inline constexpr TYPE& g_##NAME##_unsafe = dm::singleton<TYPE>::instance.unsafe_get(); \
         template<typename... ARGS> \
         void init_##NAME(ARGS&&... args) { dm::singleton<TYPE>::instance.construct(worker_flag::any, std::forward<ARGS>(args)...); } \
         constexpr void free_##NAME() { dm::singleton<TYPE>::instance.free(); } \
