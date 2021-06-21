@@ -48,7 +48,7 @@ namespace dm
 
         const uint32_t sample_rate = sourceSound.getSampleRate();
 
-        destSound.loadFromSamples(dest_samples.release(), sample_count, 1, sample_rate);
+        destSound.loadFromSamples(dest_samples.get(), sample_count, 1, sample_rate);
     }
 
     // Base Audio Data
