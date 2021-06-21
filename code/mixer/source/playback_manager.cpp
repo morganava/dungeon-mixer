@@ -21,7 +21,11 @@ namespace dm
         g_playback_manager->update(dt);
 
         prev = now;
-        worker_audio.enqueue(audio_update, 32ms);
+
+        // todo: maybe make a way to auto-repeat a function
+        if (!g_work_manager->terminating()) {
+            worker_audio.enqueue(audio_update, 32ms);
+        }
     }
 
     playback_manager::playback_manager()

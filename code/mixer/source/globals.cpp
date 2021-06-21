@@ -58,6 +58,9 @@ namespace dm
 
     void free_globals()
     {
+        // wait for task queues to empty
+        free_work_manager();
+
         free_string_manager();
 
         // free audio managers
@@ -78,8 +81,5 @@ namespace dm
         free_nanovg();
 
         free_random();
-
-        // close queues off to new work
-        free_work_manager();
     }
 }

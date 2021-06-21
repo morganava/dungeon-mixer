@@ -83,7 +83,7 @@ namespace dm
         void try_wait();
     };
 
-    typedef std::chrono::time_point<std::chrono::system_clock> timestamp;
+    typedef std::chrono::time_point<std::chrono::system_clock> timestamp_t;
 
     class work_manager
     {
@@ -92,7 +92,7 @@ namespace dm
             // work to do
             run_once_task function;
             // task runs no earlier than this
-            timestamp start_time;
+            timestamp_t start_time;
             // promise used to notify the caller's future
             std::promise<void> promise;
         };
@@ -109,23 +109,21 @@ namespace dm
         work_manager();
         ~work_manager();
 
-        bool accepting_work() const { return _accepting_work; }
+        bool terminating() const {return _terminating[0];}
 
         // run all of the tasks in the given worker's queue
-        // returns the timestamp of the last enqueued task
-        timestamp do_tasks(worker_id_t id);
+        // returns the timestamp of the completion of the last enqueued task
+        timestamp_t do_tasks(worker_id_t id);
 
-        task_future enqueue(size_t workerIndex, run_once_task&& work, timestamp startTime);
+        task_future enqueue(size_t workerIndex, run_once_task&& work, timestamp_t startTime);
 
         worker_id current_thread() const;
     private:
         size_t current_index() const;
 
-        std::future<void> enqueue_impl(size_t workerIndex, run_once_task&& work, timestamp startTime);
-        void suspend_worker(size_t workerIndex);
-        void notify_worker(size_t workerIndex);
+        std::future<void> enqueue_impl(size_t workerIndex, run_once_task&& work, timestamp_t startTime);
 
-        std::atomic_bool _accepting_work = true;
+        std::atomic_size_t _pending_tasks = 0;
 
         constexpr static size_t _worker_count = static_cast<size_t>(worker_id::count);
 
@@ -137,9 +135,11 @@ namespace dm
         // worker swaps queues and reads from consumer thread
         std::vector<task_item> _consumer_queue[_worker_count];
         // the last time the thread was working
-        timestamp _completion_time[_worker_count];
+        timestamp_t _completion_time[_worker_count];
         // condition variables for suspending/resuming threads
         std::condition_variable _suspend_handle[_worker_count];
+        // per thread flags to signal termination
+        bool _terminating[_worker_count];
 
         std::thread _threads[_worker_count];
         // only used for verification purposes
@@ -157,7 +157,7 @@ namespace dm
     public:
         constexpr worker(worker_id_t id) : _worker_index(static_cast<size_t>(id)) {}
         task_future enqueue(run_once_task&& task) const;
-        task_future enqueue(run_once_task&& task, timestamp startTime) const;
+        task_future enqueue(run_once_task&& task, timestamp_t startTime) const;
         template<typename Rep, typename Period>
         task_future enqueue(run_once_task&& task, std::chrono::duration<Rep, Period> delay) const
         {

@@ -23,14 +23,19 @@ namespace dm
     void worker_thread(worker_id_t id)
     {
         const auto workerIndex = static_cast<size_t>(id);
-        auto& workManager = g_work_manager.unsafe_get();
 
-        workManager._thread_ids[workerIndex] = std::this_thread::get_id();
+        // store off our threadId
+        g_work_manager_unsafe._thread_ids[workerIndex] = std::this_thread::get_id();
+        bool const& terminating = g_work_manager_unsafe._terminating[workerIndex];
 
-        while(workManager.accepting_work())
+        // keep spinning until there are no more pending tasks
+        while(!terminating || g_work_manager_unsafe._pending_tasks > 0)
         {
-            // empty queue of work
-            const auto completionTime = workManager.do_tasks(id);
+            // executes all queued tasks and returns timestamp of last time
+            // this thread did work (so if there are no pending tasks, a cached timestamp
+            // is returned)
+            const auto completionTime = g_work_manager_unsafe.do_tasks(id);
+
             const auto now = std::chrono::system_clock::now();
             const auto diff = now - completionTime;
 
@@ -39,7 +44,7 @@ namespace dm
             {
                 continue;
             }
-            // sleep only for a bit until two frames
+            // sleep only for a bit until two frames have elapsed
             else if(diff < 32ms)
             {
                 std::this_thread::sleep_for(1ms);
@@ -49,10 +54,21 @@ namespace dm
             {
                 std::this_thread::sleep_for(16ms);
             }
-            // finally suspend
+            // finally suspend if no new tasks have been added to the producer queue for over a second
             else
             {
-                workManager.suspend_worker(workerIndex);
+                // protect the suspend with the queue lock and ensure no notify sneaks
+                // through right before we suspend
+                auto& m = g_work_manager_unsafe._queue_mutex[workerIndex];
+                std::unique_lock<std::mutex> ul(m);
+                auto& queue = g_work_manager_unsafe._producer_queue[workerIndex];
+
+                // only suspend if we have no pending tasks
+                if (queue.empty())
+                {
+                    auto& cv = g_work_manager_unsafe._suspend_handle[workerIndex];
+                    cv.wait(ul);
+                }
             }
         }
     }
@@ -62,6 +78,7 @@ namespace dm
         // set the main thread id
         static_assert(0 == static_cast<size_t>(worker_id::ui));
         _thread_ids[0] = std::this_thread::get_id();
+        _terminating[0] = false;
 
         const auto now = std::chrono::system_clock::now();
         // init threads, start on 1 because 0 is main thread
@@ -69,27 +86,41 @@ namespace dm
         {
             // init the last queued task with current time
             _completion_time[k] = now;
+            // init termination flags
+            _terminating[k] = false;
+            // start thread
             _threads[k] = std::thread(&worker_thread, static_cast<worker_id_t>(k));
         }
     }
 
     work_manager::~work_manager()
     {
-        _accepting_work = false;
+        _terminating[0] = true;
 
+        // notify each worker that we are terminating
         for(size_t k = 1; k < _worker_count; k++)
         {
-            notify_worker(k);
+            // assuming our enqueue method properly wakes sleeping threads
+            // this will never deadlock
+            enqueue_impl(k, [workerIndex=k]() -> void
+            {
+                g_work_manager_unsafe._terminating[workerIndex] = true;
+            }, std::chrono::system_clock::now());
+        }
+
+        // wait for threads to complete their work
+        for(size_t k = 1; k < _worker_count; k++)
+        {
             _threads[k].join();
         }
     }
 
-    timestamp work_manager::do_tasks(worker_id_t id)
+    timestamp_t work_manager::do_tasks(worker_id_t id)
     {
         const size_t index = static_cast<size_t>(id);
         MX_ASSERT(this->current_index() == index);
 
-        timestamp retval;
+        auto& completionTime = _completion_time[index];
 
         while(true)
         {
@@ -117,7 +148,7 @@ namespace dm
             // early out with previous time stamp if no new work
             if (consumer.empty())
             {
-                return _completion_time[index];
+                return completionTime;
             }
 
             // sort our tasks by start time
@@ -126,21 +157,23 @@ namespace dm
                 return left.start_time < right.start_time;
             });
 
-
             for(auto it = consumer.begin(); it < consumer.end(); ++it)
             {
                 auto& task = *it;
                 const auto now = std::chrono::system_clock::now();
+                // check to see if we need to do the next item
                 if (now < task.start_time)
                 {
+                    // erase the completed items
                     consumer.erase(consumer.begin(), it);
-                    _completion_time[index] = now;
+                    completionTime = now;
                     return now;
                 }
 
                 try
                 {
                     task.function.run();
+                    _pending_tasks--;
                 }
                 catch(const std::runtime_error& ex)
                 {
@@ -149,7 +182,7 @@ namespace dm
                 task.promise.set_value();
             }
 
-            // if we get this far then we've completed every task in our queue, so empty it
+            // if we get this far then we've executed every task in our queue, so empty it
             consumer.clear();
             _completion_time[index] = std::chrono::system_clock::now();
         }
@@ -178,38 +211,10 @@ namespace dm
         return index;
     }
 
-    void work_manager::suspend_worker(size_t workerIndex)
+    std::future<void> work_manager::enqueue_impl(size_t workerIndex, run_once_task&& work, timestamp_t startTime)
     {
-        auto& m = _queue_mutex[workerIndex];
-        std::unique_lock<std::mutex> ul(m);
-        auto& queue = _producer_queue[workerIndex];
+        _pending_tasks++;
 
-        // only suspend if our queue is empty
-        if (queue.empty())
-        {
-            if (workerIndex != worker_id::logging)
-            {
-                MX_LOG_INFO("Suspending {}", static_cast<worker_id_t>(workerIndex));
-            }
-
-            auto& cv = _suspend_handle[workerIndex];
-            cv.wait(ul);
-
-            if (workerIndex != worker_id::logging)
-            {
-                MX_LOG_INFO("Resuming {}", static_cast<worker_id_t>(workerIndex));
-            }
-        }
-    }
-
-    void work_manager::notify_worker(size_t workerIndex)
-    {
-        auto& cv = _suspend_handle[workerIndex];
-        cv.notify_one();
-    }
-
-    std::future<void> work_manager::enqueue_impl(size_t workerIndex, run_once_task&& work, timestamp startTime)
-    {
         std::lock_guard<std::mutex> lock(_queue_mutex[workerIndex]);
 
         task_item task{std::move(work), startTime};
@@ -217,18 +222,16 @@ namespace dm
 
         _producer_queue[workerIndex].push_back(std::move(task));
 
+        auto& cv = _suspend_handle[workerIndex];
+        cv.notify_one();
+
         return retval;
     }
 
-    task_future work_manager::enqueue(size_t workerIndex, run_once_task&& work, timestamp startTime)
+    task_future work_manager::enqueue(size_t workerIndex, run_once_task&& work, timestamp_t startTime)
     {
-        if (_accepting_work)
-        {
-            auto retval = enqueue_impl(workerIndex, std::move(work), startTime);
-            notify_worker(workerIndex);
-            return task_future{std::move(retval)};
-        }
-        return {};
+        auto retval = enqueue_impl(workerIndex, std::move(work), startTime);
+        return task_future{std::move(retval)};
     }
 
     // Worker
@@ -238,7 +241,7 @@ namespace dm
         return this->enqueue(std::move(task), std::chrono::system_clock::now());
     }
 
-    task_future worker::enqueue(run_once_task&& task, timestamp startTime) const
+    task_future worker::enqueue(run_once_task&& task, timestamp_t startTime) const
     {
         return g_work_manager->enqueue(_worker_index, std::move(task), startTime);
     }
