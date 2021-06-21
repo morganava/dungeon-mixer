@@ -28,8 +28,12 @@ namespace dm
         g_work_manager_unsafe._thread_ids[workerIndex] = std::this_thread::get_id();
         bool const& terminating = g_work_manager_unsafe._terminating[workerIndex];
 
-        // keep spinning until there are no more pending tasks
-        while(!terminating || g_work_manager_unsafe._pending_tasks > 0)
+        // keep spinning while
+        while(// we are not terminating or
+              !terminating ||
+              // we still have tasks to do
+              // if this hits 0 there are no tasks running so we can return
+               g_work_manager_unsafe._pending_tasks.load() > 0)
         {
             // executes all queued tasks and returns timestamp of last time
             // this thread did work (so if there are no pending tasks, a cached timestamp
@@ -157,34 +161,41 @@ namespace dm
                 return left.start_time < right.start_time;
             });
 
-            for(auto it = consumer.begin(); it < consumer.end(); ++it)
+            auto completed = [&]() -> size_t
             {
-                auto& task = *it;
-                const auto now = std::chrono::system_clock::now();
-                // check to see if we need to do the next item
-                if (now < task.start_time)
+                size_t count = 0;
+                for(auto it = consumer.begin(); it < consumer.end(); ++it)
                 {
-                    // erase the completed items
-                    consumer.erase(consumer.begin(), it);
-                    completionTime = now;
-                    return now;
-                }
+                    auto& task = *it;
+                    const auto now = std::chrono::system_clock::now();
+                    // check to see if we need to do the next item
+                    if (now < task.start_time)
+                    {
+                        // erase the completed items
+                        count = std::distance(consumer.begin(), it);
+                        consumer.erase(consumer.begin(), it);
+                        return count;
+                    }
 
-                try
-                {
-                    task.function.run();
-                    _pending_tasks--;
+                    try
+                    {
+                        task.function.run();
+                    }
+                    catch(const std::runtime_error& ex)
+                    {
+                        MX_LOG_ERROR(ex.what());
+                    }
+                    task.promise.set_value();
                 }
-                catch(const std::runtime_error& ex)
-                {
-                    MX_LOG_ERROR(ex.what());
-                }
-                task.promise.set_value();
-            }
+                // if we get this far then we've executed every task in our queue, so empty it
+                count = consumer.size();
+                consumer.clear();
 
-            // if we get this far then we've executed every task in our queue, so empty it
-            consumer.clear();
-            _completion_time[index] = std::chrono::system_clock::now();
+                return count;
+            }();
+
+            _pending_tasks.fetch_sub(completed);
+            completionTime = std::chrono::system_clock::now();
         }
     }
 
@@ -213,7 +224,7 @@ namespace dm
 
     std::future<void> work_manager::enqueue_impl(size_t workerIndex, run_once_task&& work, timestamp_t startTime)
     {
-        _pending_tasks++;
+        _pending_tasks.fetch_add(1);
 
         std::lock_guard<std::mutex> lock(_queue_mutex[workerIndex]);
 
