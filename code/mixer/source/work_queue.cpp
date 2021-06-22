@@ -28,12 +28,29 @@ namespace dm
         g_work_manager_unsafe._thread_ids[workerIndex] = std::this_thread::get_id();
         bool const& terminating = g_work_manager_unsafe._terminating[workerIndex];
 
-        // keep spinning while
-        while(// we are not terminating or
-              !terminating ||
-              // we still have tasks to do
-              // if this hits 0 there are no tasks running so we can return
-               g_work_manager_unsafe._pending_tasks.load() > 0)
+        const auto working = [&]() -> bool
+        {
+            // throughout most of the programs execution, we will not be terminating
+            if (!terminating) [[likely]]
+            {
+                return true;
+            }
+            // if this hits 0 there are no tasks running so we can return
+            // this can probably be std::memory_order::relaxed, but I'm not sure
+            // it doesn't really matter from a perf persective, since we should
+            // only be executing the load whe nwe are in the terminating state
+            else if (g_work_manager_unsafe._pending_tasks.load() > 0) [[unlikely]]
+            {
+                return true;
+            }
+            else [[unlikely]]
+            {
+                return false;
+            }
+        };
+
+        // keep spinning while there is work to do
+        while(working())
         {
             // executes all queued tasks and returns timestamp of last time
             // this thread did work (so if there are no pending tasks, a cached timestamp
@@ -161,7 +178,7 @@ namespace dm
                 return left.start_time < right.start_time;
             });
 
-            auto completed = [&]() -> size_t
+            auto completedCount = [&]() -> size_t
             {
                 size_t count = 0;
                 for(auto it = consumer.begin(); it < consumer.end(); ++it)
@@ -194,7 +211,7 @@ namespace dm
                 return count;
             }();
 
-            _pending_tasks.fetch_sub(completed);
+            _pending_tasks.fetch_sub(completedCount, std::memory_order::relaxed);
             completionTime = std::chrono::system_clock::now();
         }
     }
@@ -224,7 +241,7 @@ namespace dm
 
     std::future<void> work_manager::enqueue_impl(size_t workerIndex, run_once_task&& work, timestamp_t startTime)
     {
-        _pending_tasks.fetch_add(1);
+        _pending_tasks.fetch_add(1, std::memory_order::relaxed);
 
         std::lock_guard<std::mutex> lock(_queue_mutex[workerIndex]);
 
