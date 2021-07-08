@@ -59,7 +59,7 @@ namespace dm
         virtual void load_impl() = 0;
         // freeing audio data
         virtual void unload_impl() = 0;
-        volatile audio_data_state_t _state = audio_data_state::unloaded;
+        std::atomic<audio_data_state_t> _state = audio_data_state::unloaded;
 
         friend class audio_directory;
     };

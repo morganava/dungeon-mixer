@@ -159,8 +159,8 @@ constexpr bool operator<=(NAME##_t left, size_t right) { return static_cast<size
 constexpr bool operator>(NAME##_t left, size_t right) { return static_cast<size_t>(left) > right; }\
 constexpr bool operator>=(NAME##_t left, size_t right) { return static_cast<size_t>(left) >= right; }\
 inline NAME##_t next_##NAME() {\
-    static size_t next = static_cast<size_t>(NAME::__first_generated);\
-    return static_cast<NAME##_t>(next++);\
+    static std::atomic<size_t> next = static_cast<size_t>(NAME::__first_generated);\
+    return static_cast<NAME##_t>(next.fetch_add(1, std::memory_order::relaxed));\
 };\
 inline std::ostream& operator<<(std::ostream& out, NAME##_t val) {\
     if (val == NAME::invalid) out << MX_STRINGIFY(NAME::invalid);\
