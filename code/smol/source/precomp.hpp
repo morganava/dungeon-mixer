@@ -1,5 +1,9 @@
 #pragma once
 
+// OS
+#define _GNU_SOURCE
+#include <pthread.h>
+
 // C++
 
 #include <memory>

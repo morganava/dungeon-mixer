@@ -1,5 +1,5 @@
-#ifndef TABLETOPIFY_PRECOMP_H
-#define TABLETOPIFY_PRECOMP_H
+#ifndef PRECOMP_H
+#define PRECOMP_H
 
  // C++
 #include <cstdarg>
@@ -92,4 +92,4 @@ using namespace smol;
 template<typename T, size_t N>
 constexpr size_t countof(const T (&)[N]) { return N; }
 
-#endif // TABLETOPIFY_PRECOMP_H
+#endif // PRECOMP_H

@@ -22,7 +22,9 @@ namespace dm
 
     void worker_thread(worker_id_t id)
     {
-        const auto workerIndex = static_cast<size_t>(id);
+        smol::set_current_thread_name(std::string(to_string_view(id)));
+
+        const auto workerIndex = static_cast<size_t>(id)    ;
 
         // store off our threadId
         g_work_manager_unsafe._thread_ids[workerIndex] = std::this_thread::get_id();

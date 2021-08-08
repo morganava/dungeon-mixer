@@ -30,6 +30,8 @@ namespace smol
         gcc
     );
 
+    void set_current_thread_name(const std::string&);
+
     constexpr platform_t current_platform = []() -> platform_t
     {
     #ifdef SMOL_PLATFORM_LINUX

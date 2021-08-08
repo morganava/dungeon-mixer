@@ -1,6 +1,7 @@
 add_library(smol STATIC
     precomp.cpp
     error.cpp
+    platform.cpp
     # data structures
     serialization_buffer.cpp)
 
