@@ -1,4 +1,3 @@
-#include "serialization_buffer.hpp"
 #include "hash.hpp"
 #include "utilities.hpp"
 

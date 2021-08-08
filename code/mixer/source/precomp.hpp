@@ -80,10 +80,11 @@ namespace nl = nlohmann;
 
 // smol
 #include <smol/macros.hpp>
+#include <smol/platform.hpp>
+#include <smol/error.hpp>
 #include <smol/memory.hpp>
 #include <smol/enum.hpp>
-#include <smol/error.hpp>
-#include <smol/platform.hpp>
+#include <smol/serialization_buffer.hpp>
 using namespace smol;
 
 

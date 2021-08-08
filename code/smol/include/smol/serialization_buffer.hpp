@@ -1,6 +1,6 @@
 #pragma once
 
-namespace dm
+namespace smol
 {
     // non-POD read and write methods for types to override
     class serialization_buffer;
@@ -144,7 +144,4 @@ namespace dm
         std::vector<uint8_t> _raw;
         uint8_t* _read_head = _raw.data();
     };
-
-    class utf8_string;
-    class utf8_string_view;
 }

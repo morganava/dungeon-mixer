@@ -1,7 +1,6 @@
  #pragma once
 
 #include "array.hpp"
-#include "serialization_buffer.hpp"
 
 namespace dm
 {

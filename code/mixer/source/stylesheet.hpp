@@ -6,7 +6,6 @@
 #include "color.hpp"
 #include "nanovg.hpp"
 #include "utf8_string.hpp"
-#include "serialization_buffer.hpp"
 #include "linear_constraint_solver.hpp"
 
 namespace dm
@@ -53,6 +52,9 @@ namespace dm
         #undef STYLE_SHEET_ENTRY
     } style_entry_t;
 
+    /*
+        A style declaration set contains a list of style properties which we apply on top of an existing style
+    */
     struct style_declaration_set
     {
         style_sheet apply(const style_sheet&) const;
@@ -63,6 +65,9 @@ namespace dm
 
     void from_json(const nl::json&, style_declaration_set&);
 
+    /*
+        Selector uniquely identified a type|[tags]|state tuple, every element has a selector in this format
+    */
     struct selector
     {
         element_type_t type;

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "utilities.hpp"
-#include "serialization_buffer.hpp"
 #include "hash.hpp"
 
 namespace dm

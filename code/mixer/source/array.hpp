@@ -1,7 +1,6 @@
  #pragma once
 
 #include "utilities.hpp"
-#include "serialization_buffer.hpp"
 #include "hash.hpp"
 
 namespace dm
@@ -234,51 +233,4 @@ namespace dm
         }
         array = std::move(retval);
     }
-
-    template<typename T>
-    class array_view
-    {
-    public:
-        constexpr array_view() noexcept = default;
-        constexpr array_view(const array_view&) noexcept = default;
-        constexpr array_view(T* begin, T* end)
-        : _begin(begin)
-        , _end(end)
-        {
-            SMOL_THROW_IF_FALSE(begin <= end);
-        };
-
-        constexpr array_view& operator=(const array_view&) noexcept = default;
-
-        constexpr size_t size() const
-        {
-            return _end - _begin;
-        }
-
-        constexpr T* begin() noexcept
-        {
-            return _begin;
-        }
-
-        constexpr T* end() noexcept
-        {
-            return _end;
-        }
-
-        constexpr T& operator[](size_t idx)
-        {
-            SMOL_THROW_IF_FALSE((_begin + idx) < _end);
-            return _begin[idx];
-        }
-
-        constexpr const T& operator[](size_t idx) const
-        {
-            SMOL_THROW_IF_FALSE((_begin + idx) < _end);
-            return _begin[idx];
-        }
-
-    private:
-        T* _begin;
-        T* _end;
-    };
 };

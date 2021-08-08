@@ -15,7 +15,6 @@ add_executable(dungeon_mixer
     utilities.cpp
     format.cpp
     json.cpp
-    serialization_buffer.cpp
     linear_constraint_solver.cpp
     color.cpp
     random.cpp

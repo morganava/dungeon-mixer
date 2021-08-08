@@ -1,7 +1,8 @@
 add_library(smol STATIC
     precomp.cpp
-    file.cpp
-    error.cpp)
+    error.cpp
+    # data structures
+    serialization_buffer.cpp)
 
 target_precompile_headers(smol PRIVATE precomp.hpp)
 

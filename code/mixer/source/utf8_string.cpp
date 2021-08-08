@@ -2,7 +2,6 @@
 #include "utilities.hpp"
 #include "hash.hpp"
 #include "logger.hpp"
-#include "serialization_buffer.hpp"
 
 namespace dm
 {

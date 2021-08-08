@@ -1,7 +1,6 @@
-#include "utf8_string.hpp"
-#include "serialization_buffer.hpp"
+#include <smol/serialization_buffer.hpp>
 
-namespace dm
+namespace smol
 {
     void serialization_buffer::write(const uint8_t* data, size_t count)
     {
