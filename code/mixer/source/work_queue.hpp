@@ -97,23 +97,13 @@ namespace dm
             std::promise<void> promise;
         };
 
-        typedef struct
-        {
-            inline bool operator()(const task_item& left, const task_item& right)
-            {
-                return left.start_time < right.start_time;
-            }
-        } task_item_comparator_t;
-
     public:
         work_manager();
         ~work_manager();
 
-        bool terminating(size_t workerIndex) const {return _terminating[workerIndex];}
+        void signal_termination();
 
-        // run all of the tasks in the given worker's queue
-        // returns the timestamp of the completion of the last enqueued task
-        timestamp_t do_tasks(worker_id_t id);
+        bool terminating(size_t workerIndex) const {return _terminating[workerIndex];}
 
         task_future enqueue(size_t workerIndex, run_once_task&& work, timestamp_t startTime);
 

@@ -12,44 +12,6 @@
 #include "imgui.hpp"
 #include "ui.hpp"
 
-namespace dm
-{
-    void init_callback()
-    {
-        MX_LOG_INFO("Init callback!");
-        // builds map from keycodes to character name
-        g_input->build_key_map();
-        g_input->init_cursors();
-
-        g_nanovg->create_context();
-        // init renderer
-        // init_renderer(ctx);
-    }
-
-    void gui_callback(float dt, int width, int height, double pixel_ratio)
-    {
-        // do queued UI work
-        g_work_manager->do_tasks(worker_id::ui);
-
-        g_input->update(dt);
-        g_ui->update(dt, width, height);
-        g_nanovg->update(dt, width, height, pixel_ratio);
-        g_input->update_cursor();
-    }
-
-    // on window exit
-    void close_callback()
-    {
-        MX_LOG_INFO("Closing!");
-        free_globals();
-    }
-
-    void error_callback(const char* msg)
-    {
-        MX_LOG_ERROR(msg);
-    }
-}
-
 using namespace dm;
 
 void test()
@@ -102,17 +64,17 @@ void test()
     }
 }
 
+namespace dm
+{
+    void worker_thread(worker_id_t id);
+}
+
 int main() try
 {
     dm::init_globals();
+    worker_thread(worker_id::ui);
+    dm::free_globals();
 
-    graphics_callbacks callbacks =
-    {
-        &init_callback,
-        &gui_callback,
-        &close_callback,
-    };
-    graphics_main(callbacks);
     return 0;
 }
 catch(const std::exception& ex)

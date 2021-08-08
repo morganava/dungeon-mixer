@@ -16,6 +16,7 @@
 #include "nanovg.hpp"
 #include "stylesheet.hpp"
 #include "random.hpp"
+#include "graphics.hpp"
 
 namespace dm
 {
@@ -58,12 +59,16 @@ namespace dm
 
         // init strings
         init_string_manager(paths::strings() / "en-us.json");
+
+        init_graphics();
     }
 
     void free_globals()
     {
         // wait for task queues to empty
         free_work_manager();
+
+        free_graphics();
 
         free_string_manager();
 

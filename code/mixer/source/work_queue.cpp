@@ -24,11 +24,18 @@ namespace dm
     {
         smol::set_current_thread_name(std::string(to_string_view(id)));
 
-        const auto workerIndex = static_cast<size_t>(id)    ;
+        const auto workerIndex = static_cast<size_t>(id);
 
         // store off our threadId
         g_work_manager_unsafe._thread_ids[workerIndex] = std::this_thread::get_id();
+
+        // references
+        auto& pending_tasks = g_work_manager_unsafe._pending_tasks;
         bool const& terminating = g_work_manager_unsafe._terminating[workerIndex];
+        auto& mut = g_work_manager_unsafe._queue_mutex[workerIndex];
+        auto& consumer = g_work_manager_unsafe._consumer_queue[workerIndex];
+        auto& producer = g_work_manager_unsafe._producer_queue[workerIndex];
+        auto& suspend_handle = g_work_manager_unsafe._suspend_handle[workerIndex];
 
         const auto working = [&]() -> bool
         {
@@ -40,8 +47,8 @@ namespace dm
             // if this hits 0 there are no tasks running so we can return
             // this can probably be std::memory_order::relaxed, but I'm not sure
             // it doesn't really matter from a perf persective, since we should
-            // only be executing the load whe nwe are in the terminating state
-            else if (g_work_manager_unsafe._pending_tasks.load() > 0) [[unlikely]]
+            // only be executing the load when we are in the terminating state
+            else if (pending_tasks.load() > 0) [[unlikely]]
             {
                 return true;
             }
@@ -54,44 +61,81 @@ namespace dm
         // keep spinning while there is work to do
         while(working())
         {
-            // executes all queued tasks and returns timestamp of last time
-            // this thread did work (so if there are no pending tasks, a cached timestamp
-            // is returned)
-            const auto completionTime = g_work_manager_unsafe.do_tasks(id);
+            // get our tasks from producer queue if any tasks available
+            if(std::unique_lock<std::mutex> lock(mut); true) {
 
-            const auto now = std::chrono::system_clock::now();
-            const auto diff = now - completionTime;
-
-            // don't sleep immediately
-            if(diff < 1ms)
-            {
-                continue;
-            }
-            // sleep only for a bit until two frames have elapsed
-            else if(diff < 32ms)
-            {
-                std::this_thread::sleep_for(1ms);
-            }
-            // sleep for a frame until 1 second has elapsed (60 frames)
-            else if (diff < 1s)
-            {
-                std::this_thread::sleep_for(16ms);
-            }
-            // finally suspend if no new tasks have been added to the producer queue for over a second
-            else
-            {
-                // protect the suspend with the queue lock and ensure no notify sneaks
-                // through right before we suspend
-                auto& m = g_work_manager_unsafe._queue_mutex[workerIndex];
-                std::unique_lock<std::mutex> ul(m);
-                auto& queue = g_work_manager_unsafe._producer_queue[workerIndex];
-
-                // only suspend if we have no pending tasks
-                if (queue.empty())
+                // migrate producer tasks to our consumer queue for consuption
+                if (!producer.empty())
                 {
-                    auto& cv = g_work_manager_unsafe._suspend_handle[workerIndex];
-                    cv.wait(ul);
+                    // todo: look into using std::list and splicing
+                    for(auto& task : consumer)
+                    {
+                        producer.push_back(std::move(task));
+                    }
+                    consumer.clear();
+                    std::swap(consumer, producer);
                 }
+                // potentially suspend worker threads
+                else if(!terminating)
+                {
+                    if (!consumer.empty())
+                    {
+                        const auto startTime = consumer.front().start_time;
+                        const auto now = std::chrono::system_clock::now();
+                        if (startTime > now)
+                        {
+                            // wait until we are ready to consume this task
+                            suspend_handle.wait_until(lock, startTime);
+                        }
+                    }
+                    else
+                    {
+                        // wait until a new task is enqueued
+                        suspend_handle.wait(lock);
+                    }
+                }
+            }
+
+            // execute our tasks
+            if (!consumer.empty())
+            {
+                // sort tasks by requsted start time
+                std::sort(
+                    consumer.begin(),
+                    consumer.end(),
+                    [](const auto& l, const auto& r) -> bool
+                    {
+                        return l.start_time < r.start_time;
+                    });
+
+                auto it = consumer.begin();
+                for(; it < consumer.end(); ++it)
+                {
+                    auto& task = *it;
+                    const auto now = std::chrono::system_clock::now();
+                    if (now < task.start_time)
+                    {
+                        break;
+                    }
+
+                    try
+                    {
+                        task.function.run();
+                    }
+                    catch(const std::runtime_error& ex)
+                    {
+                        MX_LOG_ERROR(ex.what());
+                    }
+                    task.promise.set_value();
+                }
+
+                // calculate numbr of tasks completed
+                auto count = std::distance(consumer.begin(), it);
+                // erase completed tasks
+                consumer.erase(consumer.begin(), it);
+
+                // decrement global task count
+                pending_tasks.fetch_sub(count, std::memory_order::relaxed);
             }
         }
     }
@@ -117,100 +161,21 @@ namespace dm
 
     work_manager::~work_manager()
     {
-        _terminating[0] = true;
+        // wait for non-ui (main) workers to complete
         for(size_t k = 1; k < _worker_count; k++)
+        {
+            _threads[k].join();
+        }
+    }
+
+    void work_manager::signal_termination()
+    {
+        for(size_t k = 0; k < _worker_count; k++)
         {
             enqueue_impl(k, [workerIndex=k]() -> void
             {
                 g_work_manager_unsafe._terminating[workerIndex] = true;
             }, std::chrono::system_clock::now());
-        }
-
-        // wait for threads to complete their work
-        for(size_t k = 1; k < _worker_count; k++)
-        {
-            _threads[k].join();
-        }
-
-    }
-
-    timestamp_t work_manager::do_tasks(worker_id_t id)
-    {
-        const size_t index = static_cast<size_t>(id);
-        SMOL_ASSERT(this->current_index() == index);
-
-        auto& completionTime = _completion_time[index];
-
-        while(true)
-        {
-            auto& consumer = _consumer_queue[index];
-            auto& producer = _producer_queue[index];
-            // acquire our task list
-            {
-                std::lock_guard<std::mutex> lock(_queue_mutex[index]);
-                // when we have no tasks left in our consumer queue, just swap
-                if (consumer.empty())
-                {
-                    std::swap(consumer, producer);
-                }
-                // otherwise, we need to move new tasks into our consumer queue
-                else
-                {
-                    // todo: shorten this later
-                    for(auto& task : producer)
-                    {
-                        consumer.push_back(std::move(task));
-                    }
-                    producer.clear();
-                }
-            }
-            // early out with previous time stamp if no new work
-            if (consumer.empty())
-            {
-                return completionTime;
-            }
-
-            // sort our tasks by start time
-            std::sort(consumer.begin(), consumer.end(), [](const auto& left, const auto& right) -> bool
-            {
-                return left.start_time < right.start_time;
-            });
-
-            auto completedCount = [&]() -> size_t
-            {
-                size_t count = 0;
-                for(auto it = consumer.begin(); it < consumer.end(); ++it)
-                {
-                    auto& task = *it;
-                    const auto now = std::chrono::system_clock::now();
-                    // check to see if we need to do the next item
-                    if (now < task.start_time)
-                    {
-                        // erase the completed items
-                        count = std::distance(consumer.begin(), it);
-                        consumer.erase(consumer.begin(), it);
-                        return count;
-                    }
-
-                    try
-                    {
-                        task.function.run();
-                    }
-                    catch(const std::runtime_error& ex)
-                    {
-                        MX_LOG_ERROR(ex.what());
-                    }
-                    task.promise.set_value();
-                }
-                // if we get this far then we've executed every task in our queue, so empty it
-                count = consumer.size();
-                consumer.clear();
-
-                return count;
-            }();
-
-            _pending_tasks.fetch_sub(completedCount, std::memory_order::relaxed);
-            completionTime = std::chrono::system_clock::now();
         }
     }
 
@@ -241,12 +206,13 @@ namespace dm
     {
         _pending_tasks.fetch_add(1, std::memory_order::relaxed);
 
-        std::lock_guard<std::mutex> lock(_queue_mutex[workerIndex]);
-
         task_item task{std::move(work), startTime};
         auto retval = task.promise.get_future();
 
-        _producer_queue[workerIndex].push_back(std::move(task));
+        if(std::lock_guard<std::mutex> lock(_queue_mutex[workerIndex]); true)
+        {
+            _producer_queue[workerIndex].push_back(std::move(task));
+        }
 
         auto& cv = _suspend_handle[workerIndex];
         cv.notify_one();
