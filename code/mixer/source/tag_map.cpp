@@ -141,7 +141,7 @@ namespace dm
             }
             // ensure the codepoint is set correctly on existing node
             auto& node = *it->second;
-            MX_ASSERT(node.codepoint == cp);
+            SMOL_ASSERT(node.codepoint == cp);
             return node;
         };
 

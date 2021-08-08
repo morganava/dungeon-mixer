@@ -12,7 +12,7 @@ namespace dm
     {
         const auto logPath = paths::temp() / "dm.log";
         _log_file = fopen(logPath.string().c_str(), "wb");
-        MX_ASSERT(_log_file != nullptr);
+        SMOL_ASSERT(_log_file != nullptr);
     }
 
     void logger::write_message(log_level_t lvl, std::chrono::system_clock::time_point now, const std::string& msg)

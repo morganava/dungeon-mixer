@@ -39,7 +39,7 @@ namespace dm
     const atmosphere_entry& atmosphere_directory::get_entry(atmosphere_handle_t handle)
     {
         auto it = _entries.find(handle);
-        MX_ASSERT(it != _entries.end());
+        SMOL_ASSERT(it != _entries.end());
 
         return it->second;
     }
@@ -158,7 +158,7 @@ namespace dm
         auto& entry = it->second;
 
         // verify track isn't already in atmosphere
-        MX_ASSERT(std::find(entry.tracks.begin(), entry.tracks.end(), track) == entry.tracks.end());
+        SMOL_ASSERT(std::find(entry.tracks.begin(), entry.tracks.end(), track) == entry.tracks.end());
 
         // track map
         _track_map.insert({track, atmosphere});

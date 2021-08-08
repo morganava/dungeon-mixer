@@ -78,6 +78,15 @@ namespace nl = nlohmann;
 #include <fmt/ostream.h>
 #include <fmt/printf.h>
 
+// smol
+#include <smol/macros.hpp>
+#include <smol/memory.hpp>
+#include <smol/enum.hpp>
+#include <smol/error.hpp>
+#include <smol/platform.hpp>
+using namespace smol;
+
+
 // countof(X)
 template<typename T, size_t N>
 constexpr size_t countof(const T (&)[N]) { return N; }

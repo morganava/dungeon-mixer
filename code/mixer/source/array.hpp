@@ -98,13 +98,13 @@ namespace dm
 
         T& operator[](size_t idx)
         {
-            MX_THROW_IF_FALSE(idx < _size);
+            SMOL_THROW_IF_FALSE(idx < _size);
             return _data[idx];
         }
 
         const T& operator[](size_t idx) const
         {
-            MX_THROW_IF_FALSE(idx < _size);
+            SMOL_THROW_IF_FALSE(idx < _size);
             return _data[idx];
         }
 
@@ -226,7 +226,7 @@ namespace dm
     template<typename T>
     void from_json(const nl::json& js, dm::array<T>& array)
     {
-        MX_THROW_IF_FALSE(js.is_array());
+        SMOL_THROW_IF_FALSE(js.is_array());
         dm::array<T> retval(js.size());
         for(size_t i = 0; i < retval.size(); ++i)
         {
@@ -245,7 +245,7 @@ namespace dm
         : _begin(begin)
         , _end(end)
         {
-            MX_THROW_IF_FALSE(begin <= end);
+            SMOL_THROW_IF_FALSE(begin <= end);
         };
 
         constexpr array_view& operator=(const array_view&) noexcept = default;
@@ -267,13 +267,13 @@ namespace dm
 
         constexpr T& operator[](size_t idx)
         {
-            MX_THROW_IF_FALSE((_begin + idx) < _end);
+            SMOL_THROW_IF_FALSE((_begin + idx) < _end);
             return _begin[idx];
         }
 
         constexpr const T& operator[](size_t idx) const
         {
-            MX_THROW_IF_FALSE((_begin + idx) < _end);
+            SMOL_THROW_IF_FALSE((_begin + idx) < _end);
             return _begin[idx];
         }
 

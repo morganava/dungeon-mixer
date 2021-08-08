@@ -21,7 +21,7 @@ namespace dm
 
     void from_json(const nl::json& js, utf8_string& str)
     {
-        MX_THROW_IF_FALSE(js.is_string());
+        SMOL_THROW_IF_FALSE(js.is_string());
         str = (std::string)js;
     }
 
@@ -34,7 +34,7 @@ namespace dm
 
     void from_json(const nl::json& js, color& col)
     {
-        MX_THROW_IF_FALSE(js.is_string());
+        SMOL_THROW_IF_FALSE(js.is_string());
         utf8_string str = (std::string)js;
 
         // strip out whitespace and convert it to lowercase
@@ -112,7 +112,7 @@ namespace dm
         }
         else
         {
-            MX_THROW_MSG("invalid color string: {}", str);
+            SMOL_THROW_MSG("invalid color string: {}", str);
         }
     }
 
@@ -130,7 +130,7 @@ namespace dm
 
     void from_json(const nl::json& j, struct uuid& id)
     {
-        MX_THROW_IF_FALSE(j.is_string());
+        SMOL_THROW_IF_FALSE(j.is_string());
 
         id = uuid(j.get<std::string>());
     }
@@ -144,20 +144,20 @@ namespace dm
         {
             if(auto it = j.find("x"); it != j.end())
             {
-                MX_THROW_IF_FALSE(it->is_number());
+                SMOL_THROW_IF_FALSE(it->is_number());
                 v.x = it->get<double>();
             }
             if(auto it = j.find("y"); it != j.end())
             {
-                MX_THROW_IF_FALSE(it->is_number());
+                SMOL_THROW_IF_FALSE(it->is_number());
                 v.y = it->get<double>();
             }
         }
         else if(j.is_array())
         {
-            MX_THROW_IF_FALSE(j.size() == 2);
-            MX_THROW_IF_FALSE(j[0].is_number());
-            MX_THROW_IF_FALSE(j[1].is_number());
+            SMOL_THROW_IF_FALSE(j.size() == 2);
+            SMOL_THROW_IF_FALSE(j[0].is_number());
+            SMOL_THROW_IF_FALSE(j[1].is_number());
             v.x = j[0].get<double>();
             v.y = j[1].get<double>();
         }
@@ -170,26 +170,26 @@ namespace dm
         {
             if(auto it = j.find("x"); it != j.end())
             {
-                MX_THROW_IF_FALSE(it->is_number());
+                SMOL_THROW_IF_FALSE(it->is_number());
                 v.x = it->get<double>();
             }
             if(auto it = j.find("y"); it != j.end())
             {
-                MX_THROW_IF_FALSE(it->is_number());
+                SMOL_THROW_IF_FALSE(it->is_number());
                 v.y = it->get<double>();
             }
             if(auto it = j.find("z"); it != j.end())
             {
-                MX_THROW_IF_FALSE(it->is_number());
+                SMOL_THROW_IF_FALSE(it->is_number());
                 v.z = it->get<double>();
             }
         }
         else if(j.is_array())
         {
-            MX_THROW_IF_FALSE(j.size() == 3);
-            MX_THROW_IF_FALSE(j[0].is_number());
-            MX_THROW_IF_FALSE(j[1].is_number());
-            MX_THROW_IF_FALSE(j[2].is_number());
+            SMOL_THROW_IF_FALSE(j.size() == 3);
+            SMOL_THROW_IF_FALSE(j[0].is_number());
+            SMOL_THROW_IF_FALSE(j[1].is_number());
+            SMOL_THROW_IF_FALSE(j[2].is_number());
 
             v.x = j[0].get<double>();
             v.y = j[1].get<double>();
@@ -203,32 +203,32 @@ namespace dm
         {
             if(auto it = j.find("topLeft"); it != j.end())
             {
-                MX_THROW_IF_FALSE(it->is_number());
+                SMOL_THROW_IF_FALSE(it->is_number());
                 c.topLeft = it->get<double>();
             }
             if(auto it = j.find("topRight"); it != j.end())
             {
-                MX_THROW_IF_FALSE(it->is_number());
+                SMOL_THROW_IF_FALSE(it->is_number());
                 c.topRight = it->get<double>();
             }
             if(auto it = j.find("bottomRight"); it != j.end())
             {
-                MX_THROW_IF_FALSE(it->is_number());
+                SMOL_THROW_IF_FALSE(it->is_number());
                 c.bottomRight = it->get<double>();
             }
             if(auto it = j.find("bottomLeft"); it != j.end())
             {
-                MX_THROW_IF_FALSE(it->is_number());
+                SMOL_THROW_IF_FALSE(it->is_number());
                 c.bottomLeft = it->get<double>();
             }
         }
         else if(j.is_array())
         {
-            MX_THROW_IF_FALSE(j.size() == 4);
+            SMOL_THROW_IF_FALSE(j.size() == 4);
             for(size_t i = 0; i < 4; ++i)
             {
                 const auto& j_i = j[i];
-                MX_THROW_IF_FALSE(j_i.is_number());
+                SMOL_THROW_IF_FALSE(j_i.is_number());
                 c.raw[i] = j_i.get<double>();
             }
         }
@@ -248,32 +248,32 @@ namespace dm
         {
             if(auto it = j.find("top"); it != j.end())
             {
-                MX_THROW_IF_FALSE(it->is_number());
+                SMOL_THROW_IF_FALSE(it->is_number());
                 e.top = it->get<double>();
             }
             if(auto it = j.find("right"); it != j.end())
             {
-                MX_THROW_IF_FALSE(it->is_number());
+                SMOL_THROW_IF_FALSE(it->is_number());
                 e.right = it->get<double>();
             }
             if(auto it = j.find("bottom"); it != j.end())
             {
-                MX_THROW_IF_FALSE(it->is_number());
+                SMOL_THROW_IF_FALSE(it->is_number());
                 e.bottom = it->get<double>();
             }
             if(auto it = j.find("left"); it != j.end())
             {
-                MX_THROW_IF_FALSE(it->is_number());
+                SMOL_THROW_IF_FALSE(it->is_number());
                 e.left = it->get<double>();
             }
         }
         else if(j.is_array())
         {
-            MX_THROW_IF_FALSE(j.size() == 4);
+            SMOL_THROW_IF_FALSE(j.size() == 4);
             for(size_t i = 0; i < 4; ++i)
             {
                 const auto& j_i = j[i];
-                MX_THROW_IF_FALSE(j_i.is_number());
+                SMOL_THROW_IF_FALSE(j_i.is_number());
                 e.raw[i] = j_i.get<double>();
             }
         }
@@ -290,7 +290,7 @@ namespace dm
     // font_handle_t
     void from_json(const nl::json& j, font_handle_t& fh)
     {
-        MX_THROW_IF_FALSE(j.is_string());
+        SMOL_THROW_IF_FALSE(j.is_string());
 
         fh = g_nanovg->create_font(paths::skins() / j.get<std::string>());
     }
@@ -298,7 +298,7 @@ namespace dm
     // image_handle_t
     void from_json(const nl::json& j, image_handle_t& ih)
     {
-        MX_THROW_IF_FALSE(j.is_string());
+        SMOL_THROW_IF_FALSE(j.is_string());
 
         ih = g_nanovg->create_image(paths::skins() / j.get<std::string>());
     }
@@ -307,7 +307,7 @@ namespace dm
 
     void from_json(const nl::json& j, halign_t& ha)
     {
-        MX_THROW_IF_FALSE(j.is_string());
+        SMOL_THROW_IF_FALSE(j.is_string());
 
         const auto jstr = j.get<std::string>();
         if(jstr == "left")
@@ -324,13 +324,13 @@ namespace dm
         }
         else
         {
-            MX_THROW_MSG("Cannot parse '{}' as halign_t, must be 'left', 'center', or 'right'", jstr);
+            SMOL_THROW_MSG("Cannot parse '{}' as halign_t, must be 'left', 'center', or 'right'", jstr);
         }
     }
 
     void from_json(const nl::json& j, valign_t& va)
     {
-        MX_THROW_IF_FALSE(j.is_string());
+        SMOL_THROW_IF_FALSE(j.is_string());
 
         const auto jstr = j.get<std::string>();
         if(jstr == "top")
@@ -347,14 +347,14 @@ namespace dm
         }
         else
         {
-            MX_THROW_MSG("Cannot parse '{}' as valign_t, must be 'top', 'middle', or 'bottom'", jstr);
+            SMOL_THROW_MSG("Cannot parse '{}' as valign_t, must be 'top', 'middle', or 'bottom'", jstr);
         }
     }
 
     // background image mode
     void from_json(const nl::json& j, background_image_mode_t& bim)
     {
-        MX_THROW_IF_FALSE(j.is_string());
+        SMOL_THROW_IF_FALSE(j.is_string());
 
         const auto jstr = j.get<std::string>();
         constexpr const char* modeStrings[] =
@@ -375,21 +375,21 @@ namespace dm
             }
         }
 
-        MX_THROW_MSG("Cannot parse '{}' as background_image_mode_t, must be one of 'stretch', 'tile', 'center', or 'contain'", jstr);
+        SMOL_THROW_MSG("Cannot parse '{}' as background_image_mode_t, must be one of 'stretch', 'tile', 'center', or 'contain'", jstr);
     }
 
     // style_resolver
 
     void from_json(const nl::json& j, element_state_t state, style_declaration_set& sds)
     {
-        MX_THROW_IF_FALSE(j.is_object());
+        SMOL_THROW_IF_FALSE(j.is_object());
 
         auto& d = sds._declarations;
 
         #define STYLE_SHEET_ENTRY(NAME, VAL, FLAGS)\
         if(auto it = j.find(#NAME); it != j.end())\
         {\
-            if constexpr(FLAGS != element_state::none) MX_THROW_MSG_IF_FALSE(!static_cast<uint_fast8_t>(FLAGS & state), "style property '{}' cannot be specified in styles with '{}' selector", #NAME, state);\
+            if constexpr(FLAGS != element_state::none) SMOL_THROW_MSG_IF_FALSE(!static_cast<uint_fast8_t>(FLAGS & state), "style property '{}' cannot be specified in styles with '{}' selector", #NAME, state);\
             d.write<style_entry_t>(style_entry::NAME);\
             typedef std::remove_const<std::remove_reference<decltype(VAL)>::type>::type TYPE;\
             d.write<TYPE>(it->get<TYPE>());\
@@ -401,7 +401,7 @@ namespace dm
 
     void from_json(const nl::json& j, style_resolver& sr)
     {
-        MX_THROW_IF_FALSE(j.is_object());
+        SMOL_THROW_IF_FALSE(j.is_object());
 
         // iterate over each selector and build our style selector set
         const std::regex selectorRegex("^([a-zA-Z]*)[\\.]?([a-zA-Z0-9]*)[\\:]?([a-z]*)$");
@@ -444,12 +444,12 @@ namespace dm
             if (js.is_string())
             {
                 auto str = js.get<std::string>();
-                MX_THROW_IF_FALSE(str == "none");
+                SMOL_THROW_IF_FALSE(str == "none");
                 return 0.0;
             }
-            MX_THROW_IF_FALSE(js.is_number());
+            SMOL_THROW_IF_FALSE(js.is_number());
             auto retval = js.get<double>();
-            MX_THROW_IF_FALSE(retval >= 0.0);
+            SMOL_THROW_IF_FALSE(retval >= 0.0);
             return retval;
         };
 
@@ -458,20 +458,20 @@ namespace dm
             if (js.is_string())
             {
                 auto str = js.get<std::string>();
-                MX_THROW_IF_FALSE(str == "none");
+                SMOL_THROW_IF_FALSE(str == "none");
                 return std::numeric_limits<double>::max();
             }
-            MX_THROW_IF_FALSE(js.is_number());
+            SMOL_THROW_IF_FALSE(js.is_number());
             auto retval = js.get<double>();
-            MX_THROW_IF_FALSE(retval >= 0.0);
+            SMOL_THROW_IF_FALSE(retval >= 0.0);
             return retval;
         };
 
         const auto parse_scale = [](const nl::json& js) -> double
         {
-            MX_THROW_IF_FALSE(js.is_number());
+            SMOL_THROW_IF_FALSE(js.is_number());
             auto retval = js.get<double>();
-            MX_THROW_IF_FALSE(retval > 0.0);
+            SMOL_THROW_IF_FALSE(retval > 0.0);
             return retval;
         };
 
@@ -511,7 +511,7 @@ namespace dm
         }
         else
         {
-            MX_THROW_MSG("invalid constraint json")
+            SMOL_THROW_MSG("invalid constraint json");
         }
 
         MX_LOG_INFO("constraint {{ min : {}, max : {}, ratio : {} }}", retval.min, retval.max, retval.ratio);
@@ -521,7 +521,7 @@ namespace dm
 
     void from_json(const nl::json& js, linear_constraint_solver& out)
     {
-        MX_THROW_IF_FALSE(js.is_array());
+        SMOL_THROW_IF_FALSE(js.is_array());
         auto constraints = js.get<array<constraint>>();
         out = {std::move(constraints)};
     }

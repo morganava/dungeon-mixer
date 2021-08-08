@@ -35,7 +35,7 @@ namespace dm
                 return static_cast<element_type_t>(i);
             }
         }
-        MX_THROW_MSG("Unable to parse '{}' as element_type_t", str);
+        SMOL_THROW_MSG("Unable to parse '{}' as element_type_t", str);
     }
 
     element_state_t parse_element_state(const std::string& str)
@@ -60,7 +60,7 @@ namespace dm
                 return static_cast<element_state_t>(1 << i);
             }
         }
-        MX_THROW_MSG("Unable to parse '{}' as element_state_t", str);
+        SMOL_THROW_MSG("Unable to parse '{}' as element_state_t", str);
     }
 
     bool selector::operator==(const selector& that) const

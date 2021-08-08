@@ -21,7 +21,7 @@ namespace dm
         // must be called from audio thread
         nl::json atmosphere_entry_to_json(const dm::atmosphere_entry& atmosphereEntry)
         {
-            MX_ASSERT(g_work_manager->current_thread() == worker_id::audio);
+            SMOL_ASSERT(g_work_manager->current_thread() == worker_id::audio);
 
             // construct atmosphere object
             auto currentAtmosphereJson = nl::json::object();
@@ -84,7 +84,7 @@ namespace dm
             }
             else
             {
-                MX_THROW_MSG("Could not open {} for writing", tempDest);
+                SMOL_THROW_MSG("Could not open {} for writing", tempDest);
             }
         }
 
@@ -464,14 +464,14 @@ namespace dm
                                 auto& [enabled, elevation, azimuth] = trackEntry.position;
                                 if (positionJson.is_array())
                                 {
-                                    MX_THROW_IF_FALSE(positionJson.size() == 2);
+                                    SMOL_THROW_IF_FALSE(positionJson.size() == 2);
                                     switch(positionJson.size())
                                     {
                                         case 2:
-                                            MX_THROW_IF_FALSE(positionJson[1].is_number());
+                                            SMOL_THROW_IF_FALSE(positionJson[1].is_number());
                                             azimuth = positionJson[1].get<double>();
                                         case 1:
-                                            MX_THROW_IF_FALSE(positionJson[0].is_number());
+                                            SMOL_THROW_IF_FALSE(positionJson[0].is_number());
                                             elevation = positionJson[0].get<double>();
                                     }
                                 }
@@ -480,13 +480,13 @@ namespace dm
                                     if (positionJson.contains("Azimuth"))
                                     {
                                         const auto& azimuthJson = positionJson["Azimuth"];
-                                        MX_THROW_IF_FALSE(azimuthJson.is_number());
+                                        SMOL_THROW_IF_FALSE(azimuthJson.is_number());
                                         azimuth = azimuthJson.get<double>();
                                     }
                                     if (positionJson.contains("Elevation"))
                                     {
                                         const auto& elevationJson = positionJson["Elevation"];
-                                        MX_THROW_IF_FALSE(elevationJson.is_number());
+                                        SMOL_THROW_IF_FALSE(elevationJson.is_number());
                                         elevation = elevationJson.get<double>();
                                     }
                                 }
@@ -524,7 +524,7 @@ namespace dm
                         for (auto atmosphereId : atmospheresList)
                         {
                             const auto id = atmosphereId.get<size_t>();
-                            MX_THROW_IF_FALSE(id < id_to_handle.size());
+                            SMOL_THROW_IF_FALSE(id < id_to_handle.size());
                             auto atmosphereHandle = id_to_handle[id];
                             MX_LOG_INFO("   Id : {}", id);
                             g_playlist_directory->add_atmosphere(playlistHandle, atmosphereHandle);
@@ -659,7 +659,7 @@ namespace dm
                 for(const auto atmosphereHandle : playlistEntry.atmospheres)
                 {
                     auto it = atmosphereHandleToIndex.find(atmosphereHandle);
-                    MX_ASSERT(it != atmosphereHandleToIndex.end());
+                    SMOL_ASSERT(it != atmosphereHandleToIndex.end());
 
                     currentPlaylistAtmospheresJson.push_back(it->second);
                 }

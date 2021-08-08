@@ -1,10 +1,8 @@
 #pragma once
 
-#include "enums.hpp"
-
 namespace dm
 {
-    MX_MAKE_ENUM(worker_id, size_t,
+    SMOL_MAKE_ENUM(worker_id, size_t,
         ui,
         fileio,
         background,
@@ -12,7 +10,7 @@ namespace dm
         logging
     );
 
-    MX_MAKE_FLAG_ENUM(worker_flag, size_t,
+    SMOL_MAKE_FLAG_ENUM(worker_flag, size_t,
         ui         = 1 << static_cast<size_t>(worker_id::ui),
         fileio     = 1 << static_cast<size_t>(worker_id::fileio),
         background = 1 << static_cast<size_t>(worker_id::background),

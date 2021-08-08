@@ -27,10 +27,10 @@ namespace dm
 
         constexpr static color rgba(uint32_t r, uint32_t g, uint32_t b, float a)
         {
-            MX_THROW_IF_FALSE(r <= 255);
-            MX_THROW_IF_FALSE(g <= 255);
-            MX_THROW_IF_FALSE(b <= 255);
-            MX_THROW_IF_FALSE(a >= 0.0f && a <= 1.0f);
+            SMOL_THROW_IF_FALSE(r <= 255);
+            SMOL_THROW_IF_FALSE(g <= 255);
+            SMOL_THROW_IF_FALSE(b <= 255);
+            SMOL_THROW_IF_FALSE(a >= 0.0f && a <= 1.0f);
             return color(r / 255.0f, g / 255.0f, b / 255.0f, a);
         }
 

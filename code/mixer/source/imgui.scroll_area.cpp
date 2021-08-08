@@ -102,7 +102,7 @@ namespace dm
                 }
                 default:
                 {
-                    MX_FAIL_FAST("Unhandled direction : {}", static_cast<uint_fast8_t>(data.direction));
+                    SMOL_FAIL_FAST("Unhandled direction : {}", static_cast<uint_fast8_t>(data.direction));
                 }
             }
 

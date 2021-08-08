@@ -6,7 +6,6 @@
 #include "hash.hpp"
 #include "color.hpp"
 #include "hash_buffer.hpp"
-#include "enums.hpp"
 #include "array.hpp"
 
 namespace dm
@@ -14,33 +13,33 @@ namespace dm
     class utf8_string;
 
     // for now we should only need 3 layers
-    MX_MAKE_ENUM(draw_layer, uint_fast8_t,
+    SMOL_MAKE_ENUM(draw_layer, uint_fast8_t,
         background,
         middleground,
         foreground
     );
 
-    MX_MAKE_EXPLICIT_ENUM(halign, uint_fast8_t,
+    SMOL_MAKE_EXPLICIT_ENUM(halign, uint_fast8_t,
         left = NVG_ALIGN_LEFT,
         center = NVG_ALIGN_CENTER,
         right = NVG_ALIGN_RIGHT
     );
 
-    MX_MAKE_EXPLICIT_ENUM(valign, uint_fast8_t,
+    SMOL_MAKE_EXPLICIT_ENUM(valign, uint_fast8_t,
         top = NVG_ALIGN_TOP,
         middle = NVG_ALIGN_MIDDLE,
         bottom = NVG_ALIGN_BOTTOM
     );
 
-    MX_MAKE_ENUM(background_image_mode, uint_fast8_t,
+    SMOL_MAKE_ENUM(background_image_mode, uint_fast8_t,
         stretch,
         tile,
         center,
         contain
     );
 
-    MX_MAKE_HANDLE_ENUM(font_handle);
-    MX_MAKE_HANDLE_ENUM(image_handle,
+    SMOL_MAKE_HANDLE_ENUM(font_handle);
+    SMOL_MAKE_HANDLE_ENUM(image_handle,
         debug
     );
 
@@ -126,7 +125,7 @@ namespace dm
 
             template<typename T>
             void push_back(T&& val) {
-                MX_ASSERT(_currentLayer != draw_layer::invalid && _currentLayer < draw_layer::count);
+                SMOL_ASSERT(_currentLayer != draw_layer::invalid && _currentLayer < draw_layer::count);
                 _commands[static_cast<size_t>(_currentLayer)].push_back(std::forward<T>(val));
             }
 
@@ -145,7 +144,7 @@ namespace dm
             }
 
             void set_layer(draw_layer layer) {
-                MX_ASSERT(_mode == mode::writing);
+                SMOL_ASSERT(_mode == mode::writing);
                 _currentLayer = layer;
             }
 

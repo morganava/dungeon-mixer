@@ -1,6 +1,5 @@
 #pragma once
 
-#include "enums.hpp"
 #include "tag_map.hpp"
 #include "uuid.hpp"
 #include "singleton.hpp"
@@ -8,13 +7,13 @@
 namespace dm
 {
     // maps to audio data
-    MX_MAKE_HANDLE_ENUM(audio_handle);
+    SMOL_MAKE_HANDLE_ENUM(audio_handle);
     // instantiated possibly playing audio tracks
-    MX_MAKE_HANDLE_ENUM(track_handle);
+    SMOL_MAKE_HANDLE_ENUM(track_handle);
     // collection of tracks
-    MX_MAKE_HANDLE_ENUM(atmosphere_handle);
+    SMOL_MAKE_HANDLE_ENUM(atmosphere_handle);
     // playlists
-    MX_MAKE_HANDLE_ENUM(playlist_handle,
+    SMOL_MAKE_HANDLE_ENUM(playlist_handle,
         all,
         favorites,
         playing);
@@ -32,12 +31,12 @@ namespace dm
         }
     }
 
-    MX_MAKE_ENUM(audio_type, uint_fast8_t,
+    SMOL_MAKE_ENUM(audio_type, uint_fast8_t,
         one_shot,
         loop
     );
 
-    MX_MAKE_ENUM(audio_data_state, uint_fast8_t,
+    SMOL_MAKE_ENUM(audio_data_state, uint_fast8_t,
         unloaded,
         loading,
         loaded,

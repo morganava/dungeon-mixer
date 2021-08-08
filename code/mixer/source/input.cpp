@@ -242,7 +242,7 @@ namespace dm
     double click_detector::squared_movement_past_n_buckets(int32_t bucketCount) const
     {
         double retval = 0.0;
-        MX_ASSERT(bucketCount <= click_detector::BUCKET_COUNT);
+        SMOL_ASSERT(bucketCount <= click_detector::BUCKET_COUNT);
         for(int32_t i = 0; i < bucketCount; ++i)
         {
             retval += (_endPositions[i] - _startPositions[i]).squared_magnitude();
@@ -486,7 +486,7 @@ namespace dm
                 {
                     const auto button = ie.mousedown.button;
                     const auto buttonIndex = static_cast<size_t>(button);
-                    MX_ASSERT(button >= mouse_button::left && button < mouse_button::count);
+                    SMOL_ASSERT(button >= mouse_button::left && button < mouse_button::count);
                     const auto modifiers = ie.mousedown.modifiers;
                     const auto position = _mouse_state.current.position;
 
@@ -506,7 +506,7 @@ namespace dm
                 {
                     const auto button = ie.mouseup.button;
                     const auto buttonIndex = static_cast<size_t>(button);
-                    MX_ASSERT(button >= mouse_button::left && button < mouse_button::count);
+                    SMOL_ASSERT(button >= mouse_button::left && button < mouse_button::count);
                     const auto modifiers = ie.mousedown.modifiers;
                     const auto position = _mouse_state.current.position;
 
@@ -700,7 +700,7 @@ namespace dm
 
     button_state_t input::get_mouse_button_state(mouse_button_t btn, input_frame_t frame) const
     {
-        MX_ASSERT(btn >= mouse_button::left && btn < mouse_button::count);
+        SMOL_ASSERT(btn >= mouse_button::left && btn < mouse_button::count);
         auto& mouse_state = frame == input_frame::previous ? _mouse_state.previous : _mouse_state.current;
         return mouse_state.buttons[static_cast<size_t>(btn)];
     }

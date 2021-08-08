@@ -2,14 +2,12 @@ find_package(OpenGL REQUIRED COMPONENTS OpenGL)
 find_package(GLEW REQUIRED)
 find_package(SFML 2.4 REQUIRED COMPONENTS audio)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -Wfatal-errors -fconcepts")
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=thread")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=thread")
 
 add_executable(dungeon_mixer
     precomp.cpp
     # utilities
-    errors.cpp
     file_dialog.cpp
     tag_map.cpp
     hash.cpp
@@ -73,6 +71,7 @@ target_link_libraries(dungeon_mixer ${SFML_LIBRARIES})
 target_link_libraries(dungeon_mixer nativefiledialog)
 target_link_libraries(dungeon_mixer pthread)
 target_link_libraries(dungeon_mixer stdc++fs)
+target_link_libraries(dungeon_mixer smol)
 
 include_directories(../../glfw/include)
 include_directories(../../utf8proc/include)
@@ -82,4 +81,5 @@ include_directories(../../stb/include)
 include_directories(../../nativefiledialog/include)
 include_directories(../../fmt/include)
 include_directories(../../nanovg/include)
+include_directories(../../smol/include)
 include_directories(${SFML_INCLUDE_DIR})

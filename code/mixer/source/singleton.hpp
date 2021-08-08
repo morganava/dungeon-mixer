@@ -1,6 +1,5 @@
 #pragma once
 
-#include "errors.hpp"
 #include "worker_enums.hpp"
 
 namespace dm
@@ -38,13 +37,13 @@ namespace dm
 
         TYPE* operator->()
         {
-            MX_ASSERT(can_call_from_current_thread(allowed_threads<TYPE>::value));
+            SMOL_ASSERT(can_call_from_current_thread(allowed_threads<TYPE>::value));
             return data.operator->();
         }
 
         TYPE const* operator->() const
         {
-            MX_ASSERT(can_call_from_current_thread(allowed_threads<TYPE>::value));
+            SMOL_ASSERT(can_call_from_current_thread(allowed_threads<TYPE>::value));
             return data.operator->();
         }
 

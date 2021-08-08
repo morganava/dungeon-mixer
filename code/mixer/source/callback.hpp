@@ -23,7 +23,7 @@ namespace dm
         template<typename FUNCTOR>
         callback& operator=(FUNCTOR&& functor)
         {
-            MX_ASSERT(delete_func == nullptr && exec_func == nullptr);
+            SMOL_ASSERT(delete_func == nullptr && exec_func == nullptr);
             // convertible to a raw function pointer
             if constexpr (std::is_convertible<FUNCTOR, void(*)(ARGS...)>::value)
             {
@@ -34,7 +34,7 @@ namespace dm
             else
             {
                 // ensure we're not overriding a callback somehow
-                MX_ASSERT(singleton<FUNCTOR>::instance.assigned() == false);
+                SMOL_ASSERT(singleton<FUNCTOR>::instance.assigned() == false);
 
                 // move to static storage
                 singleton<FUNCTOR>::instance.construct(worker_flag::any, std::move(functor));

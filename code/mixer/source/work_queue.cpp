@@ -7,7 +7,7 @@ namespace dm
 {
     bool can_call_from_current_thread(worker_flag_t allowedThreads)
     {
-        auto currentThread = g_work_manager.unsafe_get().current_thread();
+        auto currentThread = g_work_manager_unsafe.current_thread();
         auto currentThreadFlag = static_cast<worker_flag_t>(1 << static_cast<size_t>(currentThread));
 
         auto retval = (allowedThreads & currentThreadFlag) != worker_flag::none;
@@ -107,7 +107,6 @@ namespace dm
         {
             // init the last queued task with current time
             _completion_time[k] = now;
-            // init termination flags
             _terminating[k] = false;
             // start thread
             _threads[k] = std::thread(&worker_thread, static_cast<worker_id_t>(k));
@@ -117,12 +116,8 @@ namespace dm
     work_manager::~work_manager()
     {
         _terminating[0] = true;
-
-        // notify each worker that we are terminating
         for(size_t k = 1; k < _worker_count; k++)
         {
-            // assuming our enqueue method properly wakes sleeping threads
-            // this will never deadlock
             enqueue_impl(k, [workerIndex=k]() -> void
             {
                 g_work_manager_unsafe._terminating[workerIndex] = true;
@@ -134,12 +129,13 @@ namespace dm
         {
             _threads[k].join();
         }
+
     }
 
     timestamp_t work_manager::do_tasks(worker_id_t id)
     {
         const size_t index = static_cast<size_t>(id);
-        MX_ASSERT(this->current_index() == index);
+        SMOL_ASSERT(this->current_index() == index);
 
         auto& completionTime = _completion_time[index];
 
@@ -232,7 +228,7 @@ namespace dm
                     return k;
                 }
             }
-            MX_FAIL_FAST("current_index called from invalid thread");
+            SMOL_FAIL_FAST("current_index called from invalid thread");
             return static_cast<size_t>(worker_id::invalid);
         }();
 
@@ -271,7 +267,11 @@ namespace dm
 
     task_future worker::enqueue(run_once_task&& task, timestamp_t startTime) const
     {
-        return g_work_manager->enqueue(_worker_index, std::move(task), startTime);
+        return g_work_manager_unsafe.enqueue(_worker_index, std::move(task), startTime);
+    }
+
+    bool worker::terminating() const {
+        return g_work_manager_unsafe.terminating(_worker_index);
     }
 
     // task future

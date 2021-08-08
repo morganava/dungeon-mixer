@@ -15,7 +15,7 @@ namespace dm
 
         constexpr uuid(const char* str)
         {
-            MX_THROW_IF_FALSE(is_valid_uuid(str));
+            SMOL_THROW_IF_FALSE(is_valid_uuid(str));
 
             auto char_to_hex = [](char c) -> uint8_t
             {

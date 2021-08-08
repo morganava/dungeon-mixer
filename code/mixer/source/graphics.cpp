@@ -108,8 +108,8 @@ namespace dm
         {
             g_callbacks = callbacks;
             // init glfw and set error callback
-            MX_THROW_IF_FALSE(glfwInit());
-            MX_THROW_IF_NOT_NULL(glfwSetErrorCallback(&graphics_error_func));
+            SMOL_THROW_IF_FALSE(glfwInit());
+            SMOL_THROW_IF_NOT_NULL(glfwSetErrorCallback(&graphics_error_func));
         }
         catch(const std::exception& ex)
         {
@@ -127,7 +127,7 @@ namespace dm
             glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, 1);
 
             g_window = glfwCreateWindow(1024, 768, "Dungeon Mixer", NULL, NULL);
-            MX_THROW_IF_NULL(g_window);
+            SMOL_THROW_IF_NULL(g_window);
             glfwMakeContextCurrent(g_window);
             glfwSwapInterval(1);
 
@@ -138,21 +138,21 @@ namespace dm
             glViewport(0, 0, g_framebuffer_width, g_framebuffer_height);
 
             // set input callbacks
-            MX_THROW_IF_NOT_NULL(glfwSetKeyCallback(g_window, &graphics_key_func));
-            MX_THROW_IF_NOT_NULL(glfwSetCharModsCallback(g_window, &graphics_charmods_func));
-            MX_THROW_IF_NOT_NULL(glfwSetCursorPosCallback(g_window, &graphics_cursor_pos_func));
-            MX_THROW_IF_NOT_NULL(glfwSetMouseButtonCallback(g_window, &graphics_mouse_button_func));
-            MX_THROW_IF_NOT_NULL(glfwSetCursorEnterCallback(g_window, &graphics_mouse_enter_func));
-            MX_THROW_IF_NOT_NULL(glfwSetScrollCallback(g_window, &graphics_scroll_func));
+            SMOL_THROW_IF_NOT_NULL(glfwSetKeyCallback(g_window, &graphics_key_func));
+            SMOL_THROW_IF_NOT_NULL(glfwSetCharModsCallback(g_window, &graphics_charmods_func));
+            SMOL_THROW_IF_NOT_NULL(glfwSetCursorPosCallback(g_window, &graphics_cursor_pos_func));
+            SMOL_THROW_IF_NOT_NULL(glfwSetMouseButtonCallback(g_window, &graphics_mouse_button_func));
+            SMOL_THROW_IF_NOT_NULL(glfwSetCursorEnterCallback(g_window, &graphics_mouse_enter_func));
+            SMOL_THROW_IF_NOT_NULL(glfwSetScrollCallback(g_window, &graphics_scroll_func));
             glfwSetInputMode(g_window, GLFW_LOCK_KEY_MODS, GLFW_TRUE);
 
             // graphics callbacks
-            MX_THROW_IF_NOT_NULL(glfwSetWindowSizeCallback(g_window, &graphics_window_size_func));
-            MX_THROW_IF_NOT_NULL(glfwSetFramebufferSizeCallback(g_window, &graphics_framebuffer_size_func));
+            SMOL_THROW_IF_NOT_NULL(glfwSetWindowSizeCallback(g_window, &graphics_window_size_func));
+            SMOL_THROW_IF_NOT_NULL(glfwSetFramebufferSizeCallback(g_window, &graphics_framebuffer_size_func));
 
             // init glew
             glewExperimental = GL_TRUE;
-            MX_THROW_IF_FALSE(glewInit() == GLEW_OK);
+            SMOL_THROW_IF_FALSE(glewInit() == GLEW_OK);
             // GLEW generates GL error because it calls glGetString(GL_EXTENSIONS), we'll consume it here.
             glGetError();
 

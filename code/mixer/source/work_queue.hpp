@@ -109,7 +109,7 @@ namespace dm
         work_manager();
         ~work_manager();
 
-        bool terminating() const {return _terminating[0];}
+        bool terminating(size_t workerIndex) const {return _terminating[workerIndex];}
 
         // run all of the tasks in the given worker's queue
         // returns the timestamp of the completion of the last enqueued task
@@ -163,6 +163,7 @@ namespace dm
         {
             return enqueue(std::move(task), std::chrono::system_clock::now() + delay);
         }
+        bool terminating() const;
     };
 
     constexpr worker worker_ui(worker_id::ui);

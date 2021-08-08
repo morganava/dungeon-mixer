@@ -23,6 +23,10 @@ namespace dm
 
     void init_globals()
     {
+        smol::register_failure_callback([](std::string_view message) -> void {
+            MX_LOG_ERROR_BLOCKING(std::string(message));
+        });
+
         // work queue
         init_work_manager();
 

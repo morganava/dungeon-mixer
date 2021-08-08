@@ -3,7 +3,6 @@
 #include "color.hpp"
 #include "array.hpp"
 #include "stylesheet.hpp"
-#include "enums.hpp"
 #include "callback.hpp"
 
 namespace dm
@@ -11,13 +10,13 @@ namespace dm
     // immmediate mode gui
     namespace imgui
     {
-        MX_MAKE_ENUM(render_pass, uint_fast8_t,
+        SMOL_MAKE_ENUM(render_pass, uint_fast8_t,
             geometry, /* only calculates layout information */
             full /* layout, input, render */
         );
 
         // widget id
-        MX_MAKE_HANDLE_ENUM(widget_id,
+        SMOL_MAKE_HANDLE_ENUM(widget_id,
             null
         );
 
@@ -77,10 +76,10 @@ namespace dm
             widget_id_t id = next_widget_id();
         };
 
-        MX_MAKE_FLAG_ENUM(widget_flag, uint32_t,
-            has_children = MX_FLAG(0),
-            scissors     = MX_FLAG(1),
-            windows      = MX_FLAG(2)
+        SMOL_MAKE_FLAG_ENUM(widget_flag, uint32_t,
+            has_children = SMOL_FLAG(0),
+            scissors     = SMOL_FLAG(1),
+            windows      = SMOL_FLAG(2)
         );
 
         // widget base-class
@@ -214,7 +213,7 @@ namespace dm
                         self.push_widget();
                         return true;
                     default:
-                        MX_FAIL_FAST();
+                        SMOL_FAIL_FAST();
                 }
                 return false;
             }
@@ -359,9 +358,9 @@ namespace dm
         //
 
         // scroll_area
-        MX_MAKE_FLAG_ENUM(scroll_direction, uint_fast8_t,
-            horizontal = MX_FLAG(0),
-            vertical   = MX_FLAG(1),
+        SMOL_MAKE_FLAG_ENUM(scroll_direction, uint_fast8_t,
+            horizontal = SMOL_FLAG(0),
+            vertical   = SMOL_FLAG(1),
             both       = horizontal | vertical
         );
 
@@ -481,7 +480,7 @@ namespace dm
 
         /// text box
 
-        MX_MAKE_ENUM(text_box_action, uint_fast8_t,
+        SMOL_MAKE_ENUM(text_box_action, uint_fast8_t,
             empty,
             write_whitespace,
             write_nonwhitespace,
@@ -566,7 +565,7 @@ namespace dm
 
         // range slider
 
-        MX_MAKE_ENUM(range_slider_handle, uint_fast8_t,
+        SMOL_MAKE_ENUM(range_slider_handle, uint_fast8_t,
             low,
             high
         );

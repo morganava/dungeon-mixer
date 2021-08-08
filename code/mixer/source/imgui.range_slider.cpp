@@ -23,7 +23,7 @@ namespace dm
 
         void widget_range_slider_handle::first_update_impl()
         {
-            MX_ASSERT(_handle == range_slider_handle::low ||
+            SMOL_ASSERT(_handle == range_slider_handle::low ||
                       _handle == range_slider_handle::high);
 
             const auto sliderBounds = _slider->_layout.child_bounds();
@@ -147,7 +147,7 @@ namespace dm
             constexpr size_t SLIDER_LOW_HANDLE_ID = 1;
             constexpr size_t SLIDER_HIGH_HANDLE_ID = 2;
 
-            MX_ASSERT(_childCounter == SLIDER_TRACK_ID ||
+            SMOL_ASSERT(_childCounter == SLIDER_TRACK_ID ||
                       _childCounter == SLIDER_LOW_HANDLE_ID ||
                       _childCounter == SLIDER_HIGH_HANDLE_ID);
 

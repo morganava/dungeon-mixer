@@ -1,7 +1,6 @@
 #pragma once
 
 #include "singleton.hpp"
-#include "enums.hpp"
 #include "work_queue.hpp"
 
 #define MX_LOG_ERROR(...) dm::g_logger->log<dm::log_level::error>(__VA_ARGS__)
@@ -15,7 +14,7 @@
 
 namespace dm
 {
-    MX_MAKE_ENUM(log_level, uint_fast8_t,
+    SMOL_MAKE_ENUM(log_level, uint_fast8_t,
         error,
         info
     );
@@ -58,6 +57,11 @@ namespace dm
         std::string marshall(const char* cstr)
         {
             return std::string(cstr);
+        }
+
+        std::string marshall(std::string_view sv)
+        {
+            return std::string(sv);
         }
 
         void write_message(log_level_t lvl, std::chrono::system_clock::time_point now, const std::string& msg);

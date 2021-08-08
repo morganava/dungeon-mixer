@@ -103,13 +103,13 @@ namespace dm
 
         void widget_context_menu::first_render_impl() const
         {
-            MX_ASSERT(g_context->get_render_pass() == render_pass::full);
+            SMOL_ASSERT(g_context->get_render_pass() == render_pass::full);
             g_nanovg->set_draw_layer(draw_layer::foreground);
         }
 
         void widget_context_menu::last_render_impl() const
         {
-            MX_ASSERT(g_context->get_render_pass() == render_pass::full);
+            SMOL_ASSERT(g_context->get_render_pass() == render_pass::full);
             g_nanovg->set_draw_layer(draw_layer::middleground);
         }
     }

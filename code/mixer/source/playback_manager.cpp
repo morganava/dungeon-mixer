@@ -23,7 +23,7 @@ namespace dm
         prev = now;
 
         // todo: maybe make a way to auto-repeat a function
-        if (!g_work_manager->terminating()) {
+        if (!worker_audio.terminating()) {
             worker_audio.enqueue(audio_update, 32ms);
         }
     }
@@ -131,7 +131,7 @@ namespace dm
     {
         MX_LOG_INFO("playing track {}", trackHandle);
 
-        MX_ASSERT(_entries.find(trackHandle) == _entries.end());
+        SMOL_ASSERT(_entries.find(trackHandle) == _entries.end());
 
         auto& trackEntry = g_track_directory->get_entry(trackHandle);
         auto audioHandle = trackEntry.audio;
@@ -207,7 +207,7 @@ namespace dm
                 }
                 break;
                 default:
-                    MX_FAIL_FAST();
+                    SMOL_FAIL_FAST();
             }
 
             // position calculation

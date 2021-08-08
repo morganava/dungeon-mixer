@@ -183,7 +183,7 @@ namespace dm
 
     void utf8_string::normalize_and_assign(const char* cstr, size_t len)
     {
-        MX_THROW_IF_NULL(cstr);
+        SMOL_THROW_IF_NULL(cstr);
 
         // compose codepoints and what-not
         std::unique_ptr<utf8proc_uint8_t, decltype(&std::free)> data(nullptr, std::free);
@@ -191,7 +191,7 @@ namespace dm
         auto size = utf8proc_map(reinterpret_cast<utf8proc_uint8_t const*>(cstr), len, out(data), options);
         if(size < 0)
         {
-            MX_THROW_MSG("{}", utf8proc_errmsg(size));
+            SMOL_THROW_MSG("{}", utf8proc_errmsg(size));
         }
 
         if (this->stringData != nullptr)
@@ -271,7 +271,7 @@ namespace dm
 
         if(size < 0)
         {
-            MX_THROW_MSG("{}", utf8proc_errmsg(size));
+            SMOL_THROW_MSG("{}", utf8proc_errmsg(size));
         }
 
         return utf8_string(new(size) string_data(size, reinterpret_cast<char*>(data.get())));
@@ -370,7 +370,7 @@ namespace dm
             auto codepointSize = utf8proc_iterate(_nextCodepoint, _tail - _nextCodepoint, &_codepoint);
             if(codepointSize < 0)
             {
-                MX_THROW_MSG("{}", utf8proc_errmsg(codepointSize));
+                SMOL_THROW_MSG("{}", utf8proc_errmsg(codepointSize));
             }
             _currentCodepoint = _nextCodepoint;
             _nextCodepoint += codepointSize;
@@ -478,7 +478,7 @@ namespace dm
 
     utf8_string utf8_stringbuffer::str(const_iterator from, const_iterator to) const
     {
-        MX_ASSERT(to >= from);
+        SMOL_ASSERT(to >= from);
         char buffer[(int32_t)(to - from) * 4];
         utf8proc_uint8_t* head = reinterpret_cast<utf8proc_uint8_t*>(buffer);
         size_t len = 0;
@@ -487,7 +487,7 @@ namespace dm
             auto cpSize = utf8proc_encode_char(it->value(), head);
             if (cpSize < 0)
             {
-                MX_THROW_MSG("{}", utf8proc_errmsg(cpSize));
+                SMOL_THROW_MSG("{}", utf8proc_errmsg(cpSize));
             }
             head += cpSize;
             len += cpSize;

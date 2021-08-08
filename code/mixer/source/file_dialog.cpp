@@ -1,7 +1,6 @@
 #include "utilities.hpp"
 #include "utf8_string.hpp"
 #include "file_dialog.hpp"
-#include "platform.hpp"
 
 namespace dm
 {
@@ -39,17 +38,17 @@ namespace dm
     {
         switch(result)
         {
-            case NFD_ERROR: MX_THROW_MSG("{}", NFD_GetError()); break;
+            case NFD_ERROR: SMOL_THROW_MSG("{}", NFD_GetError()); break;
             case NFD_OKAY: return std::make_optional<fs::path>(path.get());
             case NFD_CANCEL: return std::nullopt;
-            default: MX_THROW_MSG("Unknown nfdresult_t returned from NFD API: {}", (int)result);
+            default: SMOL_THROW_MSG("Unknown nfdresult_t returned from NFD API: {}", (int)result);
         }
     }
 
     static std::string make_default_path_string(const fs::path& path, const utf8_string filename)
     {
         // xxx: zenity implementation needs trailing slash on directories to work properly
-        if constexpr (dm::current_platform == platform::linux)
+        if constexpr (smol::current_platform == smol::platform::linux)
         {
             return (path / filename.c_str()).lexically_normal().string();
         }

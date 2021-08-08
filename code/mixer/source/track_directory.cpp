@@ -10,7 +10,7 @@ namespace dm
     const track_entry& track_directory::get_entry(track_handle_t handle)
     {
         auto it = _entries.find(handle);
-        MX_ASSERT(it != _entries.end());
+        SMOL_ASSERT(it != _entries.end());
 
         return it->second;
     }
@@ -18,7 +18,7 @@ namespace dm
     track_handle_t track_directory::add_entry(track_entry&& entry)
     {
         const auto handle = next_track_handle();
-        MX_ASSERT(_entries.find(handle) == _entries.end());
+        SMOL_ASSERT(_entries.find(handle) == _entries.end());
         _entries.insert({handle, std::move(entry)});
 
         g_serialization_manager->request_autosave(content_type::playlist);

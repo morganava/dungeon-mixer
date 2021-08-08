@@ -7,12 +7,11 @@
 #include "nanovg.hpp"
 #include "utf8_string.hpp"
 #include "serialization_buffer.hpp"
-#include "enums.hpp"
 #include "linear_constraint_solver.hpp"
 
 namespace dm
 {
-    MX_MAKE_ENUM(element_type, uint_fast8_t,
+    SMOL_MAKE_ENUM(element_type, uint_fast8_t,
         any,
         root,
         flex_box,
@@ -32,7 +31,7 @@ namespace dm
     );
     element_type_t parse_element_type(const std::string&);
 
-    MX_MAKE_FLAG_ENUM(element_state, uint_fast8_t,
+    SMOL_MAKE_FLAG_ENUM(element_state, uint_fast8_t,
         hover    = 1 << 0,
         active   = 1 << 1,
         disabled = 1 << 2,

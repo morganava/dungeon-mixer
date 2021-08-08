@@ -54,7 +54,7 @@ namespace dm
     // Base Audio Data
     void audio_data::load(std::shared_ptr<audio_data> audio)
     {
-        MX_ASSERT(audio->_state == audio_data_state::unloaded);
+        SMOL_ASSERT(audio->_state == audio_data_state::unloaded);
         audio->_state = audio_data_state::loading;
 
         worker_fileio.enqueue([=]() -> void
@@ -66,7 +66,7 @@ namespace dm
 
     void audio_data::unload(std::shared_ptr<audio_data> audio)
     {
-        MX_ASSERT(audio->_state == audio_data_state::loaded);
+        SMOL_ASSERT(audio->_state == audio_data_state::loaded);
         audio->_state = audio_data_state::unloading;
 
         worker_fileio.enqueue([=]() -> void
@@ -86,7 +86,7 @@ namespace dm
     {
         for(auto& currentPath : _paths)
         {
-            MX_ASSERT(fs::exists(currentPath));
+            SMOL_ASSERT(fs::exists(currentPath));
         }
 
         for(size_t k = 0; k < _paths.size(); k++)
@@ -97,7 +97,7 @@ namespace dm
 
     sf::SoundBuffer& one_shot_data::get_sound_buffer(bool positionable)
     {
-        MX_ASSERT(this->_state == audio_data_state::loaded);
+        SMOL_ASSERT(this->_state == audio_data_state::loaded);
 
         auto index = g_random->next_index(_buffers.size());
         return _buffers[index];
@@ -128,12 +128,12 @@ namespace dm
     loop_data::loop_data(fs::path&& loop_path)
     : _loop_path(std::move(loop_path))
     {
-        MX_ASSERT(fs::exists(_loop_path));
+        SMOL_ASSERT(fs::exists(_loop_path));
     }
 
     sf::SoundBuffer& loop_data::get_sound_buffer(bool positionable)
     {
-        MX_ASSERT(this->_state == audio_data_state::loaded);
+        SMOL_ASSERT(this->_state == audio_data_state::loaded);
 
         return positionable ? _mono_loop_buffer : _loop_buffer;
     }

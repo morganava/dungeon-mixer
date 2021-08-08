@@ -7,4 +7,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_BUILD_TYPE RELWITHDEBINFO)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -Wall -Werror -Wfatal-errors -fconcepts")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-comment")
+
 add_subdirectory(code)

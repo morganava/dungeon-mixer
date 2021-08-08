@@ -19,7 +19,7 @@ namespace dm
     {
         // init nanovg
         _ctx = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
-        MX_THROW_IF_NULL(_ctx);
+        SMOL_THROW_IF_NULL(_ctx);
 
         constexpr static const uint8_t debugPixels[] =
         {
@@ -43,7 +43,7 @@ namespace dm
 
         // index our font face id will be stored
         const auto index = next_font_handle();
-        MX_ASSERT(static_cast<size_t>(index) == _nvg_font_faces.size());
+        SMOL_ASSERT(static_cast<size_t>(index) == _nvg_font_faces.size());
         _font_map.insert({fontFilePath, index});
         _nvg_font_faces.push_back(INVALID_NVG_FONT_ID);
 
@@ -76,7 +76,7 @@ namespace dm
         }
 
         const auto index = next_image_handle();
-        MX_ASSERT(static_cast<size_t>(index) == _nvg_images.size());
+        SMOL_ASSERT(static_cast<size_t>(index) == _nvg_images.size());
         _image_map.insert({imageFilePath, index});
         _nvg_images.push_back({INVALID_NVG_IMAGE_ID, {}});
 
@@ -84,7 +84,7 @@ namespace dm
         {
             // load file into memory
             memory_buffer imageFile(imageFilePath);
-            MX_THROW_IF_FALSE(imageFile.size() <= static_cast<size_t>(std::numeric_limits<int>::max()));
+            SMOL_THROW_IF_FALSE(imageFile.size() <= static_cast<size_t>(std::numeric_limits<int>::max()));
             const int imageFileSize = static_cast<int>(imageFile.size());
 
             // load pixel data from image
@@ -149,7 +149,7 @@ namespace dm
         _current.set_layer(draw_layer::background);
     }
 
-    MX_MAKE_ENUM(draw_command, uint8_t,
+    SMOL_MAKE_ENUM(draw_command, uint8_t,
         set_scissor,
         color_fill_rect,
         color_fill_rounded_rect,
@@ -207,7 +207,7 @@ namespace dm
             break;
             default:
             {
-                MX_FAIL_FAST();
+                SMOL_FAIL_FAST();
             }
        }
        return {};
@@ -241,13 +241,13 @@ namespace dm
             {
                 default:
                 {
-                    MX_THROW_MSG("unknown draw command: {}", static_cast<uint8_t>(cmd));
+                    SMOL_THROW_MSG("unknown draw command: {}", static_cast<uint8_t>(cmd));
                 }
                 break;
                 case draw_command::set_scissor:
                 {
                     rectf r;
-                    MX_THROW_IF_FALSE(cq.next(r));
+                    SMOL_THROW_IF_FALSE(cq.next(r));
 
                     currentScissor = r;
                     nvgScissor(_ctx, r.position.x, r.position.y, r.size.x, r.size.y);
@@ -257,8 +257,8 @@ namespace dm
                 {
                     rectf r;
                     color col;
-                    MX_THROW_IF_FALSE(cq.next(r));
-                    MX_THROW_IF_FALSE(cq.next(col));
+                    SMOL_THROW_IF_FALSE(cq.next(r));
+                    SMOL_THROW_IF_FALSE(cq.next(col));
 
                     nvgBeginPath(_ctx);
                     nvgRect(_ctx, r.position.x, r.position.y, r.size.x, r.size.y);
@@ -271,9 +271,9 @@ namespace dm
                     rectf r;
                     cornersf rad;
                     color col;
-                    MX_THROW_IF_FALSE(cq.next(r));
-                    MX_THROW_IF_FALSE(cq.next(rad));
-                    MX_THROW_IF_FALSE(cq.next(col));
+                    SMOL_THROW_IF_FALSE(cq.next(r));
+                    SMOL_THROW_IF_FALSE(cq.next(rad));
+                    SMOL_THROW_IF_FALSE(cq.next(col));
 
                     nvgBeginPath(_ctx);
                     nvgRoundedRectVarying(_ctx, r.position.x, r.position.y, r.size.x, r.size.y, rad.topLeft, rad.topRight, rad.bottomRight, rad.bottomLeft);
@@ -285,8 +285,8 @@ namespace dm
                 {
                     circlef c;
                     color col;
-                    MX_THROW_IF_FALSE(cq.next(c));
-                    MX_THROW_IF_FALSE(cq.next(col));
+                    SMOL_THROW_IF_FALSE(cq.next(c));
+                    SMOL_THROW_IF_FALSE(cq.next(col));
 
                     nvgBeginPath(_ctx);
                     nvgCircle(_ctx, c.position.x, c.position.y, c.radius);
@@ -299,11 +299,11 @@ namespace dm
                     rectf r;
                     image_handle_t ih;
                     background_image_mode_t bim;
-                    MX_THROW_IF_FALSE(cq.next(r));
-                    MX_THROW_IF_FALSE(cq.next(ih));
-                    MX_THROW_IF_FALSE(cq.next(bim));
+                    SMOL_THROW_IF_FALSE(cq.next(r));
+                    SMOL_THROW_IF_FALSE(cq.next(ih));
+                    SMOL_THROW_IF_FALSE(cq.next(bim));
                     // make sure this is a valid handle
-                    MX_ASSERT(static_cast<size_t>(ih) < _nvg_images.size());
+                    SMOL_ASSERT(static_cast<size_t>(ih) < _nvg_images.size());
 
                     NVGpaint paint = make_nvgpaint(ih, r, bim);
 
@@ -321,12 +321,12 @@ namespace dm
                     cornersf rad;
                     image_handle_t ih;
                     background_image_mode_t bim;
-                    MX_THROW_IF_FALSE(cq.next(r));
-                    MX_THROW_IF_FALSE(cq.next(rad));
-                    MX_THROW_IF_FALSE(cq.next(ih));
-                    MX_THROW_IF_FALSE(cq.next(bim));
+                    SMOL_THROW_IF_FALSE(cq.next(r));
+                    SMOL_THROW_IF_FALSE(cq.next(rad));
+                    SMOL_THROW_IF_FALSE(cq.next(ih));
+                    SMOL_THROW_IF_FALSE(cq.next(bim));
                     // make sure this is a valid handle
-                    MX_ASSERT(static_cast<size_t>(ih) < _nvg_images.size());
+                    SMOL_ASSERT(static_cast<size_t>(ih) < _nvg_images.size());
 
                     NVGpaint paint = make_nvgpaint(ih, r, bim);
 
@@ -343,11 +343,11 @@ namespace dm
                     circlef c;
                     image_handle_t ih;
                     background_image_mode_t bim;
-                    MX_THROW_IF_FALSE(cq.next(c));
-                    MX_THROW_IF_FALSE(cq.next(ih));
-                    MX_THROW_IF_FALSE(cq.next(bim));
+                    SMOL_THROW_IF_FALSE(cq.next(c));
+                    SMOL_THROW_IF_FALSE(cq.next(ih));
+                    SMOL_THROW_IF_FALSE(cq.next(bim));
                     // make sure this is a valid handle
-                    MX_ASSERT(static_cast<size_t>(ih) < _nvg_images.size());
+                    SMOL_ASSERT(static_cast<size_t>(ih) < _nvg_images.size());
 
                     NVGpaint paint = make_nvgpaint(ih, c.bounding_box(), bim);
 
@@ -364,9 +364,9 @@ namespace dm
                     rectf r;
                     float strokeWidth;
                     color col;
-                    MX_THROW_IF_FALSE(cq.next(r));
-                    MX_THROW_IF_FALSE(cq.next(strokeWidth));
-                    MX_THROW_IF_FALSE(cq.next(col));
+                    SMOL_THROW_IF_FALSE(cq.next(r));
+                    SMOL_THROW_IF_FALSE(cq.next(strokeWidth));
+                    SMOL_THROW_IF_FALSE(cq.next(col));
 
                     r.position += vec2f{strokeWidth / 2.0f, strokeWidth / 2.0f};
                     r.size -= vec2f{strokeWidth, strokeWidth};
@@ -384,10 +384,10 @@ namespace dm
                     cornersf rad;
                     float strokeWidth;
                     color col;
-                    MX_THROW_IF_FALSE(cq.next(r));
-                    MX_THROW_IF_FALSE(cq.next(rad));
-                    MX_THROW_IF_FALSE(cq.next(strokeWidth));
-                    MX_THROW_IF_FALSE(cq.next(col));
+                    SMOL_THROW_IF_FALSE(cq.next(r));
+                    SMOL_THROW_IF_FALSE(cq.next(rad));
+                    SMOL_THROW_IF_FALSE(cq.next(strokeWidth));
+                    SMOL_THROW_IF_FALSE(cq.next(col));
                     const float halfStrokeWidth = strokeWidth / 2.0f;
 
                     r.position += vec2f{halfStrokeWidth};
@@ -409,9 +409,9 @@ namespace dm
                     circlef c;
                     float strokeWidth;
                     color col;
-                    MX_THROW_IF_FALSE(cq.next(c));
-                    MX_THROW_IF_FALSE(cq.next(strokeWidth));
-                    MX_THROW_IF_FALSE(cq.next(col));
+                    SMOL_THROW_IF_FALSE(cq.next(c));
+                    SMOL_THROW_IF_FALSE(cq.next(strokeWidth));
+                    SMOL_THROW_IF_FALSE(cq.next(col));
 
                     nvgBeginPath(_ctx);
                     nvgCircle(_ctx, c.position.x, c.position.y, c.radius);
@@ -423,24 +423,24 @@ namespace dm
                 case draw_command::stroke_path:
                 {
                     size_t pointCount = 0;
-                    MX_THROW_IF_FALSE(cq.next(pointCount));
-                    MX_THROW_IF_FALSE(pointCount >= 2);
+                    SMOL_THROW_IF_FALSE(cq.next(pointCount));
+                    SMOL_THROW_IF_FALSE(pointCount >= 2);
 
                     nvgBeginPath(_ctx);
                     vec2f pt;
-                    MX_THROW_IF_FALSE(cq.next(pt));
+                    SMOL_THROW_IF_FALSE(cq.next(pt));
                     nvgMoveTo(_ctx, pt.x, pt.y);
                     for(size_t k = 1; k < pointCount; k++)
                     {
-                        MX_THROW_IF_FALSE(cq.next(pt));
+                        SMOL_THROW_IF_FALSE(cq.next(pt));
                         nvgLineTo(_ctx, pt.x, pt.y);
                     }
                     nvgClosePath(_ctx);
 
                     float strokeWidth;
                     color col;
-                    MX_THROW_IF_FALSE(cq.next(strokeWidth));
-                    MX_THROW_IF_FALSE(cq.next(col));
+                    SMOL_THROW_IF_FALSE(cq.next(strokeWidth));
+                    SMOL_THROW_IF_FALSE(cq.next(col));
 
                     nvgStrokeWidth(_ctx, strokeWidth);
                     nvgStrokeColor(_ctx, col);
@@ -457,14 +457,14 @@ namespace dm
                     halign_t halign;
                     valign_t valign;
                     utf8_string_view str;
-                    MX_THROW_IF_FALSE(cq.next(bounds));
-                    MX_THROW_IF_FALSE(cq.next(textOffset));
-                    MX_THROW_IF_FALSE(cq.next(font));
-                    MX_THROW_IF_FALSE(cq.next(size));
-                    MX_THROW_IF_FALSE(cq.next(col));
-                    MX_THROW_IF_FALSE(cq.next(halign));
-                    MX_THROW_IF_FALSE(cq.next(valign));
-                    MX_THROW_IF_FALSE(cq.next(str));
+                    SMOL_THROW_IF_FALSE(cq.next(bounds));
+                    SMOL_THROW_IF_FALSE(cq.next(textOffset));
+                    SMOL_THROW_IF_FALSE(cq.next(font));
+                    SMOL_THROW_IF_FALSE(cq.next(size));
+                    SMOL_THROW_IF_FALSE(cq.next(col));
+                    SMOL_THROW_IF_FALSE(cq.next(halign));
+                    SMOL_THROW_IF_FALSE(cq.next(valign));
+                    SMOL_THROW_IF_FALSE(cq.next(str));
 
                     auto startPosition = text_bounds_to_start_position(bounds, halign, valign);
                     startPosition.x -= textOffset;
@@ -490,17 +490,17 @@ namespace dm
                     float caretWidth;
                     color caretColor;
 
-                    MX_THROW_IF_FALSE(cq.next(bounds));
-                    MX_THROW_IF_FALSE(cq.next(textOffset));
-                    MX_THROW_IF_FALSE(cq.next(font));
-                    MX_THROW_IF_FALSE(cq.next(fontSize));
-                    MX_THROW_IF_FALSE(cq.next(fontColor));
-                    MX_THROW_IF_FALSE(cq.next(halign));
-                    MX_THROW_IF_FALSE(cq.next(valign));
-                    MX_THROW_IF_FALSE(cq.next(str));
-                    MX_THROW_IF_FALSE(cq.next(caretIndex));
-                    MX_THROW_IF_FALSE(cq.next(caretWidth));
-                    MX_THROW_IF_FALSE(cq.next(caretColor));
+                    SMOL_THROW_IF_FALSE(cq.next(bounds));
+                    SMOL_THROW_IF_FALSE(cq.next(textOffset));
+                    SMOL_THROW_IF_FALSE(cq.next(font));
+                    SMOL_THROW_IF_FALSE(cq.next(fontSize));
+                    SMOL_THROW_IF_FALSE(cq.next(fontColor));
+                    SMOL_THROW_IF_FALSE(cq.next(halign));
+                    SMOL_THROW_IF_FALSE(cq.next(valign));
+                    SMOL_THROW_IF_FALSE(cq.next(str));
+                    SMOL_THROW_IF_FALSE(cq.next(caretIndex));
+                    SMOL_THROW_IF_FALSE(cq.next(caretWidth));
+                    SMOL_THROW_IF_FALSE(cq.next(caretColor));
 
                     auto startPosition = text_bounds_to_start_position(bounds, halign, valign);
                     startPosition.x -= textOffset;
@@ -521,7 +521,7 @@ namespace dm
                     const auto caretCount = caretIndex + 1;
                     NVGglyphPosition glyphPositions[caretCount];
                     const auto glyphCount = nvgTextGlyphPositions(_ctx, startPosition.x, startPosition.y, str.begin(), str.end(), glyphPositions, caretCount);
-                    MX_THROW_IF_FALSE(glyphCount >= caretIndex);
+                    SMOL_THROW_IF_FALSE(glyphCount >= caretIndex);
 
                     float caretPosition;
                     // caret within the string
@@ -532,12 +532,12 @@ namespace dm
                     }
                     else if (caretIndex == glyphCount)
                     {
-                        MX_ASSERT(caretIndex > 0);
+                        SMOL_ASSERT(caretIndex > 0);
                         caretPosition = glyphPositions[caretIndex - 1].maxx;
                     }
                     else
                     {
-                        MX_ASSERT(caretIndex < glyphCount);
+                        SMOL_ASSERT(caretIndex < glyphCount);
                         caretPosition = glyphPositions[caretIndex].minx;
                     }
 
@@ -555,7 +555,7 @@ namespace dm
                             caretBounds.position.y = bounds.bottom() - lineHeight;
                             break;
                         default:
-                            MX_FAIL_FAST();
+                            SMOL_FAIL_FAST();
                     }
                     caretBounds.size = {caretWidth, lineHeight};
 
@@ -581,20 +581,20 @@ namespace dm
                     color selectedFontColor;
                     color selectionColor;
 
-                    MX_THROW_IF_FALSE(cq.next(bounds));
-                    MX_THROW_IF_FALSE(cq.next(textOffset));
-                    MX_THROW_IF_FALSE(cq.next(font));
-                    MX_THROW_IF_FALSE(cq.next(fontSize));
-                    MX_THROW_IF_FALSE(cq.next(fontColor));
-                    MX_THROW_IF_FALSE(cq.next(halign));
-                    MX_THROW_IF_FALSE(cq.next(valign));
-                    MX_THROW_IF_FALSE(cq.next(str));
-                    MX_THROW_IF_FALSE(cq.next(selectBegin));
-                    MX_THROW_IF_FALSE(cq.next(selectEnd));
-                    MX_THROW_IF_FALSE(cq.next(selectedFontColor));
-                    MX_THROW_IF_FALSE(cq.next(selectionColor));
+                    SMOL_THROW_IF_FALSE(cq.next(bounds));
+                    SMOL_THROW_IF_FALSE(cq.next(textOffset));
+                    SMOL_THROW_IF_FALSE(cq.next(font));
+                    SMOL_THROW_IF_FALSE(cq.next(fontSize));
+                    SMOL_THROW_IF_FALSE(cq.next(fontColor));
+                    SMOL_THROW_IF_FALSE(cq.next(halign));
+                    SMOL_THROW_IF_FALSE(cq.next(valign));
+                    SMOL_THROW_IF_FALSE(cq.next(str));
+                    SMOL_THROW_IF_FALSE(cq.next(selectBegin));
+                    SMOL_THROW_IF_FALSE(cq.next(selectEnd));
+                    SMOL_THROW_IF_FALSE(cq.next(selectedFontColor));
+                    SMOL_THROW_IF_FALSE(cq.next(selectionColor));
 
-                    MX_THROW_IF_FALSE(selectEnd > selectBegin);
+                    SMOL_THROW_IF_FALSE(selectEnd > selectBegin);
 
                     auto startPosition = text_bounds_to_start_position(bounds, halign, valign);
                     startPosition.x -= textOffset;
@@ -664,7 +664,7 @@ namespace dm
                                 selectionBounds.position.y = bounds.bottom() - lineHeight;
                                 break;
                             default:
-                                MX_FAIL_FAST();
+                                SMOL_FAIL_FAST();
                         }
                         selectionBounds.size = {
                             selectEndX - selectBeginX,
@@ -942,10 +942,10 @@ namespace dm
         NVGglyphPosition glyphPositions[str.size()];
         size_t positions = (size_t)nvgTextGlyphPositions(_ctx, startPosition.x, startPosition.y, str.begin(), str.end(), glyphPositions, str.size());
 
-        MX_ASSERT(caretPosition <= positions);
+        SMOL_ASSERT(caretPosition <= positions);
         if (positions == 0)
         {
-            MX_ASSERT(caretPosition == 0);
+            SMOL_ASSERT(caretPosition == 0);
             return 0.0f;
         }
         else if(caretPosition == positions)
@@ -974,7 +974,7 @@ namespace dm
                 x = pos.x + size.x;
                 break;
             default:
-                MX_FAIL_FAST();
+                SMOL_FAIL_FAST();
         }
 
         switch(valign)
@@ -989,7 +989,7 @@ namespace dm
                 y = pos.y + size.y;
                 break;
             default:
-                MX_FAIL_FAST();
+                SMOL_FAIL_FAST();
         }
 
         return vec2f{x, y};

@@ -2,13 +2,12 @@
 
 #define MX_GET_CSTRING(X) get_string_manager()->get_cstring(X)
 
-#include "enums.hpp"
 #include "utf8_string.hpp"
 #include "singleton.hpp"
 
 namespace dm
 {
-    MX_MAKE_ENUM(mixer_string, uint_fast16_t,
+    SMOL_MAKE_ENUM(mixer_string, uint_fast16_t,
         /* Common */
         playlists,
         create_new_playlist,

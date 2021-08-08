@@ -1,13 +1,13 @@
 #pragma once
 
-#include "enums.hpp"
+// #include "worker_enums.hpp"
 #include "singleton.hpp"
 
 namespace dm
 {
     typedef int32_t key_code_t;
 
-    MX_MAKE_ENUM(mouse_button, uint_fast8_t,
+    SMOL_MAKE_ENUM(mouse_button, uint_fast8_t,
         left,
         right,
         middle
@@ -17,7 +17,7 @@ namespace dm
     static_assert(static_cast<uint_fast8_t>(mouse_button::middle) == GLFW_MOUSE_BUTTON_MIDDLE);
     static_assert(static_cast<uint_fast8_t>(mouse_button::count) == 3);
 
-    MX_MAKE_ENUM(input_frame, uint_fast8_t,
+    SMOL_MAKE_ENUM(input_frame, uint_fast8_t,
         current,
         previous
     );
@@ -74,7 +74,7 @@ namespace dm
     };
 
     // raw events from glfw
-    MX_MAKE_ENUM(raw_input_event_type, uint_fast8_t,
+    SMOL_MAKE_ENUM(raw_input_event_type, uint_fast8_t,
         char_press,
         key_down,
         key_repeat,
@@ -131,7 +131,7 @@ namespace dm
         { }
     };
 
-    MX_MAKE_ENUM(input_event_type, uint_fast8_t,
+    SMOL_MAKE_ENUM(input_event_type, uint_fast8_t,
         // keyboard
         char_press,
         key_down,
@@ -177,25 +177,25 @@ namespace dm
 
         utf8_codepoint codepoint() const
         {
-            MX_ASSERT(is_keyboard_event(_type));
+            SMOL_ASSERT(is_keyboard_event(_type));
             return _keyboard.codepoint;
         }
 
         key_code_t keycode() const
         {
-            MX_ASSERT(is_keyboard_event(_type));
+            SMOL_ASSERT(is_keyboard_event(_type));
             return _keyboard.keycode;
         }
 
         mouse_button_t mouse_button() const
         {
-            MX_ASSERT(is_mouse_event(_type));
+            SMOL_ASSERT(is_mouse_event(_type));
             return _mouse.button;
         }
 
         vec2 position() const
         {
-            MX_ASSERT(is_mouse_event(_type));
+            SMOL_ASSERT(is_mouse_event(_type));
             return _mouse.position;
         }
 
@@ -206,7 +206,7 @@ namespace dm
 
         vec2 scroll() const
         {
-            MX_ASSERT(_type == input_event_type::wheel_scroll);
+            SMOL_ASSERT(_type == input_event_type::wheel_scroll);
             return _scroll;
         }
     private:
@@ -228,7 +228,7 @@ namespace dm
         friend class click_detector;
     };
 
-    MX_MAKE_ENUM(mouse_cursor, uint_fast8_t,
+    SMOL_MAKE_ENUM(mouse_cursor, uint_fast8_t,
         arrow,
         ibeam,
         crosshair,

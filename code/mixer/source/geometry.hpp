@@ -294,16 +294,16 @@ namespace dm
 
         constexpr T& operator()(size_t i, size_t j)
         {
-            MX_ASSERT(i < ROWS);
-            MX_ASSERT(j < COLS);
+            SMOL_ASSERT(i < ROWS);
+            SMOL_ASSERT(j < COLS);
 
             return elements[i * COLS + j];
         }
 
         constexpr T operator()(size_t i, size_t j) const
         {
-            MX_ASSERT(i < ROWS);
-            MX_ASSERT(j < COLS);
+            SMOL_ASSERT(i < ROWS);
+            SMOL_ASSERT(j < COLS);
 
             return elements[i * COLS + j];
         }

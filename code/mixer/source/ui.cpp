@@ -114,7 +114,7 @@ namespace dm
             }
         }
 
-        MX_FAIL_FAST("No playlist_widget exists for handle {}", handle);
+        SMOL_FAIL_FAST("No playlist_widget exists for handle {}", handle);
 
         return *static_cast<playlist_widget*>(nullptr);
     }
@@ -128,7 +128,7 @@ namespace dm
     atmosphere_widget& ui::get_atmosphere_widget(atmosphere_handle_t handle)
     {
         auto it = root.playlist.atmospheres.find(handle);
-        MX_ASSERT(it != root.playlist.atmospheres.end());
+        SMOL_ASSERT(it != root.playlist.atmospheres.end());
         return it->second;
     }
 
@@ -171,7 +171,7 @@ namespace dm
         {
             const auto atmosphereHandle = g_ui->root.edit.handle;
             auto it = g_ui->root.playlist.atmospheres.find(atmosphereHandle);
-            MX_ASSERT(it != g_ui->root.playlist.atmospheres.end());
+            SMOL_ASSERT(it != g_ui->root.playlist.atmospheres.end());
 
             auto& widget = it->second;
             const bool muted = widget.muteUnmute.checked;
@@ -313,7 +313,7 @@ namespace dm
                 for(auto& atmosphereHandle : atmospheres)
                 {
                     auto it = g_ui->root.playlist.atmospheres.find(atmosphereHandle);
-                    MX_ASSERT(it != g_ui->root.playlist.atmospheres.end());
+                    SMOL_ASSERT(it != g_ui->root.playlist.atmospheres.end());
                     it->second.playStop = false;
                 }
                 auto& playlistWidget = g_ui->get_playlist_widget(playlist_handle::playing);

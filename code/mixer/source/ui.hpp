@@ -3,11 +3,10 @@
 #include "singleton.hpp"
 #include "imgui.hpp"
 #include "audio.hpp"
-#include "enums.hpp"
 
 namespace dm
 {
-    MX_MAKE_ENUM(screen, uint_fast8_t,
+    SMOL_MAKE_ENUM(screen, uint_fast8_t,
         playlist,
         edit,
         about

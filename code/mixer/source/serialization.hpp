@@ -1,13 +1,12 @@
 #pragma once
 
-#include "enums.hpp"
 #include "utilities.hpp"
 #include "singleton.hpp"
 #include "audio.hpp"
 
 namespace dm
 {
-    MX_MAKE_ENUM(content_type, uint_fast8_t,
+    SMOL_MAKE_ENUM(content_type, uint_fast8_t,
         stylesheet,
         strings,
         playlist

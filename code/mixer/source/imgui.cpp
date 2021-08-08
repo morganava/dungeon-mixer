@@ -15,8 +15,8 @@ namespace dm
 
         void context::update(double dt)
         {
-            MX_ASSERT(_widget_stack.size() == 0);
-            MX_ASSERT(_render_scissor_stack.size() == 0);
+            SMOL_ASSERT(_widget_stack.size() == 0);
+            SMOL_ASSERT(_render_scissor_stack.size() == 0);
         }
 
         void context::push_widget(widget_base* w)
@@ -31,7 +31,7 @@ namespace dm
 
         widget_base* context::parent_widget() const
         {
-            MX_ASSERT(_widget_stack.size() > 0);
+            SMOL_ASSERT(_widget_stack.size() > 0);
             return _widget_stack.back();
         }
 
@@ -85,7 +85,7 @@ namespace dm
 
         rect widget_base::bounds_callback_impl(rect desired)
         {
-            MX_FAIL_FAST("This method should never be called; widgets that support children must implement this themselves");
+            SMOL_FAIL_FAST("This method should never be called; widgets that support children must implement this themselves");
             return {};
         }
 
