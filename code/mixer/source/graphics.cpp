@@ -161,6 +161,7 @@ namespace dm
 
     graphics::~graphics()
     {
+        glfwDestroyWindow(window);
         glfwTerminate();
     }
 
