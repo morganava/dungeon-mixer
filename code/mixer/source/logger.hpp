@@ -27,7 +27,7 @@ namespace dm
         template<log_level_t LEVEL, size_t N, typename... Args>
         task_future log(char const (&format)[N], Args... args)
         {
-            const auto now = std::chrono::system_clock::now();
+            const auto now = std::chrono::steady_clock::now();
             return worker_logging.enqueue(
                 [format=std::forward<decltype(format)>(format), now=now, ...args=logger::marshall(args)]() -> void
                 {
@@ -39,7 +39,7 @@ namespace dm
         template<log_level_t LEVEL>
         task_future log(std::string&& msg)
         {
-            const auto now = std::chrono::system_clock::now();
+            const auto now = std::chrono::steady_clock::now();
             return worker_logging.enqueue(
                 [msg=std::move(msg), now=now]() -> void
                 {
@@ -64,11 +64,11 @@ namespace dm
             return std::string(sv);
         }
 
-        void write_message(log_level_t lvl, std::chrono::system_clock::time_point now, const std::string& msg);
+        void write_message(log_level_t lvl, std::chrono::steady_clock::time_point now, const std::string& msg);
 
         log_level_t _log_level;
         FILE* _log_file;
-        const std::chrono::system_clock::time_point _start;
+        const std::chrono::steady_clock::time_point _start;
         constexpr static const char* _log_format_strings[] =
         {
             "[{:f}][ERROR] {}\n",

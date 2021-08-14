@@ -12,8 +12,8 @@ namespace dm
     void audio_update()
     {
         using namespace std::chrono;
-        static auto prev = system_clock::now();
-        const auto now = system_clock::now();
+        static auto prev = steady_clock::now();
+        const auto now = steady_clock::now();
 
         const auto dt = duration_cast<duration<float, std::ratio<1,1>>>(now - prev).count();
 

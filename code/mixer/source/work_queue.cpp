@@ -78,7 +78,7 @@ namespace dm
                     if (!consumer.empty())
                     {
                         const auto startTime = consumer.front().start_time;
-                        const auto now = std::chrono::system_clock::now();
+                        const auto now = std::chrono::steady_clock::now();
                         if (startTime > now)
                         {
                             // wait until we are ready to consume this task
@@ -109,7 +109,7 @@ namespace dm
                 for(; it < consumer.end(); ++it)
                 {
                     auto& task = *it;
-                    const auto now = std::chrono::system_clock::now();
+                    const auto now = std::chrono::steady_clock::now();
                     if (now < task.start_time)
                     {
                         break;
@@ -167,7 +167,7 @@ namespace dm
             enqueue_impl(k, [workerIndex=k]() -> void
             {
                 g_work_manager_unsafe._terminating[workerIndex] = true;
-            }, std::chrono::system_clock::now());
+            }, std::chrono::steady_clock::now());
         }
     }
 
@@ -204,7 +204,7 @@ namespace dm
 
     task_future worker::enqueue(run_once_task&& task) const
     {
-        return this->enqueue(std::move(task), std::chrono::system_clock::now());
+        return this->enqueue(std::move(task), std::chrono::steady_clock::now());
     }
 
     task_future worker::enqueue(run_once_task&& task, timestamp_t startTime) const

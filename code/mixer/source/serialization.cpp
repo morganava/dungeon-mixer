@@ -224,7 +224,7 @@ namespace dm
 
     void serialization_manager::request_autosave(content_type_t content)
     {
-        const auto now = std::chrono::system_clock::now();
+        const auto now = std::chrono::steady_clock::now();
         worker_fileio.enqueue([=]() -> void
         {
             const auto index = static_cast<size_t>(content);
@@ -237,7 +237,7 @@ namespace dm
                 auto& entry = g_serialization_manager->record[index];
                 if (entry.autosaveRequested)
                 {
-                    const auto now = std::chrono::system_clock::now();
+                    const auto now = std::chrono::steady_clock::now();
                     const std::chrono::duration<double> duration(now - entry.timeRequested);
 
                     if (duration >= serialization_manager::AUTOSAVE_DELAY)

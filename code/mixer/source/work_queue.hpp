@@ -83,7 +83,7 @@ namespace dm
         void try_wait();
     };
 
-    typedef std::chrono::time_point<std::chrono::system_clock> timestamp_t;
+    typedef std::chrono::time_point<std::chrono::steady_clock> timestamp_t;
 
     class work_manager
     {
@@ -150,7 +150,7 @@ namespace dm
         template<typename Rep, typename Period>
         task_future enqueue(run_once_task&& task, std::chrono::duration<Rep, Period> delay) const
         {
-            return enqueue(std::move(task), std::chrono::system_clock::now() + delay);
+            return enqueue(std::move(task), std::chrono::steady_clock::now() + delay);
         }
         bool terminating() const;
     };
