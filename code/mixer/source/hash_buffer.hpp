@@ -1,5 +1,4 @@
 #include "hash.hpp"
-#include "utilities.hpp"
 
 namespace dm
 {
@@ -8,9 +7,11 @@ namespace dm
         template<typename TYPE>
         void push_back(const TYPE& val)
         {
+            const auto beginSize = _buffer.size();
             _buffer.write(val);
-            hash<TYPE> typeHash;
-            _hash = typeHash(val, _hash);
+            const auto finalSize = _buffer.size();
+
+            _hash = calc_hash_raw(_buffer.head() + beginSize, finalSize - beginSize);
         }
 
         template<typename TYPE>

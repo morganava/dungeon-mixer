@@ -8,7 +8,6 @@
 #include "imgui.hpp"
 #include "ui.hpp"
 #include "linear_constraint_solver.hpp"
-#include "array.hpp"
 #include "audio.hpp"
 #include "random.hpp"
 #include "string_manager.hpp"

@@ -58,8 +58,12 @@ namespace dm
             float raw[4];
         };
     };
-
-    void to_json(nl::json& js, const color& col);
-    void from_json(const nl::json& js, color& col);
 }
+
+namespace nlohmann
+{
+    void to_json(nl::json& js, const dm::color& col);
+    void from_json(const nl::json& js, dm::color& col);
+}
+
 std::ostream& operator<<(std::ostream& out, const dm::color& col);

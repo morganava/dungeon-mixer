@@ -104,8 +104,6 @@ namespace dm
     typedef vec2_<double> vec2;
     typedef vec2_<float> vec2f;
 
-    void from_json(const nl::json&, vec2&);
-
     // vector 3
 
     template<typename T>
@@ -244,8 +242,6 @@ namespace dm
 
     typedef vec3_<double> vec3;
     typedef vec3_<float> vec3f;
-
-    void from_json(const nl::json&, vec3&);
 
     template<typename T, size_t ROWS, size_t COLS>
     struct matrix_
@@ -561,8 +557,6 @@ namespace dm
     typedef corners_<double> corners;
     typedef corners_<float> cornersf;
 
-    void from_json(const nl::json&, corners&);
-
     template<typename T>
     struct edges_
     {
@@ -613,8 +607,6 @@ namespace dm
     };
     typedef edges_<double> edges;
     typedef edges_<float> edgesf;
-
-    void from_json(const nl::json&, edges&);
 
     template<typename T>
     struct box_layout_
@@ -826,6 +818,14 @@ namespace dm
     }
 }
 
+namespace nlohmann
+{
+    void from_json(const nl::json&, dm::vec2&);
+    void from_json(const nl::json&, dm::vec3&);
+    void from_json(const nl::json&, dm::edges&);
+    void from_json(const nl::json&, dm::corners&);
+}
+
 template<typename T>
 std::ostream& operator<<(std::ostream& out, const dm::vec2_<T>& v)
 {
@@ -843,3 +843,4 @@ std::ostream& operator<<(std::ostream& out, const dm::rect_<T>& r)
 }
 std::ostream& operator<<(std::ostream&, const dm::corners&);
 std::ostream& operator<<(std::ostream&, const dm::edges&);
+

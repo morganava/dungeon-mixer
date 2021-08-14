@@ -3,10 +3,8 @@
 #include "utilities.hpp"
 #include "geometry.hpp"
 #include "singleton.hpp"
-#include "hash.hpp"
 #include "color.hpp"
 #include "hash_buffer.hpp"
-#include "array.hpp"
 
 namespace dm
 {
@@ -65,7 +63,7 @@ namespace dm
         void stroke_rect(const rectf&, float strokeWidth, const color&);
         void stroke_rounded_rect(const rectf&, const cornersf&, float strokeWidth, const color&);
         void stroke_circle(const circlef&, float strokeWidth, const color&);
-        void stroke_path(const dm::array<vec2f>&, float strokeWidth, const color&);
+        void stroke_path(const smol::array<vec2f>&, float strokeWidth, const color&);
 
         void draw_text(const rectf& bounds, float textOffset, font_handle_t font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const utf8_string& str);
         void draw_text_with_caret(const rectf& bounds, float textOffset, font_handle_t font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const utf8_string& str, int32_t caretIndex, float caretWidth, const color& caretColor);

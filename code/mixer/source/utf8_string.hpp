@@ -5,6 +5,17 @@
 
 namespace dm
 {
+    class utf8_string;
+}
+
+namespace nlohmann
+{
+    void to_json(nl::json&, const dm::utf8_string&);
+    void from_json(const nl::json&, dm::utf8_string&);
+}
+
+namespace dm
+{
     class utf8_codepoint
     {
     public:
@@ -95,8 +106,8 @@ namespace dm
         void normalize_and_assign(const char* cstr, size_t len);
 
         friend struct uf8_string_hash;
-        friend void to_json(nl::json&, const utf8_string&);
-        friend void from_json(const nl::json&, utf8_string&);
+        friend void nl::to_json(nl::json&, const utf8_string&);
+        friend void nl::from_json(const nl::json&, utf8_string&);
         friend class utf8_string_iterator;
     };
 
@@ -106,9 +117,6 @@ namespace dm
     };
 
     void serialization_buffer_write(serialization_buffer& self, const utf8_string& val);
-
-    void to_json(nl::json&, const utf8_string&);
-    void from_json(const nl::json&, utf8_string&);
 
     class utf8_string_iterator : public std::iterator<
                                             std::forward_iterator_tag,

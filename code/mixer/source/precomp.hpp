@@ -85,6 +85,7 @@ namespace nl = nlohmann;
 #include <smol/memory.hpp>
 #include <smol/enum.hpp>
 #include <smol/serialization_buffer.hpp>
+#include <smol/array.hpp>
 using namespace smol;
 
 

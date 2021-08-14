@@ -1,5 +1,7 @@
 #pragma once
 
+#include <smol/error.hpp>
+
 namespace smol
 {
     template<typename T>
@@ -94,13 +96,13 @@ namespace smol
 
         T& operator[](size_t idx)
         {
-            MX_THROW_IF_FALSE(idx < _size);
+            SMOL_THROW_IF_FALSE(idx < _size);
             return _data[idx];
         }
 
         const T& operator[](size_t idx) const
         {
-            MX_THROW_IF_FALSE(idx < _size);
+            SMOL_THROW_IF_FALSE(idx < _size);
             return _data[idx];
         }
 
@@ -143,4 +145,72 @@ namespace smol
         const size_t _size = 0;
         std::unique_ptr<T[]> _data;
     };
+
+    template<typename T>
+    void serialization_buffer_write(serialization_buffer& self, const array<T>& array)
+    {
+        self.write(array.size());
+        if constexpr (std::is_trivially_copyable<T>::value)
+        {
+            self.write(reinterpret_cast<const uint8_t*>(array.data()), array.size() * sizeof(T));
+        }
+        else
+        {
+            for(const auto& val : array)
+            {
+                self.write(val);
+            }
+        }
+    }
+
+    template<typename T>
+    bool serialization_buffer_read(serialization_buffer& self, array<T>& out)
+    {
+        size_t size;
+        if (self.read(size))
+        {
+            array<T> retval(size);
+            if constexpr (std::is_trivially_copyable<T>::value)
+            {
+                if (!self.read(reinterpret_cast<uint8_t*>(retval.data()), size * sizeof(T)))
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                for(size_t i = 0; i < size; ++i)
+                {
+                    T val;
+                    if(self.read(val))
+                    {
+                        retval[i] = std::move(val);
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            out = std::move(retval);
+            return true;
+        }
+        return false;
+    }
+}
+
+namespace nlohmann
+{
+    template<typename T>
+    void from_json(const nl::json& js, smol::array<T>& array)
+    {
+        SMOL_THROW_IF_FALSE(js.is_array());
+        smol::array<T> retval(js.size());
+        for(size_t i = 0; i < retval.size(); ++i)
+        {
+            retval[i] = js[i].get<T>();
+        }
+        array = std::move(retval);
+    }
 }

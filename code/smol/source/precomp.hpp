@@ -14,3 +14,7 @@
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 #include <fmt/printf.h>
+
+// json : https://github.com/nlohmann/json
+#include <json.hpp>
+namespace nl = nlohmann;

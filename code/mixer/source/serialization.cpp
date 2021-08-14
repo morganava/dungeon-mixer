@@ -13,6 +13,7 @@
 #include "ui.hpp"
 #include "geometry.hpp"
 #include "string_manager.hpp"
+#include "utf8_string.hpp"
 
 namespace dm
 {

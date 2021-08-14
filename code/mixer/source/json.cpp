@@ -10,7 +10,9 @@
 #include "linear_constraint_solver.hpp"
 #include "logger.hpp"
 
-namespace dm
+using namespace dm;
+
+namespace nlohmann
 {
     // UTF8 String
 
@@ -117,7 +119,7 @@ namespace dm
     }
 
     // UUID
-    void to_json(nl::json& j, const struct uuid& id)
+    void to_json(nl::json& j, const uuid& id)
     {
         const auto& bytes = id.bytes;
         j = fmt::format(
@@ -128,7 +130,7 @@ namespace dm
             bytes[12], bytes[13], bytes[14], bytes[15]);
     }
 
-    void from_json(const nl::json& j, struct uuid& id)
+    void from_json(const nl::json& j, uuid& id)
     {
         SMOL_THROW_IF_FALSE(j.is_string());
 
@@ -380,7 +382,7 @@ namespace dm
 
     // style_resolver
 
-    void from_json(const nl::json& j, element_state_t state, style_declaration_set& sds)
+    void from_json(const nl::json& j, dm::element_state_t state, dm::style_declaration_set& sds)
     {
         SMOL_THROW_IF_FALSE(j.is_object());
 
@@ -427,7 +429,7 @@ namespace dm
                 auto state = parse_element_state(stateStr);
 
                 style_declaration_set sds;
-                from_json(el.value(), state, sds);
+                nl::from_json(el.value(), state, sds);
 
                 MX_LOG_INFO(" element : {}, state : {}", (uint_fast8_t)element, (uint_fast8_t)state);
 
@@ -522,7 +524,7 @@ namespace dm
     void from_json(const nl::json& js, linear_constraint_solver& out)
     {
         SMOL_THROW_IF_FALSE(js.is_array());
-        auto constraints = js.get<array<constraint>>();
+        auto constraints = js.get<smol::array<dm::constraint>>();
         out = {std::move(constraints)};
     }
 }

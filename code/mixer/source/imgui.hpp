@@ -1,7 +1,6 @@
 #pragma once
 
 #include "color.hpp"
-#include "array.hpp"
 #include "stylesheet.hpp"
 #include "callback.hpp"
 

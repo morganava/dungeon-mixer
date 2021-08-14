@@ -116,9 +116,12 @@ namespace dm
         static_assert(null_terminator == (sizeof(null_uuid_string) - 1));
 
     };
+}
 
-    void to_json(nl::json& j, const struct uuid& id);
-    void from_json(const nl::json& j, struct uuid& id);
+namespace nlohmann
+{
+    void to_json(nl::json& j, const dm::uuid& id);
+    void from_json(const nl::json& j, dm::uuid& id);
 }
 
 std::ostream& operator<<(std::ostream& out, const struct dm::uuid& id);

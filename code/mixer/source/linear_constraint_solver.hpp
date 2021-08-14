@@ -1,7 +1,5 @@
  #pragma once
 
-#include "array.hpp"
-
 namespace dm
 {
     constexpr double unconstrained = std::numeric_limits<double>::max();
@@ -40,7 +38,10 @@ namespace dm
 
     void serialization_buffer_write(serialization_buffer&, const linear_constraint_solver&);
     bool serialization_buffer_read(serialization_buffer&, linear_constraint_solver&);
+}
 
-    void from_json(const nl::json&, constraint&);
-    void from_json(const nl::json&, linear_constraint_solver&);
+namespace nlohmann
+{
+    void from_json(const nl::json&, dm::constraint&);
+    void from_json(const nl::json&, dm::linear_constraint_solver&);
 }

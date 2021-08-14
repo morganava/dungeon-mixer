@@ -1,7 +1,6 @@
 #pragma once
 
 #include "singleton.hpp"
-#include "array.hpp"
 #include "geometry.hpp"
 #include "color.hpp"
 #include "nanovg.hpp"
@@ -38,6 +37,18 @@ namespace dm
     );
     element_state_t parse_element_state(const std::string&);
 
+    struct style_declaration_set;
+    class style_resolver;
+}
+
+namespace nlohmann
+{
+    void from_json(const nl::json&, dm::element_state_t, dm::style_declaration_set&);
+    void from_json(const nl::json&, dm::style_resolver&);
+}
+
+namespace dm
+{
     struct style_sheet
     {
         #define STYLE_SHEET_ENTRY(NAME, VAL, FLAGS) std::remove_const<std::remove_reference<decltype(VAL)>::type>::type NAME = VAL;
@@ -60,10 +71,8 @@ namespace dm
         style_sheet apply(const style_sheet&) const;
     private:
         mutable serialization_buffer _declarations;
-        friend void from_json(const nl::json&, element_state_t, style_declaration_set&);
+        friend void nlohmann::from_json(const nl::json&, dm::element_state_t, dm::style_declaration_set&);
     };
-
-    void from_json(const nl::json&, style_declaration_set&);
 
     /*
         Selector uniquely identified a type|[tags]|state tuple, every element has a selector in this format
@@ -96,8 +105,8 @@ namespace dm
         std::unordered_map<selector, style_declaration_set> _styleFactory;
         mutable std::unordered_map<selector, style_sheet> _cachedStyles;
 
-        friend void from_json(const nl::json&,style_resolver&);
+        friend void nlohmann::from_json(const nl::json&, style_resolver&);
     };
-    void from_json(const nl::json&, style_resolver&);
     MX_MAKE_SINGLETON(style_resolver, worker_flag::ui);
 }
+
