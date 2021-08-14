@@ -37,14 +37,19 @@ namespace dm
 
         TYPE* operator->()
         {
-            SMOL_ASSERT(can_call_from_current_thread(allowed_threads<TYPE>::value));
+            if constexpr (allowed_threads<TYPE>::value != worker_flag::any)
+            {
+                SMOL_ASSERT(can_call_from_current_thread(allowed_threads<TYPE>::value));
+            }
             return data.operator->();
         }
 
         TYPE const* operator->() const
         {
-            // do a constexpr to see if the any flag is set, if so don't bother asserting
-            SMOL_ASSERT(can_call_from_current_thread(allowed_threads<TYPE>::value));
+            if constexpr (allowed_threads<TYPE>::value != worker_flag::any)
+            {
+                SMOL_ASSERT(can_call_from_current_thread(allowed_threads<TYPE>::value));
+            }
             return data.operator->();
         }
 

@@ -5,29 +5,26 @@
 
 namespace dm
 {
+    thread_local worker_flag_t work_manager::_worker_flag = worker_flag::none;
+
     bool can_call_from_current_thread(worker_flag_t allowedThreads)
     {
-        auto currentThread = g_work_manager_unsafe.current_thread();
-        auto currentThreadFlag = static_cast<worker_flag_t>(1 << static_cast<size_t>(currentThread));
-
-        auto retval = (allowedThreads & currentThreadFlag) != worker_flag::none;
-        if (!retval) {
-            MX_LOG_ERROR("Called from thread: {}", currentThread);
-        }
-
-        return retval;
+        return ((allowedThreads & g_work_manager->current_worker_flag()) != worker_flag::none);
     }
 
     // WorkerManager
 
     void worker_thread(worker_id_t id)
     {
-        smol::set_current_thread_name(std::string(to_string_view(id)));
+        if (id != worker_id::ui)
+        {
+            smol::set_current_thread_name(std::string(to_string_view(id)));
+        }
 
         const auto workerIndex = static_cast<size_t>(id);
 
-        // store off our threadId
-        g_work_manager_unsafe._thread_ids[workerIndex] = std::this_thread::get_id();
+        // cache off our flag to thread local var
+        work_manager::_worker_flag = static_cast<worker_flag_t>(1 << workerIndex);
 
         // references
         auto& pending_tasks = g_work_manager_unsafe._pending_tasks;
@@ -143,16 +140,11 @@ namespace dm
     work_manager::work_manager()
     {
         // set the main thread id
-        static_assert(0 == static_cast<size_t>(worker_id::ui));
-        _thread_ids[0] = std::this_thread::get_id();
         _terminating[0] = false;
 
-        const auto now = std::chrono::system_clock::now();
         // init threads, start on 1 because 0 is main thread
         for(size_t k = 1; k < _worker_count; k++)
         {
-            // init the last queued task with current time
-            _completion_time[k] = now;
             _terminating[k] = false;
             // start thread
             _threads[k] = std::thread(&worker_thread, static_cast<worker_id_t>(k));
@@ -179,27 +171,9 @@ namespace dm
         }
     }
 
-    worker_id work_manager::current_thread() const
+    worker_flag_t work_manager::current_worker_flag() const
     {
-        return static_cast<worker_id>(this->current_index());
-    }
-
-    size_t work_manager::current_index() const
-    {
-        const thread_local size_t index = [this]()
-        {
-            const auto id = std::this_thread::get_id();
-            for(size_t k = 0; k < this->_worker_count; k++)
-            {
-                if (id == this->_thread_ids[k]) {
-                    return k;
-                }
-            }
-            SMOL_FAIL_FAST("current_index called from invalid thread");
-            return static_cast<size_t>(worker_id::invalid);
-        }();
-
-        return index;
+        return work_manager::_worker_flag;
     }
 
     std::future<void> work_manager::enqueue_impl(size_t workerIndex, run_once_task&& work, timestamp_t startTime)

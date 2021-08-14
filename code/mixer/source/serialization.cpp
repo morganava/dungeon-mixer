@@ -21,8 +21,6 @@ namespace dm
         // must be called from audio thread
         nl::json atmosphere_entry_to_json(const dm::atmosphere_entry& atmosphereEntry)
         {
-            SMOL_ASSERT(g_work_manager->current_thread() == worker_id::audio);
-
             // construct atmosphere object
             auto currentAtmosphereJson = nl::json::object();
             currentAtmosphereJson["Title"] = atmosphereEntry.title;

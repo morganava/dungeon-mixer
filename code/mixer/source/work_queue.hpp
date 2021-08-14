@@ -107,9 +107,8 @@ namespace dm
 
         task_future enqueue(size_t workerIndex, run_once_task&& work, timestamp_t startTime);
 
-        worker_id current_thread() const;
+        worker_flag_t current_worker_flag() const;
     private:
-        size_t current_index() const;
 
         std::future<void> enqueue_impl(size_t workerIndex, run_once_task&& work, timestamp_t startTime);
 
@@ -124,16 +123,16 @@ namespace dm
         std::vector<task_item> _producer_queue[_worker_count];
         // worker swaps queues and reads from consumer thread
         std::vector<task_item> _consumer_queue[_worker_count];
-        // the last time the thread was working
-        timestamp_t _completion_time[_worker_count];
         // condition variables for suspending/resuming threads
         std::condition_variable _suspend_handle[_worker_count];
         // per thread flags to signal termination
         bool _terminating[_worker_count];
 
+        // our worker pool (first one is implicitly the main thread)
         std::thread _threads[_worker_count];
-        // only used for verification purposes
-        std::thread::id _thread_ids[_worker_count];
+
+        // the currently running thread's worker_flag_t
+        static thread_local worker_flag_t _worker_flag;
 
         friend class worker;
         friend void worker_thread(worker_id_t);
