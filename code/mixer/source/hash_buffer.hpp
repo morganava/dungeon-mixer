@@ -7,11 +7,7 @@ namespace dm
         template<typename TYPE>
         void push_back(const TYPE& val)
         {
-            const auto beginSize = _buffer.size();
             _buffer.write(val);
-            const auto finalSize = _buffer.size();
-
-            _hash = calc_hash_raw(_buffer.head() + beginSize, finalSize - beginSize);
         }
 
         template<typename TYPE>
@@ -33,15 +29,22 @@ namespace dm
 
         bool operator==(const hash_buffer& that) const
         {
-            if (this == &that)
+            if (this == &that) [[unlikely]]
             {
                 return true;
             }
-            if (this->_hash != that._hash)
+            else if (this->size() != that.size()) [[likely]]
             {
                 return false;
             }
-            return this->_buffer == that._buffer;
+            else if (this->hash() != that.hash()) [[likely]]
+            {
+                return false;
+            }
+            else [[unlikely]]
+            {
+                return this->_buffer == that._buffer;
+            }
         }
 
         size_t size() const
@@ -49,8 +52,17 @@ namespace dm
             return _buffer.size();
         }
 
+        size_t hash() const
+        {
+            if (_hash == 0)
+            {
+                _hash = smol::calc_hash_raw(_buffer.head(), _buffer.size());
+            }
+            return _hash;
+        }
+
     private:
-        size_t _hash = 0;
+        mutable size_t _hash = 0;
         serialization_buffer _buffer;
     };
 }
