@@ -3,7 +3,6 @@
 #include "utilities.hpp"
 #include "geometry.hpp"
 #include "singleton.hpp"
-#include "hash_buffer.hpp"
 
 namespace dm
 {

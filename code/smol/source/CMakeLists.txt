@@ -9,7 +9,8 @@ add_library(smol STATIC
     color.cpp
     utf8_string.cpp
     # data structures
-    serialization_buffer.cpp)
+    serialization_buffer.cpp
+    hash_buffer.cpp)
 
 target_precompile_headers(smol PRIVATE precomp.hpp)
 

@@ -87,6 +87,7 @@ namespace nl = nlohmann;
 #include <smol/hash.hpp>
 #include <smol/utf8_string.hpp>
 #include <smol/serialization_buffer.hpp>
+#include <smol/hash_buffer.hpp>
 #include <smol/array.hpp>
 #include <smol/color.hpp>
 using namespace smol;
