@@ -95,9 +95,9 @@ namespace nlohmann
         }
 
         // sorted for binary sort
-        constexpr static std::pair<const char*, color> args[] =
+        constexpr static std::pair<const char*, const color&> args[] =
         {
-#define COLOR_ENTRY(NAME, RGB) { #NAME, color::RGB },
+#define COLOR_ENTRY(NAME, R, G, B, A) { #NAME, color::NAME },
 #include "color.inl"
 #undef COLOR_ENTRY
         };

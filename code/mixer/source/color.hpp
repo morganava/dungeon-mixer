@@ -4,6 +4,14 @@
 
 namespace dm
 {
+    struct color;
+    namespace named_colors
+    {
+        #define COLOR_ENTRY(NAME, R, G, B, A) extern color NAME;
+        #include "color.inl"
+        #undef COLOR_ENTRY
+    }
+
     struct color
     {
         // magenta by default
@@ -45,7 +53,7 @@ namespace dm
             return retval;
         }
 
-        #define COLOR_ENTRY(NAME, RGB) const static color NAME;
+        #define COLOR_ENTRY(NAME, R, G, B, A) constexpr static const color& NAME = named_colors::NAME;
         #include "color.inl"
         #undef COLOR_ENTRY
 
