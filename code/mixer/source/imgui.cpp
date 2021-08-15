@@ -1,8 +1,6 @@
 #include "singleton.hpp"
 #include "geometry.hpp"
-#include "utf8_string.hpp"
 #include "input.hpp"
-#include "hash.hpp"
 #include "nanovg.hpp"
 #include "imgui.hpp"
 #include "ui.hpp"

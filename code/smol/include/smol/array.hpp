@@ -198,6 +198,17 @@ namespace smol
         }
         return false;
     }
+
+    template<typename T>
+    size_t calc_hash(const smol::array<T>& a, size_t seed)
+    {
+        size_t retval = calc_hash(a.size(), seed);
+        for(const T& val : a)
+        {
+            retval = smol::calc_hash(std::forward<const T&>(val), retval);
+        }
+        return retval;
+    }
 }
 
 namespace nlohmann

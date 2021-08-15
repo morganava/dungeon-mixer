@@ -1,4 +1,4 @@
-#include "hash.hpp"
+#pragma once
 
 namespace dm
 {

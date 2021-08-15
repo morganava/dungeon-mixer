@@ -1,14 +1,14 @@
 #pragma once
 
-#include "utilities.hpp"
+#include <smol/error.hpp>
 
-namespace dm
+namespace smol
 {
     struct color;
     namespace named_colors
     {
         #define COLOR_ENTRY(NAME, R, G, B, A) extern color NAME;
-        #include "color.inl"
+        #include <smol/color.inl>
         #undef COLOR_ENTRY
     }
 
@@ -42,19 +42,8 @@ namespace dm
             return color(r / 255.0f, g / 255.0f, b / 255.0f, a);
         }
 
-        constexpr operator NVGcolor() const
-        {
-            NVGcolor retval;
-            retval.r = r;
-            retval.g = g;
-            retval.b = b;
-            retval.a = a;
-
-            return retval;
-        }
-
         #define COLOR_ENTRY(NAME, R, G, B, A) constexpr static const color& NAME = named_colors::NAME;
-        #include "color.inl"
+        #include <smol/color.inl>
         #undef COLOR_ENTRY
 
         union
@@ -66,12 +55,12 @@ namespace dm
             float raw[4];
         };
     };
+
+    std::ostream& operator<<(std::ostream& out, const color& col);
 }
 
 namespace nlohmann
 {
-    void to_json(nl::json& js, const dm::color& col);
-    void from_json(const nl::json& js, dm::color& col);
+    void to_json(nl::json& js, const smol::color& col);
+    void from_json(const nl::json& js, smol::color& col);
 }
-
-std::ostream& operator<<(std::ostream& out, const dm::color& col);

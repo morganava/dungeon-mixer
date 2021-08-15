@@ -188,15 +188,9 @@ namespace dm
 
 size_t std::hash<dm::selector>::operator()(const dm::selector& sel) const
 {
-    dm::hash<dm::element_type_t> elementTypeHash;
-    dm::hash<dm::element_state_t> elementStateHash;
-    dm::hash<dm::utf8_string> utf8StringHash;
+    size_t retval = smol::calc_hash(sel.type);
+    retval = smol::calc_hash(sel.tags, retval);
+    retval = smol::calc_hash(sel.state, retval);
 
-    auto retval = elementTypeHash(sel.type, 0);
-    for(auto& currentTag : sel.tags)
-    {
-        retval = utf8StringHash(currentTag, retval);
-    }
-    retval = elementStateHash(sel.state, retval);
     return retval;
 };

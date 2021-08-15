@@ -5,15 +5,12 @@
 #include "work_queue.hpp"
 #include "logger.hpp"
 #include "audio.hpp"
-#include "hash.hpp"
 #include "nanovg.hpp"
 #include "imgui.hpp"
-#include "color.hpp"
 #include "stylesheet.hpp"
 #include "ui.hpp"
 #include "geometry.hpp"
 #include "string_manager.hpp"
-#include "utf8_string.hpp"
 
 namespace dm
 {

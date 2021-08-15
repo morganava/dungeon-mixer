@@ -1,7 +1,6 @@
 #pragma once
 
 #include "work_queue.hpp"
-#include "utf8_string.hpp"
 #include "geometry.hpp"
 #include "input.hpp"
 

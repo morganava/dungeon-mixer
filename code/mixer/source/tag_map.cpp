@@ -1,6 +1,5 @@
 #include "utilities.hpp"
 #include "tag_map.hpp"
-#include "utf8_string.hpp"
 
 namespace dm
 {

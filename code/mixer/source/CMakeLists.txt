@@ -10,13 +10,10 @@ add_executable(dungeon_mixer
     # utilities
     file_dialog.cpp
     tag_map.cpp
-    hash.cpp
-    utf8_string.cpp
     utilities.cpp
     format.cpp
     json.cpp
     linear_constraint_solver.cpp
-    color.cpp
     random.cpp
     uuid.cpp
     paths.cpp
@@ -57,6 +54,7 @@ add_executable(dungeon_mixer
 
 target_precompile_headers(dungeon_mixer PRIVATE precomp.hpp)
 
+target_link_libraries(dungeon_mixer smol)
 target_link_libraries(dungeon_mixer xxhash)
 target_link_libraries(dungeon_mixer utf8proc)
 target_link_libraries(dungeon_mixer stb)
@@ -70,7 +68,7 @@ target_link_libraries(dungeon_mixer ${SFML_LIBRARIES})
 target_link_libraries(dungeon_mixer nativefiledialog)
 target_link_libraries(dungeon_mixer pthread)
 target_link_libraries(dungeon_mixer stdc++fs)
-target_link_libraries(dungeon_mixer smol)
+
 
 include_directories(../../glfw/include)
 include_directories(../../utf8proc/include)

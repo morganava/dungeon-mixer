@@ -1,8 +1,6 @@
 #include "serialization.hpp"
 #include "paths.hpp"
 #include "utilities.hpp"
-#include "utf8_string.hpp"
-#include "color.hpp"
 #include "uuid.hpp"
 #include "geometry.hpp"
 #include "stylesheet.hpp"
@@ -14,110 +12,6 @@ using namespace dm;
 
 namespace nlohmann
 {
-    // UTF8 String
-
-    void to_json(nl::json& js, const utf8_string& str)
-    {
-        js = str.str();
-    }
-
-    void from_json(const nl::json& js, utf8_string& str)
-    {
-        SMOL_THROW_IF_FALSE(js.is_string());
-        str = (std::string)js;
-    }
-
-    // Color
-
-    void to_json(nl::json& js, const color& col)
-    {
-        js = fmt::format("rgba({:f},{:f},{:f},{:f})", col.r, col.g, col.b, col.a);
-    }
-
-    void from_json(const nl::json& js, color& col)
-    {
-        SMOL_THROW_IF_FALSE(js.is_string());
-        utf8_string str = (std::string)js;
-
-        // strip out whitespace and convert it to lowercase
-        utf8_stringbuffer sb;
-        sb.reserve(str.size());
-
-        for(auto cp : str)
-        {
-            if(!cp.is_whitespace())
-            {
-                sb.push_back(cp.to_lower());
-            }
-        }
-        str = sb.str();
-
-        // rgb(0,0,0)
-        {
-            uint32_t r,g,b;
-            if(3 == std::sscanf(str.c_str(), "rgb(%u,%u,%u)", &r, &g, &b))
-            {
-                col = color::rgb(r, g, b);
-                return;
-            }
-        }
-        //  rgb(0,0,0,1.0)
-        {
-            uint32_t r,g,b;
-            float a;
-            if(4 == std::sscanf(str.c_str(), "rgba(%u,%u,%u,%f)", &r, &g, &b, &a))
-            {
-                col = color::rgba(r, g, b, a);
-                return;
-            }
-        }
-        // #000000
-        {
-            uint32_t r,g,b;
-            if(3 == std::sscanf(str.c_str(), "#%02x%02x%02x", &r, &g, &b))
-            {
-                col = color::rgb(r,g,b);
-                return;
-            }
-        }
-        // #000
-        {
-            uint32_t r,g,b;
-            if(3 == std::sscanf(str.c_str(), "#%01x%01x%01x", &r, &g, &b))
-            {
-                r *= 17;
-                g *= 17;
-                b *= 17;
-
-                col = color::rgb(r,g,b);
-                return;
-            }
-        }
-
-        // sorted for binary sort
-        constexpr static std::pair<const char*, const color&> args[] =
-        {
-#define COLOR_ENTRY(NAME, R, G, B, A) { #NAME, color::NAME },
-#include "color.inl"
-#undef COLOR_ENTRY
-        };
-
-        auto it = std::lower_bound(begin(args), end(args), str.c_str(), [](const auto& left, const char* right) -> bool
-        {
-            return strcmp(left.first, right) < 0;
-        });
-
-        if (it != end(args) &&
-            !strcmp(it->first, str.c_str()))
-        {
-            col = it->second;
-        }
-        else
-        {
-            SMOL_THROW_MSG("invalid color string: {}", str);
-        }
-    }
-
     // UUID
     void to_json(nl::json& j, const uuid& id)
     {

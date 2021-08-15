@@ -1,6 +1,5 @@
 #pragma once
 
-#include "color.hpp"
 #include "stylesheet.hpp"
 #include "callback.hpp"
 
@@ -116,7 +115,7 @@ namespace dm
             constexpr rect scissor() const {return _scissor; }
             constexpr rect childScissor() const {return _childScissor; }
 
-            array<utf8_string> tags;
+            array<smol::utf8_string> tags;
 
             void increment_child_count() { _childCounter++; }
 
@@ -438,9 +437,9 @@ namespace dm
 
         struct label_data : widget_data
         {
-            utf8_string text;
+            smol::utf8_string text;
             label_data() = default;
-            label_data(utf8_string text) : text(std::move(text)) {}
+            label_data(smol::utf8_string text) : text(std::move(text)) {}
         };
 
         struct widget_label : public widget<widget_label, element_type::label, label_data>
@@ -456,8 +455,8 @@ namespace dm
         {
             button_data() = default;
             // todo: const string& instead?
-            button_data(utf8_string text) : text(std::move(text)) {}
-            utf8_string text;
+            button_data(smol::utf8_string text) : text(std::move(text)) {}
+            smol::utf8_string text;
             friend struct widget_button;
         };
 
@@ -493,9 +492,9 @@ namespace dm
 
         struct text_box_data : widget_data
         {
-            utf8_stringbuffer sb;
-            utf8_string text;
-            utf8_string placeholderText;
+            smol::utf8_stringbuffer sb;
+            smol::utf8_string text;
+            smol::utf8_string placeholderText;
             double textOffset = 0.0;
 
             size_t selectBegin = 0;
@@ -503,14 +502,14 @@ namespace dm
             text_box_action_t previousAction = text_box_action::empty;
             struct snapshot
             {
-                utf8_string text;
+                smol::utf8_string text;
                 size_t selectBegin;
                 size_t selectEnd;
             };
             std::vector<snapshot> undoStack;
             std::vector<snapshot> redoStack;
             text_box_data() = default;
-            text_box_data(utf8_string text, utf8_string placeholderText)
+            text_box_data(smol::utf8_string text, smol::utf8_string placeholderText)
             : sb(text)
             , text(std::move(text))
             , placeholderText(std::move(placeholderText))
@@ -525,9 +524,9 @@ namespace dm
             void middle_update_impl();
             void first_render_impl() const;
 
-            callback<const utf8_string&> on_submit;
-            callback<const utf8_string&> on_change;
-            const utf8_string& text() const;
+            callback<const smol::utf8_string&> on_submit;
+            callback<const smol::utf8_string&> on_change;
+            const smol::utf8_string& text() const;
         };
 
         // slider

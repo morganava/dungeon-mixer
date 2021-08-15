@@ -1,9 +1,6 @@
-#include "hash.hpp"
-#include "uuid.hpp"
-#include "utf8_string.hpp"
-#include "stylesheet.hpp"
+#include <smol/hash.hpp>
 
-namespace dm
+namespace smol
 {
     template<size_t SIZE>
     size_t calc_hash_impl(const void* buffer, size_t len, size_t seed);
@@ -31,14 +28,12 @@ namespace dm
     {
         return calc_hash_raw(buffer, len, 0);
     }
-}
-using namespace dm;
 
-namespace std
-{
-    size_t hash<fs::path>::operator()(const fs::path& p) const
+    // specializations
+
+    size_t calc_hash(const fs::path& p, size_t seed)
     {
         const auto& pathString = p.native();
-        return calc_hash_raw(pathString.c_str(), pathString.size());
+        return calc_hash_raw(pathString.c_str(), pathString.size(), seed);
     }
 }

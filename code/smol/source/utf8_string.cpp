@@ -1,9 +1,10 @@
-#include "utf8_string.hpp"
-#include "utilities.hpp"
-#include "hash.hpp"
-#include "logger.hpp"
+#include <smol/error.hpp>
+#include <smol/memory.hpp>
+#include <smol/hash.hpp>
+#include <smol/utf8_string.hpp>
+#include <smol/hash.hpp>
 
-namespace dm
+namespace smol
 {
     utf8_codepoint::utf8_codepoint(utf8proc_int32_t codepoint)
     : _codepoint(codepoint)
@@ -315,41 +316,20 @@ namespace dm
         auto tail = head + this->size();
         return utf8_string_iterator(tail, tail);
     }
-//
-// Hash objects
-//
 
-    size_t hash<dm::utf8_string>::operator()(const utf8_string& str, size_t seed) const
-    {
-        return calc_hash_raw(str.data(), str.size(), seed);
-    };
-}
+    // Helper Functions
 
-namespace std
-{
-    size_t hash<dm::utf8_codepoint>::operator()(const dm::utf8_codepoint& cp) const
+    size_t calc_hash(const utf8_string& str, size_t seed)
     {
-        std::hash<utf8proc_int32_t> h;
-        return h(cp.value());
+        auto retval = calc_hash_raw(str.data(), str.size(), seed);
+        return retval;
     }
 
-    size_t hash<dm::utf8_string>::operator()(const dm::utf8_string& str) const
-    {
-        dm::hash<dm::utf8_string> h;
-        return h(str, 0);
-    }
-}
-
-namespace dm
-{
     void serialization_buffer_write(serialization_buffer& self, const utf8_string& str)
     {
         self.write(str.size());
         self.write(str.data(), str.size());
     }
-
-    // Helper Functions
-
 
     // UTF8 String Iterator
 
@@ -537,4 +517,38 @@ namespace dm
 
         return it;
     }
+}
+
+namespace nlohmann
+{
+    void to_json(nl::json& js, const smol::utf8_string& str)
+    {
+        js = str.str();
+    }
+
+    void from_json(const nl::json& js, smol::utf8_string& str)
+    {
+        SMOL_THROW_IF_FALSE(js.is_string());
+        str = (std::string)js;
+    }
+}
+
+// utf8_string
+using namespace std;
+ostream& operator<<(ostream& out, const smol::utf8_codepoint cp)
+{
+    char buffer[5] = {0};
+    ::utf8proc_encode_char(cp.value(), (utf8proc_uint8_t*)buffer);
+    out << buffer;
+    return out;
+}
+
+ostream& operator<<(ostream& out, const smol::utf8_string& str)
+{
+    return out << str.c_str();
+}
+
+ostream& operator<<(ostream& out, const smol::utf8_string_view& sv)
+{
+    return out.write(sv.begin(), sv.size());
 }

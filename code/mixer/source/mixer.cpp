@@ -12,11 +12,11 @@
 #include "imgui.hpp"
 #include "ui.hpp"
 
-using namespace dm;
+using namespace smol;
 
 void test()
 {
-    dm::utf8_stringbuffer sb;
+    utf8_stringbuffer sb;
 
     const char* funny_words[] =
     {
@@ -34,8 +34,8 @@ void test()
 
     for(const auto& str : funny_words)
     {
-        dm::utf8_string utf8(str);
-        dm::utf8_string norm = utf8.normalized();
+        utf8_string utf8(str);
+        utf8_string norm = utf8.normalized();
 
         MX_LOG_INFO("\n str  '{}', {}\n utf8 '{}', {}\n norm '{}', {}", str, std::strlen(str),utf8, utf8.size(), norm, norm.size());
         MX_LOG_INFO("'{}' == '{}' => {}", utf8, norm, utf8 == norm);
@@ -72,7 +72,7 @@ namespace dm
 int main() try
 {
     dm::init_globals();
-    worker_thread(worker_id::ui);
+    dm::worker_thread(dm::worker_id::ui);
     dm::free_globals();
 
     return 0;

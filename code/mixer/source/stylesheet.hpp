@@ -2,9 +2,7 @@
 
 #include "singleton.hpp"
 #include "geometry.hpp"
-#include "color.hpp"
 #include "nanovg.hpp"
-#include "utf8_string.hpp"
 #include "linear_constraint_solver.hpp"
 
 namespace dm

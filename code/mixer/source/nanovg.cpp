@@ -1,13 +1,11 @@
 #include "geometry.hpp"
-#include "hash.hpp"
 #include "utilities.hpp"
-#include "color.hpp"
 #include "nanovg.hpp"
 #include "singleton.hpp"
 #include "work_queue.hpp"
-#include "utf8_string.hpp"
 #include "logger.hpp"
 
+using namespace smol;
 namespace dm
 {
     extern GLFWwindow* g_window;
@@ -212,6 +210,11 @@ namespace dm
        return {};
     }
 
+    constexpr NVGcolor nanovg::make_nvgcolor(const smol::color& c) const
+    {
+        return {c.r, c.g, c.b, c.a};
+    }
+
     void nanovg::update(float dt, double window_width, double window_height, double pixel_ratio)
     {
         if(this->early_exit())
@@ -261,7 +264,7 @@ namespace dm
 
                     nvgBeginPath(_ctx);
                     nvgRect(_ctx, r.position.x, r.position.y, r.size.x, r.size.y);
-                    nvgFillColor(_ctx, col);
+                    nvgFillColor(_ctx, make_nvgcolor(col));
                     nvgFill(_ctx);
                 }
                 break;
@@ -276,7 +279,7 @@ namespace dm
 
                     nvgBeginPath(_ctx);
                     nvgRoundedRectVarying(_ctx, r.position.x, r.position.y, r.size.x, r.size.y, rad.topLeft, rad.topRight, rad.bottomRight, rad.bottomLeft);
-                    nvgFillColor(_ctx, col);
+                    nvgFillColor(_ctx, make_nvgcolor(col));
                     nvgFill(_ctx);
                 }
                 break;
@@ -289,7 +292,7 @@ namespace dm
 
                     nvgBeginPath(_ctx);
                     nvgCircle(_ctx, c.position.x, c.position.y, c.radius);
-                    nvgFillColor(_ctx, col);
+                    nvgFillColor(_ctx, make_nvgcolor(col));
                     nvgFill(_ctx);
                 }
                 break;
@@ -372,7 +375,7 @@ namespace dm
 
                     nvgBeginPath(_ctx);
                     nvgRect(_ctx, r.position.x, r.position.y, r.size.x, r.size.y);
-                    nvgStrokeColor(_ctx, col);
+                    nvgStrokeColor(_ctx, make_nvgcolor(col));
                     nvgStrokeWidth(_ctx, strokeWidth);
                     nvgStroke(_ctx);
                 }
@@ -398,7 +401,7 @@ namespace dm
 
                     nvgBeginPath(_ctx);
                     nvgRoundedRectVarying(_ctx, r.position.x, r.position.y, r.size.x, r.size.y, rad.topLeft, rad.topRight, rad.bottomRight, rad.bottomLeft);
-                    nvgStrokeColor(_ctx, col);
+                    nvgStrokeColor(_ctx, make_nvgcolor(col));
                     nvgStrokeWidth(_ctx, strokeWidth);
                     nvgStroke(_ctx);
                 }
@@ -415,7 +418,7 @@ namespace dm
                     nvgBeginPath(_ctx);
                     nvgCircle(_ctx, c.position.x, c.position.y, c.radius);
                     nvgStrokeWidth(_ctx, strokeWidth);
-                    nvgStrokeColor(_ctx, col);
+                    nvgStrokeColor(_ctx, make_nvgcolor(col));
                     nvgStroke(_ctx);
                 }
                 break;
@@ -442,7 +445,7 @@ namespace dm
                     SMOL_THROW_IF_FALSE(cq.next(col));
 
                     nvgStrokeWidth(_ctx, strokeWidth);
-                    nvgStrokeColor(_ctx, col);
+                    nvgStrokeColor(_ctx, make_nvgcolor(col));
                     nvgStroke(_ctx);
                 }
                 break;
@@ -471,7 +474,7 @@ namespace dm
                     nvgFontFaceId(_ctx, _nvg_font_faces[static_cast<size_t>(font)]);
                     nvgFontSize(_ctx, size);
                     nvgTextAlign(_ctx, static_cast<int>(halign) | static_cast<int>(valign));
-                    nvgFillColor(_ctx, col);
+                    nvgFillColor(_ctx, make_nvgcolor(col));
                     nvgText(_ctx, startPosition.x, startPosition.y, str.begin(), str.end());
                 }
                 break;
@@ -508,7 +511,7 @@ namespace dm
                     nvgFontFaceId(_ctx, _nvg_font_faces[static_cast<size_t>(font)]);
                     nvgFontSize(_ctx, fontSize);
                     nvgTextAlign(_ctx, static_cast<int>(halign) | static_cast<int>(valign));
-                    nvgFillColor(_ctx, fontColor);
+                    nvgFillColor(_ctx, make_nvgcolor(fontColor));
                     nvgText(_ctx, startPosition.x, startPosition.y, str.begin(), str.end());
 
                     // calculate caret geometry
@@ -561,7 +564,7 @@ namespace dm
                     // draw caret
                     nvgBeginPath(_ctx);
                     nvgRect(_ctx, caretBounds.position.x, caretBounds.position.y, caretBounds.size.x, caretBounds.size.y);
-                    nvgFillColor(_ctx, caretColor);
+                    nvgFillColor(_ctx, make_nvgcolor(caretColor));
                     nvgFill(_ctx);
                 }
                 break;
@@ -602,7 +605,7 @@ namespace dm
                     nvgFontFaceId(_ctx, _nvg_font_faces[static_cast<size_t>(font)]);
                     nvgFontSize(_ctx, fontSize);
                     nvgTextAlign(_ctx, static_cast<int>(halign) | static_cast<int>(valign));
-                    nvgFillColor(_ctx, fontColor);
+                    nvgFillColor(_ctx, make_nvgcolor(fontColor));
 
                     // glyph positions
                     const auto maxGlyphCount = (int32_t)str.size();
@@ -683,11 +686,11 @@ namespace dm
                         // background
                         nvgBeginPath(_ctx);
                         nvgRect(_ctx, selectionBounds.position.x, selectionBounds.position.y, selectionBounds.size.x, selectionBounds.size.y);
-                        nvgFillColor(_ctx, selectionColor);
+                        nvgFillColor(_ctx, make_nvgcolor(selectionColor));
                         nvgFill(_ctx);
 
                         // text
-                        nvgFillColor(_ctx, selectedFontColor);
+                        nvgFillColor(_ctx, make_nvgcolor(selectedFontColor));
                         nvgText(_ctx, startPosition.x, startPosition.y, str.begin(), str.end());
 
                         // restore current scissor

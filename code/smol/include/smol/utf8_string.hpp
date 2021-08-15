@@ -1,20 +1,20 @@
 #pragma once
 
-#include "utilities.hpp"
-#include "hash.hpp"
+#include <smol/hash.hpp>
+#include <smol/serialization_buffer.hpp>
 
-namespace dm
+namespace smol
 {
     class utf8_string;
 }
 
 namespace nlohmann
 {
-    void to_json(nl::json&, const dm::utf8_string&);
-    void from_json(const nl::json&, dm::utf8_string&);
+    void to_json(nl::json&, const smol::utf8_string&);
+    void from_json(const nl::json&, smol::utf8_string&);
 }
 
-namespace dm
+namespace smol
 {
     class utf8_codepoint
     {
@@ -105,18 +105,12 @@ namespace dm
         // normalizes  and assigns a new string
         void normalize_and_assign(const char* cstr, size_t len);
 
-        friend struct uf8_string_hash;
         friend void nl::to_json(nl::json&, const utf8_string&);
         friend void nl::from_json(const nl::json&, utf8_string&);
         friend class utf8_string_iterator;
     };
 
-    template <> struct hash<dm::utf8_string>
-    {
-        size_t operator()(const dm::utf8_string&, size_t seed) const;
-    };
-
-    void serialization_buffer_write(serialization_buffer& self, const utf8_string& val);
+    void serialization_buffer_write(smol::serialization_buffer& self, const utf8_string& val);
 
     class utf8_string_iterator : public std::iterator<
                                             std::forward_iterator_tag,
@@ -171,7 +165,7 @@ namespace dm
         const utf8proc_uint8_t* _end = nullptr;
     };
 
-    bool serialization_buffer_read(serialization_buffer& self, utf8_string_view& out);
+    bool serialization_buffer_read(smol::serialization_buffer& self, utf8_string_view& out);
 
     class utf8_stringbuffer : public std::vector<utf8_codepoint>
     {
@@ -191,17 +185,13 @@ namespace dm
         iterator find_word_begin(iterator from, bool skipOverWhitespace);
         iterator find_word_end(iterator from, bool skipOverWhitespace);
     };
+
+    size_t calc_hash(const smol::utf8_string& str, size_t seed);
 }
 
-std::ostream& operator<<(std::ostream& out, const dm::utf8_codepoint cp);
-std::ostream& operator<<(std::ostream& out, const dm::utf8_string& str);
-std::ostream& operator<<(std::ostream& out, const dm::utf8_string_view& str);
+std::ostream& operator<<(std::ostream& out, const smol::utf8_codepoint cp);
+std::ostream& operator<<(std::ostream& out, const smol::utf8_string& str);
+std::ostream& operator<<(std::ostream& out, const smol::utf8_string_view& str);
 
-template <> struct std::hash<dm::utf8_codepoint>
-{
-    size_t operator()(const dm::utf8_codepoint&) const;
-};
-template <> struct std::hash<dm::utf8_string>
-{
-    size_t operator()(const dm::utf8_string&) const;
-};
+SMOL_MAKE_STD_HASH(smol::utf8_codepoint);
+SMOL_MAKE_STD_HASH(smol::utf8_string);

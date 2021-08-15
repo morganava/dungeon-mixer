@@ -1,5 +1,4 @@
 #include "logger.hpp"
-#include "utf8_string.hpp"
 #include "geometry.hpp"
 #include "input.hpp"
 #include "utilities.hpp"

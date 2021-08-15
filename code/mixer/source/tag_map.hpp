@@ -1,7 +1,5 @@
 #pragma once
 
-#include "utf8_string.hpp"
-
 namespace dm
 {
     // tag map implementation using a trie data structure to form our index

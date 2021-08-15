@@ -1,33 +1,11 @@
-#include "utf8_string.hpp"
 #include "geometry.hpp"
 #include "input.hpp"
 #include "geometry.hpp"
 #include "uuid.hpp"
 #include "stylesheet.hpp"
-#include "color.hpp"
 
 using std::ostream;
 using namespace dm;
-
-// utf8_string
-
-ostream& operator<<(ostream& out, const dm::utf8_codepoint cp)
-{
-    char buffer[5] = {0};
-    ::utf8proc_encode_char(cp.value(), (utf8proc_uint8_t*)buffer);
-    out << buffer;
-    return out;
-}
-
-ostream& operator<<(ostream& out, const utf8_string& str)
-{
-    return out << str.c_str();
-}
-
-ostream& operator<<(ostream& out, const utf8_string_view& sv)
-{
-    return out.write(sv.begin(), sv.size());
-}
 
 ostream& operator<<(ostream& out, input_event evt)
 {
@@ -110,13 +88,3 @@ ostream& operator<<(ostream& out, const struct uuid& id)
     return out;
 }
 
-// color
-ostream& operator<<(ostream& out, const color& col)
-{
-    fmt::print(out, "#{:02x}{:02x}{:02x}",
-        static_cast<uint8_t>(255.0 * col.r),
-        static_cast<uint8_t>(255.0 * col.g),
-        static_cast<uint8_t>(255.0 * col.b));
-
-    return out;
-}

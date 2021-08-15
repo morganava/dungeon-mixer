@@ -2,7 +2,6 @@
 
 #define MX_GET_CSTRING(X) get_string_manager()->get_cstring(X)
 
-#include "utf8_string.hpp"
 #include "singleton.hpp"
 
 namespace dm

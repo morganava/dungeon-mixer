@@ -3,13 +3,10 @@
 #include "utilities.hpp"
 #include "geometry.hpp"
 #include "singleton.hpp"
-#include "color.hpp"
 #include "hash_buffer.hpp"
 
 namespace dm
 {
-    class utf8_string;
-
     // for now we should only need 3 layers
     SMOL_MAKE_ENUM(draw_layer, uint_fast8_t,
         background,
@@ -65,15 +62,15 @@ namespace dm
         void stroke_circle(const circlef&, float strokeWidth, const color&);
         void stroke_path(const smol::array<vec2f>&, float strokeWidth, const color&);
 
-        void draw_text(const rectf& bounds, float textOffset, font_handle_t font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const utf8_string& str);
-        void draw_text_with_caret(const rectf& bounds, float textOffset, font_handle_t font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const utf8_string& str, int32_t caretIndex, float caretWidth, const color& caretColor);
-        void draw_text_with_selection(const rectf& bounds, float textOffset, font_handle_t font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const utf8_string& str, int32_t selectBegin, int32_t selectEnd, const color& selectedFontColor, const color& selectionColor);
+        void draw_text(const rectf& bounds, float textOffset, font_handle_t font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const smol::utf8_string& str);
+        void draw_text_with_caret(const rectf& bounds, float textOffset, font_handle_t font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const smol::utf8_string& str, int32_t caretIndex, float caretWidth, const color& caretColor);
+        void draw_text_with_selection(const rectf& bounds, float textOffset, font_handle_t font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const smol::utf8_string& str, int32_t selectBegin, int32_t selectEnd, const color& selectedFontColor, const color& selectionColor);
 
         // gets the index into the underlying string buffer clickPoint would be closest to
-        int32_t get_caret_position(const rectf& bounds, float textOffset, font_handle_t font, float fontSize, halign_t halign, valign_t valign, const utf8_string& str, const vec2f& clickPoint);
+        int32_t get_caret_position(const rectf& bounds, float textOffset, font_handle_t font, float fontSize, halign_t halign, valign_t valign, const smol::utf8_string& str, const vec2f& clickPoint);
 
         // gets the offset from bounds beginning of caret
-        float get_caret_offset(const rectf& bounds, font_handle_t font, float fontSize, halign_t halign, valign_t valign, const utf8_string& str, size_t caretPosition);
+        float get_caret_offset(const rectf& bounds, font_handle_t font, float fontSize, halign_t halign, valign_t valign, const smol::utf8_string& str, size_t caretPosition);
     private:
         NVGcontext* _ctx = nullptr;
         size_t _same_frames = 0;
@@ -106,6 +103,7 @@ namespace dm
         static vec2f text_bounds_to_start_position(const rectf& bounds, halign_t halign, valign_t valign);
 
         NVGpaint make_nvgpaint(image_handle_t ih, const rectf& dim, background_image_mode_t bim) const;
+        constexpr NVGcolor make_nvgcolor(const smol::color&) const;
 
         class command_queue
         {
