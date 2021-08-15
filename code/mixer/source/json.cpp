@@ -1,7 +1,6 @@
 #include "serialization.hpp"
 #include "paths.hpp"
 #include "utilities.hpp"
-#include "uuid.hpp"
 #include "geometry.hpp"
 #include "stylesheet.hpp"
 #include "nanovg.hpp"
@@ -12,24 +11,6 @@ using namespace dm;
 
 namespace nlohmann
 {
-    // UUID
-    void to_json(nl::json& j, const uuid& id)
-    {
-        const auto& bytes = id.bytes;
-        j = fmt::format(
-            uuid::format_string,
-            bytes[0], bytes[1], bytes[2], bytes[3],
-            bytes[4], bytes[5], bytes[6], bytes[7],
-            bytes[8], bytes[9], bytes[10], bytes[11],
-            bytes[12], bytes[13], bytes[14], bytes[15]);
-    }
-
-    void from_json(const nl::json& j, uuid& id)
-    {
-        SMOL_THROW_IF_FALSE(j.is_string());
-
-        id = uuid(j.get<std::string>());
-    }
 
     // Geometry
 

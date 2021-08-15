@@ -1,6 +1,5 @@
 #include "serialization.hpp"
 #include "paths.hpp"
-#include "uuid.hpp"
 #include "utilities.hpp"
 #include "work_queue.hpp"
 #include "logger.hpp"
@@ -316,7 +315,7 @@ namespace dm
                         for(auto track : trackList)
                         {
                             utf8_string title = track["Title"];
-                            uuid audioId = track["AudioId"];
+                            smol::uuid audioId = track["AudioId"];
                             utf8_string type = track["Type"];
                             std::vector<utf8_string> tags = track["Tags"];
                             std::vector<utf8_string> filenames = track["Files"];
@@ -401,7 +400,7 @@ namespace dm
                             track_entry trackEntry;
 
                             // Id is the id of the audio_entry referenced
-                            const auto audioId = trackJson["Id"].get<uuid>();
+                            const auto audioId = trackJson["Id"].get<smol::uuid>();
                             auto audioHandle = g_audio_directory->get_audio_handle_by_id(audioId);
 
                             MX_LOG_INFO("   Id : {}", audioId);

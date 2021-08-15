@@ -15,7 +15,6 @@ add_executable(dungeon_mixer
     json.cpp
     linear_constraint_solver.cpp
     random.cpp
-    uuid.cpp
     paths.cpp
     # main
     mixer.cpp

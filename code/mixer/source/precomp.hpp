@@ -84,12 +84,17 @@ namespace nl = nlohmann;
 #include <smol/error.hpp>
 #include <smol/memory.hpp>
 #include <smol/enum.hpp>
-#include <smol/hash.hpp>
+
 #include <smol/utf8_string.hpp>
+#include <smol/color.hpp>
+#include <smol/uuid.hpp>
+
+#include <smol/hash.hpp>
+
+#include <smol/array.hpp>
 #include <smol/serialization_buffer.hpp>
 #include <smol/hash_buffer.hpp>
-#include <smol/array.hpp>
-#include <smol/color.hpp>
+
 using namespace smol;
 
 

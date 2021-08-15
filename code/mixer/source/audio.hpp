@@ -1,7 +1,6 @@
 #pragma once
 
 #include "tag_map.hpp"
-#include "uuid.hpp"
 #include "singleton.hpp"
 
 namespace dm
@@ -98,7 +97,7 @@ namespace dm
     struct audio_entry
     {
         // track unique id
-        uuid id;
+        smol::uuid id;
         // display title
         utf8_string title;
         // backing SoundBuffers
@@ -116,17 +115,17 @@ namespace dm
     public:
         audio_directory();
         void update(float dt);
-        audio_handle_t get_audio_handle_by_id(const uuid& id) const;
+        audio_handle_t get_audio_handle_by_id(const smol::uuid& id) const;
         std::vector<audio_handle_t> get_audio_handles_by_query(const utf8_string& query) const;
 
         audio_entry& get_entry(audio_handle_t handle);
-        void add_entry(uuid&& id, utf8_string&& title, std::vector<utf8_string>&& tags, std::shared_ptr<audio_data>&& data);
+        void add_entry(smol::uuid&& id, utf8_string&& title, std::vector<utf8_string>&& tags, std::shared_ptr<audio_data>&& data);
 
     private:
         std::vector<audio_entry> _entries;
         tag_map<audio_handle_t> _tag_map;
         // map track id to track handle
-        std::unordered_map<uuid, audio_handle_t> _id_map;
+        std::unordered_map<smol::uuid, audio_handle_t> _id_map;
 
         // amount of time an unreferenced track waits before unloading data and freeing memory
         constexpr static float unload_age = 10.0f;

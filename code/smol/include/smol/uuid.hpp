@@ -1,14 +1,12 @@
 #pragma once
+#include <smol/error.hpp>
+#include <smol/hash.hpp>
 
-#include "utilities.hpp"
-
-namespace dm
+namespace smol
 {
     struct uuid
     {
         constexpr static char null_uuid_string[] = "00000000-0000-0000-0000-000000000000";
-        constexpr static const char format_string[] =
-            "{:02x}{:02x}{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}{:02x}{:02x}{:02x}{:02x}";
 
         constexpr uuid()
         { }
@@ -114,18 +112,18 @@ namespace dm
         constexpr static auto null_terminator = dash3 + 1 + node;
 
         static_assert(null_terminator == (sizeof(null_uuid_string) - 1));
-
     };
+
+    std::ostream& operator<<(std::ostream& out, const uuid& id);
+    size_t calc_hash(const uuid&, size_t seed);
 }
 
 namespace nlohmann
 {
-    void to_json(nl::json& j, const dm::uuid& id);
-    void from_json(const nl::json& j, dm::uuid& id);
+    void to_json(json& j, const smol::uuid& id);
+    void from_json(const json& j, smol::uuid& id);
 }
 
-std::ostream& operator<<(std::ostream& out, const struct dm::uuid& id);
-template <> struct std::hash<dm::uuid>
-{
-    size_t operator()(const dm::uuid&) const;
-};
+SMOL_MAKE_STD_HASH(smol::uuid);
+
+
