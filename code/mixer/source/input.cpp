@@ -373,17 +373,6 @@ namespace dm
         _key_names[GLFW_KEY_RIGHT_SUPER] = "right super";
         _key_names[GLFW_KEY_MENU] = "menu";
 
-        // Overwrite names with localized versions if available
-
-        for(key_code_t kd = 0; kd <= GLFW_KEY_LAST; ++kd)
-        {
-            auto key_name = glfwGetKeyName(kd, 0);
-            if (key_name != nullptr)
-            {
-                _key_names[kd] = key_name;
-            }
-        }
-
         // for(auto it : _key_names)
         // {
         //     MX_LOG_INFO("{} : '{}'", it.first, it.second);
