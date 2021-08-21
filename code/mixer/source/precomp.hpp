@@ -94,6 +94,7 @@ namespace nl = nlohmann;
 #include <smol/array.hpp>
 #include <smol/serialization_buffer.hpp>
 #include <smol/hash_buffer.hpp>
+#include <smol/tag_map.hpp>
 
 using namespace smol;
 

@@ -9,7 +9,6 @@ add_executable(dungeon_mixer
     precomp.cpp
     # utilities
     file_dialog.cpp
-    tag_map.cpp
     utilities.cpp
     format.cpp
     json.cpp

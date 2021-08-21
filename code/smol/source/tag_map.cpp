@@ -1,7 +1,9 @@
-#include "utilities.hpp"
-#include "tag_map.hpp"
+// #include "utilities.hpp"
+#include <smol/error.hpp>
+#include <smol/utf8_string.hpp>
+#include <smol/tag_map.hpp>
 
-namespace dm
+namespace smol
 {
     //
     // Tag Map Impl

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "tag_map.hpp"
 #include "singleton.hpp"
 
 namespace dm

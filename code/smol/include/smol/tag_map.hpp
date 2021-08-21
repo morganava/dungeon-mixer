@@ -1,6 +1,6 @@
 #pragma once
 
-namespace dm
+namespace smol
 {
     // tag map implementation using a trie data structure to form our index
     class tag_map_impl
@@ -50,6 +50,5 @@ namespace dm
         }
     private:
         tag_map_impl _tag_map;
-
     };
 }

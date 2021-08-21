@@ -14,6 +14,8 @@
 namespace fs = std::filesystem;
 #include <utility>
 #include <iostream>
+#include <unordered_map>
+#include <unordered_set>
 
 // utf8proc : https://github.com/JuliaStrings/utf8proc
 #define UTF8PROC_STATIC

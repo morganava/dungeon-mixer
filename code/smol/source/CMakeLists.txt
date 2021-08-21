@@ -11,7 +11,8 @@ add_library(smol STATIC
     uuid.cpp
     # data structures
     serialization_buffer.cpp
-    hash_buffer.cpp)
+    hash_buffer.cpp
+    tag_map.cpp)
 
 target_precompile_headers(smol PRIVATE precomp.hpp)
 
