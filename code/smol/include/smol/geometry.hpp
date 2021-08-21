@@ -1,9 +1,9 @@
 #pragma once
 
-#include "utilities.hpp"
-#include "math.hpp"
+#include <smol/error.hpp>
+#include <smol/math.hpp>
 
-namespace dm
+namespace smol
 {
     // vector 2
 
@@ -230,12 +230,6 @@ namespace dm
                 case 2: return z;
             }
             return *static_cast<T*>(nullptr);
-        }
-
-        // convert to SFML vector
-        operator sf::Vector3f() const
-        {
-            return {(float)x, (float)y, (float)z};
         }
     };
 
@@ -820,27 +814,35 @@ namespace dm
 
 namespace nlohmann
 {
-    void from_json(const nl::json&, dm::vec2&);
-    void from_json(const nl::json&, dm::vec3&);
-    void from_json(const nl::json&, dm::edges&);
-    void from_json(const nl::json&, dm::corners&);
+    void from_json(const nl::json&, smol::vec2&);
+    void from_json(const nl::json&, smol::vec3&);
+    void from_json(const nl::json&, smol::edges&);
+    void from_json(const nl::json&, smol::corners&);
 }
 
 template<typename T>
-std::ostream& operator<<(std::ostream& out, const dm::vec2_<T>& v)
+std::ostream& operator<<(std::ostream& out, const smol::vec2_<T>& v)
 {
     return out << "{ x : " << v.x << ", y : " << v.y << " }";
 }
 template<typename T>
-std::ostream& operator<<(std::ostream& out, const dm::vec3_<T>& v)
+std::ostream& operator<<(std::ostream& out, const smol::vec3_<T>& v)
 {
     return out << "{ x : " << v.x << ", y : " << v.y << ", z : " << v.z << " }";
 }
 template<typename T>
-std::ostream& operator<<(std::ostream& out, const dm::rect_<T>& r)
+std::ostream& operator<<(std::ostream& out, const smol::rect_<T>& r)
 {
     return out << "{ position : " << r.position << " size : " << r.size << " }";
 }
-std::ostream& operator<<(std::ostream&, const dm::corners&);
-std::ostream& operator<<(std::ostream&, const dm::edges&);
+template<typename T>
+std::ostream& operator<<(std::ostream& out, const smol::corners_<T>& c)
+{
+    return out << "{ topLeft : " << c.topLeft << ", topRight : " << c.topRight << ", bottomRight : " << c.bottomRight << ", bottomLeft : " << c.bottomLeft << " }";
+}
+template<typename T>
+std::ostream& operator<<(std::ostream& out, const smol::edges_<T>& e)
+{
+    return out << "{ top : " << e.top << ", right : " << e.right << ", bottom : " << e.bottom << ", left : " << e.left << " }";
+}
 

@@ -90,6 +90,8 @@ namespace nl = nlohmann;
 #include <smol/uuid.hpp>
 
 #include <smol/hash.hpp>
+#include <smol/geometry.hpp>
+#include <smol/math.hpp>
 
 #include <smol/array.hpp>
 #include <smol/serialization_buffer.hpp>
@@ -97,7 +99,6 @@ namespace nl = nlohmann;
 #include <smol/tag_map.hpp>
 
 using namespace smol;
-
 
 // countof(X)
 template<typename T, size_t N>

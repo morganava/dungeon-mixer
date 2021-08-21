@@ -1,7 +1,6 @@
 #include "graphics.hpp"
 #include "utilities.hpp"
 #include "logger.hpp"
-#include "geometry.hpp"
 #include "input.hpp"
 #include "singleton.hpp"
 #include "nanovg.hpp"

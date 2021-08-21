@@ -1,7 +1,6 @@
 #pragma once
 
 #include "singleton.hpp"
-#include "geometry.hpp"
 #include "nanovg.hpp"
 #include "linear_constraint_solver.hpp"
 

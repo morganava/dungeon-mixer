@@ -1,7 +1,6 @@
 #pragma once
 
 #include "utilities.hpp"
-#include "geometry.hpp"
 #include "singleton.hpp"
 
 namespace dm
@@ -102,7 +101,6 @@ namespace dm
         static vec2f text_bounds_to_start_position(const rectf& bounds, halign_t halign, valign_t valign);
 
         NVGpaint make_nvgpaint(image_handle_t ih, const rectf& dim, background_image_mode_t bim) const;
-        constexpr NVGcolor make_nvgcolor(const smol::color&) const;
 
         class command_queue
         {

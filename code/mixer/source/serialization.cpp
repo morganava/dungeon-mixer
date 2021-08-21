@@ -8,7 +8,6 @@
 #include "imgui.hpp"
 #include "stylesheet.hpp"
 #include "ui.hpp"
-#include "geometry.hpp"
 #include "string_manager.hpp"
 
 namespace dm

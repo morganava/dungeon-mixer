@@ -1,5 +1,4 @@
 #include "singleton.hpp"
-#include "geometry.hpp"
 #include "input.hpp"
 #include "nanovg.hpp"
 #include "imgui.hpp"

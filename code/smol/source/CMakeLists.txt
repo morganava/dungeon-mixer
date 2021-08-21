@@ -9,6 +9,7 @@ add_library(smol STATIC
     color.cpp
     utf8_string.cpp
     uuid.cpp
+    geometry.cpp
     # data structures
     serialization_buffer.cpp
     hash_buffer.cpp

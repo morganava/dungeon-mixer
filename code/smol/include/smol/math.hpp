@@ -1,6 +1,6 @@
 #pragma once
 
-namespace dm
+namespace smol
 {
     // constants
     template<typename T>

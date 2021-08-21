@@ -8,8 +8,20 @@ std::ostream& operator<<(std::ostream& out, const sf::Vector3f& vec);
 
 namespace dm
 {
-    // remove whitespace from head and tail of string
-    std::string trim(const std::string& str);
+    //sfml conversions
+
+    template<typename T>
+    constexpr sf::Vector3f sfml(const smol::vec3_<T>& v)
+    {
+        return {static_cast<float>(v.x),static_cast<float>(v.y),static_cast<float>(v.z)};
+    }
+
+    // nanovg conversions
+
+    constexpr NVGcolor nvg(const smol::color& c)
+    {
+        return {c.r, c.g, c.b, c.a};
+    }
 
     template<size_t N>
     struct framerate_calculator

@@ -1,5 +1,4 @@
 #include "linear_constraint_solver.hpp"
-#include "geometry.hpp"
 
 namespace dm
 {

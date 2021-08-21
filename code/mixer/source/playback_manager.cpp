@@ -3,9 +3,6 @@
 #include "logger.hpp"
 #include "audio.hpp"
 #include "random.hpp"
-#include "geometry.hpp"
-
-
 
 namespace dm
 {
@@ -240,7 +237,7 @@ namespace dm
                 };
 
                 playbackEntry.positional = enabled;
-                playbackEntry.position = calc_cartesian();
+                playbackEntry.position = sfml(calc_cartesian());
             }
 
             playbackEntry.timeSincePlaybackEnd = 0.0f;
