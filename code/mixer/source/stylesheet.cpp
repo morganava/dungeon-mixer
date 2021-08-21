@@ -1,3 +1,4 @@
+#include "logger.hpp"
 #include "stylesheet.hpp"
 #include "serialization.hpp"
 
@@ -183,7 +184,68 @@ namespace dm
 
         return retval;
     }
-}
+} /* dm */
+
+using namespace dm;
+namespace nlohmann
+{
+    void from_json(const nl::json& j, element_state_t state, style_declaration_set& sds)
+    {
+        SMOL_THROW_IF_FALSE(j.is_object());
+
+        auto& d = sds._declarations;
+
+        #define STYLE_SHEET_ENTRY(NAME, VAL, FLAGS)\
+        if(auto it = j.find(#NAME); it != j.end())\
+        {\
+            if constexpr(FLAGS != element_state::none) SMOL_THROW_MSG_IF_FALSE(!static_cast<uint_fast8_t>(FLAGS & state), "style property '{}' cannot be specified in styles with '{}' selector", #NAME, state);\
+            d.write<style_entry_t>(style_entry::NAME);\
+            typedef std::remove_const<std::remove_reference<decltype(VAL)>::type>::type TYPE;\
+            d.write<TYPE>(it->get<TYPE>());\
+        }\
+
+        #include "stylesheet.inl"
+        #undef STYLE_SHEET_ENTRY
+    }
+
+    void from_json(const nl::json& j, style_resolver& sr)
+    {
+        SMOL_THROW_IF_FALSE(j.is_object());
+
+        // iterate over each selector and build our style selector set
+        const std::regex selectorRegex("^([a-zA-Z]*)[\\.]?([a-zA-Z0-9]*)[\\:]?([a-z]*)$");
+        for(auto& el : j.items())
+        {
+            const auto& selectorString = el.key();
+            std::smatch matches;
+            if(std::regex_match(selectorString, matches, selectorRegex))
+            {
+                MX_LOG_INFO("'{}' selector matches", selectorString);
+
+                const auto& elementStr = matches[1].str();
+                const auto& tagStr = matches[2].str();
+                const auto& stateStr = matches[3].str();
+
+                MX_LOG_INFO(" element : '{}'", elementStr);
+                MX_LOG_INFO(" tag : '{}'", tagStr);
+                MX_LOG_INFO(" state : '{}'", stateStr);
+
+                MX_LOG_INFO(" rule : {}", el.value().dump());
+
+                auto element = parse_element_type(elementStr);
+                auto state = parse_element_state(stateStr);
+
+                style_declaration_set sds;
+                nl::from_json(el.value(), state, sds);
+
+                MX_LOG_INFO(" element : {}, state : {}", (uint_fast8_t)element, (uint_fast8_t)state);
+
+                selector sel = (tagStr == "") ? selector{element, {}, state} : selector{element, array<utf8_string>{tagStr}, state};
+                sr._styleFactory.emplace(std::make_pair(std::move(sel), sds));
+            }
+        }
+    }
+} /* nlohmann */
 
 size_t std::hash<dm::selector>::operator()(const dm::selector& sel) const
 {
