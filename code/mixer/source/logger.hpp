@@ -56,6 +56,10 @@ namespace dm
 
         std::string marshall(const char* cstr)
         {
+            if (cstr == nullptr)
+            {
+                return std::string("(null)");
+            }
             return std::string(cstr);
         }
 
