@@ -179,3 +179,12 @@ namespace dm
     };
     MX_MAKE_SINGLETON(nanovg, worker_flag::ui);
 }
+
+namespace nlohmann
+{
+    void from_json(const nl::json& j, dm::font_handle_t& fh);
+    void from_json(const nl::json& j, dm::image_handle_t& ih);
+    void from_json(const nl::json& j, dm::halign_t& ha);
+    void from_json(const nl::json& j, dm::valign_t& va);
+    void from_json(const nl::json& j, dm::background_image_mode_t& bim);
+}
