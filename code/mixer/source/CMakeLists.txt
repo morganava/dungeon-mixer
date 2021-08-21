@@ -15,6 +15,7 @@ add_executable(dungeon_mixer
     linear_constraint_solver.cpp
     random.cpp
     paths.cpp
+    sfml.cpp
     # main
     mixer.cpp
     # systems

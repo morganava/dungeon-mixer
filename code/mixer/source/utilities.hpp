@@ -1,28 +1,7 @@
 #pragma once
 
-#define MX_STRINGIFY(X) MX_STRINGIFY_IMPL(X)
-#define MX_STRINGIFY_IMPL(X) #X
-
-// extra print operators
-std::ostream& operator<<(std::ostream& out, const sf::Vector3f& vec);
-
 namespace dm
 {
-    //sfml conversions
-
-    template<typename T>
-    constexpr sf::Vector3f sfml(const smol::vec3_<T>& v)
-    {
-        return {static_cast<float>(v.x),static_cast<float>(v.y),static_cast<float>(v.z)};
-    }
-
-    // nanovg conversions
-
-    constexpr NVGcolor nvg(const smol::color& c)
-    {
-        return {c.r, c.g, c.b, c.a};
-    }
-
     template<size_t N>
     struct framerate_calculator
     {

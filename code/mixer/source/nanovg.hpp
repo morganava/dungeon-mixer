@@ -36,6 +36,11 @@ namespace dm
         debug
     );
 
+    constexpr NVGcolor nvg(const smol::color& c)
+    {
+        return {c.r, c.g, c.b, c.a};
+    }
+
     class nanovg
     {
     public:
