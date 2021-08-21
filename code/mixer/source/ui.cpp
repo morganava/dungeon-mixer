@@ -3,7 +3,6 @@
 #include "nanovg.hpp"
 #include "imgui.hpp"
 #include "ui.hpp"
-#include "linear_constraint_solver.hpp"
 #include "audio.hpp"
 #include "random.hpp"
 #include "string_manager.hpp"

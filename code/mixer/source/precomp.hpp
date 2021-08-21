@@ -98,6 +98,7 @@ namespace nl = nlohmann;
 #include <smol/serialization_buffer.hpp>
 #include <smol/hash_buffer.hpp>
 #include <smol/tag_map.hpp>
+#include <smol/linear_constraint_solver.hpp>
 
 using namespace smol;
 

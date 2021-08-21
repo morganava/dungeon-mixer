@@ -1,7 +1,9 @@
-#include "linear_constraint_solver.hpp"
-#include "logger.hpp"
+#include <smol/serialization_buffer.hpp>
+#include <smol/array.hpp>
+#include <smol/linear_constraint_solver.hpp>
+#include <smol/math.hpp>
 
-namespace dm
+namespace smol
 {
     static void normalize_ratios(array<constraint>& constraints)
     {
@@ -191,7 +193,7 @@ namespace dm
     }
 }
 
-using namespace dm;
+using namespace smol;
 namespace nlohmann
 {
     void from_json(const nl::json& js, constraint& out)
@@ -271,15 +273,13 @@ namespace nlohmann
             SMOL_THROW_MSG("invalid constraint json");
         }
 
-        MX_LOG_INFO("constraint {{ min : {}, max : {}, ratio : {} }}", retval.min, retval.max, retval.ratio);
-
         out = retval;
     }
 
     void from_json(const nl::json& js, linear_constraint_solver& out)
     {
         SMOL_THROW_IF_FALSE(js.is_array());
-        auto constraints = js.get<smol::array<dm::constraint>>();
+        auto constraints = js.get<array<constraint>>();
         out = {std::move(constraints)};
     }
 }

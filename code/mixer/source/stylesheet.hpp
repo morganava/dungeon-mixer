@@ -2,7 +2,6 @@
 
 #include "singleton.hpp"
 #include "nanovg.hpp"
-#include "linear_constraint_solver.hpp"
 
 namespace dm
 {

@@ -1,7 +1,9 @@
  #pragma once
 
-namespace dm
+namespace smol
 {
+    template<typename T> class array;
+
     constexpr double unconstrained = std::numeric_limits<double>::max();
 
     struct constraint
@@ -42,6 +44,6 @@ namespace dm
 
 namespace nlohmann
 {
-    void from_json(const nl::json&, dm::constraint&);
-    void from_json(const nl::json&, dm::linear_constraint_solver&);
+    void from_json(const nl::json&, smol::constraint&);
+    void from_json(const nl::json&, smol::linear_constraint_solver&);
 }
