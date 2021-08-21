@@ -1,7 +1,7 @@
 #include "graphics.hpp"
 #include "logger.hpp"
 #include "input.hpp"
-#include "singleton.hpp"
+#include "service.hpp"
 #include "nanovg.hpp"
 #include "ui.hpp"
 #include "globals.hpp"

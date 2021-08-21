@@ -1,7 +1,6 @@
 #pragma once
 
-// #include "worker_enums.hpp"
-#include "singleton.hpp"
+#include "service.hpp"
 
 namespace dm
 {

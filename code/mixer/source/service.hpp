@@ -5,52 +5,35 @@
 namespace dm
 {
     template<typename TYPE>
-    class singleton
+    class service
     {
     public:
+        template<typename... ARGS>
+        constexpr service(ARGS&&... args) : data(std::forward<ARGS>(args)...) { }
+        service(service&&) = default;
+        service& operator=(service&&) = default;
+
         constexpr TYPE& unsafe_get()
         {
-            return *data;
+            return data;
         }
 
-        template<typename... ARGS>
-        void construct(worker_flag allowedThreads, ARGS&&... args)
-        {
-            data.emplace(std::forward<ARGS>(args)...);
-        }
-
-        constexpr void free()
-        {
-            data.reset();
-        }
-
-        constexpr bool assigned()
-        {
-            return data.has_value();
-        }
-
-        singleton& operator=(TYPE&& val)
-        {
-            data = std::move(val);
-            return *this;
-        }
-
-        TYPE* operator->()
+        constexpr TYPE* operator->()
         {
             if constexpr (allowed_threads<TYPE>::value != worker_flag::any)
             {
                 SMOL_ASSERT(can_call_from_current_thread(allowed_threads<TYPE>::value));
             }
-            return data.operator->();
+            return &data;
         }
 
-        TYPE const* operator->() const
+        constexpr TYPE const* operator->() const
         {
             if constexpr (allowed_threads<TYPE>::value != worker_flag::any)
             {
                 SMOL_ASSERT(can_call_from_current_thread(allowed_threads<TYPE>::value));
             }
-            return data.operator->();
+            return &data;
         }
 
         //
@@ -70,20 +53,15 @@ namespace dm
             return ref.operator()(std::forward<ARGS>(args)...);
         }
 
-        static singleton instance;
-    private:
-        std::optional<TYPE> data;
+        TYPE data;
     };
-    template<typename TYPE>
-    typename singleton<TYPE>::singleton singleton<TYPE>::singleton::instance;
-
 
     #define MX_MAKE_SINGLETON_IMPL(TYPE, NAME, ALLOWED_THREADS) \
-        inline constexpr dm::singleton<TYPE>& g_##NAME = dm::singleton<TYPE>::instance; \
-        inline constexpr TYPE& g_##NAME##_unsafe = dm::singleton<TYPE>::instance.unsafe_get(); \
+        inline constexpr dm::service<TYPE>& g_##NAME = *smol::singleton<dm::service<TYPE>>::instance.get(); \
+        inline constexpr TYPE& g_##NAME##_unsafe = g_##NAME.unsafe_get(); \
         template<typename... ARGS> \
-        void init_##NAME(ARGS&&... args) { dm::singleton<TYPE>::instance.construct(worker_flag::any, std::forward<ARGS>(args)...); } \
-        constexpr void free_##NAME() { dm::singleton<TYPE>::instance.free(); } \
+        void init_##NAME(ARGS&&... args) { smol::singleton<dm::service<TYPE>>::instance.construct(std::forward<ARGS>(args)...);} \
+        constexpr void free_##NAME() { smol::singleton<dm::service<TYPE>>::instance.free(); } \
         template<> struct allowed_threads<TYPE> { constexpr static worker_flag_t value=(ALLOWED_THREADS); };
 
     #define MX_MAKE_SINGLETON(TYPE, ALLOWED_THREADS) MX_MAKE_SINGLETON_IMPL(TYPE, TYPE, ALLOWED_THREADS)

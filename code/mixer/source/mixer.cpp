@@ -6,7 +6,7 @@
 #include "graphics.hpp"
 #include "input.hpp"
 #include "nanovg.hpp"
-#include "singleton.hpp"
+#include "service.hpp"
 #include "imgui.hpp"
 #include "ui.hpp"
 

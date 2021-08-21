@@ -1,6 +1,6 @@
 #pragma once
 
-#include "singleton.hpp"
+#include "service.hpp"
 #include "work_queue.hpp"
 
 #define MX_LOG_ERROR(...) dm::g_logger->log<dm::log_level::error>(__VA_ARGS__)
@@ -19,6 +19,7 @@ namespace dm
         info
     );
 
+
     class logger
     {
     public:
@@ -32,7 +33,7 @@ namespace dm
                 [format=std::forward<decltype(format)>(format), now=now, ...args=logger::marshall(args)]() -> void
                 {
                     auto msg = fmt::format(format, std::move(args)...);
-                    singleton<logger>::instance.unsafe_get().write_message(LEVEL, now, msg.c_str());
+                    singleton<service<logger>>::instance->unsafe_get().write_message(LEVEL, now, msg.c_str());
                 });
         };
 
@@ -43,7 +44,7 @@ namespace dm
             return worker_logging.enqueue(
                 [msg=std::move(msg), now=now]() -> void
                 {
-                    singleton<logger>::instance.unsafe_get().write_message(LEVEL, now, msg);
+                    singleton<service<logger>>::instance->unsafe_get().write_message(LEVEL, now, msg);
                 });
         };
 

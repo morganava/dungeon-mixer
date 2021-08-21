@@ -4,7 +4,7 @@
 #include "audio.hpp"
 #include "serialization.hpp"
 #include "string_manager.hpp"
-#include "singleton.hpp"
+#include "service.hpp"
 #include "nanovg.hpp"
 #include "imgui.hpp"
 #include "ui.hpp"

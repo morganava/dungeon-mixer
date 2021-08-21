@@ -1,5 +1,5 @@
 #include "nanovg.hpp"
-#include "singleton.hpp"
+#include "service.hpp"
 #include "work_queue.hpp"
 #include "logger.hpp"
 #include "paths.hpp"

@@ -2,7 +2,7 @@
 
 #define MX_GET_CSTRING(X) get_string_manager()->get_cstring(X)
 
-#include "singleton.hpp"
+#include "service.hpp"
 
 namespace dm
 {

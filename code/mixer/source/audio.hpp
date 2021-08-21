@@ -1,6 +1,6 @@
 #pragma once
 
-#include "singleton.hpp"
+#include "service.hpp"
 
 namespace dm
 {
