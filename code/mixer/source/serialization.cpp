@@ -83,7 +83,7 @@ namespace dm
         }
 
         // strips out comments and trailing commas and then passes to json::parse
-        nl::json parse_json(const memory_buffer& mb)
+        nl::json parse_json(const smol::array<uint8_t>& mb)
         {
             std::vector<uint8_t> js;
             js.reserve(mb.size());
@@ -269,8 +269,7 @@ namespace dm
         worker_fileio.enqueue([source=std::move(source)]() -> void
         {
             MX_LOG_INFO("Loading skin: {}", source);
-
-            memory_buffer mb(source);
+            auto mb = smol::load_file(source);
 
             worker_background.enqueue([mb=std::move(mb)]() -> void
             {
@@ -301,7 +300,7 @@ namespace dm
 
                 auto manifestPath = it.path() / "manifest.json";
                 MX_LOG_INFO("Loading manifest: {}", manifestPath);
-                memory_buffer manifestData(manifestPath);
+                auto manifestData = smol::load_file(manifestPath);
 
                 worker_background.enqueue([basePath=it.path(),manifestData=std::move(manifestData)]() -> void
                 {
@@ -352,7 +351,7 @@ namespace dm
         worker_fileio.enqueue([playlistPath=std::move(playlistPath)]() -> void
         {
             MX_LOG_INFO("Loading playlist: {}", playlistPath);
-            memory_buffer bytes(playlistPath);
+            auto bytes = smol::load_file(playlistPath);
 
             worker_background.enqueue([bytes=std::move(bytes)]() -> void
             {
@@ -539,7 +538,7 @@ namespace dm
         worker_fileio.enqueue([source=std::move(source)]() -> void
         {
             MX_LOG_INFO("Loading strings: {}", source);
-            memory_buffer bytes(source);
+            auto bytes = smol::load_file(source);
 
             worker_background.enqueue([bytes=std::move(bytes)]() -> void
             {

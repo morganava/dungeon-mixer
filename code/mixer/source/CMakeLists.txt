@@ -9,7 +9,6 @@ add_executable(dungeon_mixer
     precomp.cpp
     # utilities
     file_dialog.cpp
-    utilities.cpp
     format.cpp
     json.cpp
     linear_constraint_solver.cpp

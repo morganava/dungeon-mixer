@@ -45,7 +45,7 @@ namespace dm
 
         worker_fileio.enqueue([index=index, fontFilePath=std::move(fontFilePath)]() -> void
         {
-            memory_buffer fontFile(fontFilePath);
+            auto fontFile = smol::load_file(fontFilePath);
             std::string fontName = fontFilePath.filename();
 
             worker_ui.enqueue([index=static_cast<size_t>(index), fontName=std::move(fontName), fontFile=std::move(fontFile)]() -> void
@@ -79,7 +79,7 @@ namespace dm
         worker_fileio.enqueue([index=index, imageFilePath=std::move(imageFilePath)]() -> void
         {
             // load file into memory
-            memory_buffer imageFile(imageFilePath);
+            auto imageFile = smol::load_file(imageFilePath);
             SMOL_THROW_IF_FALSE(imageFile.size() <= static_cast<size_t>(std::numeric_limits<int>::max()));
             const int imageFileSize = static_cast<int>(imageFile.size());
 

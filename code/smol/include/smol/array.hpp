@@ -146,6 +146,7 @@ namespace smol
         std::unique_ptr<T[]> _data;
     };
 
+
     template<typename T>
     void serialization_buffer_write(serialization_buffer& self, const array<T>& array)
     {

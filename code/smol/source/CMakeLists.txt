@@ -3,6 +3,7 @@ add_library(smol STATIC
     precomp.cpp
     error.cpp
     platform.cpp
+    file.cpp
     # algorithms
     hash.cpp
     # types
