@@ -1,4 +1,3 @@
-#include "utilities.hpp"
 #include "paths.hpp"
 #include "work_queue.hpp"
 #include "logger.hpp"
@@ -6,7 +5,6 @@
 #include "serialization.hpp"
 #include "string_manager.hpp"
 #include "singleton.hpp"
-#include "utilities.hpp"
 #include "nanovg.hpp"
 #include "imgui.hpp"
 #include "ui.hpp"

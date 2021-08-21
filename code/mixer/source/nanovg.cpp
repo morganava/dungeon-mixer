@@ -1,4 +1,3 @@
-#include "utilities.hpp"
 #include "nanovg.hpp"
 #include "singleton.hpp"
 #include "work_queue.hpp"

@@ -1,4 +1,3 @@
-#include "utilities.hpp"
 #include "paths.hpp"
 #include "work_queue.hpp"
 #include "logger.hpp"

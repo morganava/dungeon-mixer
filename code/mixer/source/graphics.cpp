@@ -1,5 +1,4 @@
 #include "graphics.hpp"
-#include "utilities.hpp"
 #include "logger.hpp"
 #include "input.hpp"
 #include "singleton.hpp"

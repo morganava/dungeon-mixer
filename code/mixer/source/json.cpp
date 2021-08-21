@@ -1,6 +1,5 @@
 #include "serialization.hpp"
 #include "paths.hpp"
-#include "utilities.hpp"
 #include "stylesheet.hpp"
 #include "nanovg.hpp"
 #include "linear_constraint_solver.hpp"

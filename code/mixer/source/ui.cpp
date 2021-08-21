@@ -1,4 +1,3 @@
-#include "utilities.hpp"
 #include "input.hpp"
 #include "singleton.hpp"
 #include "nanovg.hpp"

@@ -166,51 +166,16 @@ namespace dm
     class input_event
     {
     public:
-        input_event()
-        : _type(input_event_type::invalid)
-        { }
-
-        input_event_type_t type() const
-        {
-            return _type;
-        }
-
-        utf8_codepoint codepoint() const
-        {
-            SMOL_ASSERT(is_keyboard_event(_type));
-            return _keyboard.codepoint;
-        }
-
-        key_code_t keycode() const
-        {
-            SMOL_ASSERT(is_keyboard_event(_type));
-            return _keyboard.keycode;
-        }
-
-        mouse_button_t mouse_button() const
-        {
-            SMOL_ASSERT(is_mouse_event(_type));
-            return _mouse.button;
-        }
-
-        vec2 position() const
-        {
-            SMOL_ASSERT(is_mouse_event(_type));
-            return _mouse.position;
-        }
-
-        modifier_keys modifiers() const
-        {
-            return _modifiers;
-        }
-
-        vec2 scroll() const
-        {
-            SMOL_ASSERT(_type == input_event_type::wheel_scroll);
-            return _scroll;
-        }
+        input_event();
+        input_event_type_t type() const;
+        utf8_codepoint codepoint() const;
+        key_code_t keycode() const;
+        mouse_button_t mouse_button() const;
+        vec2 position() const;
+        modifier_keys modifiers() const;
+        vec2 scroll() const;
     private:
-        input_event_type_t _type;
+        input_event_type_t _type = input_event_type::invalid;
         union
         {
             struct {

@@ -1,5 +1,4 @@
 #include "globals.hpp"
-#include "utilities.hpp"
 #include "audio.hpp"
 #include "work_queue.hpp"
 #include "logger.hpp"

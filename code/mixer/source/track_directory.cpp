@@ -1,4 +1,3 @@
-#include "utilities.hpp"
 #include "logger.hpp"
 #include "audio.hpp"
 #include "serialization.hpp"

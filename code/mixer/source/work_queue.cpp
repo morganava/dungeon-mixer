@@ -1,5 +1,4 @@
 #include "logger.hpp"
-#include "utilities.hpp"
 #include "work_queue.hpp"
 
 namespace dm

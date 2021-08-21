@@ -1,6 +1,5 @@
 #include "logger.hpp"
 #include "input.hpp"
-#include "utilities.hpp"
 
 namespace dm
 {
@@ -248,6 +247,52 @@ namespace dm
 
         return retval;
     }
+
+    // input_event
+
+    input_event::input_event() { }
+
+    input_event_type_t input_event::type() const
+    {
+        return _type;
+    }
+
+    utf8_codepoint input_event::codepoint() const
+    {
+        SMOL_ASSERT(is_keyboard_event(_type));
+        return _keyboard.codepoint;
+    }
+
+    key_code_t input_event::keycode() const
+    {
+        SMOL_ASSERT(is_keyboard_event(_type));
+        return _keyboard.keycode;
+    }
+
+    mouse_button_t input_event::mouse_button() const
+    {
+        SMOL_ASSERT(is_mouse_event(_type));
+        return _mouse.button;
+    }
+
+    vec2 input_event::position() const
+    {
+        SMOL_ASSERT(is_mouse_event(_type));
+        return _mouse.position;
+    }
+
+    modifier_keys input_event::modifiers() const
+    {
+        return _modifiers;
+    }
+
+    vec2 input_event::scroll() const
+    {
+        SMOL_ASSERT(_type == input_event_type::wheel_scroll);
+        return _scroll;
+    }
+
+    // input
 
     void input::initialize()
     {
@@ -713,4 +758,49 @@ namespace dm
         MX_LOG_INFO("Set clipboard : '{}'", str);
         glfwSetClipboardString(g_window, str.c_str());
     }
+}
+
+using namespace std;
+ostream& operator<<(ostream& out, dm::input_event evt)
+{
+    return out << "{ type : " << evt.type() << " } ";
+}
+
+// modifier_keys
+ostream& operator<<(ostream& out, dm::modifier_keys mod)
+{
+    out << "[";
+    const char* comma = ", ";
+    const char* delimit = " ";
+    if (mod.shift)
+    {
+        out << delimit << "shift";
+        delimit = comma;
+    }
+
+    if (mod.control)
+    {
+        out << delimit << "control";
+        delimit = comma;
+    }
+
+    if (mod.alt)
+    {
+        out << delimit << "alt";
+        delimit = comma;
+    }
+
+    if (mod.super)
+    {
+        out << delimit << "super";
+        delimit = comma;
+    }
+
+    if (mod.num_lock)
+    {
+        out << delimit << "num_lock";
+    }
+
+    out << " ]";
+    return out;
 }
