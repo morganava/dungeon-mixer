@@ -758,49 +758,49 @@ namespace dm
         MX_LOG_INFO("Set clipboard : '{}'", str);
         glfwSetClipboardString(g_window, str.c_str());
     }
+
+    std::ostream& operator<<(std::ostream& out, input_event evt)
+    {
+        return out << "{ type : " << evt.type() << " } ";
+    }
+
+    // modifier_keys
+    std::ostream& operator<<(std::ostream& out, modifier_keys mod)
+    {
+        out << "[";
+        const char* comma = ", ";
+        const char* delimit = " ";
+        if (mod.shift)
+        {
+            out << delimit << "shift";
+            delimit = comma;
+        }
+
+        if (mod.control)
+        {
+            out << delimit << "control";
+            delimit = comma;
+        }
+
+        if (mod.alt)
+        {
+            out << delimit << "alt";
+            delimit = comma;
+        }
+
+        if (mod.super)
+        {
+            out << delimit << "super";
+            delimit = comma;
+        }
+
+        if (mod.num_lock)
+        {
+            out << delimit << "num_lock";
+        }
+
+        out << " ]";
+        return out;
+    }
 }
 
-using namespace std;
-ostream& operator<<(ostream& out, dm::input_event evt)
-{
-    return out << "{ type : " << evt.type() << " } ";
-}
-
-// modifier_keys
-ostream& operator<<(ostream& out, dm::modifier_keys mod)
-{
-    out << "[";
-    const char* comma = ", ";
-    const char* delimit = " ";
-    if (mod.shift)
-    {
-        out << delimit << "shift";
-        delimit = comma;
-    }
-
-    if (mod.control)
-    {
-        out << delimit << "control";
-        delimit = comma;
-    }
-
-    if (mod.alt)
-    {
-        out << delimit << "alt";
-        delimit = comma;
-    }
-
-    if (mod.super)
-    {
-        out << delimit << "super";
-        delimit = comma;
-    }
-
-    if (mod.num_lock)
-    {
-        out << delimit << "num_lock";
-    }
-
-    out << " ]";
-    return out;
-}

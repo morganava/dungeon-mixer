@@ -9,4 +9,6 @@ namespace dm
     }
 }
 
-std::ostream& operator<<(std::ostream&, const sf::Vector3f&);
+namespace sf {
+    std::ostream& operator<<(std::ostream&, const Vector3f&);
+}

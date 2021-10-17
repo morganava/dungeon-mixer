@@ -187,11 +187,11 @@ namespace smol
     };
 
     size_t calc_hash(const smol::utf8_string& str, size_t seed);
-}
 
-std::ostream& operator<<(std::ostream& out, const smol::utf8_codepoint cp);
-std::ostream& operator<<(std::ostream& out, const smol::utf8_string& str);
-std::ostream& operator<<(std::ostream& out, const smol::utf8_string_view& str);
+    std::ostream& operator<<(std::ostream& out, const utf8_codepoint cp);
+    std::ostream& operator<<(std::ostream& out, const utf8_string& str);
+    std::ostream& operator<<(std::ostream& out, const utf8_string_view& str);
+}
 
 SMOL_MAKE_STD_HASH(smol::utf8_codepoint);
 SMOL_MAKE_STD_HASH(smol::utf8_string);

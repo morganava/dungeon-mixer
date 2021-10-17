@@ -517,6 +517,24 @@ namespace smol
 
         return it;
     }
+
+    std::ostream& operator<<(std::ostream& out, const smol::utf8_codepoint cp)
+    {
+        char buffer[5] = {0};
+        ::utf8proc_encode_char(cp.value(), (utf8proc_uint8_t*)buffer);
+        out << buffer;
+        return out;
+    }
+
+    std::ostream& operator<<(std::ostream& out, const smol::utf8_string& str)
+    {
+        return out << str.c_str();
+    }
+
+    std::ostream& operator<<(std::ostream& out, const smol::utf8_string_view& sv)
+    {
+        return out.write(sv.begin(), sv.size());
+    }
 }
 
 namespace nlohmann
@@ -533,22 +551,3 @@ namespace nlohmann
     }
 }
 
-// utf8_string
-using namespace std;
-ostream& operator<<(ostream& out, const smol::utf8_codepoint cp)
-{
-    char buffer[5] = {0};
-    ::utf8proc_encode_char(cp.value(), (utf8proc_uint8_t*)buffer);
-    out << buffer;
-    return out;
-}
-
-ostream& operator<<(ostream& out, const smol::utf8_string& str)
-{
-    return out << str.c_str();
-}
-
-ostream& operator<<(ostream& out, const smol::utf8_string_view& sv)
-{
-    return out.write(sv.begin(), sv.size());
-}

@@ -252,7 +252,7 @@ namespace dm
         } _mouse_state;
     };
     MX_MAKE_SERVICE(input, worker_flag::ui);
-}
 
-std::ostream& operator<<(std::ostream&, dm::input_event);
-std::ostream& operator<<(std::ostream&, dm::modifier_keys);
+    std::ostream& operator<<(std::ostream&, input_event);
+    std::ostream& operator<<(std::ostream&, modifier_keys);
+}
