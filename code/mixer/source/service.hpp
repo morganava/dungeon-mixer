@@ -18,6 +18,15 @@ namespace dm
             return data;
         }
 
+        constexpr TYPE& get()
+        {
+            if constexpr (allowed_threads<TYPE>::value != worker_flag::any)
+            {
+                SMOL_ASSERT(can_call_from_current_thread(allowed_threads<TYPE>::value));
+            }
+            return data;
+        }
+
         constexpr TYPE* operator->()
         {
             if constexpr (allowed_threads<TYPE>::value != worker_flag::any)
