@@ -1,8 +1,8 @@
-#include "service.hpp"
-#include "input.hpp"
-#include "nanovg.hpp"
-#include "imgui.hpp"
-#include "ui.hpp"
+#include "../service.hpp"
+#include "../input.hpp"
+#include "../nanovg.hpp"
+#include "../imgui.hpp"
+#include "../ui.hpp"
 
 namespace dm
 {

@@ -1,6 +1,6 @@
-#include "imgui.hpp"
-#include "input.hpp"
-#include "logger.hpp"
+#include "../imgui.hpp"
+#include "../input.hpp"
+#include "../logger.hpp"
 
 namespace dm
 {

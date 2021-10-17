@@ -25,16 +25,16 @@ add_executable(dungeon_mixer
     nanovg.cpp
     stylesheet.cpp
     # imgui
-    imgui.cpp
-    imgui.scroll_area.cpp
-    imgui.flex_box.cpp
-    imgui.label.cpp
-    imgui.button.cpp
-    imgui.text_box.cpp
-    imgui.slider.cpp
-    imgui.range_slider.cpp
-    imgui.checkbox.cpp
-    imgui.context_menu.cpp
+    imgui/imgui.cpp
+    imgui/scroll_area.cpp
+    imgui/flex_box.cpp
+    imgui/label.cpp
+    imgui/button.cpp
+    imgui/text_box.cpp
+    imgui/slider.cpp
+    imgui/range_slider.cpp
+    imgui/checkbox.cpp
+    imgui/context_menu.cpp
     # audio backend
     audio_data.cpp
     audio_directory.cpp

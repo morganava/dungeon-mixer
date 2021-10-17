@@ -1,5 +1,5 @@
-#include "imgui.hpp"
-#include "input.hpp"
+#include "../imgui.hpp"
+#include "../input.hpp"
 
 namespace dm
 {
