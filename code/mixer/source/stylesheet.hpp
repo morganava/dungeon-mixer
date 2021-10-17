@@ -103,6 +103,6 @@ namespace dm
 
         friend void nlohmann::from_json(const nl::json&, style_resolver&);
     };
-    MX_MAKE_SINGLETON(style_resolver, worker_flag::ui);
+    MX_MAKE_SERVICE(style_resolver, worker_flag::ui);
 }
 

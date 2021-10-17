@@ -56,7 +56,7 @@ namespace dm
         TYPE data;
     };
 
-    #define MX_MAKE_SINGLETON_IMPL(TYPE, NAME, ALLOWED_THREADS) \
+    #define MX_MAKE_SERVICE_IMPL(TYPE, NAME, ALLOWED_THREADS) \
         inline constexpr dm::service<TYPE>& g_##NAME = *smol::singleton<dm::service<TYPE>>::instance.get(); \
         inline constexpr TYPE& g_##NAME##_unsafe = g_##NAME.unsafe_get(); \
         template<typename... ARGS> \
@@ -64,5 +64,5 @@ namespace dm
         constexpr void free_##NAME() { smol::singleton<dm::service<TYPE>>::instance.free(); } \
         template<> struct allowed_threads<TYPE> { constexpr static worker_flag_t value=(ALLOWED_THREADS); };
 
-    #define MX_MAKE_SINGLETON(TYPE, ALLOWED_THREADS) MX_MAKE_SINGLETON_IMPL(TYPE, TYPE, ALLOWED_THREADS)
+    #define MX_MAKE_SERVICE(TYPE, ALLOWED_THREADS) MX_MAKE_SERVICE_IMPL(TYPE, TYPE, ALLOWED_THREADS)
 }

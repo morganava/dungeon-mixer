@@ -55,6 +55,6 @@ namespace dm
 
         friend class serialization_manager;
     };
-    MX_MAKE_SINGLETON(string_manager, worker_flag::any);
+    MX_MAKE_SERVICE(string_manager, worker_flag::any);
     constexpr inline auto& g_strings = g_string_manager;
 }

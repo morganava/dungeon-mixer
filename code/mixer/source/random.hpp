@@ -14,5 +14,5 @@ namespace dm
         std::mutex _mutex;
         std::minstd_rand _rand;
     };
-    MX_MAKE_SINGLETON(random, worker_flag::any);
+    MX_MAKE_SERVICE(random, worker_flag::any);
 }

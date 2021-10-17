@@ -66,7 +66,7 @@ namespace dm
             widget_id_t _current_window_widget = widget_id::invalid;
         };
     }
-    MX_MAKE_SINGLETON_IMPL(imgui::context, context, worker_flag::ui);
+    MX_MAKE_SERVICE_IMPL(imgui::context, context, worker_flag::ui);
     namespace imgui
     {
         struct widget_data

@@ -80,5 +80,5 @@ namespace dm
             "[{:f}][INFO] {}\n",
         };
     };
-    MX_MAKE_SINGLETON(logger, worker_flag::any);
+    MX_MAKE_SERVICE(logger, worker_flag::any);
 }

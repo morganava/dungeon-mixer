@@ -177,7 +177,7 @@ namespace dm
 
         command_queue _previous, _current;
     };
-    MX_MAKE_SINGLETON(nanovg, worker_flag::ui);
+    MX_MAKE_SERVICE(nanovg, worker_flag::ui);
 }
 
 namespace nlohmann

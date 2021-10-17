@@ -54,5 +54,5 @@ namespace dm
         double pixel_ratio = 0.0;
         double previousTime = 0.0;
     };
-    MX_MAKE_SINGLETON(graphics, worker_flag::ui);
+    MX_MAKE_SERVICE(graphics, worker_flag::ui);
 }
