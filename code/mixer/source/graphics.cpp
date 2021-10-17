@@ -8,9 +8,6 @@
 
 namespace dm
 {
-    // compile hack for input manager
-    GLFWwindow* g_window = nullptr;
-
     modifier_keys graphics::GLFW_MOD_to_modifier_keys(int32_t mods)
     {
         modifier_keys retval;
@@ -81,16 +78,20 @@ namespace dm
 
     void graphics::window_size_func(GLFWwindow* window, int width, int height)
     {
-        g_graphics->window_width = width;
-        g_graphics->window_height = height;
-        g_graphics->pixel_ratio = (double)g_graphics->framebuffer_width / (double)g_graphics->window_width;
+        auto& self = g_graphics.get();
+
+        self.window_width = width;
+        self.window_height = height;
+        self.pixel_ratio = (double)self.framebuffer_width / (double)self.window_width;
     }
 
     void graphics::framebuffer_size_func(GLFWwindow* window, int width, int height)
     {
-        g_graphics->framebuffer_width = width;
-        g_graphics->framebuffer_height = height;
-        g_graphics->pixel_ratio = (double)g_graphics->framebuffer_width / (double)g_graphics->window_width;
+        auto& self = g_graphics.get();
+
+        self.framebuffer_width = width;
+        self.framebuffer_height = height;
+        self.pixel_ratio = (double)self.framebuffer_width / (double)self.window_width;
 
         glViewport(0, 0, width, height);
     }
@@ -116,8 +117,6 @@ namespace dm
         glfwWindowHint(GLFW_SAMPLES, 4);
 
         window = glfwCreateWindow(1024, 768, "Dungeon Mixer", NULL, NULL);
-        // todo: remove me please thanks
-        g_window = window;
         SMOL_THROW_IF_NULL(window);
         glfwMakeContextCurrent(window);
 

@@ -32,6 +32,8 @@ namespace dm
     public:
         graphics();
         ~graphics();
+
+        GLFWwindow* get_window() { return window; }
     private:
         void update();
 

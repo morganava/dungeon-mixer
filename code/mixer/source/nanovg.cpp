@@ -7,8 +7,6 @@
 using namespace smol;
 namespace dm
 {
-    extern GLFWwindow* g_window;
-
     // NanoVG
 
     void nanovg::create_context()

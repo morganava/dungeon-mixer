@@ -1,10 +1,9 @@
 #include "logger.hpp"
 #include "input.hpp"
+#include "graphics.hpp"
 
 namespace dm
 {
-    extern GLFWwindow* g_window;
-
     constexpr modifier_keys operator&(const modifier_keys& left, const modifier_keys& right)
     {
         return
@@ -592,7 +591,7 @@ namespace dm
     {
         if (_mouse_state.current.cursor != _mouse_state.previous.cursor)
         {
-            glfwSetCursor(g_window, _mouse_cursors[static_cast<size_t>(_mouse_state.current.cursor)]);
+            glfwSetCursor(g_graphics_unsafe.get_window(), _mouse_cursors[static_cast<size_t>(_mouse_state.current.cursor)]);
         }
     }
 
@@ -744,7 +743,7 @@ namespace dm
 
     utf8_string input::get_clipboard_string() const
     {
-        auto retval = glfwGetClipboardString(g_window);
+        auto retval = glfwGetClipboardString(g_graphics_unsafe.get_window());
         MX_LOG_INFO("Get clipboard : '{}'", retval ? retval : "(null)");
         if (retval != nullptr)
         {
@@ -756,7 +755,7 @@ namespace dm
     void input::set_clipboard_string(const utf8_string& str)
     {
         MX_LOG_INFO("Set clipboard : '{}'", str);
-        glfwSetClipboardString(g_window, str.c_str());
+        glfwSetClipboardString(g_graphics_unsafe.get_window(), str.c_str());
     }
 
     std::ostream& operator<<(std::ostream& out, input_event evt)
