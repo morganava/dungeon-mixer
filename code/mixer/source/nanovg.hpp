@@ -120,7 +120,7 @@ namespace dm
             template<typename T>
             void push_back(T&& val) {
                 SMOL_ASSERT(_currentLayer != draw_layer::invalid && _currentLayer < draw_layer::count);
-                _commands[static_cast<size_t>(_currentLayer)].push_back(std::forward<T>(val));
+                _commands[static_cast<size_t>(_currentLayer)].write(std::forward<T>(val));
             }
 
             template<typename T>
@@ -130,7 +130,7 @@ namespace dm
                     idx < static_cast<size_t>(draw_layer::count);
                     idx++)
                 {
-                    if (_commands[idx].next<T>(out)) {
+                    if (_commands[idx].read<T>(out)) {
                         return true;
                     }
                 }
@@ -169,7 +169,7 @@ namespace dm
             } _mode = mode::reading;
 
             draw_layer_t _currentLayer = draw_layer::middleground;
-            std::array<hash_buffer, static_cast<size_t>(draw_layer::count)> _commands;
+            std::array<serialization_buffer, static_cast<size_t>(draw_layer::count)> _commands;
         };
 
         command_queue _previous, _current;

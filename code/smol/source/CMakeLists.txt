@@ -13,7 +13,6 @@ add_library(smol STATIC
     geometry.cpp
     # data structures
     serialization_buffer.cpp
-    hash_buffer.cpp
     tag_map.cpp
     linear_constraint_solver.cpp)
 
