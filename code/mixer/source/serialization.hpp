@@ -1,13 +1,11 @@
 #pragma once
 
-#include "enums.hpp"
-#include "utilities.hpp"
-#include "singleton.hpp"
+#include "service.hpp"
 #include "audio.hpp"
 
 namespace dm
 {
-    MX_MAKE_ENUM(content_type, uint_fast8_t,
+    SMOL_MAKE_ENUM(content_type, uint_fast8_t,
         stylesheet,
         strings,
         playlist
@@ -35,8 +33,8 @@ namespace dm
         struct
         {
             bool autosaveRequested = false;
-            decltype(std::chrono::system_clock::now()) timeRequested;
+            decltype(std::chrono::steady_clock::now()) timeRequested;
         } record[static_cast<size_t>(content_type::count)];
     };
-    MX_MAKE_SINGLETON(serialization_manager, worker_flag::any);
+    MX_MAKE_SERVICE(serialization_manager, worker_flag::any);
 }

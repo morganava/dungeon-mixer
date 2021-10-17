@@ -1,5 +1,4 @@
 #include "string_manager.hpp"
-#include "utilities.hpp"
 #include "work_queue.hpp"
 #include "logger.hpp"
 #include "serialization.hpp"

@@ -1,4 +1,3 @@
-#include "utilities.hpp"
 #include "work_queue.hpp"
 #include "logger.hpp"
 #include "audio.hpp"
@@ -64,7 +63,7 @@ namespace dm
                 break;
                 default:
                 {
-                    MX_FAIL_FAST("invalid audio_data_state : {}", static_cast<uint_fast8_t>(state));
+                    SMOL_FAIL_FAST("invalid audio_data_state : {}", static_cast<uint_fast8_t>(state));
                 }
             }
         }
@@ -72,7 +71,7 @@ namespace dm
 
     audio_entry& audio_directory::get_entry(audio_handle_t handle)
     {
-        MX_ASSERT(handle != audio_handle::invalid && static_cast<size_t>(handle) < _entries.size());
+        SMOL_ASSERT(handle != audio_handle::invalid && static_cast<size_t>(handle) < _entries.size());
         return _entries[static_cast<size_t>(handle)];
     }
 
@@ -104,12 +103,12 @@ namespace dm
         audio_entry entry = {id, std::move(title), data, 0.0f};
         // get key
         audio_handle_t key = next_audio_handle();
-        MX_ASSERT(static_cast<size_t>(key) == _entries.size());
+        SMOL_ASSERT(static_cast<size_t>(key) == _entries.size());
         // update tag map
         _tag_map.add_key(key, tags);
         // update our id map (checking for collisions)
         auto idIt = _id_map.find(id);
-        MX_ASSERT(idIt == _id_map.end());
+        SMOL_ASSERT(idIt == _id_map.end());
         _id_map[id] = key;
 
         // push entry

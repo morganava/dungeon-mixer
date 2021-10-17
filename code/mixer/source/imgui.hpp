@@ -1,23 +1,20 @@
 #pragma once
 
-#include "color.hpp"
-#include "array.hpp"
 #include "stylesheet.hpp"
-#include "enums.hpp"
-#include "callback.hpp"
+#include "imgui/callback.hpp"
 
 namespace dm
 {
     // immmediate mode gui
     namespace imgui
     {
-        MX_MAKE_ENUM(render_pass, uint_fast8_t,
+        SMOL_MAKE_ENUM(render_pass, uint_fast8_t,
             geometry, /* only calculates layout information */
             full /* layout, input, render */
         );
 
         // widget id
-        MX_MAKE_HANDLE_ENUM(widget_id,
+        SMOL_MAKE_HANDLE_ENUM(widget_id,
             null
         );
 
@@ -69,7 +66,7 @@ namespace dm
             widget_id_t _current_window_widget = widget_id::invalid;
         };
     }
-    MX_MAKE_SINGLETON_IMPL(imgui::context, context, worker_flag::ui);
+    MX_MAKE_SERVICE_IMPL(imgui::context, context, worker_flag::ui);
     namespace imgui
     {
         struct widget_data
@@ -77,10 +74,10 @@ namespace dm
             widget_id_t id = next_widget_id();
         };
 
-        MX_MAKE_FLAG_ENUM(widget_flag, uint32_t,
-            has_children = MX_FLAG(0),
-            scissors     = MX_FLAG(1),
-            windows      = MX_FLAG(2)
+        SMOL_MAKE_FLAG_ENUM(widget_flag, uint32_t,
+            has_children = SMOL_FLAG(0),
+            scissors     = SMOL_FLAG(1),
+            windows      = SMOL_FLAG(2)
         );
 
         // widget base-class
@@ -118,7 +115,7 @@ namespace dm
             constexpr rect scissor() const {return _scissor; }
             constexpr rect childScissor() const {return _childScissor; }
 
-            array<utf8_string> tags;
+            array<smol::utf8_string> tags;
 
             void increment_child_count() { _childCounter++; }
 
@@ -214,7 +211,7 @@ namespace dm
                         self.push_widget();
                         return true;
                     default:
-                        MX_FAIL_FAST();
+                        SMOL_FAIL_FAST();
                 }
                 return false;
             }
@@ -359,9 +356,9 @@ namespace dm
         //
 
         // scroll_area
-        MX_MAKE_FLAG_ENUM(scroll_direction, uint_fast8_t,
-            horizontal = MX_FLAG(0),
-            vertical   = MX_FLAG(1),
+        SMOL_MAKE_FLAG_ENUM(scroll_direction, uint_fast8_t,
+            horizontal = SMOL_FLAG(0),
+            vertical   = SMOL_FLAG(1),
             both       = horizontal | vertical
         );
 
@@ -440,9 +437,9 @@ namespace dm
 
         struct label_data : widget_data
         {
-            utf8_string text;
+            smol::utf8_string text;
             label_data() = default;
-            label_data(utf8_string text) : text(std::move(text)) {}
+            label_data(smol::utf8_string text) : text(std::move(text)) {}
         };
 
         struct widget_label : public widget<widget_label, element_type::label, label_data>
@@ -458,8 +455,8 @@ namespace dm
         {
             button_data() = default;
             // todo: const string& instead?
-            button_data(utf8_string text) : text(std::move(text)) {}
-            utf8_string text;
+            button_data(smol::utf8_string text) : text(std::move(text)) {}
+            smol::utf8_string text;
             friend struct widget_button;
         };
 
@@ -481,7 +478,7 @@ namespace dm
 
         /// text box
 
-        MX_MAKE_ENUM(text_box_action, uint_fast8_t,
+        SMOL_MAKE_ENUM(text_box_action, uint_fast8_t,
             empty,
             write_whitespace,
             write_nonwhitespace,
@@ -495,9 +492,9 @@ namespace dm
 
         struct text_box_data : widget_data
         {
-            utf8_stringbuffer sb;
-            utf8_string text;
-            utf8_string placeholderText;
+            smol::utf8_stringbuffer sb;
+            smol::utf8_string text;
+            smol::utf8_string placeholderText;
             double textOffset = 0.0;
 
             size_t selectBegin = 0;
@@ -505,14 +502,14 @@ namespace dm
             text_box_action_t previousAction = text_box_action::empty;
             struct snapshot
             {
-                utf8_string text;
+                smol::utf8_string text;
                 size_t selectBegin;
                 size_t selectEnd;
             };
             std::vector<snapshot> undoStack;
             std::vector<snapshot> redoStack;
             text_box_data() = default;
-            text_box_data(utf8_string text, utf8_string placeholderText)
+            text_box_data(smol::utf8_string text, smol::utf8_string placeholderText)
             : sb(text)
             , text(std::move(text))
             , placeholderText(std::move(placeholderText))
@@ -527,9 +524,9 @@ namespace dm
             void middle_update_impl();
             void first_render_impl() const;
 
-            callback<const utf8_string&> on_submit;
-            callback<const utf8_string&> on_change;
-            const utf8_string& text() const;
+            callback<const smol::utf8_string&> on_submit;
+            callback<const smol::utf8_string&> on_change;
+            const smol::utf8_string& text() const;
         };
 
         // slider
@@ -566,7 +563,7 @@ namespace dm
 
         // range slider
 
-        MX_MAKE_ENUM(range_slider_handle, uint_fast8_t,
+        SMOL_MAKE_ENUM(range_slider_handle, uint_fast8_t,
             low,
             high
         );

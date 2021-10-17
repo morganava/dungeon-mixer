@@ -1,13 +1,12 @@
 #pragma once
 
-#include "enums.hpp"
-#include "singleton.hpp"
+#include "service.hpp"
 
 namespace dm
 {
     typedef int32_t key_code_t;
 
-    MX_MAKE_ENUM(mouse_button, uint_fast8_t,
+    SMOL_MAKE_ENUM(mouse_button, uint_fast8_t,
         left,
         right,
         middle
@@ -17,7 +16,7 @@ namespace dm
     static_assert(static_cast<uint_fast8_t>(mouse_button::middle) == GLFW_MOUSE_BUTTON_MIDDLE);
     static_assert(static_cast<uint_fast8_t>(mouse_button::count) == 3);
 
-    MX_MAKE_ENUM(input_frame, uint_fast8_t,
+    SMOL_MAKE_ENUM(input_frame, uint_fast8_t,
         current,
         previous
     );
@@ -74,7 +73,7 @@ namespace dm
     };
 
     // raw events from glfw
-    MX_MAKE_ENUM(raw_input_event_type, uint_fast8_t,
+    SMOL_MAKE_ENUM(raw_input_event_type, uint_fast8_t,
         char_press,
         key_down,
         key_repeat,
@@ -131,7 +130,7 @@ namespace dm
         { }
     };
 
-    MX_MAKE_ENUM(input_event_type, uint_fast8_t,
+    SMOL_MAKE_ENUM(input_event_type, uint_fast8_t,
         // keyboard
         char_press,
         key_down,
@@ -166,51 +165,16 @@ namespace dm
     class input_event
     {
     public:
-        input_event()
-        : _type(input_event_type::invalid)
-        { }
-
-        input_event_type_t type() const
-        {
-            return _type;
-        }
-
-        utf8_codepoint codepoint() const
-        {
-            MX_ASSERT(is_keyboard_event(_type));
-            return _keyboard.codepoint;
-        }
-
-        key_code_t keycode() const
-        {
-            MX_ASSERT(is_keyboard_event(_type));
-            return _keyboard.keycode;
-        }
-
-        mouse_button_t mouse_button() const
-        {
-            MX_ASSERT(is_mouse_event(_type));
-            return _mouse.button;
-        }
-
-        vec2 position() const
-        {
-            MX_ASSERT(is_mouse_event(_type));
-            return _mouse.position;
-        }
-
-        modifier_keys modifiers() const
-        {
-            return _modifiers;
-        }
-
-        vec2 scroll() const
-        {
-            MX_ASSERT(_type == input_event_type::wheel_scroll);
-            return _scroll;
-        }
+        input_event();
+        input_event_type_t type() const;
+        utf8_codepoint codepoint() const;
+        key_code_t keycode() const;
+        mouse_button_t mouse_button() const;
+        vec2 position() const;
+        modifier_keys modifiers() const;
+        vec2 scroll() const;
     private:
-        input_event_type_t _type;
+        input_event_type_t _type = input_event_type::invalid;
         union
         {
             struct {
@@ -228,7 +192,7 @@ namespace dm
         friend class click_detector;
     };
 
-    MX_MAKE_ENUM(mouse_cursor, uint_fast8_t,
+    SMOL_MAKE_ENUM(mouse_cursor, uint_fast8_t,
         arrow,
         ibeam,
         crosshair,
@@ -287,7 +251,7 @@ namespace dm
             click_detector mouse_buttons[static_cast<size_t>(mouse_button::count)];
         } _mouse_state;
     };
-    MX_MAKE_SINGLETON(input, worker_flag::ui);
+    MX_MAKE_SERVICE(input, worker_flag::ui);
 }
 
 std::ostream& operator<<(std::ostream&, dm::input_event);

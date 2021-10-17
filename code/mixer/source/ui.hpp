@@ -1,13 +1,12 @@
 #pragma once
 
-#include "singleton.hpp"
+#include "service.hpp"
 #include "imgui.hpp"
 #include "audio.hpp"
-#include "enums.hpp"
 
 namespace dm
 {
-    MX_MAKE_ENUM(screen, uint_fast8_t,
+    SMOL_MAKE_ENUM(screen, uint_fast8_t,
         playlist,
         edit,
         about
@@ -212,5 +211,5 @@ namespace dm
             } edit;
         } root;
     };
-    MX_MAKE_SINGLETON(ui, worker_flag::ui);
+    MX_MAKE_SERVICE(ui, worker_flag::ui);
 }

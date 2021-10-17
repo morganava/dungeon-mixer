@@ -1,48 +1,44 @@
 #pragma once
 
-#include "utilities.hpp"
-#include "geometry.hpp"
-#include "singleton.hpp"
-#include "hash.hpp"
-#include "color.hpp"
-#include "hash_buffer.hpp"
-#include "enums.hpp"
-#include "array.hpp"
+#include "service.hpp"
 
 namespace dm
 {
-    class utf8_string;
-
     // for now we should only need 3 layers
-    MX_MAKE_ENUM(draw_layer, uint_fast8_t,
+    SMOL_MAKE_ENUM(draw_layer, uint_fast8_t,
         background,
         middleground,
         foreground
     );
 
-    MX_MAKE_EXPLICIT_ENUM(halign, uint_fast8_t,
+    SMOL_MAKE_EXPLICIT_ENUM(halign, uint_fast8_t,
         left = NVG_ALIGN_LEFT,
         center = NVG_ALIGN_CENTER,
         right = NVG_ALIGN_RIGHT
     );
 
-    MX_MAKE_EXPLICIT_ENUM(valign, uint_fast8_t,
+    SMOL_MAKE_EXPLICIT_ENUM(valign, uint_fast8_t,
         top = NVG_ALIGN_TOP,
         middle = NVG_ALIGN_MIDDLE,
         bottom = NVG_ALIGN_BOTTOM
     );
 
-    MX_MAKE_ENUM(background_image_mode, uint_fast8_t,
+    SMOL_MAKE_ENUM(background_image_mode, uint_fast8_t,
         stretch,
         tile,
         center,
         contain
     );
 
-    MX_MAKE_HANDLE_ENUM(font_handle);
-    MX_MAKE_HANDLE_ENUM(image_handle,
+    SMOL_MAKE_HANDLE_ENUM(font_handle);
+    SMOL_MAKE_HANDLE_ENUM(image_handle,
         debug
     );
+
+    constexpr NVGcolor nvg(const smol::color& c)
+    {
+        return {c.r, c.g, c.b, c.a};
+    }
 
     class nanovg
     {
@@ -66,17 +62,17 @@ namespace dm
         void stroke_rect(const rectf&, float strokeWidth, const color&);
         void stroke_rounded_rect(const rectf&, const cornersf&, float strokeWidth, const color&);
         void stroke_circle(const circlef&, float strokeWidth, const color&);
-        void stroke_path(const dm::array<vec2f>&, float strokeWidth, const color&);
+        void stroke_path(const smol::array<vec2f>&, float strokeWidth, const color&);
 
-        void draw_text(const rectf& bounds, float textOffset, font_handle_t font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const utf8_string& str);
-        void draw_text_with_caret(const rectf& bounds, float textOffset, font_handle_t font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const utf8_string& str, int32_t caretIndex, float caretWidth, const color& caretColor);
-        void draw_text_with_selection(const rectf& bounds, float textOffset, font_handle_t font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const utf8_string& str, int32_t selectBegin, int32_t selectEnd, const color& selectedFontColor, const color& selectionColor);
+        void draw_text(const rectf& bounds, float textOffset, font_handle_t font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const smol::utf8_string& str);
+        void draw_text_with_caret(const rectf& bounds, float textOffset, font_handle_t font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const smol::utf8_string& str, int32_t caretIndex, float caretWidth, const color& caretColor);
+        void draw_text_with_selection(const rectf& bounds, float textOffset, font_handle_t font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const smol::utf8_string& str, int32_t selectBegin, int32_t selectEnd, const color& selectedFontColor, const color& selectionColor);
 
         // gets the index into the underlying string buffer clickPoint would be closest to
-        int32_t get_caret_position(const rectf& bounds, float textOffset, font_handle_t font, float fontSize, halign_t halign, valign_t valign, const utf8_string& str, const vec2f& clickPoint);
+        int32_t get_caret_position(const rectf& bounds, float textOffset, font_handle_t font, float fontSize, halign_t halign, valign_t valign, const smol::utf8_string& str, const vec2f& clickPoint);
 
         // gets the offset from bounds beginning of caret
-        float get_caret_offset(const rectf& bounds, font_handle_t font, float fontSize, halign_t halign, valign_t valign, const utf8_string& str, size_t caretPosition);
+        float get_caret_offset(const rectf& bounds, font_handle_t font, float fontSize, halign_t halign, valign_t valign, const smol::utf8_string& str, size_t caretPosition);
     private:
         NVGcontext* _ctx = nullptr;
         size_t _same_frames = 0;
@@ -126,7 +122,7 @@ namespace dm
 
             template<typename T>
             void push_back(T&& val) {
-                MX_ASSERT(_currentLayer != draw_layer::invalid && _currentLayer < draw_layer::count);
+                SMOL_ASSERT(_currentLayer != draw_layer::invalid && _currentLayer < draw_layer::count);
                 _commands[static_cast<size_t>(_currentLayer)].push_back(std::forward<T>(val));
             }
 
@@ -145,7 +141,7 @@ namespace dm
             }
 
             void set_layer(draw_layer layer) {
-                MX_ASSERT(_mode == mode::writing);
+                SMOL_ASSERT(_mode == mode::writing);
                 _currentLayer = layer;
             }
 
@@ -181,5 +177,14 @@ namespace dm
 
         command_queue _previous, _current;
     };
-    MX_MAKE_SINGLETON(nanovg, worker_flag::ui);
+    MX_MAKE_SERVICE(nanovg, worker_flag::ui);
+}
+
+namespace nlohmann
+{
+    void from_json(const nl::json& j, dm::font_handle_t& fh);
+    void from_json(const nl::json& j, dm::image_handle_t& ih);
+    void from_json(const nl::json& j, dm::halign_t& ha);
+    void from_json(const nl::json& j, dm::valign_t& va);
+    void from_json(const nl::json& j, dm::background_image_mode_t& bim);
 }

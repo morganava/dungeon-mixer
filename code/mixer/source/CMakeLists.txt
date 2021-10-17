@@ -2,27 +2,16 @@ find_package(OpenGL REQUIRED COMPONENTS OpenGL)
 find_package(GLEW REQUIRED)
 find_package(SFML 2.4 REQUIRED COMPONENTS audio)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -Wfatal-errors -fconcepts")
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=thread")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=thread")
 
 add_executable(dungeon_mixer
     precomp.cpp
     # utilities
-    errors.cpp
     file_dialog.cpp
-    tag_map.cpp
-    hash.cpp
-    utf8_string.cpp
-    utilities.cpp
-    format.cpp
-    json.cpp
-    serialization_buffer.cpp
-    linear_constraint_solver.cpp
-    color.cpp
     random.cpp
-    uuid.cpp
     paths.cpp
+    sfml.cpp
     # main
     mixer.cpp
     # systems
@@ -36,16 +25,16 @@ add_executable(dungeon_mixer
     nanovg.cpp
     stylesheet.cpp
     # imgui
-    imgui.cpp
-    imgui.scroll_area.cpp
-    imgui.flex_box.cpp
-    imgui.label.cpp
-    imgui.button.cpp
-    imgui.text_box.cpp
-    imgui.slider.cpp
-    imgui.range_slider.cpp
-    imgui.checkbox.cpp
-    imgui.context_menu.cpp
+    imgui/imgui.cpp
+    imgui/scroll_area.cpp
+    imgui/flex_box.cpp
+    imgui/label.cpp
+    imgui/button.cpp
+    imgui/text_box.cpp
+    imgui/slider.cpp
+    imgui/range_slider.cpp
+    imgui/checkbox.cpp
+    imgui/context_menu.cpp
     # audio backend
     audio_data.cpp
     audio_directory.cpp
@@ -60,6 +49,7 @@ add_executable(dungeon_mixer
 
 target_precompile_headers(dungeon_mixer PRIVATE precomp.hpp)
 
+target_link_libraries(dungeon_mixer smol)
 target_link_libraries(dungeon_mixer xxhash)
 target_link_libraries(dungeon_mixer utf8proc)
 target_link_libraries(dungeon_mixer stb)
@@ -74,6 +64,7 @@ target_link_libraries(dungeon_mixer nativefiledialog)
 target_link_libraries(dungeon_mixer pthread)
 target_link_libraries(dungeon_mixer stdc++fs)
 
+
 include_directories(../../glfw/include)
 include_directories(../../utf8proc/include)
 include_directories(../../xxhash/include)
@@ -82,4 +73,5 @@ include_directories(../../stb/include)
 include_directories(../../nativefiledialog/include)
 include_directories(../../fmt/include)
 include_directories(../../nanovg/include)
+include_directories(../../smol/include)
 include_directories(${SFML_INCLUDE_DIR})

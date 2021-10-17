@@ -1,19 +1,16 @@
-#include "utilities.hpp"
 #include "work_queue.hpp"
 #include "logger.hpp"
 #include "audio.hpp"
 #include "random.hpp"
-#include "geometry.hpp"
-
-
+#include "sfml.hpp"
 
 namespace dm
 {
     void audio_update()
     {
         using namespace std::chrono;
-        static auto prev = system_clock::now();
-        const auto now = system_clock::now();
+        static auto prev = steady_clock::now();
+        const auto now = steady_clock::now();
 
         const auto dt = duration_cast<duration<float, std::ratio<1,1>>>(now - prev).count();
 
@@ -23,7 +20,7 @@ namespace dm
         prev = now;
 
         // todo: maybe make a way to auto-repeat a function
-        if (!g_work_manager->terminating()) {
+        if (!worker_audio.terminating()) {
             worker_audio.enqueue(audio_update, 32ms);
         }
     }
@@ -131,7 +128,7 @@ namespace dm
     {
         MX_LOG_INFO("playing track {}", trackHandle);
 
-        MX_ASSERT(_entries.find(trackHandle) == _entries.end());
+        SMOL_ASSERT(_entries.find(trackHandle) == _entries.end());
 
         auto& trackEntry = g_track_directory->get_entry(trackHandle);
         auto audioHandle = trackEntry.audio;
@@ -207,7 +204,7 @@ namespace dm
                 }
                 break;
                 default:
-                    MX_FAIL_FAST();
+                    SMOL_FAIL_FAST();
             }
 
             // position calculation
@@ -240,7 +237,7 @@ namespace dm
                 };
 
                 playbackEntry.positional = enabled;
-                playbackEntry.position = calc_cartesian();
+                playbackEntry.position = sfml(calc_cartesian());
             }
 
             playbackEntry.timeSincePlaybackEnd = 0.0f;

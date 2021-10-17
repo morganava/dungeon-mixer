@@ -1,7 +1,7 @@
 #pragma once
 
 #include "worker_enums.hpp"
-#include "singleton.hpp"
+#include "service.hpp"
 
 namespace dm
 {
@@ -83,7 +83,7 @@ namespace dm
         void try_wait();
     };
 
-    typedef std::chrono::time_point<std::chrono::system_clock> timestamp_t;
+    typedef std::chrono::time_point<std::chrono::steady_clock> timestamp_t;
 
     class work_manager
     {
@@ -97,29 +97,18 @@ namespace dm
             std::promise<void> promise;
         };
 
-        typedef struct
-        {
-            inline bool operator()(const task_item& left, const task_item& right)
-            {
-                return left.start_time < right.start_time;
-            }
-        } task_item_comparator_t;
-
     public:
         work_manager();
         ~work_manager();
 
-        bool terminating() const {return _terminating[0];}
+        void signal_termination();
 
-        // run all of the tasks in the given worker's queue
-        // returns the timestamp of the completion of the last enqueued task
-        timestamp_t do_tasks(worker_id_t id);
+        bool terminating(size_t workerIndex) const {return _terminating[workerIndex];}
 
         task_future enqueue(size_t workerIndex, run_once_task&& work, timestamp_t startTime);
 
-        worker_id current_thread() const;
+        worker_flag_t current_worker_flag() const;
     private:
-        size_t current_index() const;
 
         std::future<void> enqueue_impl(size_t workerIndex, run_once_task&& work, timestamp_t startTime);
 
@@ -134,21 +123,21 @@ namespace dm
         std::vector<task_item> _producer_queue[_worker_count];
         // worker swaps queues and reads from consumer thread
         std::vector<task_item> _consumer_queue[_worker_count];
-        // the last time the thread was working
-        timestamp_t _completion_time[_worker_count];
         // condition variables for suspending/resuming threads
         std::condition_variable _suspend_handle[_worker_count];
         // per thread flags to signal termination
         bool _terminating[_worker_count];
 
+        // our worker pool (first one is implicitly the main thread)
         std::thread _threads[_worker_count];
-        // only used for verification purposes
-        std::thread::id _thread_ids[_worker_count];
+
+        // the currently running thread's worker_flag_t
+        static thread_local worker_flag_t _worker_flag;
 
         friend class worker;
         friend void worker_thread(worker_id_t);
     };
-    MX_MAKE_SINGLETON(work_manager, worker_flag::any);
+    MX_MAKE_SERVICE(work_manager, worker_flag::any);
 
     class worker
     {
@@ -161,8 +150,9 @@ namespace dm
         template<typename Rep, typename Period>
         task_future enqueue(run_once_task&& task, std::chrono::duration<Rep, Period> delay) const
         {
-            return enqueue(std::move(task), std::chrono::system_clock::now() + delay);
+            return enqueue(std::move(task), std::chrono::steady_clock::now() + delay);
         }
+        bool terminating() const;
     };
 
     constexpr worker worker_ui(worker_id::ui);

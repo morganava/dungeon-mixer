@@ -1,5 +1,4 @@
 #include "paths.hpp"
-#include "platform.hpp"
 
 namespace dm
 {

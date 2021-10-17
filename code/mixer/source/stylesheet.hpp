@@ -1,18 +1,11 @@
 #pragma once
 
-#include "singleton.hpp"
-#include "array.hpp"
-#include "geometry.hpp"
-#include "color.hpp"
+#include "service.hpp"
 #include "nanovg.hpp"
-#include "utf8_string.hpp"
-#include "serialization_buffer.hpp"
-#include "enums.hpp"
-#include "linear_constraint_solver.hpp"
 
 namespace dm
 {
-    MX_MAKE_ENUM(element_type, uint_fast8_t,
+    SMOL_MAKE_ENUM(element_type, uint_fast8_t,
         any,
         root,
         flex_box,
@@ -32,7 +25,7 @@ namespace dm
     );
     element_type_t parse_element_type(const std::string&);
 
-    MX_MAKE_FLAG_ENUM(element_state, uint_fast8_t,
+    SMOL_MAKE_FLAG_ENUM(element_state, uint_fast8_t,
         hover    = 1 << 0,
         active   = 1 << 1,
         disabled = 1 << 2,
@@ -40,6 +33,18 @@ namespace dm
     );
     element_state_t parse_element_state(const std::string&);
 
+    struct style_declaration_set;
+    class style_resolver;
+}
+
+namespace nlohmann
+{
+    void from_json(const nl::json&, dm::element_state_t, dm::style_declaration_set&);
+    void from_json(const nl::json&, dm::style_resolver&);
+}
+
+namespace dm
+{
     struct style_sheet
     {
         #define STYLE_SHEET_ENTRY(NAME, VAL, FLAGS) std::remove_const<std::remove_reference<decltype(VAL)>::type>::type NAME = VAL;
@@ -54,16 +59,20 @@ namespace dm
         #undef STYLE_SHEET_ENTRY
     } style_entry_t;
 
+    /*
+        A style declaration set contains a list of style properties which we apply on top of an existing style
+    */
     struct style_declaration_set
     {
         style_sheet apply(const style_sheet&) const;
     private:
         mutable serialization_buffer _declarations;
-        friend void from_json(const nl::json&, element_state_t, style_declaration_set&);
+        friend void nlohmann::from_json(const nl::json&, dm::element_state_t, dm::style_declaration_set&);
     };
 
-    void from_json(const nl::json&, style_declaration_set&);
-
+    /*
+        Selector uniquely identified a type|[tags]|state tuple, every element has a selector in this format
+    */
     struct selector
     {
         element_type_t type;
@@ -92,8 +101,8 @@ namespace dm
         std::unordered_map<selector, style_declaration_set> _styleFactory;
         mutable std::unordered_map<selector, style_sheet> _cachedStyles;
 
-        friend void from_json(const nl::json&,style_resolver&);
+        friend void nlohmann::from_json(const nl::json&, style_resolver&);
     };
-    void from_json(const nl::json&, style_resolver&);
-    MX_MAKE_SINGLETON(style_resolver, worker_flag::ui);
+    MX_MAKE_SERVICE(style_resolver, worker_flag::ui);
 }
+

@@ -27,7 +27,7 @@ namespace dm
 
     std::vector<playlist_handle_t> playlist_directory::get_user_playlist_handles() const
     {
-        MX_ASSERT(_entries.size() > playlist_handle::__first_generated);
+        SMOL_ASSERT(_entries.size() > playlist_handle::__first_generated);
 
         std::vector<playlist_handle_t> retval;
         // exclude the builtin playlists
@@ -43,7 +43,7 @@ namespace dm
 
     void playlist_directory::remove_entry(playlist_handle_t playlist)
     {
-        MX_ASSERT(playlist >= playlist_handle::__first_generated);
+        SMOL_ASSERT(playlist >= playlist_handle::__first_generated);
 
         _entries.erase(playlist);
 
@@ -53,7 +53,7 @@ namespace dm
     playlist_handle_t playlist_directory::add_entry(playlist_entry&& entry)
     {
         const auto handle = next_playlist_handle();
-        MX_ASSERT(_entries.find(handle) == _entries.end());
+        SMOL_ASSERT(_entries.find(handle) == _entries.end());
         _entries.insert({handle, std::move(entry)});
 
         g_serialization_manager->request_autosave(content_type::playlist);
@@ -64,14 +64,14 @@ namespace dm
     {
         auto it = _entries.find(playlist);
         // make sure the provided playlist exists
-        MX_ASSERT(it != _entries.end());
+        SMOL_ASSERT(it != _entries.end());
         auto& playlistEntry = it->second;
         return playlistEntry;
     }
 
     void playlist_directory::set_title(playlist_handle_t playlist, utf8_string&& name)
     {
-        MX_ASSERT(!is_builtin_playlist(playlist));
+        SMOL_ASSERT(!is_builtin_playlist(playlist));
         auto it = _entries.find(playlist);
         if (it == _entries.end()) return;
 
@@ -120,7 +120,7 @@ namespace dm
     void playlist_directory::clear_playlist(playlist_handle_t playlist)
     {
         auto it = _entries.find(playlist);
-        MX_ASSERT(it != _entries.end());
+        SMOL_ASSERT(it != _entries.end());
 
         it->second.atmospheres.clear();
 

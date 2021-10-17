@@ -1,20 +1,17 @@
 #pragma once
 
-#include "enums.hpp"
-#include "tag_map.hpp"
-#include "uuid.hpp"
-#include "singleton.hpp"
+#include "service.hpp"
 
 namespace dm
 {
     // maps to audio data
-    MX_MAKE_HANDLE_ENUM(audio_handle);
+    SMOL_MAKE_HANDLE_ENUM(audio_handle);
     // instantiated possibly playing audio tracks
-    MX_MAKE_HANDLE_ENUM(track_handle);
+    SMOL_MAKE_HANDLE_ENUM(track_handle);
     // collection of tracks
-    MX_MAKE_HANDLE_ENUM(atmosphere_handle);
+    SMOL_MAKE_HANDLE_ENUM(atmosphere_handle);
     // playlists
-    MX_MAKE_HANDLE_ENUM(playlist_handle,
+    SMOL_MAKE_HANDLE_ENUM(playlist_handle,
         all,
         favorites,
         playing);
@@ -32,12 +29,12 @@ namespace dm
         }
     }
 
-    MX_MAKE_ENUM(audio_type, uint_fast8_t,
+    SMOL_MAKE_ENUM(audio_type, uint_fast8_t,
         one_shot,
         loop
     );
 
-    MX_MAKE_ENUM(audio_data_state, uint_fast8_t,
+    SMOL_MAKE_ENUM(audio_data_state, uint_fast8_t,
         unloaded,
         loading,
         loaded,
@@ -99,7 +96,7 @@ namespace dm
     struct audio_entry
     {
         // track unique id
-        uuid id;
+        smol::uuid id;
         // display title
         utf8_string title;
         // backing SoundBuffers
@@ -117,22 +114,22 @@ namespace dm
     public:
         audio_directory();
         void update(float dt);
-        audio_handle_t get_audio_handle_by_id(const uuid& id) const;
+        audio_handle_t get_audio_handle_by_id(const smol::uuid& id) const;
         std::vector<audio_handle_t> get_audio_handles_by_query(const utf8_string& query) const;
 
         audio_entry& get_entry(audio_handle_t handle);
-        void add_entry(uuid&& id, utf8_string&& title, std::vector<utf8_string>&& tags, std::shared_ptr<audio_data>&& data);
+        void add_entry(smol::uuid&& id, utf8_string&& title, std::vector<utf8_string>&& tags, std::shared_ptr<audio_data>&& data);
 
     private:
         std::vector<audio_entry> _entries;
         tag_map<audio_handle_t> _tag_map;
         // map track id to track handle
-        std::unordered_map<uuid, audio_handle_t> _id_map;
+        std::unordered_map<smol::uuid, audio_handle_t> _id_map;
 
         // amount of time an unreferenced track waits before unloading data and freeing memory
         constexpr static float unload_age = 10.0f;
     };
-    MX_MAKE_SINGLETON(audio_directory, worker_flag::audio);
+    MX_MAKE_SERVICE(audio_directory, worker_flag::audio);
 
     // description for how audio is to played in an atmosphere
     struct track_entry
@@ -175,7 +172,7 @@ namespace dm
     private:
         std::unordered_map<track_handle_t, track_entry> _entries;
     };
-    MX_MAKE_SINGLETON(track_directory, worker_flag::audio);
+    MX_MAKE_SERVICE(track_directory, worker_flag::audio);
 
     struct atmosphere_entry
     {
@@ -218,7 +215,7 @@ namespace dm
         // atmoshere_handle_t to entry
         std::map<atmosphere_handle_t, atmosphere_entry> _entries;
     };
-    MX_MAKE_SINGLETON(atmosphere_directory, worker_flag::audio)
+    MX_MAKE_SERVICE(atmosphere_directory, worker_flag::audio)
 
     struct playlist_entry
     {
@@ -256,7 +253,7 @@ namespace dm
             {playlist_handle::playing,   {"Playing", {}}},
         };
     };
-    MX_MAKE_SINGLETON(playlist_directory, worker_flag::audio)
+    MX_MAKE_SERVICE(playlist_directory, worker_flag::audio)
 
     struct playback_entry
     {
@@ -296,5 +293,5 @@ namespace dm
         void sync_track(const atmosphere_entry&, track_handle_t);
         std::unordered_map<track_handle_t, playback_entry> _entries;
     };
-    MX_MAKE_SINGLETON(playback_manager, worker_flag::audio);
+    MX_MAKE_SERVICE(playback_manager, worker_flag::audio);
 }

@@ -1,17 +1,12 @@
 #include "serialization.hpp"
 #include "paths.hpp"
-#include "uuid.hpp"
-#include "utilities.hpp"
 #include "work_queue.hpp"
 #include "logger.hpp"
 #include "audio.hpp"
-#include "hash.hpp"
 #include "nanovg.hpp"
 #include "imgui.hpp"
-#include "color.hpp"
 #include "stylesheet.hpp"
 #include "ui.hpp"
-#include "geometry.hpp"
 #include "string_manager.hpp"
 
 namespace dm
@@ -21,8 +16,6 @@ namespace dm
         // must be called from audio thread
         nl::json atmosphere_entry_to_json(const dm::atmosphere_entry& atmosphereEntry)
         {
-            MX_ASSERT(g_work_manager->current_thread() == worker_id::audio);
-
             // construct atmosphere object
             auto currentAtmosphereJson = nl::json::object();
             currentAtmosphereJson["Title"] = atmosphereEntry.title;
@@ -84,12 +77,12 @@ namespace dm
             }
             else
             {
-                MX_THROW_MSG("Could not open {} for writing", tempDest);
+                SMOL_THROW_MSG("Could not open {} for writing", tempDest);
             }
         }
 
         // strips out comments and trailing commas and then passes to json::parse
-        nl::json parse_json(const memory_buffer& mb)
+        nl::json parse_json(const smol::array<uint8_t>& mb)
         {
             std::vector<uint8_t> js;
             js.reserve(mb.size());
@@ -226,7 +219,7 @@ namespace dm
 
     void serialization_manager::request_autosave(content_type_t content)
     {
-        const auto now = std::chrono::system_clock::now();
+        const auto now = std::chrono::steady_clock::now();
         worker_fileio.enqueue([=]() -> void
         {
             const auto index = static_cast<size_t>(content);
@@ -239,7 +232,7 @@ namespace dm
                 auto& entry = g_serialization_manager->record[index];
                 if (entry.autosaveRequested)
                 {
-                    const auto now = std::chrono::system_clock::now();
+                    const auto now = std::chrono::steady_clock::now();
                     const std::chrono::duration<double> duration(now - entry.timeRequested);
 
                     if (duration >= serialization_manager::AUTOSAVE_DELAY)
@@ -275,8 +268,7 @@ namespace dm
         worker_fileio.enqueue([source=std::move(source)]() -> void
         {
             MX_LOG_INFO("Loading skin: {}", source);
-
-            memory_buffer mb(source);
+            auto mb = smol::load_file(source);
 
             worker_background.enqueue([mb=std::move(mb)]() -> void
             {
@@ -307,7 +299,7 @@ namespace dm
 
                 auto manifestPath = it.path() / "manifest.json";
                 MX_LOG_INFO("Loading manifest: {}", manifestPath);
-                memory_buffer manifestData(manifestPath);
+                auto manifestData = smol::load_file(manifestPath);
 
                 worker_background.enqueue([basePath=it.path(),manifestData=std::move(manifestData)]() -> void
                 {
@@ -320,7 +312,7 @@ namespace dm
                         for(auto track : trackList)
                         {
                             utf8_string title = track["Title"];
-                            uuid audioId = track["AudioId"];
+                            smol::uuid audioId = track["AudioId"];
                             utf8_string type = track["Type"];
                             std::vector<utf8_string> tags = track["Tags"];
                             std::vector<utf8_string> filenames = track["Files"];
@@ -358,7 +350,7 @@ namespace dm
         worker_fileio.enqueue([playlistPath=std::move(playlistPath)]() -> void
         {
             MX_LOG_INFO("Loading playlist: {}", playlistPath);
-            memory_buffer bytes(playlistPath);
+            auto bytes = smol::load_file(playlistPath);
 
             worker_background.enqueue([bytes=std::move(bytes)]() -> void
             {
@@ -405,7 +397,7 @@ namespace dm
                             track_entry trackEntry;
 
                             // Id is the id of the audio_entry referenced
-                            const auto audioId = trackJson["Id"].get<uuid>();
+                            const auto audioId = trackJson["Id"].get<smol::uuid>();
                             auto audioHandle = g_audio_directory->get_audio_handle_by_id(audioId);
 
                             MX_LOG_INFO("   Id : {}", audioId);
@@ -464,14 +456,14 @@ namespace dm
                                 auto& [enabled, elevation, azimuth] = trackEntry.position;
                                 if (positionJson.is_array())
                                 {
-                                    MX_THROW_IF_FALSE(positionJson.size() == 2);
+                                    SMOL_THROW_IF_FALSE(positionJson.size() == 2);
                                     switch(positionJson.size())
                                     {
                                         case 2:
-                                            MX_THROW_IF_FALSE(positionJson[1].is_number());
+                                            SMOL_THROW_IF_FALSE(positionJson[1].is_number());
                                             azimuth = positionJson[1].get<double>();
                                         case 1:
-                                            MX_THROW_IF_FALSE(positionJson[0].is_number());
+                                            SMOL_THROW_IF_FALSE(positionJson[0].is_number());
                                             elevation = positionJson[0].get<double>();
                                     }
                                 }
@@ -480,13 +472,13 @@ namespace dm
                                     if (positionJson.contains("Azimuth"))
                                     {
                                         const auto& azimuthJson = positionJson["Azimuth"];
-                                        MX_THROW_IF_FALSE(azimuthJson.is_number());
+                                        SMOL_THROW_IF_FALSE(azimuthJson.is_number());
                                         azimuth = azimuthJson.get<double>();
                                     }
                                     if (positionJson.contains("Elevation"))
                                     {
                                         const auto& elevationJson = positionJson["Elevation"];
-                                        MX_THROW_IF_FALSE(elevationJson.is_number());
+                                        SMOL_THROW_IF_FALSE(elevationJson.is_number());
                                         elevation = elevationJson.get<double>();
                                     }
                                 }
@@ -524,7 +516,7 @@ namespace dm
                         for (auto atmosphereId : atmospheresList)
                         {
                             const auto id = atmosphereId.get<size_t>();
-                            MX_THROW_IF_FALSE(id < id_to_handle.size());
+                            SMOL_THROW_IF_FALSE(id < id_to_handle.size());
                             auto atmosphereHandle = id_to_handle[id];
                             MX_LOG_INFO("   Id : {}", id);
                             g_playlist_directory->add_atmosphere(playlistHandle, atmosphereHandle);
@@ -545,7 +537,7 @@ namespace dm
         worker_fileio.enqueue([source=std::move(source)]() -> void
         {
             MX_LOG_INFO("Loading strings: {}", source);
-            memory_buffer bytes(source);
+            auto bytes = smol::load_file(source);
 
             worker_background.enqueue([bytes=std::move(bytes)]() -> void
             {
@@ -659,7 +651,7 @@ namespace dm
                 for(const auto atmosphereHandle : playlistEntry.atmospheres)
                 {
                     auto it = atmosphereHandleToIndex.find(atmosphereHandle);
-                    MX_ASSERT(it != atmosphereHandleToIndex.end());
+                    SMOL_ASSERT(it != atmosphereHandleToIndex.end());
 
                     currentPlaylistAtmospheresJson.push_back(it->second);
                 }

@@ -1,5 +1,5 @@
-#ifndef TABLETOPIFY_PRECOMP_H
-#define TABLETOPIFY_PRECOMP_H
+#ifndef PRECOMP_H
+#define PRECOMP_H
 
  // C++
 #include <cstdarg>
@@ -78,8 +78,33 @@ namespace nl = nlohmann;
 #include <fmt/ostream.h>
 #include <fmt/printf.h>
 
+// smol
+#include <smol/macros.hpp>
+#include <smol/platform.hpp>
+#include <smol/error.hpp>
+#include <smol/memory.hpp>
+#include <smol/enum.hpp>
+#include <smol/singleton.hpp>
+#include <smol/file.hpp>
+
+#include <smol/utf8_string.hpp>
+#include <smol/color.hpp>
+#include <smol/uuid.hpp>
+
+#include <smol/hash.hpp>
+#include <smol/geometry.hpp>
+#include <smol/math.hpp>
+
+#include <smol/array.hpp>
+#include <smol/serialization_buffer.hpp>
+#include <smol/hash_buffer.hpp>
+#include <smol/tag_map.hpp>
+#include <smol/linear_constraint_solver.hpp>
+
+using namespace smol;
+
 // countof(X)
 template<typename T, size_t N>
 constexpr size_t countof(const T (&)[N]) { return N; }
 
-#endif // TABLETOPIFY_PRECOMP_H
+#endif // PRECOMP_H

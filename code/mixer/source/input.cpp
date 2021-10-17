@@ -1,8 +1,5 @@
 #include "logger.hpp"
-#include "utf8_string.hpp"
-#include "geometry.hpp"
 #include "input.hpp"
-#include "utilities.hpp"
 
 namespace dm
 {
@@ -242,7 +239,7 @@ namespace dm
     double click_detector::squared_movement_past_n_buckets(int32_t bucketCount) const
     {
         double retval = 0.0;
-        MX_ASSERT(bucketCount <= click_detector::BUCKET_COUNT);
+        SMOL_ASSERT(bucketCount <= click_detector::BUCKET_COUNT);
         for(int32_t i = 0; i < bucketCount; ++i)
         {
             retval += (_endPositions[i] - _startPositions[i]).squared_magnitude();
@@ -250,6 +247,52 @@ namespace dm
 
         return retval;
     }
+
+    // input_event
+
+    input_event::input_event() { }
+
+    input_event_type_t input_event::type() const
+    {
+        return _type;
+    }
+
+    utf8_codepoint input_event::codepoint() const
+    {
+        SMOL_ASSERT(is_keyboard_event(_type));
+        return _keyboard.codepoint;
+    }
+
+    key_code_t input_event::keycode() const
+    {
+        SMOL_ASSERT(is_keyboard_event(_type));
+        return _keyboard.keycode;
+    }
+
+    mouse_button_t input_event::mouse_button() const
+    {
+        SMOL_ASSERT(is_mouse_event(_type));
+        return _mouse.button;
+    }
+
+    vec2 input_event::position() const
+    {
+        SMOL_ASSERT(is_mouse_event(_type));
+        return _mouse.position;
+    }
+
+    modifier_keys input_event::modifiers() const
+    {
+        return _modifiers;
+    }
+
+    vec2 input_event::scroll() const
+    {
+        SMOL_ASSERT(_type == input_event_type::wheel_scroll);
+        return _scroll;
+    }
+
+    // input
 
     void input::initialize()
     {
@@ -374,17 +417,6 @@ namespace dm
         _key_names[GLFW_KEY_RIGHT_SUPER] = "right super";
         _key_names[GLFW_KEY_MENU] = "menu";
 
-        // Overwrite names with localized versions if available
-
-        for(key_code_t kd = 0; kd <= GLFW_KEY_LAST; ++kd)
-        {
-            auto key_name = glfwGetKeyName(kd, 0);
-            if (key_name != nullptr)
-            {
-                _key_names[kd] = key_name;
-            }
-        }
-
         // for(auto it : _key_names)
         // {
         //     MX_LOG_INFO("{} : '{}'", it.first, it.second);
@@ -486,7 +518,7 @@ namespace dm
                 {
                     const auto button = ie.mousedown.button;
                     const auto buttonIndex = static_cast<size_t>(button);
-                    MX_ASSERT(button >= mouse_button::left && button < mouse_button::count);
+                    SMOL_ASSERT(button >= mouse_button::left && button < mouse_button::count);
                     const auto modifiers = ie.mousedown.modifiers;
                     const auto position = _mouse_state.current.position;
 
@@ -506,7 +538,7 @@ namespace dm
                 {
                     const auto button = ie.mouseup.button;
                     const auto buttonIndex = static_cast<size_t>(button);
-                    MX_ASSERT(button >= mouse_button::left && button < mouse_button::count);
+                    SMOL_ASSERT(button >= mouse_button::left && button < mouse_button::count);
                     const auto modifiers = ie.mousedown.modifiers;
                     const auto position = _mouse_state.current.position;
 
@@ -700,7 +732,7 @@ namespace dm
 
     button_state_t input::get_mouse_button_state(mouse_button_t btn, input_frame_t frame) const
     {
-        MX_ASSERT(btn >= mouse_button::left && btn < mouse_button::count);
+        SMOL_ASSERT(btn >= mouse_button::left && btn < mouse_button::count);
         auto& mouse_state = frame == input_frame::previous ? _mouse_state.previous : _mouse_state.current;
         return mouse_state.buttons[static_cast<size_t>(btn)];
     }
@@ -726,4 +758,49 @@ namespace dm
         MX_LOG_INFO("Set clipboard : '{}'", str);
         glfwSetClipboardString(g_window, str.c_str());
     }
+}
+
+using namespace std;
+ostream& operator<<(ostream& out, dm::input_event evt)
+{
+    return out << "{ type : " << evt.type() << " } ";
+}
+
+// modifier_keys
+ostream& operator<<(ostream& out, dm::modifier_keys mod)
+{
+    out << "[";
+    const char* comma = ", ";
+    const char* delimit = " ";
+    if (mod.shift)
+    {
+        out << delimit << "shift";
+        delimit = comma;
+    }
+
+    if (mod.control)
+    {
+        out << delimit << "control";
+        delimit = comma;
+    }
+
+    if (mod.alt)
+    {
+        out << delimit << "alt";
+        delimit = comma;
+    }
+
+    if (mod.super)
+    {
+        out << delimit << "super";
+        delimit = comma;
+    }
+
+    if (mod.num_lock)
+    {
+        out << delimit << "num_lock";
+    }
+
+    out << " ]";
+    return out;
 }

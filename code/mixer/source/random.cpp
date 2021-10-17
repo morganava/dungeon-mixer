@@ -1,5 +1,4 @@
 #include "random.hpp"
-#include "utilities.hpp"
 
 namespace dm
 {
@@ -10,7 +9,7 @@ namespace dm
 
     float random::next_float(float min, float max)
     {
-        MX_ASSERT(min <= max);
+        SMOL_ASSERT(min <= max);
 
         std::lock_guard<std::mutex> lock(_mutex);
         std::uniform_real_distribution<float> uniform(min, max);
@@ -19,7 +18,7 @@ namespace dm
 
     size_t random::next_index(size_t count)
     {
-        MX_ASSERT(count > 0);
+        SMOL_ASSERT(count > 0);
 
         std::lock_guard<std::mutex> lock(_mutex);
         std::uniform_int_distribution<size_t> uniform(size_t(0), count - 1);

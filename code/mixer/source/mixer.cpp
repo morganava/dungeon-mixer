@@ -1,60 +1,20 @@
 #include "globals.hpp"
-#include "utilities.hpp"
 #include "audio.hpp"
 #include "work_queue.hpp"
 #include "logger.hpp"
 #include "string_manager.hpp"
 #include "graphics.hpp"
-#include "geometry.hpp"
 #include "input.hpp"
 #include "nanovg.hpp"
-#include "singleton.hpp"
+#include "service.hpp"
 #include "imgui.hpp"
 #include "ui.hpp"
 
-namespace dm
-{
-    void init_callback()
-    {
-        MX_LOG_INFO("Init callback!");
-        // builds map from keycodes to character name
-        g_input->build_key_map();
-        g_input->init_cursors();
-
-        g_nanovg->create_context();
-        // init renderer
-        // init_renderer(ctx);
-    }
-
-    void gui_callback(float dt, int width, int height, double pixel_ratio)
-    {
-        // do queued UI work
-        g_work_manager->do_tasks(worker_id::ui);
-
-        g_input->update(dt);
-        g_ui->update(dt, width, height);
-        g_nanovg->update(dt, width, height, pixel_ratio);
-        g_input->update_cursor();
-    }
-
-    // on window exit
-    void close_callback()
-    {
-        MX_LOG_INFO("Closing!");
-        free_globals();
-    }
-
-    void error_callback(const char* msg)
-    {
-        MX_LOG_ERROR(msg);
-    }
-}
-
-using namespace dm;
+using namespace smol;
 
 void test()
 {
-    dm::utf8_stringbuffer sb;
+    utf8_stringbuffer sb;
 
     const char* funny_words[] =
     {
@@ -72,8 +32,8 @@ void test()
 
     for(const auto& str : funny_words)
     {
-        dm::utf8_string utf8(str);
-        dm::utf8_string norm = utf8.normalized();
+        utf8_string utf8(str);
+        utf8_string norm = utf8.normalized();
 
         MX_LOG_INFO("\n str  '{}', {}\n utf8 '{}', {}\n norm '{}', {}", str, std::strlen(str),utf8, utf8.size(), norm, norm.size());
         MX_LOG_INFO("'{}' == '{}' => {}", utf8, norm, utf8 == norm);
@@ -102,17 +62,17 @@ void test()
     }
 }
 
+namespace dm
+{
+    void worker_thread(worker_id_t id);
+}
+
 int main() try
 {
     dm::init_globals();
+    dm::worker_thread(dm::worker_id::ui);
+    dm::free_globals();
 
-    graphics_callbacks callbacks =
-    {
-        &init_callback,
-        &gui_callback,
-        &close_callback,
-    };
-    graphics_main(callbacks);
     return 0;
 }
 catch(const std::exception& ex)

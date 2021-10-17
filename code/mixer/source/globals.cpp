@@ -1,21 +1,18 @@
-#include "utilities.hpp"
 #include "paths.hpp"
 #include "work_queue.hpp"
 #include "logger.hpp"
 #include "audio.hpp"
 #include "serialization.hpp"
 #include "string_manager.hpp"
-#include "singleton.hpp"
-#include "utilities.hpp"
-#include "geometry.hpp"
+#include "service.hpp"
 #include "nanovg.hpp"
 #include "imgui.hpp"
 #include "ui.hpp"
-#include "geometry.hpp"
 #include "input.hpp"
 #include "nanovg.hpp"
 #include "stylesheet.hpp"
 #include "random.hpp"
+#include "graphics.hpp"
 
 namespace dm
 {
@@ -23,6 +20,10 @@ namespace dm
 
     void init_globals()
     {
+        smol::register_failure_callback([](std::string_view message) -> void {
+            MX_LOG_ERROR_BLOCKING(std::string(message));
+        });
+
         // work queue
         init_work_manager();
 
@@ -54,12 +55,16 @@ namespace dm
 
         // init strings
         init_string_manager(paths::strings() / "en-us.json");
+
+        init_graphics();
     }
 
     void free_globals()
     {
         // wait for task queues to empty
         free_work_manager();
+
+        free_graphics();
 
         free_string_manager();
 

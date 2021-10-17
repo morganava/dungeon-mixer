@@ -103,7 +103,7 @@ namespace dm
         worker_ui.enqueue([=]() -> void
         {
             auto it = g_ui->root.playlist.atmospheres.find(handle);
-            MX_ASSERT(it != g_ui->root.playlist.atmospheres.end());
+            SMOL_ASSERT(it != g_ui->root.playlist.atmospheres.end());
             auto& widget = it->second;
             widget.volumeVal = volume;
             widget.muteUnmute.checked  = false;
@@ -122,7 +122,7 @@ namespace dm
         worker_ui.enqueue([=]() -> void
         {
             auto it = g_ui->root.playlist.atmospheres.find(handle);
-            MX_ASSERT(it != g_ui->root.playlist.atmospheres.end());
+            SMOL_ASSERT(it != g_ui->root.playlist.atmospheres.end());
             auto& widget = it->second;
             widget.volume.value = muted ? 0.0f : widget.volumeVal;
         });
@@ -187,7 +187,7 @@ namespace dm
                 atmosphereWidget.atmosphereHandle = atmosphereHandle;
 
                 // this atmosphere should not exist in our map yet
-                MX_ASSERT(g_ui->root.playlist.atmospheres.find(atmosphereHandle) == g_ui->root.playlist.atmospheres.end());
+                SMOL_ASSERT(g_ui->root.playlist.atmospheres.find(atmosphereHandle) == g_ui->root.playlist.atmospheres.end());
                 g_ui->root.playlist.atmospheres.insert({atmosphereHandle, std::move(atmosphereWidget)});
 
                 // add handle to our playlists
@@ -265,8 +265,8 @@ namespace dm
 
     void ui::on_move_atmosphere(playlist_handle_t playlistSrc, playlist_handle_t playlistDest, atmosphere_handle_t atmosphereHandle)
     {
-        MX_ASSERT(playlistSrc >= playlist_handle::__first_generated);
-        MX_ASSERT(playlistDest >= playlist_handle::__first_generated);
+        SMOL_ASSERT(playlistSrc >= playlist_handle::__first_generated);
+        SMOL_ASSERT(playlistDest >= playlist_handle::__first_generated);
 
         if (playlistSrc != playlistDest)
         {
@@ -409,7 +409,7 @@ namespace dm
                 for (auto& currentAtmosphereHandle : currentPlaylist.entries)
                 {
                     auto it = root.playlist.atmospheres.find(currentAtmosphereHandle);
-                    MX_ASSERT(it != root.playlist.atmospheres.end());
+                    SMOL_ASSERT(it != root.playlist.atmospheres.end());
                     auto& currentEntry = it->second;
 
                     mxHBox(self.tags={"playlistEntry"})

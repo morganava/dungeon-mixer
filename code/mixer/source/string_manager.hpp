@@ -2,13 +2,11 @@
 
 #define MX_GET_CSTRING(X) get_string_manager()->get_cstring(X)
 
-#include "enums.hpp"
-#include "utf8_string.hpp"
-#include "singleton.hpp"
+#include "service.hpp"
 
 namespace dm
 {
-    MX_MAKE_ENUM(mixer_string, uint_fast16_t,
+    SMOL_MAKE_ENUM(mixer_string, uint_fast16_t,
         /* Common */
         playlists,
         create_new_playlist,
@@ -57,6 +55,6 @@ namespace dm
 
         friend class serialization_manager;
     };
-    MX_MAKE_SINGLETON(string_manager, worker_flag::any);
+    MX_MAKE_SERVICE(string_manager, worker_flag::any);
     constexpr inline auto& g_strings = g_string_manager;
 }
