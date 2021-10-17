@@ -95,6 +95,11 @@ namespace dm
         glViewport(0, 0, width, height);
     }
 
+    void graphics::window_refresh_func(GLFWwindow* window)
+    {
+        g_graphics->update();
+    }
+
     graphics::graphics()
     {
         // init glfw and set error callback
@@ -108,12 +113,21 @@ namespace dm
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, 1);
 
+        glfwWindowHint(GLFW_SAMPLES, 4);
+
         window = glfwCreateWindow(1024, 768, "Dungeon Mixer", NULL, NULL);
         // todo: remove me please thanks
         g_window = window;
         SMOL_THROW_IF_NULL(window);
         glfwMakeContextCurrent(window);
-        glfwSwapInterval(1);
+
+        // init glew
+        glewExperimental = GL_TRUE;
+        SMOL_THROW_IF_FALSE(glewInit() == GLEW_OK);
+        // GLEW generates GL error because it calls glGetString(GL_EXTENSIONS), we'll consume it here.
+        glGetError();
+
+        glfwSwapInterval(0);
 
         // get initial window stats
         glfwGetWindowSize(window, &window_width, &window_height);
@@ -133,12 +147,7 @@ namespace dm
         // graphics callbacks
         SMOL_THROW_IF_NOT_NULL(glfwSetWindowSizeCallback(window, &window_size_func));
         SMOL_THROW_IF_NOT_NULL(glfwSetFramebufferSizeCallback(window, &framebuffer_size_func));
-
-        // init glew
-        glewExperimental = GL_TRUE;
-        SMOL_THROW_IF_FALSE(glewInit() == GLEW_OK);
-        // GLEW generates GL error because it calls glGetString(GL_EXTENSIONS), we'll consume it here.
-        glGetError();
+        SMOL_THROW_IF_NOT_NULL(glfwSetWindowRefreshCallback(window, &window_refresh_func));
 
         // set our clear color
         glClearColor(1.0f, 0.0f, 1.0f, 0.0f);
@@ -168,26 +177,37 @@ namespace dm
         double dt = time - previousTime;
         previousTime = time;
 
+        glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
+
         // update our various systems
         g_input_unsafe.update(dt);
         g_ui_unsafe.update(dt, window_width, window_height);
         g_nanovg_unsafe.update(dt, window_width, window_height, pixel_ratio);
         g_input_unsafe.update_cursor();
 
-       // get input events
-        glfwPollEvents();
+        glfwSwapBuffers(window);
 
-        if (!glfwWindowShouldClose(window)) 
-        {
-            // enqueue next update
-            worker_ui.enqueue([]() -> void {
-                g_graphics_unsafe.update();
-            });
-        }
-        else
-        {
-            // signal termination
-            g_work_manager->signal_termination();
+        // get input events
+        if (!handlingEvents) {
+            // update can be called from within glfwPollEvents within
+            // one of our callbacks, so make sure we do not call glfwPollEvents()
+            // from within itself
+            handlingEvents = true;
+            glfwPollEvents();
+            handlingEvents = false;
+
+            if (!glfwWindowShouldClose(window))
+            {
+                // enqueue next update
+                worker_ui.enqueue([]() -> void {
+                    g_graphics_unsafe.update();
+                });
+            }
+            else
+            {
+                // signal termination
+                g_work_manager->signal_termination();
+            }
         }
     }
 }

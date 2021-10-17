@@ -99,9 +99,6 @@ namespace dm
         // the first nvg_image_t is the black and magenta debug texture
         std::vector<nvg_image_t> _nvg_images = {{}};
 
-        bool early_exit();
-        void swap_buffers();
-
         static vec2f text_bounds_to_start_position(const rectf& bounds, halign_t halign, valign_t valign);
 
         NVGpaint make_nvgpaint(image_handle_t ih, const rectf& dim, background_image_mode_t bim) const;

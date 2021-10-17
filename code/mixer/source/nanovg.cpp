@@ -14,7 +14,7 @@ namespace dm
     void nanovg::create_context()
     {
         // init nanovg
-        _ctx = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
+        _ctx = nvgCreateGL3(NVG_STENCIL_STROKES | NVG_DEBUG);
         SMOL_THROW_IF_NULL(_ctx);
 
         constexpr static const uint8_t debugPixels[] =
@@ -121,30 +121,6 @@ namespace dm
         return index;
     }
 
-    bool nanovg::early_exit()
-    {
-        if (_previous == _current)
-        {
-            ++_same_frames;
-        }
-        else
-        {
-            _same_frames = 0;
-        }
-
-        // double buffering means we need at least 2 same frames
-        // before we can start ignoring draw commands
-        return (_same_frames >= 3);
-    }
-
-    void nanovg::swap_buffers()
-    {
-        glfwSwapBuffers(g_window);
-        std::swap(_current, _previous);
-        _current.begin_writing();
-        _current.set_layer(draw_layer::background);
-    }
-
     SMOL_MAKE_ENUM(draw_command, uint8_t,
         set_scissor,
         color_fill_rect,
@@ -211,14 +187,6 @@ namespace dm
 
     void nanovg::update(float dt, double window_width, double window_height, double pixel_ratio)
     {
-        if(this->early_exit())
-        {
-            this->swap_buffers();
-            return;
-        }
-
-        glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
-
         nvgBeginFrame(_ctx, window_width, window_height, pixel_ratio);
 
         draw_command_t cmd;
@@ -697,7 +665,9 @@ namespace dm
 
         nvgEndFrame(_ctx);
 
-        this->swap_buffers();
+        std::swap(_current, _previous);
+        _current.begin_writing();
+        _current.set_layer(draw_layer::background);
     }
 
     void nanovg::set_scissor(const rectf& r)

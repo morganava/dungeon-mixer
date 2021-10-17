@@ -45,6 +45,7 @@ namespace dm
         static void scroll_func(GLFWwindow* window, double xoffset, double yoffset);
         static void window_size_func(GLFWwindow* window, int width, int height);
         static void framebuffer_size_func(GLFWwindow* window, int width, int height);
+        static void window_refresh_func(GLFWwindow* window);
 
         GLFWwindow* window = nullptr;
         int window_width = 0;
@@ -53,6 +54,8 @@ namespace dm
         int framebuffer_height = 0;
         double pixel_ratio = 0.0;
         double previousTime = 0.0;
+
+        bool handlingEvents = false;
     };
     MX_MAKE_SERVICE(graphics, worker_flag::ui);
 }
