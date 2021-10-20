@@ -4,6 +4,7 @@ add_library(smol STATIC
     error.cpp
     platform.cpp
     file.cpp
+    json.cpp
     # algorithms
     hash.cpp
     # types

@@ -1,6 +1,8 @@
 #pragma once
 
 #include <smol/error.hpp>
+#include <smol/serialization_buffer.hpp>
+#include <smol/hash.hpp>
 
 namespace smol
 {
@@ -146,7 +148,6 @@ namespace smol
         std::unique_ptr<T[]> _data;
     };
 
-
     template<typename T>
     void serialization_buffer_write(serialization_buffer& self, const array<T>& array)
     {
@@ -206,7 +207,7 @@ namespace smol
         size_t retval = calc_hash(a.size(), seed);
         for(const T& val : a)
         {
-            retval = smol::calc_hash(std::forward<const T&>(val), retval);
+            retval = calc_hash(std::forward<const T&>(val), retval);
         }
         return retval;
     }
