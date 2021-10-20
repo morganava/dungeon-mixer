@@ -1,5 +1,4 @@
 #include "paths.hpp"
-#include "work_queue.hpp"
 #include "logger.hpp"
 
 namespace dm
