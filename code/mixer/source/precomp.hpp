@@ -86,6 +86,7 @@ namespace nl = nlohmann;
 #include <smol/enum.hpp>
 #include <smol/singleton.hpp>
 #include <smol/file.hpp>
+#include <smol/json.hpp>
 
 #include <smol/utf8_string.hpp>
 #include <smol/color.hpp>

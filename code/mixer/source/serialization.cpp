@@ -80,139 +80,6 @@ namespace dm
                 SMOL_THROW_MSG("Could not open {} for writing", tempDest);
             }
         }
-
-        // strips out comments and trailing commas and then passes to json::parse
-        nl::json parse_json(const smol::array<uint8_t>& mb)
-        {
-            std::vector<uint8_t> js;
-            js.reserve(mb.size());
-
-            const uint8_t* read = mb.begin();
-            const uint8_t* end = mb.end();
-
-            while(read < end)
-            {
-                // string
-                if (read[0] == '"')
-                {
-                    // advance until we get to end of string
-                    js.push_back(*read);
-                    read++;
-                    // ensure we're not dealing with an escaped quote
-                    while(read[0] != '"' ||
-                          read[-1] == '\\')
-                    {
-                        js.push_back(*read);
-                        read++;
-                    }
-                    js.push_back(*read);
-                    read++;
-                }
-                // single line comment
-                else if (read[0] == '/' &&
-                         read + 1 < end &&
-                         read[1] == '/')
-                {
-                    // skip over the '//'
-                    read += 2;
-                    // keep skipping until we get to the newline
-                    while(read < end &&
-                          read[0] != '\n') {
-                        read++;
-                    }
-                }
-                // block comment
-                else if (read[0] == '/' &&
-                         read +1 < end &&
-                         read[1] == '*')
-                {
-                    // skip over the '/*'
-                    read += 2;
-                    // keep skipping until we get to the '*/'
-                    while(read < end &&
-                          (read[0] != '/' || read[-1] != '*'))
-                    {
-                        read++;
-                    }
-                    read++;
-                }
-                // trailing comma
-                else if (read[0] == ',')
-                {
-                    const uint8_t* lookahead = read;
-                    lookahead++;
-                    bool done = false;
-                    // skip over whitespace until
-                    // we get to a } or ]
-                    while(!done)
-                    {
-                        switch(*lookahead)
-                        {
-                            // whitespace
-                            case ' ':
-                            case '\t':
-                            case '\r':
-                            case '\n':
-                                lookahead++;
-                                break;
-                            // found end of array or object
-                            case ']':
-                            case '}':
-                                // push a space instead of comma
-                                js.push_back(' ');
-                                read++;
-                                done = true;
-                                break;
-                            default:
-                                // found something else, so we are
-                                // in the middle
-                                js.push_back(*read);
-                                read++;
-                                done = true;
-                                break;
-                        }
-                    }
-                }
-                // everything else
-                else
-                {
-                    js.push_back(*read);
-                    read++;
-                }
-            }
-
-            // second pass to overwrite trailing commas
-
-            for(auto it = js.begin(); it < js.end(); it++)
-            {
-                if (*it == ',')
-                {
-                    auto comma = it;
-                    bool done = false;
-                    while(!done)
-                    {
-                        it++;
-                        switch(*it)
-                        {
-                            // whitespace
-                            case ' ':
-                            case '\t':
-                            case '\r':
-                            case '\n':
-                                break;
-                            case ']':
-                            case '}':
-                                *comma = ' ';
-                            default:
-                                done = true;
-                                break;
-                        }
-                    }
-                }
-            }
-
-            return nl::json::parse(js.begin(), js.end());
-        }
     }
 
     constexpr const char MIX_VERSION[] = "0.1";
@@ -272,7 +139,7 @@ namespace dm
 
             worker_background.enqueue([mb=std::move(mb)]() -> void
             {
-                auto json = details::parse_json(mb);
+                auto json = smol::parse_json(mb);
                 worker_ui.enqueue([json=std::move(json)] () mutable -> void
                 {
                     // this is here so that we can reload skins at runtime
@@ -303,7 +170,7 @@ namespace dm
 
                 worker_background.enqueue([basePath=it.path(),manifestData=std::move(manifestData)]() -> void
                 {
-                    auto json = details::parse_json(manifestData);
+                    auto json = smol::parse_json(manifestData);
 
                     // create audio entries for listings in manifest
                     worker_audio.enqueue([basePath=std::move(basePath), json=std::move(json)]() -> void
@@ -354,7 +221,7 @@ namespace dm
 
             worker_background.enqueue([bytes=std::move(bytes)]() -> void
             {
-                auto json = details::parse_json(bytes);
+                auto json = smol::parse_json(bytes);
 
                 worker_audio.enqueue([json=std::move(json)]() -> void
                 {
@@ -541,7 +408,7 @@ namespace dm
 
             worker_background.enqueue([bytes=std::move(bytes)]() -> void
             {
-                auto json = details::parse_json(bytes);
+                auto json = smol::parse_json(bytes);
                 string_manager sm;
 
                 for(auto e : enum_values<mixer_string>())
