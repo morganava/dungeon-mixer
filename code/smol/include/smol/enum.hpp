@@ -11,38 +11,38 @@ namespace smol
     struct enum_iterator
     {
     public:
-        enum_iterator(E val)
+        constexpr enum_iterator(E val)
         : val_(val)
         { }
 
-        E operator*() const
+        constexpr E operator*() const
         {
             return val_;
         }
 
-        enum_iterator& operator++()
+        constexpr enum_iterator& operator++()
         {
-            if (val_ == E::__last_named) return *this;
+            if (val_ == E::count) return *this;
 
             val_ = static_cast<E>(static_cast<std::underlying_type<E>::type>(val_) + 1);
             return *this;
         }
 
-        enum_iterator& operator++(int)
+        constexpr enum_iterator operator++(int)
         {
-            if (val_ == E::__last_named) return *this;
+            if (val_ == E::count) return *this;
 
             auto retval = val_;
             val_ = static_cast<E>(static_cast<std::underlying_type<E>::type>(val_) + 1);
-            return *this;
+            return enum_iterator(retval);
         }
 
-        bool operator==(const enum_iterator& that) const
+        constexpr bool operator==(const enum_iterator& that) const
         {
             return val_ == that.val_;
         }
 
-        bool operator!=(const enum_iterator& that) const
+        constexpr bool operator!=(const enum_iterator& that) const
         {
             return val_ != that.val_;
         }
@@ -53,16 +53,48 @@ namespace smol
     template<typename E>
     struct enum_values
     {
-        enum_iterator<E> begin() const
+        constexpr enum_iterator<E> begin() const
         {
             return enum_iterator(E::__first_named);
         }
 
-        enum_iterator<E> end() const
+        constexpr enum_iterator<E> end() const
         {
-            return enum_iterator(E::__last_named);
+            return enum_iterator(E::count);
         }
     };
+
+    template<typename E>
+    void to_json(nl::json& js, const E& e, const std::array<std::string_view, static_cast<size_t>(E::count)>& strings)
+    {
+        js = strings[static_cast<size_t>(e)];
+    }
+
+    template<typename E>
+    void from_json(const nl::json& js, E& e, const std::array<std::string_view, static_cast<size_t>(E::count)>& strings)
+    {
+        static const std::map<std::string_view, E> stringMap = [&]() {
+            std::map<std::string_view, E> retval;
+            for(auto e : enum_values<E>())
+            {
+                auto index = static_cast<std::underlying_type_t<E>>(e);
+                retval[strings[index]] = e;
+            }
+            return retval;
+        }();
+
+        auto name = js.get<std::string>();
+        auto it = stringMap.find(name);
+        SMOL_THROW_IF_FALSE(it != stringMap.end());
+
+        e = it->second;
+    }
+}
+
+template<typename E>
+void to_json(nl::json& js, const E& e, const std::array<std::string_view, E::count>& strings)
+{
+    js = strings[static_cast<size_t>(e)];
 }
 
 #define SMOL_FLAG(N) (1 << (N))
@@ -101,10 +133,35 @@ namespace smol
         else if (val == NAME::count) return std::string_view("count");\
         else return ::smol::string_list_get_entry(#FIRST ", " #__VA_ARGS__, static_cast<size_t>(val));\
     }\
+    inline constexpr std::array<std::string_view, static_cast<size_t>(NAME::count)> get_##NAME##_strings()\
+    {\
+        std::array<std::string_view, static_cast<size_t>(NAME::count)> retval;\
+        for(auto e : smol::enum_values<NAME##_t>())\
+        {\
+            retval[static_cast<size_t>(e)] = to_string_view(e);\
+        }\
+        return retval;\
+    }\
     inline std::ostream& operator<<(std::ostream& out, NAME##_t val) {\
         out << #NAME "::" << to_string_view(val);\
         return out;\
     }
+
+#define SMOL_MAKE_ENUM_FROM_JSON(NAMESPACE, NAME)\
+namespace nlohmann {\
+    inline void from_json(const nl::json& js, NAMESPACE::NAME##_t& e)\
+    {\
+        ::smol::from_json<NAMESPACE::NAME##_t>(js, e, NAMESPACE::get_##NAME##_strings());\
+    }\
+}\
+
+#define SMOL_MAKE_ENUM_TO_JSON(NAMESPACE, NAME)\
+namespace nlohmann {\
+    inline void to_json(nl::json& js, const NAMESPACE::NAME##_t& e)\
+    {\
+        ::smol::to_json<NAMESPACE::NAME##_t>(js, e, NAMESPACE::get_##NAME##_strings());\
+    }\
+}\
 
 // explicitly named enum, automatic invalid value
 
@@ -167,5 +224,3 @@ namespace smol
         else out << static_cast<size_t>(val);\
         return out;\
     }
-
-
