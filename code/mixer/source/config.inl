@@ -1,0 +1,1 @@
+CONFIG_ENTRY(skin, smol::utf8_string("default.json"))

@@ -13,6 +13,7 @@
 #include "stylesheet.hpp"
 #include "random.hpp"
 #include "graphics.hpp"
+#include "config.hpp"
 
 namespace dm
 {
@@ -27,11 +28,13 @@ namespace dm
         // work queue
         init_work_manager();
 
-        // init random
-        init_random(0);
-
         // init logger with desired log verbosity
         init_logger(log_level::info);
+
+        init_config(paths::config() / "config.json");
+
+        // init random
+        init_random(0);
 
         // init nanovg
         init_nanovg();

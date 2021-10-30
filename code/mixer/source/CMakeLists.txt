@@ -17,6 +17,7 @@ add_executable(dungeon_mixer
     # systems
     globals.cpp
     work_queue.cpp
+    config.cpp
     graphics.cpp
     input.cpp
     logger.cpp
