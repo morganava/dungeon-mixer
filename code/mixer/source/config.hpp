@@ -1,6 +1,7 @@
 #pragma once
 
 #include "service.hpp"
+#include "logger.hpp"
 
 namespace dm {
     class config;

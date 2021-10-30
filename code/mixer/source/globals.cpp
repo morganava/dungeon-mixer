@@ -31,7 +31,7 @@ namespace dm
         init_config(paths::config() / "config.json");
 
         // init logger with desired log verbosity
-        init_logger(log_level::info, g_config->get_log_filename());
+        init_logger(g_config->get_log_level(), g_config->get_log_filename());
 
         // init random
         init_random(0);

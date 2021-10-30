@@ -28,6 +28,11 @@ namespace dm
         return path.filename().string();
     }
 
+    log_level_t config::sanitize_log_level(log_level_t&& level)
+    {
+        return level;
+    }
+
     utf8_string config::sanitize_skin(utf8_string&& skin)
     {
         return skin;

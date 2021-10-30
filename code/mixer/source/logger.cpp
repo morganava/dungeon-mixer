@@ -14,6 +14,7 @@ namespace dm
         SMOL_ASSERT(_log_file != nullptr);
 
         this->log<dm::log_level::info>("Logging file: {}", logFilePath);
+        this->log<dm::log_level::info>("Logging level: {}", lvl);
     }
 
     void logger::write_message(log_level_t lvl, std::chrono::steady_clock::time_point now, const std::string& msg)

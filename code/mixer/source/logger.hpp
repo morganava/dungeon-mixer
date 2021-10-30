@@ -16,7 +16,8 @@ namespace dm
 {
     SMOL_MAKE_ENUM(log_level, uint_fast8_t,
         error,
-        info
+        info,
+        verbose
     );
 
     class logger
@@ -27,6 +28,11 @@ namespace dm
         template<log_level_t LEVEL, size_t N, typename... Args>
         task_future log(char const (&format)[N], Args... args)
         {
+            if (LEVEL > this->_log_level)
+            {
+                return task_future::fulfilled();
+            }
+
             const auto now = std::chrono::steady_clock::now();
             return worker_logging.enqueue(
                 [format=std::forward<decltype(format)>(format), now=now, ...args=logger::marshall(args)]() -> void
@@ -39,6 +45,11 @@ namespace dm
         template<log_level_t LEVEL>
         task_future log(std::string&& msg)
         {
+            if (LEVEL > this->_log_level)
+            {
+                return task_future::fulfilled();
+            }
+
             const auto now = std::chrono::steady_clock::now();
             return worker_logging.enqueue(
                 [msg=std::move(msg), now=now]() -> void
@@ -77,7 +88,12 @@ namespace dm
         {
             "[{:f}][ERROR] {}\n",
             "[{:f}][INFO] {}\n",
+            "[{:f}][VERBOSE] {}\n",
         };
+        static_assert(countof(_log_format_strings) == log_level::count);
     };
     MX_MAKE_SERVICE(logger, worker_flag::any);
 }
+
+SMOL_MAKE_ENUM_TO_JSON(dm, log_level)
+SMOL_MAKE_ENUM_FROM_JSON(dm, log_level)
