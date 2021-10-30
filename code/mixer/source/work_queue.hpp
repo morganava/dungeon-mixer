@@ -81,6 +81,8 @@ namespace dm
         task_future() = default;
         task_future(std::future<void>&& f) : std::future<void>(std::move(f)) {}
         void try_wait();
+
+        static task_future fulfilled();
     };
 
     typedef std::chrono::time_point<std::chrono::steady_clock> timestamp_t;

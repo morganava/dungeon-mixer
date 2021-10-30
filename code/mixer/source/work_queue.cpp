@@ -215,6 +215,14 @@ namespace dm
     }
 
     // task future
+    task_future task_future::fulfilled()
+    {
+        std::promise<void> p;
+        auto retval = p.get_future();
+        p.set_value();
+
+        return task_future{std::move(retval)};
+    }
 
     void task_future::try_wait()
     {
