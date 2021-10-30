@@ -19,11 +19,10 @@ namespace dm
         info
     );
 
-
     class logger
     {
     public:
-        logger(log_level_t logLevel);
+        logger(log_level_t logLevel, utf8_string logFileName);
 
         template<log_level_t LEVEL, size_t N, typename... Args>
         task_future log(char const (&format)[N], Args... args)

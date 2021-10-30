@@ -1,4 +1,5 @@
 {
     "log_level" : 0,
+    "log_filename" : "dungeon-mixer.log",
     "skin" : "default.json",
 }

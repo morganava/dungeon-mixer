@@ -28,10 +28,10 @@ namespace dm
         // work queue
         init_work_manager();
 
-        // init logger with desired log verbosity
-        init_logger(log_level::info);
-
         init_config(paths::config() / "config.json");
+
+        // init logger with desired log verbosity
+        init_logger(log_level::info, g_config->get_log_filename());
 
         // init random
         init_random(0);

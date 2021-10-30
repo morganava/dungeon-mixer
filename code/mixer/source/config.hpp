@@ -25,9 +25,11 @@ namespace dm
 #define CONFIG_ENTRY(NAME, DEFAULT_VALUE)\
     private:\
         decltype(DEFAULT_VALUE) NAME;\
+        static decltype(DEFAULT_VALUE) sanitize_##NAME(decltype(DEFAULT_VALUE)&&);\
     public:\
         decltype(DEFAULT_VALUE) const& get_##NAME() const;\
-        void set_##NAME(decltype(DEFAULT_VALUE)&&);
+        void set_##NAME(decltype(DEFAULT_VALUE)&&);\
+
 #include "config.inl"
 #undef CONFIG_ENTRY
     private:

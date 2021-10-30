@@ -3,14 +3,17 @@
 
 namespace dm
 {
-    logger::logger(log_level_t lvl)
+    logger::logger(log_level_t lvl, utf8_string logFileName)
     : _log_level(lvl)
     , _log_file(nullptr)
     , _start(std::chrono::steady_clock::now())
     {
-        const auto logPath = paths::temp() / "dm.log";
-        _log_file = fopen(logPath.string().c_str(), "wb");
+        auto logFilePath = paths::temp() / fs::path(logFileName.c_str());
+
+        _log_file = fopen(logFilePath.string().c_str(), "wb");
         SMOL_ASSERT(_log_file != nullptr);
+
+        this->log<dm::log_level::info>("Logging file: {}", logFilePath);
     }
 
     void logger::write_message(log_level_t lvl, std::chrono::steady_clock::time_point now, const std::string& msg)

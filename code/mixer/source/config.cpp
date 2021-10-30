@@ -2,6 +2,8 @@
 #include "work_queue.hpp"
 #include "logger.hpp"
 
+using smol::utf8_string;
+
 namespace dm
 {
     config::config(fs::path&& path)
@@ -17,6 +19,18 @@ namespace dm
         {
             this->set_default_settings();
         }
+    }
+
+    utf8_string config::sanitize_log_filename(utf8_string&& logFilename)
+    {
+        auto path = fs::path(logFilename.c_str());
+
+        return path.filename().string();
+    }
+
+    utf8_string config::sanitize_skin(utf8_string&& skin)
+    {
+        return skin;
     }
 
     void config::set_default_settings()
@@ -57,10 +71,17 @@ namespace nlohmann
         dm::config retval;
         #define CONFIG_ENTRY(NAME, DEFAULT_VALUE)\
         if (auto it = js.find(#NAME); it != js.end()) {\
-            nl::from_json(*it, retval.NAME);\
+            decltype(retval.NAME) intermediate;\
+            try {\
+                nl::from_json(*it, intermediate);\
+                retval.NAME = dm::config::sanitize_##NAME(std::move(intermediate));\
+            } catch(...) {\
+                retval.NAME = std::move(DEFAULT_VALUE);\
+            }\
         } else {\
             retval.NAME = std::move(DEFAULT_VALUE);\
         }
+
         #include "config.inl"
         #undef CONFIG_ENTRY
         self = std::move(retval);
