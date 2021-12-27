@@ -116,6 +116,7 @@ namespace dm
             constexpr rect childScissor() const {return _childScissor; }
 
             array<smol::utf8_string> tags;
+            bool disabled = false;
 
             void increment_child_count() { _childCounter++; }
 
@@ -202,7 +203,7 @@ namespace dm
                         return true;
                     case render_pass::full:
                         self.resolve_box_layout(); /* for click detection */
-                        self.handle_input_impl();
+                        self.handle_input(); /* consume input events */
                         self.first_update(); /* post geometry but pre style */
                         self.resolve_style(); /* get the style */
                         self.middle_update(); /* post style resolution but pre render */
@@ -261,7 +262,10 @@ namespace dm
 
             void handle_input()
             {
-                static_cast<T*>(this)->handle_input_impl();
+                if (!this->disabled)
+                {
+                    static_cast<T*>(this)->handle_input_impl();
+                }
             }
 
             void first_update()
@@ -465,7 +469,7 @@ namespace dm
         public:
             using widget::widget;
 
-            void first_update_impl();
+            void handle_input_impl();
             void first_render_impl() const;
             void last_update_impl();
 

@@ -125,8 +125,10 @@ namespace dm
 
         element_state_t widget_base::resolve_element_state_impl()
         {
+            auto state = this->disabled ? element_state::disabled : element_state::none;
+
             if (!g_context->is_current_window_widget_focused()) {
-                return element_state::none;
+                return state;
             }
 
             const auto mouse_position = g_input->get_mouse_position(input_frame::current);
@@ -139,13 +141,13 @@ namespace dm
                     this->_layout.border_outer_bounds(),
                     this->_layout.borderRadius))
             {
+                state |= element_state::hover;
                 if (g_input->get_mouse_button_state(mouse_button::left, input_frame::current))
                 {
-                    return element_state::hover | element_state::active;
+                    state |= element_state::active;
                 }
-                return element_state::hover;
             }
-            return element_state::none;
+            return state;
         }
 
         void widget_base::render_box_layout_impl() const

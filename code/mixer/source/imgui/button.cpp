@@ -7,7 +7,7 @@ namespace dm
     {
         // Button
 
-        void widget_button::first_update_impl()
+        void widget_button::handle_input_impl()
         {
             for(auto evt : g_input->get_input_events())
             {
