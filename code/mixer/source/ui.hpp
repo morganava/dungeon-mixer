@@ -117,6 +117,7 @@ namespace dm
 
         // sidebar methods
         void on_create_new_playlist();
+        void on_remove_current_playlist();
         void on_set_screen_playlist(playlist_handle_t handle);
         void on_set_screen_edit(atmosphere_handle_t handle);
         void on_set_screen_about();

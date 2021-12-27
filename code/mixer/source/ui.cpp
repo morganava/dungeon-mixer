@@ -202,6 +202,26 @@ namespace dm
         });
     }
 
+    void ui::on_remove_current_playlist()
+    {
+        worker_ui.enqueue([=]() -> void
+        {
+            auto& currentPlaylistHandle = g_ui->root.playlist.currentPlaylistHandle;
+            SMOL_ASSERT(!is_builtin_playlist(currentPlaylistHandle));
+
+            auto& playlists = g_ui->root.playlist.playlists;
+            auto it = std::find_if(playlists.begin(), playlists.end(), [=](auto& entry) -> bool {return entry.handle == currentPlaylistHandle;});
+            SMOL_ASSERT(it != playlists.end());
+            playlists.erase(it);
+
+            worker_audio.enqueue([=]() -> void
+            {
+                g_playlist_directory->remove_entry(currentPlaylistHandle);
+            });
+            currentPlaylistHandle = playlist_handle::all;
+        });
+    }
+
     void ui::on_set_screen_playlist(playlist_handle_t handle)
     {
         worker_ui.enqueue([=]() -> void
@@ -339,50 +359,59 @@ namespace dm
 
     void ui::draw_sidebar(float dt)
     {
-        mxVScroll(&root.sidebar.scroll, self.tags = {"sidebar"})
+        mxVBox(self.tags = {"sidebar"})
         {
-            mxSpacer(self.requestHeight(100.0));
-            mxLabel(g_strings[mixer_string::playlists], self.tags = {"mediumText", "sidebarEntry"});
-            mxButton(g_strings[mixer_string::create_new_playlist], self.tags = {"lightText", "sidebarEntry", "indent"};
-            self.on_click = []() -> void
+            mxVScroll(&root.sidebar.scroll, self.tags = {"sidebar"})
             {
-                g_ui->on_create_new_playlist();
-            });
-            for( size_t i = 0; i < root.playlist.playlists.size(); ++i)
-            {
-                auto& currentPlaylist = root.playlist.playlists[i];
-                imgui::button_data bd(currentPlaylist.title);
-                utf8_string const& playlistTitle = [&]()
+                mxSpacer(self.requestHeight(100.0));
+                mxButton(g_strings[mixer_string::edit_screen], self.tags = {"mediumText", "sidebarEntry"};
+                self.on_click = []() -> void
                 {
-                    switch(currentPlaylist.handle)
+                    g_ui->on_set_screen_edit(g_ui->root.edit.handle);
+                });
+                mxButton(g_strings[mixer_string::about_screen], self.tags = {"mediumText", "sidebarEntry"};
+                self.on_click = []() -> void
+                {
+                    g_ui->on_set_screen_about();
+                });
+                mxLabel(g_strings[mixer_string::playlists], self.tags = {"mediumText", "sidebarEntry"});
+                for( size_t i = 0; i < root.playlist.playlists.size(); ++i)
+                {
+                    auto& currentPlaylist = root.playlist.playlists[i];
+                    imgui::button_data bd(currentPlaylist.title);
+                    utf8_string const& playlistTitle = [&]()
                     {
-                        case playlist_handle::all:
-                            return g_strings[mixer_string::all_playlist];
-                        case playlist_handle::favorites:
-                            return g_strings[mixer_string::favorites_playlist];
-                        case playlist_handle::playing:
-                            return g_strings[mixer_string::playing_playlist];
-                        default:
-                            return currentPlaylist.title;
-                    }
-                }();
-                mxButton(playlistTitle, self.tags = {"lightText","sidebarEntry", "indent"};
-                    self.on_click = [=]() -> void
-                    {
-                        g_ui->on_set_screen_playlist(currentPlaylist.handle);
-                    };
-                );
+                        switch(currentPlaylist.handle)
+                        {
+                            case playlist_handle::all:
+                                return g_strings[mixer_string::all_playlist];
+                            case playlist_handle::favorites:
+                                return g_strings[mixer_string::favorites_playlist];
+                            case playlist_handle::playing:
+                                return g_strings[mixer_string::playing_playlist];
+                            default:
+                                return currentPlaylist.title;
+                        }
+                    }();
+                    mxButton(playlistTitle, self.tags = {"lightText","sidebarEntry", "indent"};
+                        self.on_click = [=]() -> void
+                        {
+                            g_ui->on_set_screen_playlist(currentPlaylist.handle);
+                        };
+                    );
+                }
             }
-            mxButton(g_strings[mixer_string::edit_screen], self.tags = {"mediumText", "sidebarEntry"};
-            self.on_click = []() -> void
+            mxHBox(self.tags = {"addRemovePlaylist"})
             {
-                g_ui->on_set_screen_edit(g_ui->root.edit.handle);
-            });
-            mxButton(g_strings[mixer_string::about_screen], self.tags = {"mediumText", "sidebarEntry"};
-            self.on_click = []() -> void
-            {
-                g_ui->on_set_screen_about();
-            });
+                const auto disableRemove = is_builtin_playlist(root.playlist.currentPlaylistHandle);
+                mxButton({"+"}, self.tags = {"addRemove"}; self.on_click = [] {
+                    g_ui->on_create_new_playlist();
+                });
+                mxButton({"-"}, self.tags = {"addRemove"}; self.disabled = disableRemove; self.on_click = [] {
+                    MX_LOG_INFO("REMOVE PLAYLIST");
+                    g_ui->on_remove_current_playlist();
+                });
+            }
         }
     }
 }

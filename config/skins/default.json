@@ -105,14 +105,6 @@
     ".darkText" : {
         "fontColor" : "black"
     },
-    ".sidebar" : {
-        "backgroundColor" : "#1a1a1a"
-    },
-    ".sidebarEntry" : {
-        "size" : [0, 50],
-        "textHalign" : "left",
-        "padding" : { "left" : 16}
-    },
     "button.sidebarEntry:hover" : {
         "backgroundColor" : "#A50",
         "fontColor" : "black"
@@ -202,6 +194,38 @@
     },
 
     /** Sidebar **/
+
+    ".sidebar" : {
+        "backgroundColor" : "#1a1a1a"
+    },
+
+    "flexBox.sidebar" : {
+        "constraints" : [
+            ["none", "none", 1.0],
+            [50, 50, 1.0],
+        ]
+    },
+
+    ".sidebarEntry" : {
+        "size" : [0, 50],
+        "textHalign" : "left",
+        "padding" : { "left" : 16}
+    },
+
+    "flexBox.addRemovePlaylist" : {
+        "constraints" : [
+            ["none", "none", 1.0],
+            ["none", "none", 1.0],
+        ]
+    },
+
+    "button.addRemove" : {
+        "backgroundColor" : "#888",
+    },
+
+    "button.addRemove:disabled" : {
+        "backgroundColor" : "#444",
+    },
 
     /** Content **/
 
