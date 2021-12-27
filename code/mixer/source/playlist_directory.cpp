@@ -27,7 +27,7 @@ namespace dm
 
     std::vector<playlist_handle_t> playlist_directory::get_user_playlist_handles() const
     {
-        SMOL_ASSERT(_entries.size() > playlist_handle::__first_generated);
+        SMOL_ASSERT(_entries.size() >= playlist_handle::__first_generated);
 
         std::vector<playlist_handle_t> retval;
         // exclude the builtin playlists
