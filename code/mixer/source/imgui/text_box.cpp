@@ -14,6 +14,8 @@ namespace dm
             auto& sb = this->data()->sb;
             auto& selectBegin = this->data()->selectBegin;
             auto& selectEnd = this->data()->selectEnd;
+            const auto initSelectBegin = selectBegin;
+            const auto initSelectEnd = selectEnd;
             auto& undoStack = this->data()->undoStack;
             auto& redoStack = this->data()->redoStack;
 
@@ -102,7 +104,7 @@ namespace dm
                         if (point_in_textarea(evt.position()))
                         {
                             this->focus_widget();
-                            const auto caretPosition = g_nanovg->get_caret_position(
+                            const auto caretIndex = g_nanovg->get_caret_index(
                                 this->_layout.inner_bounds(),
                                 this->data()->textOffset,
                                 this->style().fontFamily,
@@ -112,7 +114,7 @@ namespace dm
                                 data()->text,
                                 evt.position());
 
-                            selectBegin = selectEnd = caretPosition;
+                            selectBegin = selectEnd = caretIndex;
                         }
                         else
                         {
@@ -124,7 +126,7 @@ namespace dm
                     {
                         if (this->is_focused())
                         {
-                            const auto caretPosition = g_nanovg->get_caret_position(
+                            const auto caretIndex = g_nanovg->get_caret_index(
                                 this->_layout.inner_bounds(),
                                 this->data()->textOffset,
                                 this->style().fontFamily,
@@ -133,7 +135,7 @@ namespace dm
                                 this->style().textValign,
                                 data()->text,
                                 evt.position());
-                            selectEnd = caretPosition;
+                            selectEnd = caretIndex;
                         }
                         break;
                     }
@@ -142,7 +144,7 @@ namespace dm
                         if (point_in_textarea(evt.position()))
                         {
                             this->focus_widget();
-                            const auto caretPosition = g_nanovg->get_caret_position(
+                            const auto caretIndex = g_nanovg->get_caret_index(
                                 this->_layout.inner_bounds(),
                                 this->data()->textOffset,
                                 this->style().fontFamily,
@@ -154,11 +156,11 @@ namespace dm
 
                             if (evt.modifiers().shift)
                             {
-                                selectEnd = caretPosition;
+                                selectEnd = caretIndex;
                             }
                             else
                             {
-                                selectBegin = selectEnd = caretPosition;
+                                selectBegin = selectEnd = caretIndex;
                             }
                         }
                         else
@@ -172,7 +174,7 @@ namespace dm
                         if (point_in_textarea(evt.position()))
                         {
                             this->focus_widget();
-                            const auto caretPosition = g_nanovg->get_caret_position(
+                            const auto caretIndex = g_nanovg->get_caret_index(
                                 this->_layout.inner_bounds(),
                                 this->data()->textOffset,
                                 this->style().fontFamily,
@@ -182,8 +184,8 @@ namespace dm
                                 data()->text,
                                 evt.position());
 
-                            selectBegin = sb.find_word_begin(sb.begin() + caretPosition, false) - sb.begin();
-                            selectEnd = sb.find_word_end(sb.begin() + caretPosition, false) - sb.begin();
+                            selectBegin = sb.find_word_begin(sb.begin() + caretIndex, false) - sb.begin();
+                            selectEnd = sb.find_word_end(sb.begin() + caretIndex, false) - sb.begin();
                         }
                         else
                         {
@@ -502,34 +504,34 @@ namespace dm
             }
 
             // update text offset
-            if (g_input->get_input_events().size() > 0)
+            if (initSelectBegin != selectBegin ||
+                initSelectEnd != selectEnd)
             {
-                const auto innerBounds = this->_layout.inner_bounds();
                 auto& textOffset = this->data()->textOffset;
-                const auto caretOffset = g_nanovg->get_caret_offset(
-                        this->_layout.inner_bounds(),
-                        this->style().fontFamily,
-                        this->style().fontSize,
-                        this->style().textHalign,
-                        this->style().textValign,
-                        data()->text,
-                        selectEnd);
-
-                if (caretOffset >= textOffset && caretOffset <= (textOffset + innerBounds.width()))
+                if (this->data()->text.size() == 0)
                 {
-                    // do nothing text offset is fine
-                }
-                else if (caretOffset < textOffset)
-                {
-                    // caret to left of view window
-                    textOffset = caretOffset;
+                    textOffset = 0;
                 }
                 else
                 {
-                    // caret to right of view window
-                    textOffset = caretOffset - innerBounds.width();
+                    const auto innerBounds = this->_layout.inner_bounds();
+                    const auto caretPosition = g_nanovg->get_caret_position(
+                            innerBounds,
+                            this->style().fontFamily,
+                            this->style().fontSize,
+                            this->style().textHalign,
+                            this->style().textValign,
+                            data()->text,
+                            selectEnd);
+                    if (caretPosition - textOffset > innerBounds.right())
+                    {
+                        textOffset = caretPosition - innerBounds.right();
+                    }
+                    else if(caretPosition - textOffset < innerBounds.left())
+                    {
+                        textOffset = caretPosition - innerBounds.left();
+                    }
                 }
-                textOffset = std::max(0.0, textOffset);
             }
 
             if (point_in_textarea(g_input->get_mouse_position(input_frame::current)))
@@ -597,7 +599,7 @@ namespace dm
                 if (this->data()->text.size() == 0) {
                     g_nanovg->draw_text(
                         this->_layout.inner_bounds(),
-                        this->data()->textOffset,
+                        0.0f,
                         this->style().fontFamily,
                         this->style().fontSize,
                         this->style().placeholderFontColor,
@@ -608,7 +610,7 @@ namespace dm
                 {
                     g_nanovg->draw_text(
                         this->_layout.inner_bounds(),
-                        this->data()->textOffset,
+                        0.0f,
                         this->style().fontFamily,
                         this->style().fontSize,
                         this->style().fontColor,
@@ -616,8 +618,6 @@ namespace dm
                         this->style().textValign,
                         this->data()->text);
                 }
-
-
             }
             g_context->pop_scissor();
         }

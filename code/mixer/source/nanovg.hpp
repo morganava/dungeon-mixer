@@ -65,15 +65,17 @@ namespace dm
         void stroke_path(const smol::array<vec2f>&, float strokeWidth, const color&);
 
         void draw_text(const rectf& bounds, float textOffset, font_handle_t font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const smol::utf8_string& str);
-        void draw_text_with_caret(const rectf& bounds, float textOffset, font_handle_t font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const smol::utf8_string& str, int32_t caretIndex, float caretWidth, const color& caretColor);
-        void draw_text_with_selection(const rectf& bounds, float textOffset, font_handle_t font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const smol::utf8_string& str, int32_t selectBegin, int32_t selectEnd, const color& selectedFontColor, const color& selectionColor);
+        void draw_text_with_caret(const rectf& bounds, float textOffset, font_handle_t font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const smol::utf8_string& str, size_t caretIndex, float caretWidth, const color& caretColor);
+        void draw_text_with_selection(const rectf& bounds, float textOffset, font_handle_t font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const smol::utf8_string& str, size_t selectBegin, size_t selectEnd, const color& selectedFontColor, const color& selectionColor);
 
         // gets the index into the underlying string buffer clickPoint would be closest to
-        int32_t get_caret_position(const rectf& bounds, float textOffset, font_handle_t font, float fontSize, halign_t halign, valign_t valign, const smol::utf8_string& str, const vec2f& clickPoint);
+        size_t get_caret_index(const rectf& bounds, float textOffset, font_handle_t font, float fontSize, halign_t halign, valign_t valign, const smol::utf8_string& str, const vec2f& clickPoint);
 
-        // gets the offset from bounds beginning of caret
-        float get_caret_offset(const rectf& bounds, font_handle_t font, float fontSize, halign_t halign, valign_t valign, const smol::utf8_string& str, size_t caretPosition);
+        // gets the caret's position given the render bounds and text properties
+        float get_caret_position(const rectf& bounds, font_handle_t font, float fontSize, halign_t halign, valign_t valign, const smol::utf8_string& str, size_t caretPosition);
     private:
+        float get_caret_position_impl(const NVGglyphPosition* glyphPositions, size_t glyphCount, halign_t halign, size_t caretIndex, float origin);
+
         NVGcontext* _ctx = nullptr;
         size_t _same_frames = 0;
 

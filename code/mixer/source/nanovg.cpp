@@ -448,7 +448,7 @@ namespace dm
                     halign_t halign;
                     valign_t valign;
                     utf8_string_view str;
-                    int32_t caretIndex;
+                    size_t caretIndex;
                     float caretWidth;
                     color caretColor;
 
@@ -480,30 +480,11 @@ namespace dm
                     nvgTextMetrics(_ctx, nullptr, nullptr, &lineHeight);
 
                     // calculate caret position
-                    const auto caretCount = caretIndex + 1;
-                    NVGglyphPosition glyphPositions[caretCount];
-                    const auto glyphCount = nvgTextGlyphPositions(_ctx, startPosition.x, startPosition.y, str.begin(), str.end(), glyphPositions, caretCount);
-                    SMOL_THROW_IF_FALSE(glyphCount >= caretIndex);
+                    NVGglyphPosition glyphPositions[str.size()];
+                    const auto glyphCount = (size_t)nvgTextGlyphPositions(_ctx, startPosition.x, startPosition.y, str.begin(), str.end(), glyphPositions, str.size());
 
-                    float caretPosition;
-                    // caret within the string
-                    // caret at the end of the string
-                    if (caretIndex == 0)
-                    {
-                        caretPosition = startPosition.x;
-                    }
-                    else if (caretIndex == glyphCount)
-                    {
-                        SMOL_ASSERT(caretIndex > 0);
-                        caretPosition = glyphPositions[caretIndex - 1].maxx;
-                    }
-                    else
-                    {
-                        SMOL_ASSERT(caretIndex < glyphCount);
-                        caretPosition = glyphPositions[caretIndex].minx;
-                    }
-
-                    caretBounds.position.x = std::round(caretPosition);
+                    auto caretPosition = get_caret_position_impl(glyphPositions, glyphCount, halign, caretIndex, startPosition.x);
+                    caretBounds.position.x = caretPosition - caretWidth/ 2.0f;
 
                     switch(valign)
                     {
@@ -538,8 +519,8 @@ namespace dm
                     halign_t halign;
                     valign_t valign;
                     utf8_string_view str;
-                    int32_t selectBegin;
-                    int32_t selectEnd;
+                    size_t selectBegin;
+                    size_t selectEnd;
                     color selectedFontColor;
                     color selectionColor;
 
@@ -570,12 +551,12 @@ namespace dm
                     // glyph positions
                     const auto maxGlyphCount = (int32_t)str.size();
                     NVGglyphPosition glyphPositions[maxGlyphCount];
-                    const auto glyphCount = nvgTextGlyphPositions(_ctx, startPosition.x, startPosition.y, str.begin(), str.end(), glyphPositions, maxGlyphCount);
-                    selectBegin = clamp(0, selectBegin, glyphCount);
-                    selectEnd = clamp(0, selectEnd, glyphCount);
+                    const auto glyphCount = (size_t)nvgTextGlyphPositions(_ctx, startPosition.x, startPosition.y, str.begin(), str.end(), glyphPositions, maxGlyphCount);
+                    selectBegin = clamp<size_t>(0, selectBegin, glyphCount);
+                    selectEnd = clamp<size_t>(0, selectEnd, glyphCount);
 
-                    float selectBeginX = glyphPositions[selectBegin].minx;
-                    float selectEndX = glyphPositions[selectEnd - 1].maxx;
+                    const auto selectBeginX = get_caret_position_impl(glyphPositions, glyphCount, halign, selectBegin, startPosition.x);
+                    const auto selectEndX = get_caret_position_impl(glyphPositions, glyphCount, halign, selectEnd, startPosition.x);
 
                     // draw left unselected text
                     if (currentScissor.left() < selectBeginX)
@@ -796,7 +777,7 @@ namespace dm
         cq.push_back(str);
     }
 
-    void nanovg::draw_text_with_caret(const rectf& bounds, float textOffset, font_handle_t font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const utf8_string& str, int32_t caretIndex, float caretWidth, const color& caretColor)
+    void nanovg::draw_text_with_caret(const rectf& bounds, float textOffset, font_handle_t font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const utf8_string& str, size_t caretIndex, float caretWidth, const color& caretColor)
     {
         if (font == font_handle_t::invalid) {
             return;
@@ -824,7 +805,7 @@ namespace dm
         }
     }
 
-    void nanovg::draw_text_with_selection(const rectf& bounds, float textOffset, font_handle_t font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const utf8_string& str, int32_t selectBegin, int32_t selectEnd, const color& selectedFontColor, const color& selectionColor)
+    void nanovg::draw_text_with_selection(const rectf& bounds, float textOffset, font_handle_t font, float fontSize, const color& fontColor, halign_t halign, valign_t valign, const utf8_string& str, size_t selectBegin, size_t selectEnd, const color& selectedFontColor, const color& selectionColor)
     {
         if (font == font_handle_t::invalid) {
             return;
@@ -853,11 +834,11 @@ namespace dm
         }
     }
 
-    int32_t nanovg::get_caret_position(const rectf& bounds, float textOffset, font_handle_t font, float fontSize, halign_t halign, valign_t valign, const utf8_string& str, const vec2f& clickPoint)
+    size_t nanovg::get_caret_index(const rectf& bounds, float textOffset, font_handle_t font, float fontSize, halign_t halign, valign_t valign, const utf8_string& str, const vec2f& clickPoint)
     {
         // TODO: take y into account or is the assumption of this function that a click has happened?
         if (font == font_handle_t::invalid) {
-            return -1;
+            return 0;
         }
 
         if (str.size() == 0) {
@@ -870,53 +851,59 @@ namespace dm
         nvgTextAlign(_ctx, static_cast<int>(halign) | static_cast<int>(valign));
 
         NVGglyphPosition glyphPositions[str.size()];
-        int positions = nvgTextGlyphPositions(_ctx, startPosition.x, startPosition.y, str.begin(), str.end(), glyphPositions, str.size());
+        auto glyphCount = (size_t)nvgTextGlyphPositions(_ctx, startPosition.x, startPosition.y, str.begin(), str.end(), glyphPositions, str.size());
 
         const float x = clickPoint.x + textOffset;
-        int32_t index = 0;
         if (x > glyphPositions[0].minx)
         {
-            for(int i = 0; i < positions; ++i)
+            const float _2x = 2.0f * x;
+            for(size_t i = 0; i < glyphCount; ++i)
             {
                 const auto& gp = glyphPositions[i];
-                if (2.0f * x < (gp.maxx + gp.minx))
+                if (_2x < (gp.maxx + gp.minx))
                 {
-                    break;
-                }
-                else
-                {
-                    index++;
+                    return i;
                 }
             }
         }
-        return index;
+        return 0;
     }
 
-    float nanovg::get_caret_offset(const rectf& bounds, font_handle_t font, float fontSize, halign_t halign, valign_t valign, const utf8_string& str, size_t caretPosition)
+    float nanovg::get_caret_position(const rectf& bounds, font_handle_t font, float fontSize, halign_t halign, valign_t valign, const utf8_string& str, size_t caretIndex)
     {
         if (font == font_handle_t::invalid) {
-            return 0.0f;
+            return bounds.left();
         }
-
         auto startPosition = text_bounds_to_start_position(bounds, halign, valign);
         nvgFontFaceId(_ctx, _nvg_font_faces[static_cast<size_t>(font)]);
         nvgFontSize(_ctx, fontSize);
         nvgTextAlign(_ctx, static_cast<int>(halign) | static_cast<int>(valign));
 
         NVGglyphPosition glyphPositions[str.size()];
-        size_t positions = (size_t)nvgTextGlyphPositions(_ctx, startPosition.x, startPosition.y, str.begin(), str.end(), glyphPositions, str.size());
+        const auto glyphCount = (size_t)nvgTextGlyphPositions(_ctx, startPosition.x, startPosition.y, str.begin(), str.end(), glyphPositions, str.size());
 
-        SMOL_ASSERT(caretPosition <= positions);
-        if (positions == 0)
-        {
-            SMOL_ASSERT(caretPosition == 0);
-            return 0.0f;
-        }
-        else if(caretPosition == positions)
-        {
-            return glyphPositions[positions - 1].maxx - glyphPositions[0].minx;
-        }
-        return glyphPositions[caretPosition].minx - glyphPositions[0].minx;
+        return this->get_caret_position_impl(glyphPositions, glyphCount, halign, caretIndex, startPosition.x);
+    }
+
+    float nanovg::get_caret_position_impl(const NVGglyphPosition* glyphPositions, size_t glyphCount, halign_t halign, size_t caretIndex, float origin)
+    {
+        SMOL_ASSERT(glyphPositions != nullptr);
+        SMOL_ASSERT(caretIndex <= glyphCount);
+
+        const auto caretPosition = [&]() -> float {
+            if (glyphCount == 0) return origin;
+            else if (caretIndex == 0) {
+                if (halign == halign::left) return origin;
+                else return glyphPositions[0].minx;
+            }
+            else if (caretIndex == glyphCount)
+            {
+                if (halign == halign::right) return origin;
+                else return glyphPositions[glyphCount - 1].maxx;
+            }
+            return (glyphPositions[caretIndex - 1].maxx + glyphPositions[caretIndex].minx) / 2.0f;
+        }();
+        return std::round(caretPosition);
     }
 
     vec2f nanovg::text_bounds_to_start_position(const rectf& bounds, halign_t halign, valign_t valign)
