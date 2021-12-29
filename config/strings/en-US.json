@@ -12,6 +12,7 @@
     "playlist_screen" : "Playlist",
     "edit_screen" : "Edit",
     "about_screen" : "About",
+    "settings_screen" : "Settings",
     /* Playlist Screen */
     "export_playlist" : "Export",
     "import_playlist" : "Import",

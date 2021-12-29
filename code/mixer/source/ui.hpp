@@ -9,6 +9,7 @@ namespace dm
     SMOL_MAKE_ENUM(screen, uint_fast8_t,
         playlist,
         edit,
+        settings,
         about
     );
 
@@ -121,6 +122,7 @@ namespace dm
         void on_set_screen_playlist(playlist_handle_t handle);
         void on_set_screen_edit(atmosphere_handle_t handle);
         void on_set_screen_about();
+        void on_set_screen_settings();
 
         // playlist screen methods
         void on_start_playlist_rename(playlist_handle_t playlist);
@@ -158,6 +160,7 @@ namespace dm
         void draw_playlist(float dt);
         void draw_edit(float dt);
         void draw_about(float dt) {}
+        void draw_settings(float dt);
         void draw_sidebar(float dt);
 
         struct
@@ -210,6 +213,18 @@ namespace dm
                 } search;
 
             } edit;
+
+            struct
+            {
+                imgui::scroll_area_data scroll;
+
+                struct
+                {
+                    imgui::text_box_data log_filename;
+                    imgui::text_box_data log_level;
+                    imgui::text_box_data skin;
+                } widget_data;
+            } settings;
         } root;
     };
     MX_MAKE_SERVICE(ui, worker_flag::ui);

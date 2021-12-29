@@ -20,6 +20,7 @@ namespace dm
         playlist_screen,
         edit_screen,
         about_screen,
+        settings_screen,
         /* Playlist Screen */
         export_playlist,
         import_playlist,

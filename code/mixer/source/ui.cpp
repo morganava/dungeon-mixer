@@ -26,6 +26,8 @@ namespace dm
                         draw_edit(dt); break;
                     case screen::about:
                         draw_about(dt); break;
+                    case screen::settings:
+                        draw_settings(dt); break;
                     default:
                         break;
                 }
@@ -373,6 +375,11 @@ namespace dm
                 self.on_click = []() -> void
                 {
                     g_ui->on_set_screen_about();
+                });
+                mxButton(g_strings[mixer_string::settings_screen], self.tags = {"mediumText", "sidebarEntry"};
+                self.on_click = []() -> void
+                {
+                    g_ui->on_set_screen_settings();
                 });
                 mxLabel(g_strings[mixer_string::playlists], self.tags = {"mediumText", "sidebarEntry"});
                 for( size_t i = 0; i < root.playlist.playlists.size(); ++i)

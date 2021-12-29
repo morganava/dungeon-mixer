@@ -46,7 +46,8 @@ add_executable(dungeon_mixer
     # ui
     ui.cpp
     ui.playlist.cpp
-    ui.edit.cpp)
+    ui.edit.cpp
+    ui.settings.cpp)
 
 target_precompile_headers(dungeon_mixer PRIVATE precomp.hpp)
 

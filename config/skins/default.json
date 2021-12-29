@@ -242,6 +242,24 @@
         ],
     },
 
+    /** Settings **/
+    "flexBox.settingsRow" : {
+        "size" : [0, 64],
+        "constraints" : [
+            ["none", "none", 2.0],
+            ["none", "none", 1.0],
+        ],
+    },
+
+    "textBox.settingsEntry" : {
+        "backgroundColor" : "white",
+        "textHalign" : "left",
+        "borderRadius" : 8,
+        "margin" : [2, 4, 2, 4],
+        "padding" : 8
+    },
+
+
     /** Playlist **/
 
     "flexBox.playlistButtonRow" :
