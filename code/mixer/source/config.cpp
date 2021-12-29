@@ -21,19 +21,18 @@ namespace dm
         }
     }
 
-    utf8_string config::sanitize_log_filename(utf8_string&& logFilename)
+    utf8_string config::sanitize_log_filename(const utf8_string& logFilename)
     {
         auto path = fs::path(logFilename.c_str());
-
         return path.filename().string();
     }
 
-    log_level_t config::sanitize_log_level(log_level_t&& level)
+    log_level_t config::sanitize_log_level(const log_level_t& level)
     {
         return level;
     }
 
-    utf8_string config::sanitize_skin(utf8_string&& skin)
+    utf8_string config::sanitize_skin(const utf8_string& skin)
     {
         return skin;
     }
@@ -51,8 +50,10 @@ namespace dm
     decltype(DEFAULT_VALUE) const& config::get_##NAME() const {\
         return this->NAME;\
     }\
-    void config::set_##NAME(decltype(DEFAULT_VALUE)&& val) {\
-        this->NAME = std::move(val);\
+    void config::set_##NAME(const decltype(DEFAULT_VALUE)& val) {\
+        auto sanitizedVal = config::sanitize_##NAME(val);\
+        MX_LOG_INFO("Setting " #NAME " = \"{}\"", sanitizedVal);\
+        this->NAME = std::move(sanitizedVal);\
     }
     #include "config.inl"
     #undef CONFIG_ENTRY
@@ -79,7 +80,7 @@ namespace nlohmann
             decltype(retval.NAME) intermediate;\
             try {\
                 nl::from_json(*it, intermediate);\
-                retval.NAME = dm::config::sanitize_##NAME(std::move(intermediate));\
+                retval.NAME = dm::config::sanitize_##NAME(intermediate);\
             } catch(...) {\
                 retval.NAME = std::move(DEFAULT_VALUE);\
             }\

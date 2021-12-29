@@ -15,6 +15,13 @@ namespace nlohmann
 
 namespace dm
 {
+    typedef enum class config_entry {
+#define CONFIG_ENTRY(NAME, DEFAULT_VALUE) NAME,
+#include "config.inl"
+#undef CONFIG_ENTRY
+        count,
+    } config_entry_t;
+
     class config
     {
     public:
@@ -26,16 +33,17 @@ namespace dm
 #define CONFIG_ENTRY(NAME, DEFAULT_VALUE)\
     private:\
         decltype(DEFAULT_VALUE) NAME;\
-        static decltype(DEFAULT_VALUE) sanitize_##NAME(decltype(DEFAULT_VALUE)&&);\
+        static decltype(DEFAULT_VALUE) sanitize_##NAME(const decltype(DEFAULT_VALUE)&);\
     public:\
         decltype(DEFAULT_VALUE) const& get_##NAME() const;\
-        void set_##NAME(decltype(DEFAULT_VALUE)&&);\
+        void set_##NAME(const decltype(DEFAULT_VALUE)&);\
 
 #include "config.inl"
 #undef CONFIG_ENTRY
     private:
         friend void nlohmann::to_json(nl::json& js, const dm::config&);
         friend void nlohmann::from_json(const nl::json& js, dm::config&);
+        // TODO: thread synchronization safety >:[
     };
     MX_MAKE_SERVICE(config, worker_flag::any);
 }
