@@ -108,11 +108,9 @@ namespace smol
 
     utf8_string::~utf8_string()
     {
-        if (stringData != nullptr)
-        {
-            stringData->decrement();
-            stringData = nullptr;
-        }
+        SMOL_ASSERT(stringData != nullptr);
+        stringData->decrement();
+        stringData = nullptr;
     }
 
     // Constructors
@@ -126,9 +124,8 @@ namespace smol
     { }
 
     utf8_string::utf8_string(utf8_string&& that)
-    : stringData(that.stringData)
+    : stringData(that.stringData->increment())
     {
-        that.stringData = nullptr;
     }
 
     utf8_string::utf8_string(const char* cstr)
@@ -136,7 +133,6 @@ namespace smol
     { }
 
     utf8_string::utf8_string(const char* cstr, size_t len)
-    : stringData(nullptr)
     {
         normalize_and_assign(cstr, len);
     }
@@ -164,8 +160,7 @@ namespace smol
     utf8_string& utf8_string::operator=(utf8_string&& that)
     {
         this->stringData->decrement();
-        this->stringData = that.stringData;
-        that.stringData = nullptr;
+        this->stringData = that.stringData->increment();
         return *this;
     }
 
@@ -194,10 +189,10 @@ namespace smol
             SMOL_THROW_MSG("{}", utf8proc_errmsg(size));
         }
 
+        // we can call this in constructors so stringData may not be set yet
         if (this->stringData != nullptr)
         {
             this->stringData->decrement();
-            this->stringData = nullptr;
         }
 
         this->stringData = new (size) string_data(size, reinterpret_cast<char*>(data.get()));
