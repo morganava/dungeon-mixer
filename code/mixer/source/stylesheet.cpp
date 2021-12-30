@@ -220,17 +220,17 @@ namespace nlohmann
             std::smatch matches;
             if(std::regex_match(selectorString, matches, selectorRegex))
             {
-                MX_LOG_INFO("'{}' selector matches", selectorString);
+                MX_LOG_VERBOSE("'{}' selector matches", selectorString);
 
                 const auto& elementStr = matches[1].str();
                 const auto& tagStr = matches[2].str();
                 const auto& stateStr = matches[3].str();
 
-                MX_LOG_INFO(" element : '{}'", elementStr);
-                MX_LOG_INFO(" tag : '{}'", tagStr);
-                MX_LOG_INFO(" state : '{}'", stateStr);
+                MX_LOG_VERBOSE(" element : '{}'", elementStr);
+                MX_LOG_VERBOSE(" tag : '{}'", tagStr);
+                MX_LOG_VERBOSE(" state : '{}'", stateStr);
 
-                MX_LOG_INFO(" rule : {}", el.value().dump());
+                MX_LOG_VERBOSE(" rule : {}", el.value().dump());
 
                 auto element = parse_element_type(elementStr);
                 auto state = parse_element_state(stateStr);
@@ -238,7 +238,7 @@ namespace nlohmann
                 style_declaration_set sds;
                 nl::from_json(el.value(), state, sds);
 
-                MX_LOG_INFO(" element : {}, state : {}", (uint_fast8_t)element, (uint_fast8_t)state);
+                MX_LOG_VERBOSE(" element : {}, state : {}", (uint_fast8_t)element, (uint_fast8_t)state);
 
                 selector sel = (tagStr == "") ? selector{element, {}, state} : selector{element, array<utf8_string>{tagStr}, state};
                 sr._styleFactory.emplace(std::make_pair(std::move(sel), sds));

@@ -226,8 +226,8 @@ namespace dm
                 worker_audio.enqueue([json=std::move(json)]() -> void
                 {
                     utf8_string version = json["Version"];
-                    MX_LOG_INFO(" Version : {}", version);
-                    MX_LOG_INFO(" Atmospheres :");
+                    MX_LOG_VERBOSE(" Version : {}", version);
+                    MX_LOG_VERBOSE(" Atmospheres :");
 
                     std::vector<atmosphere_handle_t> id_to_handle;
 
@@ -240,22 +240,22 @@ namespace dm
                         atmosphere_entry atmosphereEntry;
                         atmosphereEntry.title = atmosphereJson["Title"].get<utf8_string>();
 
-                        MX_LOG_INFO("  AtmosphereTitle : {}", atmosphereEntry.title);
+                        MX_LOG_VERBOSE("  AtmosphereTitle : {}", atmosphereEntry.title);
 
                         if (atmosphereJson.contains("Volume")) {
                             atmosphereEntry.volume = atmosphereJson["Volume"].get<float>();
                         }
-                        MX_LOG_INFO("  Volume : {}", atmosphereEntry.volume);
+                        MX_LOG_VERBOSE("  Volume : {}", atmosphereEntry.volume);
 
                         if (atmosphereJson.contains("Muted")) {
                             atmosphereEntry.muted = atmosphereJson["Muted"].get<bool>();
                         }
-                        MX_LOG_INFO("  Muted : {}", atmosphereEntry.muted);
+                        MX_LOG_VERBOSE("  Muted : {}", atmosphereEntry.muted);
 
                         if (atmosphereJson.contains("Favorite")) {
                             atmosphereEntry.favorite = atmosphereJson["Favorite"].get<bool>();
                         }
-                        MX_LOG_INFO("  Favorite : {}", atmosphereEntry.favorite);
+                        MX_LOG_VERBOSE("  Favorite : {}", atmosphereEntry.favorite);
 
 
                         auto trackList = atmosphereJson["Tracks"];
@@ -267,8 +267,8 @@ namespace dm
                             const auto audioId = trackJson["Id"].get<smol::uuid>();
                             auto audioHandle = g_audio_directory->get_audio_handle_by_id(audioId);
 
-                            MX_LOG_INFO("   Id : {}", audioId);
-                            MX_LOG_INFO("    AudioHandle : {}", audioHandle);
+                            MX_LOG_VERBOSE("   Id : {}", audioId);
+                            MX_LOG_VERBOSE("    AudioHandle : {}", audioHandle);
 
                             if (audioHandle == audio_handle::invalid) {
                                 MX_LOG_ERROR("AudioData with id '{}' does not exist", audioId);
@@ -285,16 +285,16 @@ namespace dm
                             trackEntry.position.enabled = false;
 
 
-                            MX_LOG_INFO("    AudioTitle : {}", audioEntry.title);
+                            MX_LOG_VERBOSE("    AudioTitle : {}", audioEntry.title);
 
                             if (trackJson.contains("Volume")) {
                                 trackEntry.volume = trackJson["Volume"].get<float>();
                             }
-                            MX_LOG_INFO("    Volume : {}", trackEntry.volume);
+                            MX_LOG_VERBOSE("    Volume : {}", trackEntry.volume);
                             if (trackJson.contains("Muted")) {
                                 trackEntry.muted = trackJson["Muted"].get<bool>();
                             }
-                            MX_LOG_INFO("    Muted : {}", trackEntry.muted);
+                            MX_LOG_VERBOSE("    Muted : {}", trackEntry.muted);
 
                             if(audioEntry.type() == audio_type::one_shot)
                             {
@@ -312,8 +312,8 @@ namespace dm
                                         trackEntry.repeat.min = std::min(range0, range1);
                                         trackEntry.repeat.max = std::max(range0, range1);
 
-                                        MX_LOG_INFO("    RepeatMin : {}", trackEntry.repeat.min);
-                                        MX_LOG_INFO("    RepeatMax : {}", trackEntry.repeat.max);
+                                        MX_LOG_VERBOSE("    RepeatMin : {}", trackEntry.repeat.min);
+                                        MX_LOG_VERBOSE("    RepeatMax : {}", trackEntry.repeat.max);
                                     }
                                 }
                             }
@@ -351,7 +351,7 @@ namespace dm
                                 }
                                 trackEntry.position.enabled = true;
 
-                                MX_LOG_INFO("    Position : {{ elevation : {}, azimuth : {} }}", elevation, azimuth);
+                                MX_LOG_VERBOSE("    Position : {{ elevation : {}, azimuth : {} }}", elevation, azimuth);
                             }
 
                             auto trackHandle = g_track_directory->add_entry(std::move(trackEntry));
@@ -368,14 +368,14 @@ namespace dm
                     }
 
                     // parse our playlist_entry list
-                    MX_LOG_INFO(" Playlists :");
+                    MX_LOG_VERBOSE(" Playlists :");
                     auto playlistList = json["Playlists"];
                     for (auto playlistJson : playlistList)
                     {
                         playlist_entry playlistEntry;
                         playlistEntry.title = playlistJson["Title"].get<utf8_string>();
-                        MX_LOG_INFO("  PlaylistTitle : {}", playlistEntry.title);
-                        MX_LOG_INFO("  Atmospheres : ");
+                        MX_LOG_VERBOSE("  PlaylistTitle : {}", playlistEntry.title);
+                        MX_LOG_VERBOSE("  Atmospheres : ");
 
                         auto playlistHandle = g_playlist_directory->add_entry(std::move(playlistEntry));
 
@@ -385,7 +385,7 @@ namespace dm
                             const auto id = atmosphereId.get<size_t>();
                             SMOL_THROW_IF_FALSE(id < id_to_handle.size());
                             auto atmosphereHandle = id_to_handle[id];
-                            MX_LOG_INFO("   Id : {}", id);
+                            MX_LOG_VERBOSE("   Id : {}", id);
                             g_playlist_directory->add_atmosphere(playlistHandle, atmosphereHandle);
                         }
                     }
@@ -422,7 +422,7 @@ namespace dm
                     {
                         sm.strings[idx] = dm::to_string_view(e);
                     }
-                    MX_LOG_INFO(" {} : '{}'", e, sm.strings[idx]);
+                    MX_LOG_VERBOSE(" {} : '{}'", e, sm.strings[idx]);
                 }
 
                 worker_ui.enqueue([sm=std::move(sm)]() mutable -> void
