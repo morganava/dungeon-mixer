@@ -59,11 +59,7 @@ namespace dm
             this->_layout.outerBounds.size = desiredBounds.size;
 
             // calculate the real bounds
-            if (g_context->get_render_pass() == render_pass::geometry)
-            {
-                this->data()->spawnLocation = {128,128};
-            }
-            else if (g_context->get_render_pass() == render_pass::full)
+            if (g_context->get_render_pass() == render_pass::full)
             {
                 // we need to pop our old bounds on the second pass
                 g_context->pop_widget();
@@ -101,16 +97,9 @@ namespace dm
             return retval;
         }
 
-        void widget_context_menu::first_render_impl() const
+        void widget_context_menu::pre_render_impl() const
         {
-            SMOL_ASSERT(g_context->get_render_pass() == render_pass::full);
-            g_nanovg->set_draw_layer(draw_layer::foreground);
-        }
-
-        void widget_context_menu::last_render_impl() const
-        {
-            SMOL_ASSERT(g_context->get_render_pass() == render_pass::full);
-            g_nanovg->set_draw_layer(draw_layer::middleground);
+            g_context->push_draw_layer(draw_layer::foreground);
         }
     }
 }

@@ -78,6 +78,25 @@ namespace dm
             }
         }
 
+        void context::push_draw_layer(draw_layer_t layer)
+        {
+            _draw_layer_stack.push_back(layer);
+            g_nanovg->set_draw_layer(layer);
+        }
+
+        void context::pop_draw_layer()
+        {
+            _draw_layer_stack.pop_back();
+            if (_draw_layer_stack.size() > 0)
+            {
+                g_nanovg->set_draw_layer(_draw_layer_stack.back());
+            }
+            else
+            {
+                g_nanovg->set_draw_layer(draw_layer::invalid);
+            }
+        }
+
         // widget_base
 
         rect widget_base::bounds_callback_impl(rect desired)
@@ -238,9 +257,13 @@ namespace dm
             this->_style = g_style_resolver->resolve(et, this->tags, element_state::none);
         }
 
+        void widget_root::pre_render_impl()
+        {
+            g_context->push_draw_layer(draw_layer::background);
+        }
+
         void widget_root::render_box_layout_impl() const
         {
-            g_nanovg->set_draw_layer(draw_layer::background);
             widget_base::render_box_layout_impl();
         }
 

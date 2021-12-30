@@ -47,6 +47,9 @@ namespace dm
             void push_scissor(const rect&);
             void pop_scissor();
 
+            void push_draw_layer(draw_layer_t layer);
+            void pop_draw_layer();
+
             render_pass_t get_render_pass() const {
                 return _currentRenderPass;
             }
@@ -61,6 +64,7 @@ namespace dm
 
             std::vector<widget_base*> _widget_stack;
             std::vector<rect> _render_scissor_stack;
+            std::vector<draw_layer_t> _draw_layer_stack;
             widget_id_t _focused_window_widget = widget_id::invalid;
             widget_id_t _focused_widget = widget_id::invalid;
             widget_id_t _current_window_widget = widget_id::invalid;
@@ -75,9 +79,10 @@ namespace dm
         };
 
         SMOL_MAKE_FLAG_ENUM(widget_flag, uint32_t,
-            has_children = SMOL_FLAG(0),
-            scissors     = SMOL_FLAG(1),
-            windows      = SMOL_FLAG(2)
+            has_children = SMOL_FLAG(0),    // may have child widgets
+            scissors     = SMOL_FLAG(1),    // defines a scissor region
+            windows      = SMOL_FLAG(2),    // defines a window(?)
+            draw_layers  = SMOL_FLAG(3),    // updates the draw layer for self land children
         );
 
         // widget base-class
@@ -102,6 +107,7 @@ namespace dm
             void handle_input_impl() {}
             void first_update_impl() {}
             void middle_update_impl() {}
+            void pre_render_impl() {}
             void first_render_impl() const {}
             void last_update_impl() {}
             void last_render_impl() const {}
@@ -163,7 +169,6 @@ namespace dm
 
                     if (g_context->get_render_pass() == render_pass::full)
                     {
-
                         self.last_update();
                         self.last_render();
                     }
@@ -176,6 +181,11 @@ namespace dm
                     if constexpr (static_cast<bool>(WIDGET_FLAGS & widget_flag::windows))
                     {
                         g_context->set_current_window_widget(widget_id::invalid);
+                    }
+
+                    if constexpr (static_cast<bool>(WIDGET_FLAGS & widget_flag::draw_layers))
+                    {
+                        g_context->pop_draw_layer();
                     }
                 }
             }
@@ -209,6 +219,7 @@ namespace dm
                         self.first_update(); /* post geometry but pre style */
                         self.resolve_style(); /* get the style */
                         self.middle_update(); /* post style resolution but pre render */
+                        self.pre_render();  /* just before our first rendering calls */
                         self.render_box_layout(); /* common box layout rendering */
                         self.first_render(); /* widget specific rendering */
                         self.push_widget();
@@ -287,6 +298,11 @@ namespace dm
                 static_cast<T*>(this)->middle_update_impl();
             }
 
+            void pre_render()
+            {
+                static_cast<T*>(this)->pre_render_impl();
+            }
+
             // render's the box layout determined bdy the style
             void render_box_layout() const
             {
@@ -342,12 +358,13 @@ namespace dm
         };
 
         // the root widget with viewport info
-        struct widget_root : public widget<widget_root, element_type::root, widget_data, widget_flag::has_children | widget_flag::scissors | widget_flag::windows>
+        struct widget_root : public widget<widget_root, element_type::root, widget_data, widget_flag::has_children | widget_flag::scissors | widget_flag::windows | widget_flag::draw_layers>
         {
             using widget::widget;
             widget_root(const rect& viewport);
             ~widget_root();
 
+            void pre_render_impl();
             void resolve_box_layout_impl(element_type_t et, widget_flag_t flag);
             void render_box_layout_impl() const;
             void resolve_scissor_impl();
@@ -652,7 +669,7 @@ namespace dm
             vec2 spawnLocation;
         };
 
-        struct widget_context_menu : public widget<widget_context_menu, element_type::context_menu, context_menu_data, widget_flag::has_children | widget_flag::windows>
+        struct widget_context_menu : public widget<widget_context_menu, element_type::context_menu, context_menu_data, widget_flag::has_children | widget_flag::windows | widget_flag::draw_layers>
         {
         public:
             using widget::widget;
@@ -662,8 +679,7 @@ namespace dm
             void first_update_impl();
             void resolve_box_layout_impl(element_type_t et, widget_flag_t flag);
             rect bounds_callback_impl(rect desiredBounds);
-            void first_render_impl() const;
-            void last_render_impl() const;
+            void pre_render_impl() const;
         private:
             double internal_height = 0.0;
         };
