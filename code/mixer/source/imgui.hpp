@@ -135,6 +135,8 @@ namespace dm
         struct widget : public widget_base
         {
         public:
+            typedef WIDGET_DATA widget_data_t;
+
             widget(const widget&) = delete;
             widget(widget&&) = delete;
 
@@ -538,10 +540,11 @@ namespace dm
         struct slider_data : widget_data
         {
         public:
-            double minVal;
-            double maxVal;
-            double value;
+            double minVal = 0.0;
+            double maxVal = 1.0;
+            double value = 1.0;
 
+            slider_data() = default;
             slider_data(double minVal, double maxVal, double value)
             : minVal(minVal)
             , maxVal(maxVal)
@@ -619,7 +622,8 @@ namespace dm
 
         struct checkbox_data : widget_data
         {
-            bool checked;
+            bool checked = false;
+            checkbox_data() = default;
             checkbox_data(bool checked)
             : checked(checked)
             { }
