@@ -70,6 +70,18 @@ namespace dm
                this->tags == that.tags;
     }
 
+    box_layout style_sheet::get_box_layout() const
+    {
+        box_layout retval;
+        retval.outerBounds.size = this->size;
+        retval.margin = this->margin;
+        retval.borderSize = this->borderSize;
+        retval.borderRadius = this->borderRadius;
+        retval.padding = this->padding;
+
+        return retval;
+    }
+
     style_sheet style_declaration_set::apply(const style_sheet& base) const
     {
         _declarations.reset();
@@ -170,19 +182,6 @@ namespace dm
         // cache built style
         auto pit = _cachedStyles.insert(std::make_pair(std::move(sel), retval));
         return &pit.first->second;
-    }
-
-    box_layout style_resolver::resolve_box_layout(element_type_t type, const array<utf8_string>& tags) const
-    {
-        const auto* styleSheet = resolve(type, tags, element_state::none);
-        box_layout retval;
-        retval.outerBounds.size = styleSheet->size;
-        retval.margin = styleSheet->margin;
-        retval.borderSize = styleSheet->borderSize;
-        retval.borderRadius = styleSheet->borderRadius;
-        retval.padding = styleSheet->padding;
-
-        return retval;
     }
 } /* dm */
 

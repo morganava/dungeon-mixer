@@ -47,8 +47,11 @@ namespace dm
         {
             auto* parent = g_context->parent_widget();
 
+            // get our style
+            this->_style = g_style_resolver->resolve(et, this->tags, element_state::none);
+
             // get our box layout based off type and tags
-            this->_layout = g_style_resolver->resolve_box_layout(et, this->tags);
+            this->_layout = this->_style->get_box_layout();
 
             // override size if defined in style and not explicitly requested
             auto desiredBounds = this->_desiredBounds;
@@ -61,9 +64,6 @@ namespace dm
             // calculate the real bounds
             if (g_context->get_render_pass() == render_pass::full)
             {
-                // we need to pop our old bounds on the second pass
-                g_context->pop_widget();
-
                 // stored height is what we need our inner height to be, we need to add border,margin and padding
                 // to get our final outer height
                 const auto& layout = this->_layout;
@@ -77,9 +77,6 @@ namespace dm
 
             // increment the number of children our parent has
             parent->increment_child_count();
-
-            // get our style
-            this->_style = g_style_resolver->resolve(et, this->tags, element_state::none);
         }
 
         rect widget_context_menu::bounds_callback_impl(rect desired)

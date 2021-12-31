@@ -27,6 +27,7 @@ add_executable(dungeon_mixer
     stylesheet.cpp
     # imgui
     imgui/imgui.cpp
+    imgui/root.cpp
     imgui/scroll_area.cpp
     imgui/flex_box.cpp
     imgui/label.cpp

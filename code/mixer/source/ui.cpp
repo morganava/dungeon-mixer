@@ -13,6 +13,7 @@ namespace dm
 {
     void ui::update(float dt, int32_t width, int32_t height)
     {
+        g_context->update(dt);
         mxRoot(rect(vec2::zero, vec2(width, height)))
         {
             mxHBox(self.tags={"root"})
@@ -415,7 +416,6 @@ namespace dm
                     g_ui->on_create_new_playlist();
                 });
                 mxButton({"-"}, self.tags = {"addRemove"}; self.disabled = disableRemove; self.on_click = [] {
-                    MX_LOG_INFO("REMOVE PLAYLIST");
                     g_ui->on_remove_current_playlist();
                 });
             }

@@ -170,7 +170,7 @@ namespace dm
                 imgui::scroll_area_data scroll;
             } sidebar;
 
-            screen_t currentScreen = screen::playlist;
+            screen_t currentScreen = screen::settings;
 
             struct
             {
@@ -221,7 +221,7 @@ namespace dm
                 struct
                 {
                     imgui::text_box_data log_filename;
-                    imgui::text_box_data log_level;
+                    imgui::dropdown_box_data log_level;
                     imgui::text_box_data skin;
                 } widget_data;
             } settings;

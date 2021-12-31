@@ -26,10 +26,13 @@ namespace dm
     element_type_t parse_element_type(const std::string&);
 
     SMOL_MAKE_FLAG_ENUM(element_state, uint_fast8_t,
-        hover    = 1 << 0,
-        active   = 1 << 1,
-        disabled = 1 << 2,
-        checked  = 1 << 3,
+        hover    = SMOL_FLAG(0),
+        active   = SMOL_FLAG(1),
+        disabled = SMOL_FLAG(2),
+        checked  = SMOL_FLAG(3),
+
+        // TODO: add flag enum which combines all of the states which are not allowed to
+        // modify geometry
     );
     element_state_t parse_element_state(const std::string&);
 
@@ -47,6 +50,7 @@ namespace dm
 {
     struct style_sheet
     {
+        box_layout get_box_layout() const;
         #define STYLE_SHEET_ENTRY(NAME, VAL, FLAGS) std::remove_const<std::remove_reference<decltype(VAL)>::type>::type NAME = VAL;
         #include "stylesheet.inl"
         #undef STYLE_SHEET_ENTRY
@@ -96,7 +100,6 @@ namespace dm
         style_resolver() = default;
         style_resolver(fs::path&& stylesheet);
         const style_sheet* resolve(element_type_t et, const array<utf8_string>& tags, element_state_t es) const;
-        box_layout resolve_box_layout(element_type_t et, const array<utf8_string>& tags) const;
     private:
         std::unordered_map<selector, style_declaration_set> _styleFactory;
         mutable std::unordered_map<selector, style_sheet> _cachedStyles;

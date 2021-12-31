@@ -82,35 +82,36 @@ namespace dm
             has_children = SMOL_FLAG(0),    // may have child widgets
             scissors     = SMOL_FLAG(1),    // defines a scissor region
             windows      = SMOL_FLAG(2),    // defines a window(?)
-            draw_layers  = SMOL_FLAG(3),    // updates the draw layer for self land children
+            draw_layers  = SMOL_FLAG(3),    // modifies the draw layer for self and children
+            multipass    = SMOL_FLAG(4),    // separate geometry and render passes
         );
 
         // widget base-class
 
         struct widget_base
         {
+
         protected:
+            widget_base() = default;
             constexpr const style_sheet& style() const {return *_style;}
 
             // common funcs
             virtual rect bounds_callback(rect desiredBounds) = 0;
 
+            // widget interface methods
             void resolve_box_layout_impl(element_type_t et, widget_flag_t flags);
             void resolve_scissor_impl();
             element_state_t resolve_element_state_impl();
             void resolve_style_impl(element_type_t, element_state_t);
             void render_box_layout_impl() const;
-
-            // widget interface methods
             rect bounds_callback_impl(rect desired);
-            constexpr bool should_draw_impl() const {return true;}
-            void handle_input_impl() {}
-            void first_update_impl() {}
-            void middle_update_impl() {}
-            void pre_render_impl() {}
-            void first_render_impl() const {}
-            void last_update_impl() {}
-            void last_render_impl() const {}
+            void handle_input_impl();
+            void first_update_impl();
+            void middle_update_impl();
+            void pre_render_impl() const;
+            void first_render_impl() const;
+            void last_update_impl();
+            void last_render_impl() const;
         public:
             void requestSize(const vec2& size);
             void requestWidth(double width);
@@ -126,115 +127,10 @@ namespace dm
 
             void increment_child_count() { _childCounter++; }
 
-        protected:
-            const style_sheet* _style = nullptr;
-            box_layout _layout = {};
-            rect _scissor = {};
-            rect _childScissor = {};
-            rect _desiredBounds = {};
-            bool _desiredWidthRequested = false;
-            bool _desiredHeightRequested = false;
-            size_t _childCounter = 0;
-        };
-
-        template<typename T, element_type ELEMENT_TYPE, typename WIDGET_DATA=widget_data, widget_flag_t WIDGET_FLAGS=widget_flag::none>
-        struct widget : public widget_base
-        {
-        public:
-            typedef WIDGET_DATA widget_data_t;
-
-            widget(const widget&) = delete;
-            widget(widget&&) = delete;
-
-            constexpr widget(WIDGET_DATA* pdata)
-            : _widget_data(std::nullopt)
-            , _data(pdata)
-            { }
-
-            constexpr widget(WIDGET_DATA&& rdata)
-            : _widget_data(std::make_optional(std::move(rdata)))
-            , _data(&_widget_data.value())
-            { }
-
-            // destructor called after child widgets have been handled
-            ~widget()
-            {
-                auto& self = static_cast<T&>(*this);
-
-                if (self.should_draw())
-                {
-                    if constexpr (static_cast<bool>(WIDGET_FLAGS & widget_flag::scissors)) {
-                        g_context->pop_scissor();
-                    }
-
-                    if (g_context->get_render_pass() == render_pass::full)
-                    {
-                        self.last_update();
-                        self.last_render();
-                    }
-
-                    if constexpr (static_cast<bool>(WIDGET_FLAGS & widget_flag::has_children))
-                    {
-                        g_context->pop_widget();
-                    }
-
-                    if constexpr (static_cast<bool>(WIDGET_FLAGS & widget_flag::windows))
-                    {
-                        g_context->set_current_window_widget(widget_id::invalid);
-                    }
-
-                    if constexpr (static_cast<bool>(WIDGET_FLAGS & widget_flag::draw_layers))
-                    {
-                        g_context->pop_draw_layer();
-                    }
-                }
-            }
-
-            // internalish draw methods
-            bool draw(render_pass_t renderPass, auto&& lambda) {
-
-                auto& self = static_cast<T&>(*this);
-                if (!self.should_draw()) {
-                    return false;
-                }
-
-                if constexpr (static_cast<bool>(WIDGET_FLAGS & widget_flag::windows)) {
-                    g_context->set_current_window_widget(this->get_widget_id());
-                }
-
-                self._childCounter = 0;
-                g_context->set_render_pass(renderPass);
-
-                lambda(self);
-
-                switch(renderPass)
-                {
-                    case render_pass::geometry:
-                        self.resolve_box_layout(); /* for click detection */
-                        self.push_widget(); /* pushes widget and scissor */
-                        return true;
-                    case render_pass::full:
-                        self.resolve_box_layout(); /* for click detection */
-                        self.handle_input(); /* consume input events */
-                        self.first_update(); /* post geometry but pre style */
-                        self.resolve_style(); /* get the style */
-                        self.middle_update(); /* post style resolution but pre render */
-                        self.pre_render();  /* just before our first rendering calls */
-                        self.render_box_layout(); /* common box layout rendering */
-                        self.first_render(); /* widget specific rendering */
-                        self.push_widget();
-                        return true;
-                    default:
-                        SMOL_FAIL_FAST();
-                }
-                return false;
-            }
-
             constexpr widget_id_t get_widget_id() const
             {
                 return _data ? _data->id : widget_id::null;
             }
-
             void focus_widget()
             {
                 g_context->focus_widget(this->get_widget_id());
@@ -251,13 +147,119 @@ namespace dm
             }
 
         protected:
-            // determines whether draw() should be a noop
-            bool should_draw() const
+            const style_sheet* _style = nullptr;
+            box_layout _layout = {};
+            rect _scissor = {};
+            rect _childScissor = {};
+            rect _desiredBounds = {};
+            bool _desiredWidthRequested = false;
+            bool _desiredHeightRequested = false;
+            size_t _childCounter = 0;
+            widget_data* const _data = nullptr;
+            widget_base(widget_data* const data)
+            : _data(data) { }
+        };
+
+        template<typename T, element_type ELEMENT_TYPE, typename WIDGET_DATA=widget_data, widget_flag_t WIDGET_FLAGS=widget_flag::none>
+        struct widget : public widget_base
+        {
+        public:
+            typedef WIDGET_DATA widget_data_t;
+
+            widget(const widget&) = delete;
+            widget& operator=(const widget&) = delete;
+
+            constexpr widget(widget_data_t* pdata)
+            : widget_base(pdata)
+            , _widget_data(std::nullopt)
+            { }
+
+            constexpr widget(widget_data_t&& rdata)
+            : widget_base(_widget_data.operator->())
+            , _widget_data(std::make_optional(std::move(rdata)))
+            { }
+
+            // destructor called after child widgets have been handled
+            ~widget()
             {
-                const auto self = static_cast<const T*>(this);
-                return self->should_draw_impl();
+                auto& self = static_cast<T&>(*this);
+
+                if constexpr (static_cast<bool>(WIDGET_FLAGS & widget_flag::scissors)) {
+                    g_context->pop_scissor();
+                }
+
+                self.last_update();
+                self.last_render();
+
+                if constexpr (static_cast<bool>(WIDGET_FLAGS & widget_flag::has_children))
+                {
+                    g_context->pop_widget();
+                }
+
+                if constexpr (static_cast<bool>(WIDGET_FLAGS & widget_flag::windows))
+                {
+                    g_context->set_current_window_widget(widget_id::invalid);
+                }
+
+                if constexpr (static_cast<bool>(WIDGET_FLAGS & widget_flag::draw_layers))
+                {
+                    g_context->pop_draw_layer();
+                }
             }
 
+            // internalish draw methods
+            bool draw(render_pass_t renderPass, auto&& lambda) {
+
+                auto& self = static_cast<T&>(*this);
+
+                if constexpr (static_cast<bool>(WIDGET_FLAGS & widget_flag::windows)) {
+                    g_context->set_current_window_widget(this->get_widget_id());
+                }
+
+                self._childCounter = 0;
+                g_context->set_render_pass(renderPass);
+
+                lambda(self);
+
+                switch(renderPass)
+                {
+                    case render_pass::geometry:
+                        self.resolve_box_layout(); /* for click detection */
+                        if constexpr (static_cast<bool>(WIDGET_FLAGS & widget_flag::has_children))
+                        {
+                            g_context->push_widget(&self);
+                        }
+                        return true;
+                    case render_pass::full:
+                        if constexpr (static_cast<bool>(WIDGET_FLAGS & widget_flag::multipass) &&
+                                      static_cast<bool>(WIDGET_FLAGS & widget_flag::has_children)) {
+                            // we need to pop our old bounds on the second pass
+                            g_context->pop_widget();
+                        }
+                        self.resolve_box_layout(); /* for click detection */
+                        self.handle_input(); /* consume input events */
+                        self.first_update(); /* post geometry but pre style */
+                        self.resolve_style(); /* get the style */
+                        self.middle_update(); /* post style resolution but pre render */
+                        self.pre_render();  /* just before our first rendering calls */
+                        self.render_box_layout(); /* common box layout rendering */
+                        self.first_render(); /* widget specific rendering */
+                        if constexpr (static_cast<bool>(WIDGET_FLAGS & widget_flag::has_children))
+                        {
+                            g_context->push_widget(&self);
+                        }
+                        if constexpr (static_cast<bool>(WIDGET_FLAGS & widget_flag::scissors))
+                        {
+                            g_context->push_scissor(self.childScissor());
+                        }
+                        return true;
+                    default:
+                        SMOL_FAIL_FAST();
+                }
+                return false;
+            }
+
+        private:
             // callback for child widgets to get their draw area
             rect bounds_callback(rect desiredBounds) override
             {
@@ -315,20 +317,6 @@ namespace dm
                 static_cast<const T*>(this)->first_render_impl();
             }
 
-            // pushes widget and scissor to stack if it has children
-            void push_widget()
-            {
-                if constexpr (static_cast<bool>(WIDGET_FLAGS & widget_flag::has_children))
-                {
-                    g_context->push_widget(this);
-                }
-
-                if constexpr (static_cast<bool>(WIDGET_FLAGS & widget_flag::scissors))
-                {
-                    g_context->push_scissor(this->childScissor());
-                }
-            }
-
             // last update in destructor after children
             void last_update()
             {
@@ -340,9 +328,8 @@ namespace dm
             {
                 static_cast<const T*>(this)->last_render_impl();
             }
-
-            // widget methods
         protected:
+            // widget methods
             constexpr WIDGET_DATA* data()
             {
                 return reinterpret_cast<WIDGET_DATA*>(this->_data);
@@ -354,7 +341,6 @@ namespace dm
             }
         private:
             std::optional<WIDGET_DATA> _widget_data = std::nullopt;
-            widget_data* const _data = nullptr;
         };
 
         // the root widget with viewport info
@@ -669,7 +655,7 @@ namespace dm
             vec2 spawnLocation;
         };
 
-        struct widget_context_menu : public widget<widget_context_menu, element_type::context_menu, context_menu_data, widget_flag::has_children | widget_flag::windows | widget_flag::draw_layers>
+        struct widget_context_menu : public widget<widget_context_menu, element_type::context_menu, context_menu_data, widget_flag::has_children | widget_flag::windows | widget_flag::draw_layers | widget_flag::multipass>
         {
         public:
             using widget::widget;
@@ -718,3 +704,5 @@ namespace dm
 #define mxRangeSlider(DATA, ...) MX_WIDGET_CODEGEN(widget_range_slider, DATA, __VA_ARGS__)
 #define mxCheckbox(DATA, ...) MX_WIDGET_CODEGEN(widget_checkbox, DATA, __VA_ARGS__)
 #define mxContextMenu(DATA, ...) MX_MULTIPASS_WIDGET_CODEGEN(widget_context_menu, DATA, __VA_ARGS__)
+#define mxDropdownBox(DATA, ...) MX_MULTIPASS_WIDGET_CODEGEN(widget_dropdown_box, DATA, __VA_ARGS__)
+

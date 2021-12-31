@@ -114,8 +114,10 @@ namespace dm
         {
             auto* parent = g_context->parent_widget();
 
+            // get our style
+            this->_style = g_style_resolver->resolve(et, this->tags, element_state::none);
             // get our box layout based off type and tags
-            this->_layout = g_style_resolver->resolve_box_layout(et, this->tags);
+            this->_layout = this->_style->get_box_layout();
 
             // override size if defined in style and not explicitly requested
             auto desiredBounds = this->_desiredBounds;
@@ -127,9 +129,6 @@ namespace dm
 
             // increment the number of children our parent has
             parent->increment_child_count();
-
-            // get our style
-            this->_style = g_style_resolver->resolve(et, this->tags, element_state::none);
         }
 
         void widget_base::resolve_scissor_impl()
@@ -198,6 +197,14 @@ namespace dm
             }
         }
 
+        void widget_base::handle_input_impl() {}
+        void widget_base::first_update_impl() {}
+        void widget_base::middle_update_impl() {}
+        void widget_base::pre_render_impl() const {}
+        void widget_base::first_render_impl() const {}
+        void widget_base::last_update_impl() {}
+        void widget_base::last_render_impl() const {}
+
         void widget_base::requestSize(const vec2& size)
         {
             _desiredBounds.size = size;
@@ -227,56 +234,6 @@ namespace dm
             _desiredBounds = bounds;
             _desiredWidthRequested = true;
             _desiredHeightRequested = true;
-        }
-
-        // Root
-
-        widget_root::widget_root(const rect& viewport)
-        : widget_root(nullptr)
-        {
-            _viewport = viewport;
-            _scissor = viewport;
-            _childScissor = viewport;
-            g_input->set_mouse_cursor(mouse_cursor::arrow);
-            g_context->focus_window_widget(this->get_widget_id());
-        }
-
-        widget_root::~widget_root()
-        {
-        }
-
-        void widget_root::resolve_box_layout_impl(element_type_t et, widget_flag_t flag)
-        {
-            // get our box layout based off type and tags
-            this->_layout = g_style_resolver->resolve_box_layout(et, this->tags);
-
-            // now get our actual bounds from parent
-            this->_layout.outerBounds = this->_viewport;
-
-            // get our style
-            this->_style = g_style_resolver->resolve(et, this->tags, element_state::none);
-        }
-
-        void widget_root::pre_render_impl()
-        {
-            g_context->push_draw_layer(draw_layer::background);
-        }
-
-        void widget_root::render_box_layout_impl() const
-        {
-            widget_base::render_box_layout_impl();
-        }
-
-        void widget_root::resolve_scissor_impl()
-        {
-            // calc the scissor geometry for widget specific content
-            this->_scissor = this->_layout.outerBounds;
-            this->_childScissor = this->_layout.inner_bounds();
-        }
-
-        rect widget_root::bounds_callback_impl(rect)
-        {
-            return this->_layout.child_bounds();
         }
     }
 }
