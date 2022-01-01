@@ -53,16 +53,33 @@ namespace smol
     template<typename E>
     struct enum_values
     {
+        enum_values() = default;
+        enum_values(E begin, E end)
+        : begin_(begin)
+        , end_(end)
+        { }
+
         constexpr enum_iterator<E> begin() const
         {
-            return enum_iterator(E::__first_named);
+            return enum_iterator(begin_);
         }
 
         constexpr enum_iterator<E> end() const
         {
-            return enum_iterator(E::count);
+            return enum_iterator(end_);
         }
+
+    private:
+        const E begin_ = E::__first_named;
+        const E end_ = E::count;
     };
+
+    template<typename E>
+    enum_values<E> enum_range(E begin, E end)
+    {
+        return enum_values<E>(begin, end);
+    }
+
 
     template<typename E>
     void to_json(nl::json& js, const E& e, const std::array<std::string_view, static_cast<size_t>(E::count)>& strings)
