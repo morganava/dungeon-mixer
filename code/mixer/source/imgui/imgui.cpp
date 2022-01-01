@@ -14,6 +14,7 @@ namespace dm
         {
             SMOL_ASSERT(_widget_stack.size() == 0);
             SMOL_ASSERT(_render_scissor_stack.size() == 0);
+            SMOL_ASSERT(_render_pass_stack.size() == 0);
         }
 
         void context::push_widget(widget_base* w)
@@ -110,7 +111,7 @@ namespace dm
             this->_style = g_style_resolver->resolve(et, this->tags, es);
         }
 
-        void widget_base::resolve_box_layout_impl(element_type_t et, widget_flag_t flag)
+        void widget_base::resolve_box_layout_impl(render_pass_t, element_type_t et)
         {
             auto* parent = g_context->parent_widget();
 

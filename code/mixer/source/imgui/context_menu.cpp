@@ -43,7 +43,7 @@ namespace dm
             }
         }
 
-        void widget_context_menu::resolve_box_layout_impl(element_type_t et, widget_flag_t flags)
+        void widget_context_menu::resolve_box_layout_impl(render_pass_t renderPass, element_type_t et)
         {
             auto* parent = g_context->parent_widget();
 
@@ -62,7 +62,7 @@ namespace dm
             this->_layout.outerBounds.size = desiredBounds.size;
 
             // calculate the real bounds
-            if (g_context->get_render_pass() == render_pass::full)
+            if (renderPass == render_pass::multi_full)
             {
                 // stored height is what we need our inner height to be, we need to add border,margin and padding
                 // to get our final outer height

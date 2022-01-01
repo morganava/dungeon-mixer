@@ -9,8 +9,9 @@ namespace dm
     namespace imgui
     {
         SMOL_MAKE_ENUM(render_pass, uint_fast8_t,
-            geometry, /* only calculates layout information */
-            full /* layout, input, render */
+            single, /* a full pass for widgets that only require a single pass */
+            multi_geometry, /* just do the geometry portion */
+            multi_full /* a full pass for widgets requiring two passes */
         );
 
         // widget id
@@ -50,21 +51,28 @@ namespace dm
             void push_draw_layer(draw_layer_t layer);
             void pop_draw_layer();
 
-            render_pass_t get_render_pass() const {
-                return _currentRenderPass;
-            }
-
-            void set_render_pass(render_pass_t renderPass)
+            void push_render_pass(render_pass_t rp)
             {
-                this->_currentRenderPass = renderPass;
+                this->_render_pass_stack.push_back(rp);
+            }
+            void pop_render_pass()
+            {
+                this->_render_pass_stack.pop_back();
+            }
+            render_pass_t get_render_pass() const
+            {
+                if (this->_render_pass_stack.size() == 0) {
+                    return render_pass::invalid;
+                }
+                return _render_pass_stack.back();
             }
 
         private:
-            render_pass_t _currentRenderPass = render_pass::full;
-
             std::vector<widget_base*> _widget_stack;
             std::vector<rect> _render_scissor_stack;
             std::vector<draw_layer_t> _draw_layer_stack;
+            std::vector<render_pass_t> _render_pass_stack;
+
             widget_id_t _focused_window_widget = widget_id::invalid;
             widget_id_t _focused_widget = widget_id::invalid;
             widget_id_t _current_window_widget = widget_id::invalid;
@@ -99,7 +107,7 @@ namespace dm
             virtual rect bounds_callback(rect desiredBounds) = 0;
 
             // widget interface methods
-            void resolve_box_layout_impl(element_type_t et, widget_flag_t flags);
+            void resolve_box_layout_impl(render_pass_t renderPass, element_type_t et);
             void resolve_scissor_impl();
             element_state_t resolve_element_state_impl();
             void resolve_style_impl(element_type_t, element_state_t);
@@ -183,11 +191,17 @@ namespace dm
             ~widget()
             {
                 auto& self = static_cast<T&>(*this);
+                const auto renderPass = g_context->get_render_pass();
 
-                if constexpr (static_cast<bool>(WIDGET_FLAGS & widget_flag::scissors)) {
-                    g_context->pop_scissor();
+                if constexpr (static_cast<bool>(WIDGET_FLAGS & widget_flag::scissors))
+                {
+                    if (renderPass == render_pass::multi_full || renderPass == render_pass::single)
+                    {
+                        g_context->pop_scissor();
+                    }
                 }
 
+                // TODO: shouldn't these only be called if we (may) have child widgets?
                 self.last_update();
                 self.last_render();
 
@@ -203,12 +217,44 @@ namespace dm
 
                 if constexpr (static_cast<bool>(WIDGET_FLAGS & widget_flag::draw_layers))
                 {
-                    g_context->pop_draw_layer();
+                    if (renderPass == render_pass::multi_full || renderPass == render_pass::single)
+                    {
+                        g_context->pop_draw_layer();
+                    }
                 }
+
+                // TODO: weirdness for multi-pass here
+                g_context->pop_render_pass();
+            }
+
+            std::vector<render_pass_t> get_passes(render_pass_t currentRenderPass)
+            {
+                // multipass widgets
+                if constexpr (static_cast<bool>(WIDGET_FLAGS & widget_flag::multipass))
+                {
+                    switch(currentRenderPass)
+                    {
+                        case render_pass::single:
+                            return {render_pass::multi_geometry, render_pass::multi_full};
+                        case render_pass::multi_geometry:
+                            return {render_pass::multi_geometry};
+                        case render_pass::multi_full:
+                            return {render_pass::multi_full};
+                        default: break;
+                    }
+                }
+                // singlepass widgets
+                else
+                {
+                    return {currentRenderPass};
+                }
+                SMOL_FAIL_FAST();
+                return {};
             }
 
             // internalish draw methods
-            bool draw(render_pass_t renderPass, auto&& lambda) {
+            bool draw(render_pass_t renderPass, auto&& lambda)
+            {
 
                 auto& self = static_cast<T&>(*this);
 
@@ -217,26 +263,51 @@ namespace dm
                 }
 
                 self._childCounter = 0;
-                g_context->set_render_pass(renderPass);
+
+                switch(renderPass)
+                {
+                    case render_pass::multi_geometry:
+                        g_context->push_render_pass(renderPass);
+                        break;
+                    case render_pass::multi_full:
+                        if constexpr(static_cast<bool>(WIDGET_FLAGS & widget_flag::multipass))
+                        {
+                            if (this->early_cleanup_)
+                            {
+                                // do some of the destructor stuff here for second pass
+                                g_context->pop_render_pass();
+                                if constexpr (static_cast<bool>(WIDGET_FLAGS & widget_flag::has_children))
+                                {
+                                    // we need to pop our old bounds on the second pass
+                                    g_context->pop_widget();
+                                }
+                            }
+                        }
+                        g_context->push_render_pass(renderPass);
+                        break;
+                    case render_pass::single:
+                        g_context->push_render_pass(renderPass);
+                        break;
+                    default:
+                        SMOL_FAIL_FAST();
+                        break;
+                }
 
                 lambda(self);
 
                 switch(renderPass)
                 {
-                    case render_pass::geometry:
-                        self.resolve_box_layout(); /* for click detection */
+                    case render_pass::multi_geometry:
+                        self.resolve_box_layout(renderPass); /* for click detection */
                         if constexpr (static_cast<bool>(WIDGET_FLAGS & widget_flag::has_children))
                         {
                             g_context->push_widget(&self);
                         }
-                        return true;
-                    case render_pass::full:
-                        if constexpr (static_cast<bool>(WIDGET_FLAGS & widget_flag::multipass) &&
-                                      static_cast<bool>(WIDGET_FLAGS & widget_flag::has_children)) {
-                            // we need to pop our old bounds on the second pass
-                            g_context->pop_widget();
-                        }
-                        self.resolve_box_layout(); /* for click detection */
+                        break;
+                    case render_pass::multi_full:
+                        [[fallthrough]];
+                    case render_pass::single:
+                        self.resolve_box_layout(renderPass); /* for click detection */
                         self.handle_input(); /* consume input events */
                         self.first_update(); /* post geometry but pre style */
                         self.resolve_style(); /* get the style */
@@ -252,11 +323,14 @@ namespace dm
                         {
                             g_context->push_scissor(self.childScissor());
                         }
-                        return true;
+                        break;
                     default:
                         SMOL_FAIL_FAST();
+                        break;
+
                 }
-                return false;
+                early_cleanup_ = true;
+                return true;
             }
 
         private:
@@ -268,10 +342,10 @@ namespace dm
             }
 
             // calculates the physical dimensions of the widget and the scissor areas
-            void resolve_box_layout()
+            void resolve_box_layout(render_pass_t renderPass)
             {
                 auto self = static_cast<T*>(this);
-                self->resolve_box_layout_impl(ELEMENT_TYPE, WIDGET_FLAGS);
+                self->resolve_box_layout_impl(renderPass, ELEMENT_TYPE);
                 self->resolve_scissor_impl();
             }
 
@@ -341,6 +415,7 @@ namespace dm
             }
         private:
             std::optional<WIDGET_DATA> _widget_data = std::nullopt;
+            bool early_cleanup_ = false;
         };
 
         // the root widget with viewport info
@@ -348,10 +423,9 @@ namespace dm
         {
             using widget::widget;
             widget_root(const rect& viewport);
-            ~widget_root();
 
             void pre_render_impl();
-            void resolve_box_layout_impl(element_type_t et, widget_flag_t flag);
+            void resolve_box_layout_impl(render_pass_t renderPass, element_type_t et);
             void render_box_layout_impl() const;
             void resolve_scissor_impl();
 
@@ -663,7 +737,7 @@ namespace dm
             bool should_draw_impl() const;
             void handle_input_impl();
             void first_update_impl();
-            void resolve_box_layout_impl(element_type_t et, widget_flag_t flag);
+            void resolve_box_layout_impl(render_pass_t renderPass, element_type_t et);
             rect bounds_callback_impl(rect desiredBounds);
             void pre_render_impl() const;
         private:
@@ -682,14 +756,16 @@ namespace dm
 // widget-specific second render
 
 #define MX_WIDGET_CODEGEN(X, PDATA, ...)\
-    if (imgui::X widget##__LINE__(PDATA); widget##__LINE__.draw(dm::g_context->get_render_pass(),[&](auto& self){__VA_ARGS__;}))
+    if (imgui::X widget##__LINE__(PDATA); widget##__LINE__.draw(g_context->get_render_pass(), [&](auto& self){__VA_ARGS__;}))
 
 #define MX_MULTIPASS_WIDGET_CODEGEN(X, PDATA, ...)\
-    if (imgui::X widget##__LINE__(PDATA); true)\
-        for (size_t i##__LINE__ = 0; i##__LINE__ <= static_cast<size_t>(imgui::render_pass::full); ++i##__LINE__)\
-             if (widget##__LINE__.draw(static_cast<imgui::render_pass_t>(i##__LINE__), [&](auto& self) {__VA_ARGS__;}))
+    if (imgui::X __widget(PDATA); true)\
+        for (auto pass : __widget.get_passes(g_context->get_render_pass()))\
+            if (__widget.draw(pass, [&](auto& self) {__VA_ARGS__;}))
 
-#define mxRoot(VIEWPORT) MX_WIDGET_CODEGEN(widget_root, VIEWPORT)
+// #define mxRoot(VIEWPORT) MX_WIDGET_CODEGEN(widget_root, VIEWPORT)
+#define mxRoot(VIEWPORT) if (imgui::widget_root __root(VIEWPORT); __root.draw(imgui::render_pass::single, [](auto& self){}))
+
 #define mxScrollArea(DATA, ...) MX_WIDGET_CODEGEN(widget_scroll_area, DATA, __VA_ARGS__)
 #define mxHScroll(DATA, ...) MX_WIDGET_CODEGEN(widget_scroll_area, DATA, self.direction = imgui::scroll_direction::horizontal; __VA_ARGS__)
 #define mxVScroll(DATA, ...) MX_WIDGET_CODEGEN(widget_scroll_area, DATA, self.direction = imgui::scroll_direction::vertical; __VA_ARGS__)
@@ -704,5 +780,3 @@ namespace dm
 #define mxRangeSlider(DATA, ...) MX_WIDGET_CODEGEN(widget_range_slider, DATA, __VA_ARGS__)
 #define mxCheckbox(DATA, ...) MX_WIDGET_CODEGEN(widget_checkbox, DATA, __VA_ARGS__)
 #define mxContextMenu(DATA, ...) MX_MULTIPASS_WIDGET_CODEGEN(widget_context_menu, DATA, __VA_ARGS__)
-#define mxDropdownBox(DATA, ...) MX_MULTIPASS_WIDGET_CODEGEN(widget_dropdown_box, DATA, __VA_ARGS__)
-
