@@ -80,6 +80,13 @@ namespace smol
         return enum_values<E>(begin, end);
     }
 
+    template<typename E>
+    enum_values<E> enum_range(E begin, typename std::underlying_type<E>::type count)
+    {
+        typedef typename std::underlying_type<E>::type T;
+        return enum_range(begin, static_cast<E>(static_cast<T>(begin) + count));
+    }
+
 
     template<typename E>
     void to_json(nl::json& js, const E& e, const std::array<std::string_view, static_cast<size_t>(E::count)>& strings)
