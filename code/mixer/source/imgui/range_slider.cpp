@@ -14,14 +14,15 @@ namespace dm
         {
             using widget::widget;
 
-            void first_update_impl();
+            void handle_input_impl();
             element_state_t resolve_element_state_impl();
 
+            //
             widget_range_slider* _slider = nullptr;
             range_slider_handle_t _handle = range_slider_handle::invalid;
         };
 
-        void widget_range_slider_handle::first_update_impl()
+        void widget_range_slider_handle::handle_input_impl()
         {
             SMOL_ASSERT(_handle == range_slider_handle::low ||
                       _handle == range_slider_handle::high);
@@ -198,7 +199,7 @@ namespace dm
             }
         }
 
-        void widget_range_slider::last_update_impl()
+        void widget_range_slider::draw_inner_widgets_impl()
         {
             const auto startLow = data()->lowValue;
             const auto startHigh = data()->highValue;

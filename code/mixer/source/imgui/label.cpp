@@ -6,7 +6,7 @@ namespace dm
     {
         // Label
 
-        void widget_label::first_render_impl() const
+        void widget_label::render_impl() const
         {
             g_nanovg->draw_text(
                 this->_layout.inner_bounds(),

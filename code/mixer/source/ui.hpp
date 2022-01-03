@@ -221,7 +221,7 @@ namespace dm
                 struct
                 {
                     imgui::text_box_data log_filename;
-                    imgui::dropdown_box_data log_level;
+                    imgui::text_box_data log_level;
                     imgui::text_box_data skin;
                 } widget_data;
             } settings;

@@ -50,7 +50,7 @@ namespace dm
             return *this;
         }
 
-        constexpr void operator()(auto&&... args)
+        constexpr void operator()(auto&&... args) const
         {
             if (exec_func)
             {

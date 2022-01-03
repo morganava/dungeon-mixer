@@ -15,29 +15,26 @@ namespace dm
         {
             if (data()->visible) {
                 g_context->focus_window_widget(get_widget_id());
-            }
-        }
 
-        void widget_context_menu::first_update_impl()
-        {
-            for(auto evt : g_input->get_input_events())
-            {
-                switch(evt.type())
+                for(auto evt : g_input->get_input_events())
                 {
-                    case input_event_type::mouse_down:
+                    switch(evt.type())
                     {
-                        if (!point_inside_rect(evt.position(), this->_layout.outerBounds))
+                        case input_event_type::mouse_down:
                         {
-                            worker_ui.enqueue([data=this->data()]()
+                            if (!point_inside_rect(evt.position(), this->_layout.outerBounds))
                             {
-                                data->visible = false;
-                            });
+                                worker_ui.enqueue([data=this->data()]()
+                                {
+                                    data->visible = false;
+                                });
+                            }
+                            break;
                         }
-                        break;
-                    }
-                    default:
-                    {
-                        break;
+                        default:
+                        {
+                            break;
+                        }
                     }
                 }
             }
@@ -94,9 +91,9 @@ namespace dm
             return retval;
         }
 
-        void widget_context_menu::pre_render_impl() const
+        draw_layer_t widget_context_menu::get_draw_layer_impl() const
         {
-            g_context->push_draw_layer(draw_layer::foreground);
+            return draw_layer::foreground;
         }
     }
 }

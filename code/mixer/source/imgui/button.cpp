@@ -44,7 +44,7 @@ namespace dm
             }
         }
 
-        void widget_button::first_render_impl() const
+        void widget_button::render_impl() const
         {
             g_nanovg->draw_text(
                 this->_layout.inner_bounds(),
@@ -57,7 +57,7 @@ namespace dm
                 data()->text);
         }
 
-        void widget_button::last_update_impl()
+        void widget_button::fire_callbacks_impl() const
         {
             if (this->_clicked)
             {

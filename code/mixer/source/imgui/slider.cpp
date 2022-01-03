@@ -14,13 +14,14 @@ namespace dm
         {
             using widget::widget;
 
-            void first_update_impl();
+            void handle_input_impl();
             element_state_t resolve_element_state_impl();
 
+            // TODO: can't we reference this by parent?
             widget_slider* _slider = nullptr;
         };
 
-        void widget_slider_handle::first_update_impl()
+        void widget_slider_handle::handle_input_impl()
         {
             const auto sliderBounds = _slider->_layout.child_bounds();
             const auto handleWidth = this->_layout.outerBounds.width();
@@ -132,7 +133,7 @@ namespace dm
             return {};
         }
 
-        void widget_slider::last_update_impl()
+        void widget_slider::draw_inner_widgets_impl()
         {
             const auto tags = this->tags;
             mxSliderTrack(self.tags = tags);

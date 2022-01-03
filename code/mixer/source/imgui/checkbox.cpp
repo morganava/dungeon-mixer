@@ -16,7 +16,7 @@ namespace dm
             return retval;
         }
 
-        void widget_checkbox::first_update_impl()
+        void widget_checkbox::handle_input_impl()
         {
             for(auto evt : g_input->get_input_events())
             {
@@ -41,8 +41,9 @@ namespace dm
             }
         }
 
-        void widget_checkbox::last_update_impl()
+        void widget_checkbox::fire_callbacks_impl() const
         {
+            // TODO: this should probably be a queue of input events
             if (this->_clicked)
             {
                 this->on_change(data()->checked);

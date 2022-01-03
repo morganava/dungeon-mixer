@@ -12,11 +12,6 @@ namespace dm
             auto* widget = g_context->parent_widget();
             const auto& scissor = widget->scissor();
 
-            // need to exclude the scroll area's scroll bars from scissor
-            const bool scroll_vertical = static_cast<bool>(this->direction & scroll_direction::vertical);
-            const bool scroll_horizontal = static_cast<bool>(this->direction & scroll_direction::horizontal);
-            const auto scrollbar_size = this->style().scrollbarSize;
-
             // calc the scissor geometry for widget specific contetn
             // but only scissor the rendering if we're a certain type of element
             const auto padding = this->_layout.padding;
@@ -26,20 +21,11 @@ namespace dm
             childBounds.position += vec2{padding.left,padding.top};
             childBounds.size -= (vec2{padding.left,padding.top} + vec2{padding.right,padding.bottom});
 
-            if (scroll_vertical)
-            {
-                childBounds.size.x -= scrollbar_size;
-            }
-            if (scroll_horizontal)
-            {
-                childBounds.size.y -= scrollbar_size;
-            }
-
             this->_scissor = get_intersecting_rect(scissor, this->_layout.outerBounds);
             this->_childScissor = get_intersecting_rect(scissor, childBounds);
         }
 
-        void widget_scroll_area::first_update_impl()
+        void widget_scroll_area::handle_input_impl()
         {
             for(auto evt : g_input->get_input_events())
             {
@@ -109,7 +95,7 @@ namespace dm
             return retval;
         }
 
-        void widget_scroll_area::last_update_impl()
+        void widget_scroll_area::draw_inner_widgets_impl()
         {
             // style constants
             const auto scrollbar_size = this->style().scrollbarSize;
@@ -344,21 +330,12 @@ namespace dm
              // clamp offsets
             data()->vertical.scroll_offset = clamp<double>(0.0, data()->vertical.scroll_offset, scrollable_height);
             data()->horizontal.scroll_offset = clamp<double>(0.0, data()->horizontal.scroll_offset, scrollable_width);
-        }
 
-        void widget_scroll_area::last_render_impl() const
-        {
-            const bool scroll_vertical = static_cast<bool>(this->direction & scroll_direction::vertical);
-            const bool scroll_horizontal = static_cast<bool>(this->direction & scroll_direction::horizontal);
+            // render the scollbar(s)
             const auto back_color = this->style().scrollbarBackColor;
             const auto fore_color = this->style().scrollbarForeColor;
             const auto active_color = this->style().scrollbarActiveColor;
             const auto corner_radius = this->style().scrollbarCornerRadius;
-
-            const auto vsa = this->vertical.scrollbar_area;
-            const auto vsga = this->vertical.scrollbar_grab_area;
-            const auto hsa = this->horizontal.scrollbar_area;
-            const auto hsga = this->horizontal.scrollbar_grab_area;
 
             if (scroll_vertical)
             {

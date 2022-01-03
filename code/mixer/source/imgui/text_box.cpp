@@ -8,7 +8,7 @@ namespace dm
 
         // Text Box
 
-        void widget_text_box::middle_update_impl()
+        void widget_text_box::handle_input_impl()
         {
             bool textDirty = false;
             auto& sb = this->data()->sb;
@@ -540,7 +540,7 @@ namespace dm
             }
         }
 
-        void widget_text_box::first_render_impl() const
+        void widget_text_box::render_impl() const
         {
             g_context->push_scissor(this->_layout.border_inner_bounds());
             if (this->is_focused())

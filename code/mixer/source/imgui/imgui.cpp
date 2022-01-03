@@ -98,6 +98,24 @@ namespace dm
             }
         }
 
+        void context::push_render_pass(render_pass_t rp)
+        {
+            this->_render_pass_stack.push_back(rp);
+        }
+
+        void context::pop_render_pass()
+        {
+            this->_render_pass_stack.pop_back();
+        }
+
+        render_pass_t context::get_render_pass() const
+        {
+            if (this->_render_pass_stack.size() == 0) {
+                return render_pass::invalid;
+            }
+            return _render_pass_stack.back();
+        }
+
         // widget_base
 
         rect widget_base::bounds_callback_impl(rect desired)
@@ -199,12 +217,10 @@ namespace dm
         }
 
         void widget_base::handle_input_impl() {}
-        void widget_base::first_update_impl() {}
-        void widget_base::middle_update_impl() {}
-        void widget_base::pre_render_impl() const {}
-        void widget_base::first_render_impl() const {}
-        void widget_base::last_update_impl() {}
-        void widget_base::last_render_impl() const {}
+        void widget_base::render_impl() const {}
+        void widget_base::draw_inner_widgets_impl() {}
+        draw_layer_t widget_base::get_draw_layer_impl() const { return draw_layer::invalid; }
+        void widget_base::fire_callbacks_impl() const {}
 
         void widget_base::requestSize(const vec2& size)
         {
