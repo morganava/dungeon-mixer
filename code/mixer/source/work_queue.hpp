@@ -86,6 +86,7 @@ namespace dm
     };
 
     typedef std::chrono::time_point<std::chrono::steady_clock> timestamp_t;
+    typedef void (*task_enqueue_callback_t)(worker_flag_t);
 
     class work_manager
     {
@@ -110,6 +111,8 @@ namespace dm
         task_future enqueue(size_t workerIndex, run_once_task&& work, timestamp_t startTime);
 
         worker_flag_t current_worker_flag() const;
+
+        void register_task_enqueue_callback(size_t workerIndex, task_enqueue_callback_t callback);
     private:
 
         std::future<void> enqueue_impl(size_t workerIndex, run_once_task&& work, timestamp_t startTime);
@@ -129,6 +132,8 @@ namespace dm
         std::condition_variable _suspend_handle[_worker_count];
         // per thread flags to signal termination
         bool _terminating[_worker_count];
+        // per thread callbacks run whenever a task is enqueued
+        task_enqueue_callback_t _enqueue_callbacks[_worker_count];
 
         // our worker pool (first one is implicitly the main thread)
         std::thread _threads[_worker_count];
@@ -147,6 +152,7 @@ namespace dm
         const size_t _worker_index;
     public:
         constexpr worker(worker_id_t id) : _worker_index(static_cast<size_t>(id)) {}
+        void register_task_enqueue_callback(task_enqueue_callback_t callback) const;
         task_future enqueue(run_once_task&& task) const;
         task_future enqueue(run_once_task&& task, timestamp_t startTime) const;
         template<typename Rep, typename Period>

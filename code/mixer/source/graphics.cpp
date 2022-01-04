@@ -154,6 +154,15 @@ namespace dm
         // init our timestamp
         glfwSetTime(0);
 
+        worker_ui.register_task_enqueue_callback([](worker_flag_t origin) -> void
+        {
+            // only when we get work from some other thread
+            if (static_cast<bool>(origin & worker_flag::ui) == false) {
+                // wake up the UI thread from glfwWaitEvents() 
+                glfwPostEmptyEvent();
+            }
+        });
+
         worker_ui.enqueue([]() -> void {
             g_input_unsafe.build_key_map();
             g_input_unsafe.init_cursors();
@@ -171,9 +180,9 @@ namespace dm
 
     void graphics::update()
     {
-         // calculate frame delta
-        double time = glfwGetTime();
-        double dt = time - previousTime;
+        // calculate frame delta
+        const double time = glfwGetTime();
+        const double dt = time - previousTime;
         previousTime = time;
 
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
@@ -192,7 +201,7 @@ namespace dm
             // one of our callbacks, so make sure we do not call glfwPollEvents()
             // from within itself
             handlingEvents = true;
-            glfwPollEvents();
+            glfwWaitEvents();
             handlingEvents = false;
 
             if (!glfwWindowShouldClose(window))

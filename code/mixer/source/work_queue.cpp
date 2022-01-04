@@ -137,15 +137,18 @@ namespace dm
 
     work_manager::work_manager()
     {
-        // set the main thread id
-        _terminating[0] = false;
-
-        // init threads, start on 1 because 0 is main thread
-        for(size_t k = 1; k < _worker_count; k++)
+        // init threads
+        for(size_t k = 0; k < _worker_count; k++)
         {
             _terminating[k] = false;
-            // start thread
-            _threads[k] = std::thread(&worker_thread, static_cast<worker_id_t>(k));
+            _enqueue_callbacks[k] = [](worker_flag_t) -> void {};
+
+            // thread 0 is our main/ui thread
+            if (k > 0)
+            {
+                // start thread
+                _threads[k] = std::thread(&worker_thread, static_cast<worker_id_t>(k));
+            }
         }
     }
 
@@ -174,6 +177,14 @@ namespace dm
         return work_manager::_worker_flag;
     }
 
+    void work_manager::register_task_enqueue_callback(size_t workerIndex, task_enqueue_callback_t callback)
+    {
+        SMOL_ASSERT(workerIndex < worker_id::count);
+        SMOL_ASSERT(callback != nullptr);
+
+        _enqueue_callbacks[workerIndex] = callback;
+    }
+
     std::future<void> work_manager::enqueue_impl(size_t workerIndex, run_once_task&& work, timestamp_t startTime)
     {
         _pending_tasks.fetch_add(1, std::memory_order::relaxed);
@@ -184,6 +195,8 @@ namespace dm
         if(std::lock_guard<std::mutex> lock(_queue_mutex[workerIndex]); true)
         {
             _producer_queue[workerIndex].push_back(std::move(task));
+            // run per worker enqueue callback
+            _enqueue_callbacks[workerIndex](current_worker_flag());
         }
 
         auto& cv = _suspend_handle[workerIndex];
@@ -199,6 +212,11 @@ namespace dm
     }
 
     // Worker
+
+    void worker::register_task_enqueue_callback(task_enqueue_callback_t callback) const
+    {
+        g_work_manager_unsafe.register_task_enqueue_callback(_worker_index, callback);
+    }
 
     task_future worker::enqueue(run_once_task&& task) const
     {
